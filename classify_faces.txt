@@ -1,0 +1,9 @@
+docker run -p 9000:9000 -p 8000:8000 -v ~/projects/photo-manager/training_data:/training_data -t -i bamos/openface /bin/bash
+
+cd /root/openface/
+rm /training_data/aligned/cache.t7
+./util/align-dlib.py /training_data/raw align outerEyesAndNose /training_data/aligned --size 96
+./batch-represent/main.lua -outDir /training_data/features -data /training_data/aligned
+./demos/classifier.py train /training_data/features
+
+./demos/classifier.py infer /training_data/features/classifier.pkl /training_data/test/115.JPG
