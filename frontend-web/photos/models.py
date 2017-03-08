@@ -12,6 +12,9 @@ class Camera(UUIDModel, VersionedModel):
     earliest_photo  = models.DateTimeField()
     latest_photo    = models.DateTimeField()
 
+    def __unicode__(self):
+        return '{} {}'.format(self.manufacturer, self.model)
+
 
 class Lens(UUIDModel, VersionedModel):
     manufacturer    = models.CharField(max_length=128)
@@ -36,7 +39,10 @@ class Photo(UUIDModel, VersionedModel):
     shooting_mode       = models.CharField(max_length=32)
     camera              = models.ForeignKey(Camera, related_name='photos', null=True)
     lens                = models.ForeignKey(Lens, related_name='photos', null=True)
-    location            = PointField()
+    location            = PointField(null=True)
+
+    def __unicode__(self):
+        return self.id
 
 
 PHOTO_FILE_TYPE_CHOICES = (
@@ -89,6 +95,9 @@ class Person(UUIDModel, VersionedModel):
 
     class Meta:
         verbose_name_plural = 'people'
+
+    def __unicode__(self):
+        return self.name
 
 
 class Face(UUIDModel, VersionedModel):

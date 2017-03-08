@@ -129,4 +129,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
-PHOTOS_DIR = os.path.normpath(os.path.join(BASE_DIR, '..', '..', 'photos'))
+PHOTO_INPUT_DIRS = [os.path.normpath(os.path.join(BASE_DIR, '..', '..', 'photos_to_import'))]
+PHOTO_OUTPUT_DIRS = [
+    {
+        'EXTENSIONS': ['jpg', 'jpeg', 'mov', 'mp4', 'm4v', '3gp'],
+        'PATH': os.path.normpath(os.path.join(BASE_DIR, '..', 'data', 'photos'))
+    },
+    {
+        'EXTENSIONS': ['cr2'],
+        'PATH': os.path.normpath(os.path.join(BASE_DIR, '..', 'data', 'raw_photos'))
+    },
+]

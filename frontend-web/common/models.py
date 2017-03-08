@@ -20,7 +20,7 @@ class VersionedModel(models.Model):
 
     def save(self, *args, **kwargs):
         now = timezone.now()
-        if not self.created:
-            self.created = now
-        self.updated = now
+        if not self.created_at:
+            self.created_at = now
+        self.updated_at = now
         super(VersionedModel, self).save()
