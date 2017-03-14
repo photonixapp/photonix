@@ -1,3 +1,4 @@
 Django==1.10.6
 Pillow==4.0.0
+psycopg2==2.7
 #rq==0.7.1

@@ -5,7 +5,7 @@ import shutil
 from StringIO import StringIO
 
 from photos.utils.db import record_photo
-from photos.utils.metadata import get_time
+from photos.utils.metadata import get_datetime
 from photos.utils.fs import determine_destination, find_new_file_name, mkdir_p
 
 
@@ -96,7 +96,7 @@ def import_photos_from_dir(orig, move=False):
                 print('FILE VERY SMALL (<100k - PROBABLY THUMBNAIL), NOT IMPORTING {}'.format(filepath))
                 were_bad += 1
             else:
-                t = get_time(filepath)
+                t = get_datetime(filepath)
                 if t:
                     destpath = '%02d/%02d/%02d' % (t.year, t.month, t.day)
                     destpath = os.path.join(dest, destpath)

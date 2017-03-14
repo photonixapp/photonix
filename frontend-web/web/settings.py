@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'common',
     'photos',
+    'world',
 ]
 
 MIDDLEWARE = [
@@ -81,10 +82,17 @@ WSGI_APPLICATION = 'web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.contrib.gis.db.backends.mysql',
+    #     'NAME': 'photo_manager',
+    #     'USER': 'root',
+    #     'PASSWORD': 'password',
+    # }
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.mysql',
-        'NAME': 'photo_manager',
-        'USER': 'root',
+        'ENGINE':   'django.contrib.gis.db.backends.postgis',
+        'HOST':     '127.0.0.1',
+        'NAME':     'photo-manager',
+        'USER':     'postgres',
         'PASSWORD': 'password',
     }
 }

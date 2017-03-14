@@ -1,0 +1,11 @@
+version: "2"
+
+services:
+  postgres:
+    container_name: pm-postgres
+    image: mdillon/postgis
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: photo-manager
