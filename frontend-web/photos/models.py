@@ -31,23 +31,26 @@ class Lens(UUIDModel, VersionedModel):
 
 
 class Photo(UUIDModel, VersionedModel):
-    taken_at                        = models.DateTimeField(null=True)
-    taken_by                        = models.CharField(max_length=128, blank=True)
-    aperture                        = models.DecimalField(max_digits=3, decimal_places=1, null=True)
-    exposure                        = models.CharField(max_length=8, blank=True)
-    iso_speed                       = models.PositiveIntegerField(null=True)
-    focal_length                    = models.DecimalField(max_digits=4, decimal_places=1, null=True)
-    flash                           = models.NullBooleanField()
-    metering_mode                   = models.CharField(max_length=32)
-    drive_mode                      = models.CharField(max_length=32)
-    shooting_mode                   = models.CharField(max_length=32)
-    camera                          = models.ForeignKey(Camera, related_name='photos', null=True)
-    lens                            = models.ForeignKey(Lens, related_name='photos', null=True)
-    location                        = PointField(null=True)
-    altitude                        = models.DecimalField(max_digits=6, decimal_places=1, null=True)
-    last_auto_tagged_location_at    = models.DateTimeField(null=True)
-    last_auto_tagged_feature_at     = models.DateTimeField(null=True)
-    last_auto_tagged_person_at      = models.DateTimeField(null=True)
+    taken_at                            = models.DateTimeField(null=True)
+    taken_by                            = models.CharField(max_length=128, blank=True)
+    aperture                            = models.DecimalField(max_digits=3, decimal_places=1, null=True)
+    exposure                            = models.CharField(max_length=8, blank=True)
+    iso_speed                           = models.PositiveIntegerField(null=True)
+    focal_length                        = models.DecimalField(max_digits=4, decimal_places=1, null=True)
+    flash                               = models.NullBooleanField()
+    metering_mode                       = models.CharField(max_length=32)
+    drive_mode                          = models.CharField(max_length=32)
+    shooting_mode                       = models.CharField(max_length=32)
+    camera                              = models.ForeignKey(Camera, related_name='photos', null=True)
+    lens                                = models.ForeignKey(Lens, related_name='photos', null=True)
+    location                            = PointField(null=True)
+    altitude                            = models.DecimalField(max_digits=6, decimal_places=1, null=True)
+    last_auto_tagged_locations_version  = models.PositiveSmallIntegerField(null=True)
+    last_auto_tagged_locations_at       = models.DateTimeField(null=True)
+    last_auto_tagged_features_version   = models.PositiveSmallIntegerField(null=True)
+    last_auto_tagged_features_at        = models.DateTimeField(null=True)
+    last_auto_tagged_people_version     = models.PositiveSmallIntegerField(null=True)
+    last_auto_tagged_people_at          = models.DateTimeField(null=True)
 
     def __unicode__(self):
         return str(self.id)
@@ -57,26 +60,19 @@ class Photo(UUIDModel, VersionedModel):
         return country_from_point_field(self.location)
 
 
-PHOTO_FILE_TYPE_CHOICES = (
-    ('J', 'JPEG'),
-    ('R', 'Raw'),
-    ('P', 'PNG'),
-    ('T', 'TIFF'),
-)
-
-
 class PhotoFile(UUIDModel, VersionedModel):
     photo               = models.ForeignKey(Photo, related_name='files')
     path                = models.CharField(max_length=512)
     width               = models.PositiveSmallIntegerField()
     height              = models.PositiveSmallIntegerField()
-    type                = models.CharField(max_length=1, choices=PHOTO_FILE_TYPE_CHOICES)
+    mimetype            = models.CharField(max_length=32, blank=True)
     file_modified_at    = models.DateTimeField()
     bytes               = models.PositiveIntegerField()
     preferred           = models.BooleanField(default=False)
 
     def __unicode__(self):
         return str(self.path)
+
 
 SOURCE_CHOICES = (
     ('H', 'Human'),

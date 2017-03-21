@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from models import Camera, Lens, Photo, PhotoFile, Face, Tag, PhotoTag
+from .models import Camera, Lens, Photo, PhotoFile, Face, Tag, PhotoTag
 
 
 class CameraAdmin(admin.ModelAdmin):

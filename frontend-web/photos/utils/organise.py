@@ -128,6 +128,7 @@ def import_photos_from_dir(orig, move=False):
                             exit(1)
                             destpath = find_new_file_name(destpath)
                             shutil.move(filepath, destpath)
+                            record_photo(destpath)
                             imported += 1
                             print 'IMPORTED  {} -> {}'.format(filepath, destpath)
 
