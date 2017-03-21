@@ -1,0 +1,18 @@
+initial_config = {
+    'version':                      0,
+    'photo_dirs':                   [],
+    'photos_importing':             False,
+    'photos_importing_pid':         None,
+    'photos_importing_progress':    0.0,
+    'photo_dirs_watching':          False,
+    'photo_dirs_watching_pid':      None,
+    'photo_dirs_scanning':          False,
+    'photo_dirs_scanning_pid':      None,
+    'photo_dirs_scanning_progress': 0.0,
+    'world_loading':                False,
+    'world_loading_pid':            None,
+    'world_loading_progress':       0.0,
+    'cities_loading':               False,
+    'cities_loading_pid':           None,
+    'cities_loading_progress':      0.0,
+}
