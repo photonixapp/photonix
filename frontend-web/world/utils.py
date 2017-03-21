@@ -1,4 +1,4 @@
-from models import WorldBorder
+from .models import WorldBorder
 
 
 def country_from_point_field(point_field):
