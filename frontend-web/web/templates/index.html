@@ -1,0 +1,17 @@
+{% load staticfiles %}<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Photo Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  </head>
+  <body>
+    <section id="root">
+      <h1>Photo Manager</h1>
+      <p>Photo dirs scanning: <span id="photo-dirs-scanning"></span></p>
+      <button id="rescan-photos">Scan for photos</button>
+    </section>
+    <script src="{% static "channels/js/websocketbridge.js" %}"></script>
+    <script src="/static/js/main.js"></script>
+  </body>
+</html>

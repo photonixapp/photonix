@@ -3,9 +3,15 @@ version: "2"
 services:
   postgres:
     container_name: pm-postgres
-    image: mdillon/postgis
+    image: mdillon/postgis:9.6
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: photo-manager
+
+  redis:
+    container_name: pm-redis
+    image: redis:3.2.8
+    ports:
+      - "6379:6379"
