@@ -9,6 +9,7 @@ initial_config = {
     'photo_dirs_scanning':          False,
     'photo_dirs_scanning_pid':      None,
     'photo_dirs_scanning_progress': 0.0,
+    'cache_dir':                    '/tmp/photo-manager',
     'world_loading':                False,
     'world_loading_pid':            None,
     'world_loading_progress':       0.0,

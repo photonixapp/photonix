@@ -1,0 +1,18 @@
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background: #222;
+  color: #ddd;
+  font-family: sans-serif;
+  margin: 0;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
