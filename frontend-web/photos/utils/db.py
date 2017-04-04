@@ -1,11 +1,25 @@
+from datetime import datetime
 from decimal import Decimal
+import mimetypes
 import os
+
+from django.utils.timezone import UTC
 
 from photos.models import Camera, Lens, Photo, PhotoFile
 from photos.utils.metadata import PhotoMetadata, parse_datetime, get_datetime, parse_gps_location
 
 
 def record_photo(path):
+    file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=UTC())
+
+    try:
+        photo_file = PhotoFile.objects.get(path=path)
+    except PhotoFile.DoesNotExist:
+        photo_file = PhotoFile()
+
+    if photo_file and photo_file.file_modified_at == file_modified_at:
+        return False
+
     metadata = PhotoMetadata(path)
 
     camera_make = metadata.get('Make')
@@ -46,7 +60,7 @@ def record_photo(path):
     except Photo.DoesNotExist:
         photo = Photo(
             taken_at=get_datetime(path),
-            taken_by=metadata.get('Artist'),
+            taken_by=metadata.get('Artist') or '',
             aperture=Decimal(metadata.get('Aperture')),
             exposure=metadata.get('Exposure Time'),
             iso_speed=int(metadata.get('ISO')),
@@ -62,14 +76,14 @@ def record_photo(path):
         )
         photo.save()
 
-    photo_file = PhotoFile(
-        photo=photo,
-        path=path,
-        width=metadata.get('Image Width'),
-        height=metadata.get('Image Height'),
-        type='J',  # TODO
-        file_modified_at=parse_datetime(metadata.get('Modify Date')),
-        bytes=os.stat(path).st_size,
-        preferred=False  # TODO
-    )
+    photo_file.photo            = photo
+    photo_file.path             = path
+    photo_file.width            = metadata.get('Image Width')
+    photo_file.height           = metadata.get('Image Height')
+    photo_file.mimetype         = mimetypes.guess_type(path)[0]
+    photo_file.file_modified_at = file_modified_at
+    photo_file.bytes            = os.stat(path).st_size
+    photo_file.preferred        = False  # TODO
     photo_file.save()
+
+    return True

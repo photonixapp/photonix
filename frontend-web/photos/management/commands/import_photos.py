@@ -5,7 +5,7 @@ from photos.utils.system import missing_system_dependencies
 
 
 class Command(BaseCommand):
-    help = 'Copies all photos from one directory into structured data folder hierchy and creates relevand database records'
+    help = 'Copies all photos from one directory into structured data folder hierchy and creates relevant database records'
 
     def add_arguments(self, parser):
         parser.add_argument('paths', nargs='+')

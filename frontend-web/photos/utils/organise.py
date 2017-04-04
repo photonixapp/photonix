@@ -2,7 +2,7 @@ from hashlib import md5
 import os
 from PIL import Image
 import shutil
-from StringIO import StringIO
+from io import StringIO
 
 from photos.utils.db import record_photo
 from photos.utils.metadata import get_datetime
@@ -130,7 +130,7 @@ def import_photos_from_dir(orig, move=False):
                             shutil.move(filepath, destpath)
                             record_photo(destpath)
                             imported += 1
-                            print 'IMPORTED  {} -> {}'.format(filepath, destpath)
+                            # print 'IMPORTED  {} -> {}'.format(filepath, destpath)
 
                 else:
                     print('ERROR READING DATE: {}'.format(filepath))
@@ -138,3 +138,23 @@ def import_photos_from_dir(orig, move=False):
 
     if imported or were_duplicates:
         print('\n{} PHOTOS IMPORTED\n{} WERE DUPLICATES\n{} WERE BAD'.format(imported, were_duplicates, were_bad))
+
+
+def import_photos_in_place(orig):
+    imported = 0
+    were_bad = 0
+
+    for r, d, f in os.walk(orig):
+        for fn in sorted(f):
+            filepath = os.path.join(r, fn)
+            if os.path.getsize(filepath) < 102400:
+                print('FILE VERY SMALL (<100k - PROBABLY THUMBNAIL), NOT IMPORTING {}'.format(filepath))
+                were_bad += 1
+            else:
+                modified = record_photo(filepath)
+                if modified:
+                    imported += 1
+                    print('IMPORTED  {}'.format(filepath))
+
+    if imported:
+        print('\n{} PHOTOS IMPORTED\n{} WERE BAD'.format(imported, were_bad))

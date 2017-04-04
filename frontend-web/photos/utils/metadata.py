@@ -11,8 +11,8 @@ class PhotoMetadata(object):
     data = {}
 
     def __init__(self, path):
-        result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0]
-        for line in result.split('\n'):
+        result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
+        for line in str(result).split('\n'):
             if line:
                 k, v = line.split(':', 1)
                 self.data[k.strip()] = v.strip()
@@ -51,7 +51,7 @@ def get_datetime(path):
     # TODO: Use PhotoMetadata class
     # TODO: Use 'GPS Date/Time' if available as it's more accurate
     try:
-        result = Popen(['exiftool', '-dateTimeOriginal', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0]
+        result = Popen(['exiftool', '-dateTimeOriginal', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
         date_str = result.split(' : ')[1].strip()
         return parse_datetime(date_str)
     except (IndexError, ValueError):

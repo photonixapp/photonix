@@ -14,7 +14,7 @@ class Camera(UUIDModel, VersionedModel):
     earliest_photo  = models.DateTimeField()
     latest_photo    = models.DateTimeField()
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} {}'.format(self.make, self.model)
 
 
@@ -26,7 +26,7 @@ class Lens(UUIDModel, VersionedModel):
     class Meta:
         verbose_name_plural = 'lenses'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -52,7 +52,7 @@ class Photo(UUIDModel, VersionedModel):
     last_auto_tagged_people_version     = models.PositiveSmallIntegerField(null=True)
     last_auto_tagged_people_at          = models.DateTimeField(null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.id)
 
     @property
@@ -70,7 +70,7 @@ class PhotoFile(UUIDModel, VersionedModel):
     bytes               = models.PositiveIntegerField()
     preferred           = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.path)
 
 
