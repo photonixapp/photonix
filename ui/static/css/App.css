@@ -1,15 +1,19 @@
 header {
-  background: #333;
-  padding: 10px 20px;
+  background: #292929;
 }
 footer {
-  background: #333;
+  background: #292929;
   padding: 5px 20px;
 }
 
-.flex-container {
+.flex-container-column {
   display: flex;
   flex-direction: column;
+  height: 100%;
+}
+.flex-container-row {
+  display: flex;
+  flex-direction: row;
   height: 100%;
 }
 .main {
@@ -20,23 +24,40 @@ footer {
   text-align: center;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+.logo {
+  width: 200px;
+  height: 75px;
+  display: inline-block;
+}
+.tabs {
+  display: inline-block;
+  margin: 0;
+}
+.tabs li {
+  display: inline-block;
+  list-style: none;
+  padding: 10px 20px;
+  background: #1d1d1d;
+  margin-right: 10px;
+}
+.tabs li a {
+  color: #ddd;
+  text-decoration: none;
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+#filters {
+  width: 250px;
+  height: 100%;
+  background: #222222;
+  padding: 10px 20px;
+}
+#filters h2 {
+  font-size: 18px;
+  color: #555;
 }
 
-.App-intro {
-  font-size: large;
-}
-
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+#content {
+  width: 100%;
+  padding: 20px 0 0 20px;
+  overflow-y: scroll;
 }

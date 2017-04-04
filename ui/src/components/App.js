@@ -2,51 +2,12 @@ import React, { Component } from 'react'
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import '../../static/css/App.css'
 import FooterContainer from '../containers/FooterContainer'
+import Tags from './Tags'
+import TimelineContainer from '../containers/TimelineContainer'
 
-const App = () => (
-  <Router>
-    <div className="flex-container">
-      <header>
-        <h1>Photo Manager</h1>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/about">About</Link></li>
-          <li><Link to="/topics">Topics</Link></li>
-        </ul>
-      </header>
-      <div className="main">
-        <section id="filters">
-          <h2>Filters</h2>
-          <Route exact path="/" component={Home}/>
-          <Route path="/about" component={About}/>
-          <Route path="/topics" component={Topics}/>
-        </section>
-      </div>
-      <FooterContainer />
-    </div>
-  </Router>
-)
-
-const Home = () => (
+const Map = ({ match }) => (
   <div>
-    <h2>Home</h2>
-  </div>
-)
-
-const About = () => (
-  <div className="App">
-    <div className="App-header">
-      <h2>Welcome to React</h2>
-    </div>
-    <p className="App-intro">
-      To get started, edit <code>src/App.js</code> and save to reload.
-    </p>
-  </div>
-)
-
-const Topics = ({ match }) => (
-  <div>
-    <h2>Topics</h2>
+    <h2>Map</h2>
     <ul>
       <li>
         <Link to={`${match.url}/rendering`}>
@@ -76,6 +37,34 @@ const Topic = ({ match }) => (
   <div>
     <h3>{match.params.topicId}</h3>
   </div>
+)
+
+const App = () => (
+  <Router>
+    <div className="flex-container-column">
+      <header>
+        <div className="logo"></div>
+        <ul className="tabs">
+          <li><Link to="/">Timeline</Link></li>
+          <li><Link to="/map">Map</Link></li>
+        </ul>
+      </header>
+      <div className="main flex-container-row">
+        <section id="filters">
+          <h2>Date range</h2>
+          <h2>Tags</h2>
+          <Tags />
+          <h2>People</h2>
+          <h2>Cameras</h2>
+        </section>
+        <section id="content">
+          <Route exact path="/" component={TimelineContainer}/>
+          <Route path="/map" component={Map}/>
+        </section>
+      </div>
+      <FooterContainer />
+    </div>
+  </Router>
 )
 
 export default App

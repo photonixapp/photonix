@@ -3,9 +3,16 @@ import { runCommand } from '../websockets'
 import Footer from '../components/Footer'
 
 const mapStateToProps = (state) => {
+  let config = state.footer.config
+  let backgroundRunning = false
+  if (config && config.photo_dirs_scanning) {
+    backgroundRunning = true
+  }
+
   return {
-    config: state.footer.config,
+    config: config,
     progress: state.footer.progress,
+    backgroundRunning: backgroundRunning,
   }
 }
 

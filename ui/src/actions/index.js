@@ -6,3 +6,10 @@ export const updateConfig = (config) => {
     config: config,
   }
 }
+
+export const updateTimeline = (photos) => {
+  return {
+    type: 'UPDATE_TIMELINE',
+    photos: photos,
+  }
+}

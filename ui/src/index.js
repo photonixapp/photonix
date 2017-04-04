@@ -5,30 +5,17 @@ import { createStore } from 'redux'
 import App from './components/App'
 import photoApp from './reducers'
 import '../static/css/index.css'
-import { getWebsocket, websocketConnect, getConfig, updateConfig } from './actions'
-import { getWebsocketBridge, runCommand } from './websockets'
+import { initWebsocketListener } from './websockets'
+
 
 let store = createStore(photoApp)
 
-
-const webSocketBridge = getWebsocketBridge()
-
-
-webSocketBridge.listen(function(action, stream) {
-  console.log(action, stream)
-  if (action.config) {
-    store.dispatch(updateConfig(action.config))
-  }
-})
-
-webSocketBridge._socket.onopen = function() {
-  webSocketBridge.send({command: 'get_config'})
-}
+initWebsocketListener(store)
 
 
 ReactDOM.render(
   <Provider store={store}>
-    <App websocket={webSocketBridge} />
+    <App />
   </Provider>,
   document.getElementById('root')
 )

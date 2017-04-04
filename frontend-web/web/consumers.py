@@ -3,6 +3,7 @@ import json
 from channels import Channel, Group
 
 from config.manager import Config
+from photos.models import Photo
 
 
 def ws_message(message):
@@ -19,6 +20,24 @@ def ws_message(message):
             })
         elif data['command'] == 'rescan_photos':
             Channel('rescan-photos').send({})
+        elif data['command'] == 'get_photos':
+            photos = []
+            for photo in Photo.objects.all().order_by('-taken_at'):
+                thumbnail = photo.files.filter(mimetype='image/jpeg')
+                if thumbnail:
+                    thumbnail = thumbnail[0].path
+                else:
+                    thumbnail = None
+
+                photos.append({
+                    'id': str(photo.id),
+                    'thumbnail': thumbnail,
+                })
+            message.reply_channel.send({
+                'text': json.dumps({
+                    'photos': photos,
+                })
+            })
 
 
 def ws_connect(message):

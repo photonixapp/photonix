@@ -1,9 +1,11 @@
 import { combineReducers } from 'redux'
-import footer from './footer'
 import app from './app'
+import timeline from './timeline'
+import footer from './footer'
 
 const photoApp = combineReducers({
   app,
+  timeline,
   footer,
 })
 
