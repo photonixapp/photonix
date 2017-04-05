@@ -1,5 +1,7 @@
 asgi-redis==1.1.0
+asgiref==1.0.1
 channels==1.1.1
+daphne==1.1.0
 Django==1.10.6
 inotify==0.2.8
 Pillow==4.0.0

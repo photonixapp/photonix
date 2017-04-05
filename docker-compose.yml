@@ -15,3 +15,17 @@ services:
     image: redis:3.2.8
     ports:
       - "6379:6379"
+
+  photomanager:
+    container_name: photomanager
+    build: .
+    ports:
+     - "8888:80"
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+    volumes:
+     - .:/srv
+    links:
+     - postgres
+     - redis

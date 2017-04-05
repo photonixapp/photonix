@@ -89,7 +89,7 @@ DATABASES = {
     # }
     'default': {
         'ENGINE':   'django.contrib.gis.db.backends.postgis',
-        'HOST':     '127.0.0.1',
+        'HOST':     os.environ.get('POSTGRES_HOST', '127.0.0.1'),
         'NAME':     'photo-manager',
         'USER':     'postgres',
         'PASSWORD': 'password',
@@ -141,7 +141,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'asgi_redis.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('localhost', 6379)],
+            'hosts': [(os.environ.get('REDIS_HOST', '127.0.0.1'), 6379)],
         },
         'ROUTING': 'web.routing.channel_routing',
     },
