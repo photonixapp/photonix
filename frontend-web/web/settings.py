@@ -152,10 +152,10 @@ PHOTO_INPUT_DIRS = [os.path.normpath(os.path.join(BASE_DIR, '..', '..', 'photos_
 PHOTO_OUTPUT_DIRS = [
     {
         'EXTENSIONS': ['jpg', 'jpeg', 'mov', 'mp4', 'm4v', '3gp'],
-        'PATH': os.path.normpath(os.path.join(BASE_DIR, '..', 'data', 'photos'))
+        'PATH': '/photos',
     },
     {
         'EXTENSIONS': ['cr2'],
-        'PATH': os.path.normpath(os.path.join(BASE_DIR, '..', 'data', 'raw_photos'))
+        'PATH': os.path.normpath(os.path.join(BASE_DIR, '..', 'data', 'raw_photos')),
     },
 ]

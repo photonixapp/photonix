@@ -14,13 +14,15 @@ class Command(BaseCommand):
 
     def watch_photos(self, paths):
         for path in paths:
+            print(path)
             # TODO: Work out how to watch multiple paths at once
             i = inotify.adapters.InotifyTree(path.encode('utf-8'))
 
             for event in i.event_gen():
                 if event is not None:
                     (header, type_names, watch_path, filename) = event
-                    if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_FROM', 'IN_MOVED_TO']):
+                    # if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_FROM', 'IN_MOVED_TO']):  # TODO: Make moving photos really efficient by using the 'from' path
+                    if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_TO']):
                         photo_path = '{}/{}'.format(watch_path.decode('utf-8'), filename.decode('utf-8'))
                         record_photo(photo_path)
                         print(photo_path)

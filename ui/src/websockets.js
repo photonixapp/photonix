@@ -17,10 +17,11 @@ export const initWebsocketListener = (store) => {
     }
   })
 
-  webSocketBridge._socket.onopen = function() {
+  webSocketBridge.socket.onopen = function() {
     webSocketBridge.send({command: 'get_config'})
     webSocketBridge.send({command: 'get_photos'})
   }
+
 }
 
 
