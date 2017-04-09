@@ -1,3 +1,5 @@
+from time import sleep
+from channels import Group
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -22,6 +24,12 @@ class Command(BaseCommand):
             import_photos_in_place(path)
 
     def handle(self, *args, **options):
-        notify('photo_dirs_scanning', True)
-        self.rescan_photos(options['paths'])
-        notify('photo_dirs_scanning', False)
+        while True:
+            notify('photo_dirs_scanning', True)
+
+            self.rescan_photos(options['paths'])
+            sleep(1)
+
+            notify('photo_dirs_scanning', False)
+
+            sleep(60 * 60)  # Sleep for an hour

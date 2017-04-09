@@ -7,7 +7,7 @@ const Timeline = ({ photos, onPhotoClick }) => (
     <ul className="thumbnails">
       {photos.map(photo =>
         <li className="thumbnail" key={photo.id} onClick={() => onPhotoClick(photo.id)}>
-          {photo.thumbnail}
+          <div className="image" style={{backgroundImage: 'url(' + photo.thumbnail + ')'}} />
         </li>
       )}
     </ul>

@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 
 from photos.utils.organise import import_photos_from_dir
 from photos.utils.system import missing_system_dependencies
+from web.utils import notify
 
 
 class Command(BaseCommand):
@@ -20,4 +21,6 @@ class Command(BaseCommand):
             import_photos_from_dir(path)
 
     def handle(self, *args, **options):
+        notify('photo_dirs_scanning', True)
         self.import_photos(options['paths'])
+        notify('photo_dirs_scanning', False)

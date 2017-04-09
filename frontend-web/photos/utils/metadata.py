@@ -22,6 +22,8 @@ class PhotoMetadata(object):
 
 
 def parse_datetime(date_str):
+    if not date_str:
+        return None
     if '.' in date_str:
         date_str = date_str.split('.', 1)[0]
     return datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S').replace(tzinfo=utc)
