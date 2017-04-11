@@ -1,24 +1,29 @@
 import json
 from time import sleep
+
 from channels import Group
+from django.conf import settings
+
+from photos.models import Photo
+from photos.utils.organise import import_photos_in_place
+from photos.utils.thumbnails import generate_thumbnail
+from web.utils import notify
 
 
 def rescan_photos(message):
-    Group('ui').send({
-        'text': json.dumps({
-            'config': {
-                'photo_dirs_scanning': True,
-            }
-        })
-    }, immediately=True)
+    notify('photo_dirs_scanning', True)
 
-    # TODO: Do the real work here
-    sleep(3)
+    paths = [item['PATH'] for item in settings.PHOTO_OUTPUT_DIRS]
+    for path in paths:
+        import_photos_in_place(path)
 
-    Group('ui').send({
-        'text': json.dumps({
-            'config': {
-                'photo_dirs_scanning': False,
-            }
-        })
-    })
+    notify('photo_dirs_scanning', False)
+
+
+def generate_thumbnails_for_photo(message):
+    if message:
+        data = json.loads(message['text'])
+        print(data)
+        if data['id']:
+            photo = Photo.objects.get(id=data['id'])
+            generate_thumbnail(photo)

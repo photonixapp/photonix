@@ -6,4 +6,3 @@ Django==1.10.6
 inotify==0.2.8
 Pillow==4.0.0
 psycopg2==2.7
-#rq==0.7.1

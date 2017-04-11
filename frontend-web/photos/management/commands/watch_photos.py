@@ -1,6 +1,7 @@
 import inotify.adapters
-from time import sleep
+import json
 
+from channels import Channel
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -27,10 +28,9 @@ class Command(BaseCommand):
                     if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_TO']):
                         notify('photo_dirs_scanning', True)
                         photo_path = '{}/{}'.format(watch_path.decode('utf-8'), filename.decode('utf-8'))
-                        record_photo(photo_path)
-                        sleep(1)
+                        photo = record_photo(photo_path)
                         notify('photo_dirs_scanning', False)
-                        print(photo_path)
+                        Channel('generate-thumbnails-for-photo').send({'text': json.dumps({'id': str(photo.id)})})
 
     def handle(self, *args, **options):
         self.watch_photos(options['paths'])

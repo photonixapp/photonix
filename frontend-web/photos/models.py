@@ -59,6 +59,10 @@ class Photo(UUIDModel, VersionedModel):
     def country(self):
         return country_from_point_field(self.location)
 
+    @property
+    def thumbnail_url(self):
+        return '/thumbnails/{}.jpg'.format(self.id)
+
 
 class PhotoFile(UUIDModel, VersionedModel):
     photo               = models.ForeignKey(Photo, related_name='files')

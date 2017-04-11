@@ -89,4 +89,4 @@ def record_photo(path):
     photo_file.preferred        = False  # TODO
     photo_file.save()
 
-    return True
+    return photo

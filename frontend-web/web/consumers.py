@@ -18,20 +18,16 @@ def ws_message(message):
                     'config': Config().get_all()
                 })
             })
+
         elif data['command'] == 'rescan_photos':
             Channel('rescan-photos').send({})
+
         elif data['command'] == 'get_photos':
             photos = []
             for photo in Photo.objects.all().order_by('-taken_at'):
-                thumbnail = photo.files.filter(mimetype='image/jpeg')
-                if thumbnail:
-                    thumbnail = thumbnail[0].path
-                else:
-                    thumbnail = None
-
                 photos.append({
                     'id': str(photo.id),
-                    'thumbnail': thumbnail,
+                    'thumbnail': photo.thumbnail_url,
                 })
             message.reply_channel.send({
                 'text': json.dumps({

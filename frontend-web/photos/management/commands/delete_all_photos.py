@@ -14,9 +14,15 @@ class Command(BaseCommand):
         PhotoFile.objects.all().delete()
         Camera.objects.all().delete()
 
+        shutil.rmtree(settings.THUMBNAIL_ROOT)
+        os.makedirs(settings.THUMBNAIL_ROOT)
+
         for section in settings.PHOTO_OUTPUT_DIRS:
-            shutil.rmtree(section['PATH'])
-            os.makedirs(section['PATH'])
+            try:
+                shutil.rmtree(section['PATH'])
+                os.makedirs(section['PATH'])
+            except OSError:
+                pass
 
     def handle(self, *args, **options):
         self.delete_all_photos()

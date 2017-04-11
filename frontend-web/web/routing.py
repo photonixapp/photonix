@@ -8,4 +8,5 @@ channel_routing = [
     route('websocket.receive', ws_message),
     route('websocket.disconnect', ws_disconnect),
     route('rescan-photos', 'photos.consumers.rescan_photos'),
+    route('generate-thumbnails-for-photo', 'photos.consumers.generate_thumbnails_for_photo'),
 ]

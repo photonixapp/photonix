@@ -136,6 +136,10 @@ USE_TZ = True
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
+MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'data')
+
+THUMBNAIL_ROOT = '/cache/thumbnails'
+
 
 CHANNEL_LAYERS = {
     'default': {
