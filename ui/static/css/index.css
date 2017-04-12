@@ -13,6 +13,10 @@ body {
   height: 100%;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 #root {
   height: 100%;
 }

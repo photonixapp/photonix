@@ -30,7 +30,8 @@ class Command(BaseCommand):
                         photo_path = '{}/{}'.format(watch_path.decode('utf-8'), filename.decode('utf-8'))
                         photo = record_photo(photo_path)
                         notify('photo_dirs_scanning', False)
-                        Channel('generate-thumbnails-for-photo').send({'text': json.dumps({'id': str(photo.id)})})
+                        if photo:
+                            Channel('generate-thumbnails-for-photo').send({'text': json.dumps({'id': str(photo.id)})})
 
     def handle(self, *args, **options):
         self.watch_photos(options['paths'])
