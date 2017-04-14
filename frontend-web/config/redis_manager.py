@@ -6,6 +6,7 @@ from .initial import initial_data
 from web.utils import notify_ui
 
 
+SESSION_EXPIRE_TIME = 60 * 60 * 24  # 1 day
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
 
 
@@ -19,40 +20,42 @@ class RedisManager(object):
 
     def __init__(self):
         self._redis_prefix = 'photomanager:{}:'.format(self._type)
-        self.set_initial()
         super().__init__()
 
-    def _redis_key(self, key):
-        return '{}:{}'.format(self._redis_prefix, key)
+    def _redis_key(self, key, channel_name=None):
+        if channel_name:
+            return '{}:{}:{}'.format(self._redis_prefix, channel_name, key)
+        else:
+            return '{}:{}'.format(self._redis_prefix, key)
 
-    def set_initial(self):
-        for key, val in initial_data[self._type].items():
-            r.set(self._redis_key(key), val)
-
-    def get(self, key):
+    def get(self, key, channel_name=None):
         if key not in initial_data[self._type]:
             raise KeyError('Key \'{}\' not in \'{}\''.format(key, self._type))
-        val = r.get(self._redis_key(key))
+        val = r.get(self._redis_key(key, channel_name))
         return val
 
-    def set(self, key, val):
+    def set(self, key, val, channel_name=None):
         if key not in initial_data[self._type]:
             raise KeyError('Key \'{}\' not in \'{}\''.format(key, self._type))
-        r.set(self._redis_key(key), val)
-        notify_ui(self._type, {key: val})
+        if channel_name:
+            r.set(self._redis_key(key, channel_name), val, ex=SESSION_EXPIRE_TIME)
+            notify_ui(self._type, {key: val}, channel_name)
+        else:
+            r.set(self._redis_key(key, channel_name), val)
+            notify_ui(self._type, {key: val})
         return True
 
-    def increment(self, key):
+    def increment(self, key, channel_name=None):
         if key not in initial_data[self._type]:
             raise KeyError('Key \'{}\' not in \'{}\''.format(key, self._type))
-        val = r.incr(self._redis_key(key))
+        val = r.incr(self._redis_key(key, channel_name))
         notify_ui(self._type, {key: val})
         return val
 
-    def decrement(self, key):
+    def decrement(self, key, channel_name=None):
         if key not in initial_data[self._type]:
             raise KeyError('Key \'{}\' not in \'{}\''.format(key, self._type))
-        val = r.decr(self._redis_key(key))
+        val = r.decr(self._redis_key(key, channel_name))
         notify_ui(self._type, {key: val})
         return val
 
@@ -62,10 +65,10 @@ class RedisManager(object):
     def pop(self, key):
         raise NotImplementedError()
 
-    def get_all(self):
+    def get_all(self, channel_name=None):
         data = {}
         for key in initial_data[self._type].keys():
-            data[key] = r.get(self._redis_key(key))
+            data[key] = r.get(self._redis_key(key, channel_name))
         return data
 
     def delete_obsolete(self):

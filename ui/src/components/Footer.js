@@ -2,12 +2,12 @@ import React, { PropTypes } from 'react'
 import Spinner from './Spinner'
 import '../../static/css/Footer.css'
 
-const Footer = ({ config, progress, backgroundRunning, onFooterClick }) => (
+const Footer = ({ status, jobsRunning, onFooterClick }) => (
   <footer className="Footer">
     <p>
-      <button onClick={() => onFooterClick()}>Button</button>&nbsp;
-      photo_dirs_scanning: {config ? config.photo_dirs_scanning.toString() : 'null'}
-      <Spinner active={backgroundRunning} />
+      {/* <button onClick={() => onFooterClick()}>Button</button>&nbsp; */}
+      {status}
+      <Spinner active={jobsRunning} />
     </p>
   </footer>
 )

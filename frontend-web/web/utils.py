@@ -1,12 +1,17 @@
 import json
 
-from channels import Group
+from channels import Channel, Group
 
 
-def notify_ui(type, data):
-    Group('ui').send({
+def notify_ui(type, data, channel_name=None):
+    content = {
         'text': json.dumps({
-            type: json.dumps(data)
+            type: data
             # TODO: Include timestamp/counter to prevent out of order transmission causing state inconsistencies
         })
-    }, immediately=True)
+    }
+
+    if channel_name:
+        Channel(channel_name).send(content, immediately=True)
+    else:
+        Group('ui').send(content, immediately=True)

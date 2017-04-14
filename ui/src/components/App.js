@@ -1,9 +1,17 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import '../../static/css/App.css'
 import FooterContainer from '../containers/FooterContainer'
 import Tags from './Tags'
 import TimelineContainer from '../containers/TimelineContainer'
+import PhotoDetailContainer from '../containers/PhotoDetailContainer'
+
+
+const Topic = ({ match }) => (
+  <div>
+    <h3>{match.params.topicId}</h3>
+  </div>
+)
 
 const Map = ({ match }) => (
   <div>
@@ -33,12 +41,6 @@ const Map = ({ match }) => (
   </div>
 )
 
-const Topic = ({ match }) => (
-  <div>
-    <h3>{match.params.topicId}</h3>
-  </div>
-)
-
 const App = () => (
   <Router>
     <div className="flex-container-column">
@@ -60,6 +62,7 @@ const App = () => (
         <section id="content">
           <Route exact path="/" component={TimelineContainer}/>
           <Route path="/map" component={Map}/>
+          <Route path="/photo/:photoId" component={PhotoDetailContainer}/>
         </section>
       </div>
       <FooterContainer />

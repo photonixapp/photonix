@@ -4,6 +4,7 @@ from PIL import Image
 import shutil
 from io import StringIO
 
+from config.managers import global_state
 from photos.utils.db import record_photo
 from photos.utils.metadata import get_datetime
 from photos.utils.fs import determine_destination, find_new_file_name, mkdir_p
@@ -141,6 +142,8 @@ def import_photos_from_dir(orig, move=False):
 
 
 def import_photos_in_place(orig):
+    global_state.increment('photo_import_tasks_running')
+
     imported = 0
     were_bad = 0
 
@@ -158,3 +161,5 @@ def import_photos_in_place(orig):
 
     if imported:
         print('\n{} PHOTOS IMPORTED\n{} WERE BAD'.format(imported, were_bad))
+
+    global_state.decrement('photo_import_tasks_running')

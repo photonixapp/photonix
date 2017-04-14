@@ -3,16 +3,24 @@ import { runCommand } from '../websockets'
 import Footer from '../components/Footer'
 
 const mapStateToProps = (state) => {
-  let config = state.footer.config
-  let backgroundRunning = false
-  if (config && config.photo_dirs_scanning) {
-    backgroundRunning = true
+  let globalState = state.config.globalState
+  let jobsRunning = false
+  if (globalState && globalState.photo_dirs_scanning) {
+    jobsRunning = true
+  }
+  let status = ''
+  if (globalState && globalState.photo_import_tasks_running) {
+    status += 'photo_import_tasks_running:' + globalState.photo_import_tasks_running + ' '
+    jobsRunning = true
+  }
+  if (globalState && globalState.photo_thumbnailer_tasks_running) {
+    status += 'photo_thumbnailer_tasks_running:' + globalState.photo_thumbnailer_tasks_running + ' '
+    jobsRunning = true
   }
 
   return {
-    config: config,
-    progress: state.footer.progress,
-    backgroundRunning: backgroundRunning,
+    status: status,
+    jobsRunning: jobsRunning,
   }
 }
 

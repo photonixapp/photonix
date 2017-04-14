@@ -2,7 +2,7 @@ import json
 
 from channels import Channel, Group
 
-from config.managers import GlobalSettings, UserSettings, GlobalState
+from config.managers import global_settings, user_settings, global_state, session_state
 from photos.models import Photo
 
 
@@ -16,43 +16,45 @@ def ws_message(message):
         if data['command'] == 'get_global_settings':
             message.reply_channel.send({
                 'text': json.dumps({
-                    'global_settings': GlobalSettings().get_all()
+                    'global_settings': global_settings.get_all()
                 })
             })
         elif data['command'] == 'get_user_settings':
             message.reply_channel.send({
                 'text': json.dumps({
-                    'user_settings': UserSettings().get_all()
+                    'user_settings': user_settings.get_all()
                 })
             })
         elif data['command'] == 'get_global_state':
             message.reply_channel.send({
                 'text': json.dumps({
-                    'global_state': GlobalState().get_all()
+                    'global_state': global_state.get_all()
+                })
+            })
+        elif data['command'] == 'get_session_state':
+            message.reply_channel.send({
+                'text': json.dumps({
+                    'session_state': session_state.get_all()
                 })
             })
 
         # Getting UI data
         elif data['command'] == 'get_photos':
             photos = []
-            for photo in Photo.objects.all().order_by('-taken_at'):
+            for photo in Photo.objects.filter(last_thumbnailed_at__isnull=False).order_by('-taken_at'):
                 photos.append({
                     'id': str(photo.id),
                     'thumbnail': photo.thumbnail_url,
                 })
-            message.reply_channel.send({
-                'text': json.dumps({
-                    'photos': photos,
-                })
-            })
+            session_state.set('photos', photos, message.reply_channel.name)
         elif data['command'] == 'get_photo_details':
-            print(data)
             photo = Photo.objects.get(id=data['params']['id'])
-            message.reply_channel.send({
-                'text': json.dumps({
-                    'path': photo.file.path,
-                })
-            })
+            data = {
+                'id':       str(photo.id),
+                'path':     photo.file.path,
+                'taken_by': photo.taken_by,
+            }
+            session_state.set('current_photo', data, message.reply_channel.name)
 
         # Running jobs
         elif data['command'] == 'rescan_photos':

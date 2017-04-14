@@ -45,6 +45,8 @@ class Photo(UUIDModel, VersionedModel):
     lens                                = models.ForeignKey(Lens, related_name='photos', null=True)
     location                            = PointField(null=True)
     altitude                            = models.DecimalField(max_digits=6, decimal_places=1, null=True)
+    last_thumbnailed_version            = models.PositiveSmallIntegerField(null=True)
+    last_thumbnailed_at                 = models.DateTimeField(null=True)
     last_auto_tagged_locations_version  = models.PositiveSmallIntegerField(null=True)
     last_auto_tagged_locations_at       = models.DateTimeField(null=True)
     last_auto_tagged_features_version   = models.PositiveSmallIntegerField(null=True)
@@ -62,6 +64,10 @@ class Photo(UUIDModel, VersionedModel):
     @property
     def thumbnail_url(self):
         return '/thumbnails/{}.jpg'.format(self.id)
+
+    @property
+    def file(self):
+        return self.files.filter(mimetype='image/jpeg').order_by('preferred', '-created_at')[0]
 
 
 class PhotoFile(UUIDModel, VersionedModel):

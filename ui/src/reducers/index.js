@@ -1,12 +1,10 @@
 import { combineReducers } from 'redux'
 import app from './app'
-import timeline from './timeline'
-import footer from './footer'
+import config from './config'
 
 const photoApp = combineReducers({
+  config,
   app,
-  timeline,
-  footer,
 })
 
 export default photoApp

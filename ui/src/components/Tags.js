@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react'
 import '../../static/css/Tags.css'
 
-const Tags = ({ config, progress, onFooterClick }) => (
+const Tags = ({ tags }) => (
   <ul className="Tags">
     <li>car</li>
     <li>tree</li>
@@ -9,5 +9,9 @@ const Tags = ({ config, progress, onFooterClick }) => (
     <li>travel</li>
   </ul>
 )
+
+Tags.propTypes = {
+  tags: PropTypes.array,
+}
 
 export default Tags
