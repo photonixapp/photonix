@@ -1,15 +1,20 @@
 from datetime import datetime
 from decimal import Decimal
+import json
 import mimetypes
 import os
 
+from channels import Channel
 from django.utils.timezone import UTC
 
+from config.managers import global_state
 from photos.models import Camera, Lens, Photo, PhotoFile
 from photos.utils.metadata import PhotoMetadata, parse_datetime, get_datetime, parse_gps_location
 
 
 def record_photo(path):
+    global_state.increment('photo_import_tasks_running')
+
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=UTC())
 
     try:
@@ -88,5 +93,7 @@ def record_photo(path):
     photo_file.bytes            = os.stat(path).st_size
     photo_file.preferred        = False  # TODO
     photo_file.save()
+
+    global_state.decrement('photo_import_tasks_running')
 
     return photo

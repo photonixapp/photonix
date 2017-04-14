@@ -1,11 +1,10 @@
 from time import sleep
-from channels import Group
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from config.managers import global_state
 from photos.utils.organise import import_photos_in_place
 from photos.utils.system import missing_system_dependencies
-from web.utils import notify
 
 
 class Command(BaseCommand):
@@ -25,11 +24,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         while True:
-            notify('photo_dirs_scanning', True)
-
+            global_state.increment('photo_import_tasks_running')
             self.rescan_photos(options['paths'])
-            sleep(1)
-
-            notify('photo_dirs_scanning', False)
+            global_state.decrement('photo_import_tasks_running')
 
             sleep(60 * 60)  # Sleep for an hour

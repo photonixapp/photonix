@@ -4,5 +4,6 @@ channels==1.1.1
 daphne==1.1.0
 Django==1.10.6
 inotify==0.2.8
+ipython
 Pillow==4.0.0
 psycopg2==2.7

@@ -1,23 +1,21 @@
 import json
-from time import sleep
 
-from channels import Group
 from django.conf import settings
 
+from config.managers import global_state
 from photos.models import Photo
 from photos.utils.organise import import_photos_in_place
 from photos.utils.thumbnails import generate_thumbnail
-from web.utils import notify
 
 
 def rescan_photos(message):
-    notify('photo_dirs_scanning', True)
+    global_state.increment('photo_import_tasks_running')
 
     paths = [item['PATH'] for item in settings.PHOTO_OUTPUT_DIRS]
     for path in paths:
         import_photos_in_place(path)
 
-    notify('photo_dirs_scanning', False)
+    global_state.decrement('photo_import_tasks_running')
 
 
 def generate_thumbnails_for_photo(message):

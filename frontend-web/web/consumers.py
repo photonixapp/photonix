@@ -2,7 +2,7 @@ import json
 
 from channels import Channel, Group
 
-from config.manager import Config
+from config.managers import GlobalSettings, UserSettings, GlobalState
 from photos.models import Photo
 
 
@@ -12,16 +12,27 @@ def ws_message(message):
         data = json.loads(message['text'])
 
     if data.get('command'):
-        if data['command'] == 'get_config':
+        # Getting settings and state
+        if data['command'] == 'get_global_settings':
             message.reply_channel.send({
                 'text': json.dumps({
-                    'config': Config().get_all()
+                    'global_settings': GlobalSettings().get_all()
+                })
+            })
+        elif data['command'] == 'get_user_settings':
+            message.reply_channel.send({
+                'text': json.dumps({
+                    'user_settings': UserSettings().get_all()
+                })
+            })
+        elif data['command'] == 'get_global_state':
+            message.reply_channel.send({
+                'text': json.dumps({
+                    'global_state': GlobalState().get_all()
                 })
             })
 
-        elif data['command'] == 'rescan_photos':
-            Channel('rescan-photos').send({})
-
+        # Getting UI data
         elif data['command'] == 'get_photos':
             photos = []
             for photo in Photo.objects.all().order_by('-taken_at'):
@@ -34,6 +45,18 @@ def ws_message(message):
                     'photos': photos,
                 })
             })
+        elif data['command'] == 'get_photo_details':
+            print(data)
+            photo = Photo.objects.get(id=data['params']['id'])
+            message.reply_channel.send({
+                'text': json.dumps({
+                    'path': photo.file.path,
+                })
+            })
+
+        # Running jobs
+        elif data['command'] == 'rescan_photos':
+            Channel('rescan-photos').send({})
 
 
 def ws_connect(message):
