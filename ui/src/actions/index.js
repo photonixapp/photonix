@@ -1,3 +1,5 @@
+import {castImage} from '../cast'
+
 export const updateGlobalSettings = (globalSettings) => {
   return {
     type: 'UPDATE_GLOBAL_SETTINGS',
@@ -17,6 +19,9 @@ export const updateGlobalState = (globalState) => {
   }
 }
 export const updateSessionState = (sessionState) => {
+  if (sessionState.current_photo) {
+    castImage(sessionState.current_photo.id)
+  }
   return {
     type: 'UPDATE_SESSION_STATE',
     sessionState: sessionState,

@@ -8,7 +8,7 @@ from config.managers import global_state
 from photos.utils.metadata import PhotoMetadata
 
 
-def generate_thumbnail(photo, size=256, aspect='square'):
+def generate_thumbnail(photo, width=256, height=256, aspect='cover', quality=75):
     global_state.increment('photo_thumbnailer_tasks_running')
 
     pf = photo.files.filter(mimetype='image/jpeg')[0]
@@ -17,7 +17,6 @@ def generate_thumbnail(photo, size=256, aspect='square'):
     if im.mode != 'RGB':
         im = im.convert("RGB")
 
-    im = ImageOps.fit(im, (size, size), Image.ANTIALIAS)
     metadata = PhotoMetadata(pf.path)
 
     if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
@@ -25,8 +24,18 @@ def generate_thumbnail(photo, size=256, aspect='square'):
     elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:
         im = im.rotate(90, expand=True)
 
-    path = os.path.join(settings.THUMBNAIL_ROOT, '{}.jpg'.format(photo.id))
-    im.save(path, format='JPEG', quality=50)
+    if aspect == 'cover':
+        im = ImageOps.fit(im, (width, height), Image.ANTIALIAS)
+    else:
+        im.thumbnail((width, height), Image.ANTIALIAS)
+
+    directory = os.path.join(settings.THUMBNAIL_ROOT, '{}x{}_{}_q{}'.format(width, height, aspect, quality))
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    path = os.path.join(directory, '{}.jpg'.format(photo.id))
+
+    im.save(path, format='JPEG', quality=quality)
 
     photo.last_thumbnailed_version = 0
     photo.last_thumbnailed_at = timezone.now()

@@ -140,6 +140,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'data')
 
 THUMBNAIL_ROOT = '/cache/thumbnails'
 
+THUMBNAIL_SIZES = [
+    (256, 256, 'cover', 50),
+    (1920, 1080, 'contain', 75),
+]
+
 
 CHANNEL_LAYERS = {
     'default': {

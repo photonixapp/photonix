@@ -61,9 +61,8 @@ class Photo(UUIDModel, VersionedModel):
     def country(self):
         return country_from_point_field(self.location)
 
-    @property
-    def thumbnail_url(self):
-        return '/thumbnails/{}.jpg'.format(self.id)
+    def thumbnail_url(self, thumbnail):
+        return '/thumbnails/{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.id)
 
     @property
     def file(self):

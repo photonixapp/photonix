@@ -1,6 +1,7 @@
 import json
 
 from channels import Channel, Group
+from django.conf import settings
 
 from config.managers import global_settings, user_settings, global_state, session_state
 from photos.models import Photo
@@ -44,7 +45,7 @@ def ws_message(message):
             for photo in Photo.objects.filter(last_thumbnailed_at__isnull=False).order_by('-taken_at'):
                 photos.append({
                     'id': str(photo.id),
-                    'thumbnail': photo.thumbnail_url,
+                    'thumbnail': photo.thumbnail_url(settings.THUMBNAIL_SIZES[0]),
                 })
             session_state.set('photos', photos, message.reply_channel.name)
         elif data['command'] == 'get_photo_details':

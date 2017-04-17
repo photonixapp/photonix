@@ -18,4 +18,5 @@ def generate_thumbnails_for_photo(message):
         data = json.loads(message['text'])
         if data['id']:
             photo = Photo.objects.get(id=data['id'])
-            generate_thumbnail(photo)
+            for thumbnail in settings.THUMBNAIL_SIZES:
+                generate_thumbnail(photo, thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3])

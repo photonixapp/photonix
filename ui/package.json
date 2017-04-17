@@ -9,7 +9,8 @@
     "react-dom": "^15.4.2",
     "react-redux": "^5.0.3",
     "react-router-dom": "^4.0.0",
-    "redux": "^3.6.0"
+    "redux": "^3.6.0",
+    "scriptjs": "^2.5.8"
   },
   "devDependencies": {
     "react-scripts": "0.9.5"

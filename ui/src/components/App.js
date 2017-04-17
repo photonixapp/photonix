@@ -49,6 +49,7 @@ const App = () => (
         <ul className="tabs">
           <li><Link to="/">Timeline</Link></li>
           <li><Link to="/map">Map</Link></li>
+          <li><button is="google-cast-button"></button></li>
         </ul>
       </header>
       <div className="main flex-container-row">
