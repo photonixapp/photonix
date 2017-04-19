@@ -1,6 +1,6 @@
 const THUMBNAIL_SIZES = [
-    [256, 256, 'cover', 50],
-    [1920, 1080, 'contain', 75],
+  [256, 256, 'cover', 50],
+  [1920, 1080, 'contain', 75],
 ]
 
 export const getThumbnail = (photoId, index) => {
