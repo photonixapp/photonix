@@ -5,25 +5,53 @@ import scriptjs from 'scriptjs'
 import {getThumbnail} from './utils/thumbnails'
 
 let castEnabled = false
+var applicationID = '2DD2F655'
+var namespace = 'urn:x-cast:uk.co.epixstudios.photomanager'
+var session = null
+
+function sessionListener(e) {
+  console.log('New session ID:' + e.sessionId)
+  session = e
+  session.addUpdateListener(sessionUpdateListener)
+  session.addMessageListener(namespace, receiverMessage)
+}
+
+function sessionUpdateListener(isAlive) {
+  var message = isAlive ? 'Session Updated' : 'Session Removed'
+  message += ': ' + session.sessionId
+  console.log(message)
+  if (!isAlive) {
+    session = null
+  }
+}
+
+function receiverMessage(namespace, message) {
+  console.log('receiverMessage: ' + namespace + ', ' + message)
+}
+
+function receiverListener(e) {
+  if(e === 'available') {
+    console.log('receiver found')
+  }
+  else {
+    console.log('receiver list empty')
+  }
+}
 
 export const initializeCastApi = () => {
-  cast.framework.CastContext.getInstance().setOptions({
-    receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-  })
+  var sessionRequest = new chrome.cast.SessionRequest(applicationID)
+  var apiConfig = new chrome.cast.ApiConfig(sessionRequest,
+    sessionListener,
+    receiverListener)
+
+  chrome.cast.initialize(apiConfig)
   castEnabled = true
 }
 
 export const castImage = (photoId) => {
-  if (castEnabled) {
+  if (session != null) {
     let url = window.location.origin + getThumbnail(photoId, 1)
-    console.log('Casting image ' + url)
-    let castSession = cast.framework.CastContext.getInstance().getCurrentSession()
-    let mediaInfo = new chrome.cast.media.MediaInfo(url, 'image/jpeg')
-    let request = new chrome.cast.media.LoadRequest(mediaInfo)
-    castSession.loadMedia(request).then(
-      function() { console.log('Load succeed') },
-      function(errorCode) { console.log('Error code: ' + errorCode) })
+    session.sendMessage(namespace, url)
   }
 }
 
