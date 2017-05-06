@@ -5,8 +5,10 @@
   "proxy": "http://localhost:8000",
   "dependencies": {
     "django-channels": "^1.1.1",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2",
+    "leaflet": "^1.0.3",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "react-leaflet": "^1.1.6",
     "react-redux": "^5.0.3",
     "react-router-dom": "^4.0.0",
     "redux": "^3.6.0",

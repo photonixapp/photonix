@@ -27,6 +27,7 @@ def ws_message(message):
                 })
             })
         elif data['command'] == 'get_global_state':
+            print(global_state.get_all())
             message.reply_channel.send({
                 'text': json.dumps({
                     'global_state': global_state.get_all()

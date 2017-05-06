@@ -4,7 +4,6 @@
 import scriptjs from 'scriptjs'
 import {getThumbnail} from './utils/thumbnails'
 
-let castEnabled = false
 var applicationID = '2DD2F655'
 var namespace = 'urn:x-cast:uk.co.epixstudios.photomanager'
 var session = null
@@ -30,6 +29,7 @@ function receiverMessage(namespace, message) {
 }
 
 function receiverListener(e) {
+  console.log(e)
   if(e === 'available') {
     console.log('receiver found')
   }
@@ -45,7 +45,6 @@ export const initializeCastApi = () => {
     receiverListener)
 
   chrome.cast.initialize(apiConfig)
-  castEnabled = true
 }
 
 export const castImage = (photoId) => {

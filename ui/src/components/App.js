@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import '../../static/css/App.css'
 import FooterContainer from '../containers/FooterContainer'
 import Tags from './Tags'
+import MapContainer from '../containers/MapContainer'
 import TimelineContainer from '../containers/TimelineContainer'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 
@@ -10,34 +11,6 @@ import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 const Topic = ({ match }) => (
   <div>
     <h3>{match.params.topicId}</h3>
-  </div>
-)
-
-const Map = ({ match }) => (
-  <div>
-    <h2>Map</h2>
-    <ul>
-      <li>
-        <Link to={`${match.url}/rendering`}>
-          Rendering with React
-        </Link>
-      </li>
-      <li>
-        <Link to={`${match.url}/components`}>
-          Components
-        </Link>
-      </li>
-      <li>
-        <Link to={`${match.url}/props-v-state`}>
-          Props v. State
-        </Link>
-      </li>
-    </ul>
-
-    <Route path={`${match.url}/:topicId`} component={Topic}/>
-    <Route exact path={match.url} render={() => (
-      <h3>Please select a topic.</h3>
-    )}/>
   </div>
 )
 
@@ -62,7 +35,7 @@ const App = () => (
         </section>
         <section id="content">
           <Route exact path="/" component={TimelineContainer}/>
-          <Route path="/map" component={Map}/>
+          <Route path="/map" component={MapContainer}/>
           <Route path="/photo/:photoId" component={PhotoDetailContainer}/>
         </section>
       </div>

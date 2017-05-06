@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import '../../static/css/Timeline.css'
 
 
-
 const Timeline = ({ photos, onPhotoClick }) => (
   <div className="Timeline">
     <ul className="thumbnails">
