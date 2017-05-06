@@ -14,3 +14,5 @@ docker-compose up
 ```
 
 A few seconds after starting you should be able to go to [http://localhost:8888/](http://localhost:8888/) in your browser.
+
+You can move some photos into the folder `data/photos` and they should get detected and imported immediately. Once you have finished trying out the system you can edit the volume in the `docker-compose.yml` file where it says `./data/photos` to mount wherever you usually keep photos. System database, thumbnails and other cache data is stored separately from the photos so shouldn't pollute the area. You are responsible for keeping your own backups in case of error.

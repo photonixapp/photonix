@@ -32,6 +32,11 @@ class RedisManager(object):
         if key not in initial_data[self._type]:
             raise KeyError('Key \'{}\' not in \'{}\''.format(key, self._type))
         val = r.get(self._redis_key(key, channel_name))
+
+        if not val:
+            val = initial_data[self._type][key]
+        elif isinstance(initial_data[self._type][key], int):
+            val = int(val)
         return val
 
     def set(self, key, val, channel_name=None):
@@ -68,7 +73,7 @@ class RedisManager(object):
     def get_all(self, channel_name=None):
         data = {}
         for key in initial_data[self._type].keys():
-            data[key] = r.get(self._redis_key(key, channel_name))
+            data[key] = self.get(key, channel_name)
         return data
 
     def delete_obsolete(self):
