@@ -8,9 +8,8 @@ from django.utils.timezone import utc
 
 
 class PhotoMetadata(object):
-    data = {}
-
     def __init__(self, path):
+        self.data = {}
         result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
         for line in str(result).split('\n'):
             if line:

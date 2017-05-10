@@ -2,18 +2,22 @@ import React, { PropTypes } from 'react'
 import '../../static/css/Map.css'
 import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
 
-const MapView = () => (
+const MapView = ({ photos, onChange }) => (
   <div className="Map">
-    <Map center={[51.505, -0.09]} zoom={13}>
+    <Map center={[51.505, -0.09]} zoom={4} onMoveend={onChange}>
       <TileLayer
         attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-        url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+        url="http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
       />
-      <Marker position={[51.505, -0.09]}>
-        <Popup>
-          <span>A pretty CSS3 popup. <br /> Easily customizable.</span>
-        </Popup>
-      </Marker>
+      {photos.map((photo, idx) => (
+        <Marker
+          key={`marker-${photo.id}`}
+          position={[photo.location[0], photo.location[1]]}>
+          <Popup>
+            <img src={photo.thumbnail} style={{ width: 128, height: 128 }} />
+          </Popup>
+        </Marker>
+      ))}
     </Map>
   </div>
 )

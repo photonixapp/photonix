@@ -40,7 +40,7 @@ footer {
   background: #1d1d1d;
   margin-right: 10px;
 }
-.tabs li a {
+.tabs a {
   color: #ddd;
   text-decoration: none;
 }
@@ -61,6 +61,5 @@ footer {
 
 #content {
   width: 100%;
-  padding: 20px 0 0 20px;
-  overflow-y: scroll;
+  padding: 0;
 }

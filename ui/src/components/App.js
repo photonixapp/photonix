@@ -7,7 +7,6 @@ import MapContainer from '../containers/MapContainer'
 import TimelineContainer from '../containers/TimelineContainer'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 
-
 const Topic = ({ match }) => (
   <div>
     <h3>{match.params.topicId}</h3>
@@ -18,11 +17,10 @@ const App = () => (
   <Router>
     <div className="flex-container-column">
       <header>
-        <div className="logo"></div>
+        <div className="logo" />
         <ul className="tabs">
-          <li><Link to="/">Timeline</Link></li>
-          <li><Link to="/map">Map</Link></li>
-          <li><button is="google-cast-button"></button></li>
+          <Link to="/"><li>Timeline</li></Link>
+          <Link to="/map"><li>Map</li></Link>
         </ul>
       </header>
       <div className="main flex-container-row">
@@ -34,9 +32,9 @@ const App = () => (
           <h2>Cameras</h2>
         </section>
         <section id="content">
-          <Route exact path="/" component={TimelineContainer}/>
-          <Route path="/map" component={MapContainer}/>
-          <Route path="/photo/:photoId" component={PhotoDetailContainer}/>
+          <Route exact path="/" component={TimelineContainer} />
+          <Route path="/map" component={MapContainer} />
+          <Route path="/photo/:photoId" component={PhotoDetailContainer} />
         </section>
       </div>
       <FooterContainer />

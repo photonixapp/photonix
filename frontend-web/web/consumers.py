@@ -47,6 +47,7 @@ def ws_message(message):
                 photos.append({
                     'id': str(photo.id),
                     'thumbnail': photo.thumbnail_url(settings.THUMBNAIL_SIZES[0]),
+                    'location': [getattr(photo.location, 'y', None), getattr(photo.location, 'x', None)],
                 })
             session_state.set('photos', photos, message.reply_channel.name)
         elif data['command'] == 'get_photo_details':

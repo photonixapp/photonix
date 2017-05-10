@@ -1,5 +1,4 @@
 import { connect } from 'react-redux'
-import { runCommand } from '../websockets'
 import PhotoDetail from '../components/PhotoDetail'
 
 const mapStateToProps = (state) => {
