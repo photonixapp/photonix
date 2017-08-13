@@ -1,12 +1,12 @@
-FROM debian:jessie
+FROM debian:stretch
 
 RUN apt-get update && \
-    apt-get install -y curl python3-dev=3.4.2-2 python3-pip=1.5.6-5 \
-        libpq-dev=9.4.10-0+deb8u1 supervisor=3.0r1-1 gunicorn=19.0-1 \
-        nginx-light=1.6.2-5+deb8u4 curl=7.38.0-4+deb8u5 \
-        libtiff5-dev=4.0.3-12.3+deb8u2 libjpeg-dev=1:1.3.1-12 \
-        zlib1g-dev=1:1.2.8.dfsg-2+b1 libgdal-dev=1.10.1+dfsg-8+b3 \
-        libimage-exiftool-perl=9.74-1 netcat=1.10-41 && \
+    apt-get install -y curl python3-dev=3.5.3-1 python3-pip=9.0.1-2 \
+        libpq-dev=9.6.4-0+deb9u1 supervisor=3.3.1-1 gunicorn=19.6.0-10 \
+        nginx-light=1.10.3-1+deb9u1 curl=7.52.1-5 \
+        libtiff5-dev=4.0.8-2+deb9u1 libjpeg-dev=1:1.5.1-2 \
+        zlib1g-dev=1:1.2.8.dfsg-5 libgdal-dev=2.1.2+dfsg-5 \
+        libimage-exiftool-perl=10.40-1 netcat=1.10-41 && \
         apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \
@@ -19,7 +19,6 @@ RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - && apt-get update && 
 COPY frontend-web/requirements.txt /srv/frontend-web/requirements.txt
 RUN pip3 install -vU setuptools pip
 RUN pip3 install -r /srv/frontend-web/requirements.txt
-
 
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
