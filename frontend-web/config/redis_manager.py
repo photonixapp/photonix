@@ -76,5 +76,9 @@ class RedisManager(object):
             data[key] = self.get(key, channel_name)
         return data
 
+    def clear_all(self, channel_name=None):
+        for key in initial_data[self._type]:
+            r.delete(self._redis_key(key, channel_name))
+
     def delete_obsolete(self):
         raise NotImplementedError()

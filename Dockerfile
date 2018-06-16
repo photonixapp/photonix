@@ -1,12 +1,12 @@
-FROM debian:stretch
+FROM tensorflow/tensorflow:1.4.1-py3
 
 RUN apt-get update && \
-    apt-get install -y curl python3-dev=3.5.3-1 python3-pip=9.0.1-2 \
-        libpq-dev=9.6.4-0+deb9u1 supervisor=3.3.1-1 gunicorn=19.6.0-10 \
-        nginx-light=1.10.3-1+deb9u1 curl=7.52.1-5 \
-        libtiff5-dev=4.0.8-2+deb9u1 libjpeg-dev=1:1.5.1-2 \
-        zlib1g-dev=1:1.2.8.dfsg-5 libgdal-dev=2.1.2+dfsg-5 \
-        libimage-exiftool-perl=10.40-1 netcat=1.10-41 && \
+    apt-get install -y \
+        libpq-dev=9.5.13-0ubuntu0.16.04 supervisor=3.2.0-2ubuntu0.2 \
+        gunicorn=19.4.5-1ubuntu1 nginx-light=1.10.3-0ubuntu0.16.04.2 \
+        libtiff5-dev=4.0.6-1ubuntu0.4 libjpeg-dev=8c-2ubuntu8 \
+        libgdal-dev=1.11.3+dfsg-3build2 \
+        libimage-exiftool-perl=10.10-1 netcat=1.10-41 && \
         apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \

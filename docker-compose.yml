@@ -33,6 +33,7 @@ services:
      - ./ui/static:/srv/ui/static
      - ./data/photos:/photos
      - ./data/cache:/cache
+     - ./data/models:/models
     links:
      - postgres
      - redis

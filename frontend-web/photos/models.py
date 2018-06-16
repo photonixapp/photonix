@@ -47,12 +47,16 @@ class Photo(UUIDModel, VersionedModel):
     altitude                            = models.DecimalField(max_digits=6, decimal_places=1, null=True)
     last_thumbnailed_version            = models.PositiveSmallIntegerField(null=True)
     last_thumbnailed_at                 = models.DateTimeField(null=True)
-    last_auto_tagged_locations_version  = models.PositiveSmallIntegerField(null=True)
-    last_auto_tagged_locations_at       = models.DateTimeField(null=True)
-    last_auto_tagged_features_version   = models.PositiveSmallIntegerField(null=True)
-    last_auto_tagged_features_at        = models.DateTimeField(null=True)
-    last_auto_tagged_people_version     = models.PositiveSmallIntegerField(null=True)
-    last_auto_tagged_people_at          = models.DateTimeField(null=True)
+    last_tagged_locations_version       = models.PositiveSmallIntegerField(null=True)
+    last_tagged_locations_at            = models.DateTimeField(null=True)
+    last_tagged_objects_version         = models.PositiveSmallIntegerField(null=True)
+    last_tagged_objects_at              = models.DateTimeField(null=True)
+    last_tagged_people_version          = models.PositiveSmallIntegerField(null=True)
+    last_tagged_people_at               = models.DateTimeField(null=True)
+    last_tagged_colors_version          = models.PositiveSmallIntegerField(null=True)
+    last_tagged_colors_at               = models.DateTimeField(null=True)
+    last_tagged_styles_version          = models.PositiveSmallIntegerField(null=True)
+    last_tagged_styles_at               = models.DateTimeField(null=True)
 
     def __str__(self):
         return str(self.id)
@@ -89,8 +93,10 @@ SOURCE_CHOICES = (
 )
 TAG_TYPE_CHOICES = (
     ('L', 'Location'),
-    ('F', 'Feature'),
+    ('O', 'Object'),
     ('P', 'Person'),
+    ('C', 'Color'),
+    ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
 )
 
 
@@ -125,3 +131,8 @@ class PhotoTag(UUIDModel, VersionedModel):
     hidden      = models.BooleanField(default=False)
     # Only if the tag type is 'Person'
     face        = models.ForeignKey(Face, related_name='photo_tags', null=True)
+    # Optional bounding boxes from object detection
+    position_x  = models.FloatField(null=True)
+    position_y  = models.FloatField(null=True)
+    size_x      = models.FloatField(null=True)
+    size_y      = models.FloatField(null=True)
