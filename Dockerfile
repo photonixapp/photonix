@@ -16,16 +16,16 @@ RUN apt-get update && \
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - && apt-get update && apt-get install -y nodejs
 
 # Install Python dependencies
-COPY frontend-web/requirements.txt /srv/frontend-web/requirements.txt
+COPY backend/requirements.txt /srv/backend/requirements.txt
 RUN pip3 install -vU setuptools pip
-RUN pip3 install -r /srv/frontend-web/requirements.txt
+RUN pip3 install -r /srv/backend/requirements.txt
 
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
 WORKDIR /srv/ui
 RUN npm install && npm install --only=dev
 
-COPY frontend-web /srv/frontend-web
+COPY backend /srv/backend
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
 COPY ui/static /srv/ui/static

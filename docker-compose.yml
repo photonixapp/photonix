@@ -27,7 +27,7 @@ services:
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
     volumes:
-     - ./frontend-web:/srv/frontend-web
+     - ./backend:/srv/backend
      - ./ui/public:/srv/ui/public
      - ./ui/src:/srv/ui/src
      - ./ui/static:/srv/ui/static

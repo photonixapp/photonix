@@ -21,6 +21,8 @@ class GlobalState(RedisManager):
     def __init__(self):
         self._type = 'global_state'
         super().__init__()
+        # TODO: Decide if we nee to clear all the GlobalState variables on start up
+        self.clear_all()
 
 
 class SessionState(RedisManager):
