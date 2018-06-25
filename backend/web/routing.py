@@ -10,5 +10,5 @@ channel_routing = [
     route('websocket.disconnect', ws_disconnect),
     # Long-running jobs
     route('rescan-photos', 'photos.consumers.rescan_photos'),
-    route('generate-thumbnails-for-photo', 'photos.consumers.generate_thumbnails_for_photo'),
+    route('photo-added', 'photos.consumers.photo_added'),
 ]

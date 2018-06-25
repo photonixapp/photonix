@@ -2,9 +2,9 @@ import json
 
 from django.conf import settings
 
-from photos.models import Photo
 from photos.utils.organise import import_photos_in_place
-from photos.utils.thumbnails import generate_thumbnail
+from photos.utils.thumbnails import generate_thumbnails_for_photo
+from classifiers import run_classifiers_on_photo
 
 
 def rescan_photos(message):
@@ -13,10 +13,9 @@ def rescan_photos(message):
         import_photos_in_place(path)
 
 
-def generate_thumbnails_for_photo(message):
+def photo_added(message):
     if message:
         data = json.loads(message['text'])
         if data['id']:
-            photo = Photo.objects.get(id=data['id'])
-            for thumbnail in settings.THUMBNAIL_SIZES:
-                generate_thumbnail(photo, thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3])
+            generate_thumbnails_for_photo(data['id'])
+            run_classifiers_on_photo(data['id'])

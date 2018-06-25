@@ -84,7 +84,7 @@ def record_photo(path):
         )
         photo.save()
 
-        Channel('generate-thumbnails-for-photo').send({'text': json.dumps({'id': str(photo.id)})})
+        Channel('photo-added').send({'text': json.dumps({'id': str(photo.id)})})
 
     photo_file.photo            = photo
     photo_file.path             = path

@@ -142,8 +142,6 @@ def import_photos_from_dir(orig, move=False):
 
 
 def import_photos_in_place(orig):
-    global_state.increment('photo_import_tasks_running')
-
     imported = 0
     were_bad = 0
 
@@ -161,5 +159,3 @@ def import_photos_in_place(orig):
 
     if imported:
         print('\n{} PHOTOS IMPORTED\n{} WERE BAD'.format(imported, were_bad))
-
-    global_state.decrement('photo_import_tasks_running')

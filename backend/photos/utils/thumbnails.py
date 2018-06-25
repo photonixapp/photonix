@@ -5,7 +5,14 @@ from django.utils import timezone
 from PIL import Image, ImageOps
 
 from config.managers import global_state
+from photos.models import Photo
 from photos.utils.metadata import PhotoMetadata
+
+
+def generate_thumbnails_for_photo(photo_id):
+    photo = Photo.objects.get(id=photo_id)
+    for thumbnail in settings.THUMBNAIL_SIZES:
+        generate_thumbnail(photo, thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3])
 
 
 def generate_thumbnail(photo, width=256, height=256, aspect='cover', quality=75):

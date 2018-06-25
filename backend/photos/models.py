@@ -121,6 +121,9 @@ class Tag(UUIDModel, VersionedModel):
     world_border    = models.ForeignKey(WorldBorder, related_name='tags', null=True)
     city            = models.ForeignKey(City, related_name='tags', null=True)
 
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.type)
+
 
 class PhotoTag(UUIDModel, VersionedModel):
     photo       = models.ForeignKey(Photo, related_name='photo_tags')
@@ -136,3 +139,6 @@ class PhotoTag(UUIDModel, VersionedModel):
     position_y  = models.FloatField(null=True)
     size_x      = models.FloatField(null=True)
     size_y      = models.FloatField(null=True)
+
+    def __str__(self):
+        return '{}: {}'.format(self.photo, self.tag)

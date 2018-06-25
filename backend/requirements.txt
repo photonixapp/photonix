@@ -7,3 +7,4 @@ inotify==0.2.8
 ipython
 Pillow==4.0.0
 psycopg2==2.7
+tensorflow==1.8.0
