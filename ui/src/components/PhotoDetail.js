@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react'
+import React from 'react'
 import {getThumbnail} from '../utils/thumbnails'
 import '../../static/css/PhotoDetail.css'
 

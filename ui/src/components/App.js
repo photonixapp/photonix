@@ -7,12 +7,6 @@ import MapContainer from '../containers/MapContainer'
 import TimelineContainer from '../containers/TimelineContainer'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 
-const Topic = ({ match }) => (
-  <div>
-    <h3>{match.params.topicId}</h3>
-  </div>
-)
-
 const App = () => (
   <Router>
     <div className="flex-container-column">

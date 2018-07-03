@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react'
+import React from 'react'
 import Spinner from './Spinner'
 import '../../static/css/Footer.css'
 

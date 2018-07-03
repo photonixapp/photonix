@@ -4,7 +4,7 @@ import spinner from '../../static/images/spinner.gif'
 
 const Spinner = ({ active }) => (
   <span className="Spinner">
-    <img src={active ? spinner : null} />
+    <img src={active ? spinner : null} alt="spinner" />
   </span>
 )
 

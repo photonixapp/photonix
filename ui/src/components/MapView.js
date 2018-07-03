@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react'
+import React from 'react'
 import '../../static/css/Map.css'
 import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
 
@@ -14,7 +14,7 @@ const MapView = ({ photos, onChange }) => (
           key={`marker-${photo.id}`}
           position={[photo.location[0], photo.location[1]]}>
           <Popup>
-            <img src={photo.thumbnail} style={{ width: 128, height: 128 }} />
+            <img src={photo.thumbnail} style={{ width: 128, height: 128 }} alt="marker popup" />
           </Popup>
         </Marker>
       ))}
