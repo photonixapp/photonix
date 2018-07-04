@@ -31,7 +31,14 @@ class SessionState(RedisManager):
         super().__init__()
 
 
+class SynchronizerState(RedisManager):
+    def __init__(self):
+        self._type = 'synchronizer_state'
+        super().__init__()
+
+
 global_settings = GlobalSettings()
 user_settings = UserSettings()
 global_state = GlobalState()
 session_state = SessionState()
+synchronizer_state = SynchronizerState()

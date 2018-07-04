@@ -1,20 +1,88 @@
 from copy import deepcopy
 from difflib import SequenceMatcher
 import json
+import os
 import re
+
+import redis
+from redis_lock import Lock
+
+from config.managers import synchronizer_state
+
+
+r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
 
 
 class ClientDataSynchronizer():
-    def __init__(self):
-        self.pushed_data = {}
-        self.committed_data = []
+    def __init__(self, backend='dummy', clear=False):
+        self.backend = backend
         self.staged_data = {}
 
-        self.pushed_seq_num = 0
-        self.committed_seq_num = 0
+        if backend == 'dummy':
+            self._pushed_data = {}
+            self._committed_data = []
+            self._pushed_seq_num = 0
+            self._committed_seq_num = 0
+
+        elif backend == 'redis':
+            self.redis_manager = synchronizer_state
+            if clear:
+                self.redis_manager.clear('pushed_data')
+                self.redis_manager.clear('committed_data')
+                self.redis_manager.clear('pushed_seq_num')
+                self.redis_manager.clear('committed_seq_num')
 
         self.add_default_data()
         self.commit()
+
+    def get_pushed_data(self):
+        if self.backend == 'dummy':
+            return deepcopy(self._pushed_data)
+        elif self.backend == 'redis':
+            return self.redis_manager.get('pushed_data')
+
+    def set_pushed_data(self, data):
+        if self.backend == 'dummy':
+            self._pushed_data = data
+        elif self.backend == 'redis':
+            self.redis_manager.set('pushed_data', data)
+
+    def get_pushed_seq_num(self):
+        if self.backend == 'dummy':
+            return self._pushed_seq_num
+        elif self.backend == 'redis':
+            return self.redis_manager.get('pushed_seq_num')
+
+    def set_pushed_seq_num(self, num):
+        if self.backend == 'dummy':
+            self._pushed_seq_num = num
+        elif self.backend == 'redis':
+            self.redis_manager.set('pushed_seq_num', num)
+
+    def get_committed_data(self):
+        if self.backend == 'dummy':
+            return deepcopy(self._committed_data)
+        elif self.backend == 'redis':
+            data = self.redis_manager.get('committed_data')
+            return data
+
+    def set_committed_data(self, data):
+        if self.backend == 'dummy':
+            self._committed_data = data
+        elif self.backend == 'redis':
+            self.redis_manager.set('committed_data', data)
+
+    def get_committed_seq_num(self):
+        if self.backend == 'dummy':
+            return self._committed_seq_num
+        elif self.backend == 'redis':
+            return self.redis_manager.get('committed_seq_num')
+
+    def set_committed_seq_num(self, num):
+        if self.backend == 'dummy':
+            self._committed_seq_num = num
+        elif self.backend == 'redis':
+            self.redis_manager.set('committed_seq_num', num)
 
     def add_default_data(self):
         if 'search_results' not in self.staged_data:
@@ -23,12 +91,17 @@ class ClientDataSynchronizer():
             self.staged_data['photo_details'] = {}
 
     def commit(self):
-        self.committed_data.append({
-            'seq_num':  self.committed_seq_num + 1,
-            'data':     deepcopy(self.staged_data),
-        })
-        self.committed_seq_num += 1
-        self.staged_data = {}
+        with Lock(r, 'client_data_syncronizer'):  # TODO: Lock name should really include user/session ID so it's not a global lock
+            committed_data = self.get_committed_data()
+            committed_seq_num = self.get_committed_seq_num()
+            committed_seq_num += 1
+            committed_data.append({
+                'seq_num':  committed_seq_num,
+                'data':     deepcopy(self.staged_data),
+            })
+            self.set_committed_data(committed_data)
+            self.set_committed_seq_num(committed_seq_num)
+            self.staged_data = {}
 
     def serialize(self, data):
         return json.dumps(data, sort_keys=True)
@@ -40,13 +113,13 @@ class ClientDataSynchronizer():
         '''
         Works out what's new from pushed_data to all the committed_data
         '''
-        first = self.serialize(self.pushed_data)
+        first = self.serialize(self.get_pushed_data())
         try:
-            commit = self.committed_data[-1]
+            commit = self.get_committed_data()[-1]
         except IndexError:
             return None
 
-        second = self.pushed_data
+        second = self.get_pushed_data()
         for key, val in commit['data'].items():
             second[key] = val
 
@@ -106,13 +179,23 @@ class ClientDataSynchronizer():
         '''
         Updates pushed_data, pushed_seq_num and clears out old committed_data
         '''
-        for i, item in enumerate(self.committed_data):
-            if sequence_number < item['seq_num']:
-                break
-            for key, val in item['data'].items():
-                self.pushed_data[key] = val
-            self.pushed_seq_num = sequence_number
-            del self.committed_data[i]
+        with Lock(r, 'client_data_syncronizer'):
+            committed_data = self.get_committed_data()
+
+            for i, item in enumerate(self.get_committed_data()):
+                if sequence_number < item['seq_num']:
+                    break
+
+                pushed_data = deepcopy(self.get_pushed_data())
+                for key, val in item['data'].items():
+                    pushed_data[key] = val
+
+                self.set_pushed_data(pushed_data)
+                self.set_pushed_seq_num(item['seq_num'])
+
+                del committed_data[i]
+
+            self.set_committed_data(committed_data)
 
     def add_search_results(self, query, results):
         if 'search_results' not in self.staged_data:

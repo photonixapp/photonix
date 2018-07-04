@@ -35,4 +35,11 @@ initial_data = {
         'photos':                       [],
         'current_photo':                None,
     },
+
+    'synchronizer_state': {
+        'pushed_data':                  {},
+        'committed_data':               [],
+        'pushed_seq_num':               0,
+        'committed_seq_num':            0,
+    }
 }

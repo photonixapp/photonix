@@ -1,3 +1,5 @@
+from copy import deepcopy
+import json
 import os
 
 import redis
@@ -28,20 +30,21 @@ class RedisManager(object):
         else:
             return '{}:{}'.format(self._redis_prefix, key)
 
-    def get(self, key, channel_name=None):
+    def get(self, key, channel_name=None, default=None):
         if key not in initial_data[self._type]:
             raise KeyError('Key \'{}\' not in \'{}\''.format(key, self._type))
         val = r.get(self._redis_key(key, channel_name))
 
-        if not val:
-            val = initial_data[self._type][key]
-        elif isinstance(initial_data[self._type][key], int):
-            val = int(val)
+        if val:
+            val = json.loads(val)
+        else:
+            val = deepcopy(initial_data[self._type][key])
         return val
 
     def set(self, key, val, channel_name=None):
         if key not in initial_data[self._type]:
             raise KeyError('Key \'{}\' not in \'{}\''.format(key, self._type))
+        val = json.dumps(val)
         if channel_name:
             r.set(self._redis_key(key, channel_name), val, ex=SESSION_EXPIRE_TIME)
             notify_ui(self._type, {key: val}, channel_name)
@@ -76,9 +79,18 @@ class RedisManager(object):
             data[key] = self.get(key, channel_name)
         return data
 
+    def clear(self, key=None, channel_name=None):
+        if not key:
+            key = self._type
+
+        if key == 'synchronizer_state':
+            print(key)
+            # import pdb; pdb.set_trace()
+        r.delete(self._redis_key(key, channel_name))
+
     def clear_all(self, channel_name=None):
         for key in initial_data[self._type]:
-            r.delete(self._redis_key(key, channel_name))
+            self.clear(key, channel_name)
 
     def delete_obsolete(self):
         raise NotImplementedError()
