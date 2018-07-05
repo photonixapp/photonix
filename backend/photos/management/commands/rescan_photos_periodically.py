@@ -24,6 +24,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         while True:
+            # TODO: Add a lock in here because DB corruption occurs if rescan_photos is called while it's still already running
             global_state.increment('photo_import_tasks_running')
             self.rescan_photos(options['paths'])
             global_state.decrement('photo_import_tasks_running')
