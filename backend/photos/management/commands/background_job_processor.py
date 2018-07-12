@@ -5,7 +5,9 @@ from django.core.management.base import BaseCommand
 import redis
 from rq import Connection, Worker
 
-from classifiers import STYLE_MODEL  # Pre-load the classification model graphs so it doesn't have to be done for each job
+# Pre-load the model graphs so it doesn't have to be done for each job
+from classifiers import STYLE_MODEL
+from classifiers import OBJECT_MODEL
 
 
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
