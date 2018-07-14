@@ -6,7 +6,9 @@ Django==1.10.6
 inotify==0.2.8
 ipython
 Pillow==4.0.0
+psutil==5.4.6
 psycopg2==2.7
 python-redis-lock==3.2.0
+requests==2.19.1
 rq==0.11.0
 tensorflow==1.8.0

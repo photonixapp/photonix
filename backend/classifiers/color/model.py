@@ -8,6 +8,9 @@ from PIL import Image
 
 
 class ColorModel:
+    version = 0
+    approx_ram_mb = 100
+
     def __init__(self):
         self.colors = {
             # Name: (red, green, blue)

@@ -10,6 +10,9 @@ LABEL_FILE = os.path.join(os.path.dirname(__file__), 'tf_files', 'labels.txt')
 
 
 class StyleModel:
+    version = 0
+    approx_ram_mb = 100
+
     def __init__(self, graph_file=GRAPH_FILE, label_file=LABEL_FILE):
         self.graph = self.load_graph(graph_file)
         self.labels = self.load_labels(label_file)

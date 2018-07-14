@@ -4,12 +4,13 @@ from multiprocessing import Process, cpu_count
 from django.core.management.base import BaseCommand
 import redis
 from rq import Connection, Worker
+import psutil
 
 # Pre-load the model graphs so it doesn't have to be done for each job
-from classifiers import STYLE_MODEL
-from classifiers import OBJECT_MODEL
+from classifiers.runners import StyleModel
 
 
+style_model = StyleModel()
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
 
 
@@ -19,13 +20,17 @@ def worker(queues):
 
 
 class Command(BaseCommand):
-    help = 'Runs the RQ workers.'
+    help = 'Runs the RQ workers with the classification models.'
 
     def handle(self, *args, **options):
         with Connection():
-            queues = ['default', 'low', 'normal', 'high']
-            num_workers = cpu_count()
-            print('Starting {} workers\n'.format(num_workers))
+            queues = ['classification_style']
+            num_cpus = cpu_count()
+            ram_mb_available = int(psutil.virtual_memory().available / 1024 / 1024)
+            num_fit_in_ram = max(1, int((ram_mb_available / style_model.approx_ram_mb) - 1))
+            num_workers = min(num_cpus, num_fit_in_ram)
+
+            print('Starting {} style classification workers\n'.format(num_workers))
 
             for i in range(num_workers):
                 p = Process(target=worker, args=(queues,))

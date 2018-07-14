@@ -1,12 +1,7 @@
 import argparse
-import hashlib
 import os
-import random
 import requests
 import shutil
-import sys
-
-from skimage import io
 
 
 # Mapping: (class, Name, groups)
@@ -30,7 +25,7 @@ STYLE_MAPPING = [
     (16, 'Pastel', ['1055565@N24', '1371818@N25']),
     (17, 'Sunny', ['1242213@N23']),
     (18, 'Texture', ['70176273@N00']),
-    (19, 'Vintage', ['1222306@N25', "1176551@N24"]),
+    (19, 'Vintage', ['1222306@N25', '1176551@N24']),
 ]
 
 
@@ -45,7 +40,7 @@ def run(image_path, images_per_style=500):
 
 def get_images_for_style(style, group_ids, image_path, num_images):
     params = {
-        'api_key': "d31c7cb60c57aa7483c5c80919df5371",
+        'api_key': 'd31c7cb60c57aa7483c5c80919df5371',
         'per_page': 500,  # 500 is the maximum allowed
         'content_type': 1,  # only photos
     }
@@ -79,7 +74,7 @@ def get_images_for_style(style, group_ids, image_path, num_images):
             # Make the request and ensure it succeeds.
             page_data = requests.get(url).json()
             if page_data['stat'] != 'ok':
-                raise Exception("Something is wrong: API returned {}".format(page_data['stat']))
+                raise Exception('Something is wrong: API returned {}'.format(page_data['stat']))
 
             for photo_item in page_data['photos']['photo']:
                 if len(images_info) >= num_images:
@@ -98,13 +93,13 @@ def get_images_for_style(style, group_ids, image_path, num_images):
 
 
 def _get_image_url(photo_item, size_flag=''):
-    """
+    '''
     size_flag: string ['']
         See http://www.flickr.com/services/api/misc.urls.html for options.
             '': 500 px on longest side
             '_m': 240px on longest side
-    """
-    url = "http://farm{farm}.staticflickr.com/{server}/{id}_{secret}{size}.jpg"
+    '''
+    url = 'http://farm{farm}.staticflickr.com/{server}/{id}_{secret}{size}.jpg'
     return url.format(size=size_flag, **photo_item)
 
 
@@ -140,4 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('--images-per-style', nargs='?', default=1000)
 
     vars = parser.parse_args()
+    if not os.path.exists(vars.image_path):
+        os.mkdir(vars.image_path)
+
     run(vars.image_path, vars.images_per_style)

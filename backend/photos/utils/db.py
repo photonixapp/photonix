@@ -6,17 +6,10 @@ import os
 
 from channels import Channel
 from django.utils.timezone import UTC
-import redis
-from rq import Queue
 
 from config.managers import global_state
-from classifiers import run_classifiers_on_photo
 from photos.models import Camera, Lens, Photo, PhotoFile
 from photos.utils.metadata import PhotoMetadata, parse_datetime, get_datetime, parse_gps_location
-
-
-r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-queue = Queue(connection=r)
 
 
 def record_photo(path):
@@ -91,8 +84,7 @@ def record_photo(path):
         )
         photo.save()
 
-        Channel('photo-added').send({'text': json.dumps({'id': str(photo.id)})})
-        queue.enqueue(run_classifiers_on_photo, photo.id)
+        # Channel('photo-added').send({'text': json.dumps({'id': str(photo.id)})})
 
     photo_file.photo            = photo
     photo_file.path             = path
