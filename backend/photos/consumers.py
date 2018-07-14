@@ -4,7 +4,6 @@ from django.conf import settings
 
 from photos.utils.organise import import_photos_in_place
 from photos.utils.thumbnails import generate_thumbnails_for_photo
-from classifiers import run_classifiers_on_photo
 
 
 def rescan_photos(message):
@@ -18,4 +17,3 @@ def photo_added(message):
         data = json.loads(message['text'])
         if data['id']:
             generate_thumbnails_for_photo(data['id'])
-            run_classifiers_on_photo(data['id'])

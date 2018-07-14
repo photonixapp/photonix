@@ -27,4 +27,7 @@ class Command(BaseCommand):
                         record_photo(photo_path)
 
     def handle(self, *args, **options):
-        self.watch_photos(options['paths'])
+        try:
+            self.watch_photos(options['paths'])
+        except KeyboardInterrupt:
+            exit(0)

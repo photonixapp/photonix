@@ -21,42 +21,46 @@ class Command(BaseCommand):
     def run_scheduler(self):
         while True:
             # Color queue
-            if len(style_queue) == 0:
+            print('{} items in color_queue'.format(len(color_queue)))
+            if len(color_queue) == 0:
                 total = Photo.objects.filter(classifier_color_queued_at__isnull=True).order_by('created_at').count()
                 if total:
                     print('{} photos remaining for color classificaion'.format(total))
-                    photos = Photo.objects.filter(classifier_color_queued_at__isnull=True).order_by('created_at')[:10]
-                    print('Queueing {} photos for color classification'. format(len(photos)))
+                    photos = Photo.objects.filter(classifier_color_queued_at__isnull=True).order_by('created_at')[:100]
+                    print('{} queued photos for color classification'. format(len(photos)))
                     for photo in photos:
                         photo.classifier_color_queued_at = timezone.now()
                         photo.save()
                         color_queue.enqueue('classifiers.runners.run_color_classifier_on_photo', photo.id, timeout=600)
 
             # Object queue
-            if len(style_queue) == 0:
+            print('{} items in object_queue'.format(len(object_queue)))
+            if len(object_queue) == 0:
                 total = Photo.objects.filter(classifier_object_queued_at__isnull=True).order_by('created_at').count()
                 if total:
                     print('{} photos remaining for object classificaion'.format(total))
                     photos = Photo.objects.filter(classifier_object_queued_at__isnull=True).order_by('created_at')[:10]
-                    print('Queueing {} photos for object classification'. format(len(photos)))
+                    print('{} queued photos for object classification'. format(len(photos)))
                     for photo in photos:
                         photo.classifier_object_queued_at = timezone.now()
                         photo.save()
                         object_queue.enqueue('classifiers.runners.run_object_classifier_on_photo', photo.id, timeout=600)
 
             # Style queue
+            print('{} items in style_queue'.format(len(style_queue)))
             if len(style_queue) == 0:
                 total = Photo.objects.filter(classifier_style_queued_at__isnull=True).order_by('created_at').count()
                 if total:
                     print('{} photos remaining for style classificaion'.format(total))
-                    photos = Photo.objects.filter(classifier_style_queued_at__isnull=True).order_by('created_at')[:10]
-                    print('Queueing {} photos for style classification'. format(len(photos)))
+                    photos = Photo.objects.filter(classifier_style_queued_at__isnull=True).order_by('created_at')[:100]
+                    print('{} queued photos for style classification'. format(len(photos)))
                     for photo in photos:
                         photo.classifier_style_queued_at = timezone.now()
                         photo.save()
                         style_queue.enqueue('classifiers.runners.run_style_classifier_on_photo', photo.id, timeout=600)
 
-            sleep(1)
+            print('')
+            sleep(5)
 
     def handle(self, *args, **options):
         try:
