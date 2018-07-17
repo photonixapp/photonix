@@ -5,6 +5,8 @@ import tarfile
 
 import numpy as np
 from PIL import Image
+import redis
+from redis_lock import Lock
 import tensorflow as tf
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -20,6 +22,8 @@ GRAPH_FILE = os.path.join(os.path.dirname(__file__), MODEL_FILE)
 CKPT_PATH = os.path.join(os.path.dirname(__file__), MODEL_NAME, 'frozen_inference_graph.pb')
 LABEL_FILE = os.path.join(os.path.dirname(__file__), 'tf_files', 'labels', 'oid_bbox_trainable_label_map.pbtxt')
 
+r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
+
 
 class ObjectModel:
     version = 0
@@ -31,18 +35,19 @@ class ObjectModel:
         self.labels = self.load_labels(label_file)
 
     def ensure_graph_exists(self):
-        if not os.path.exists(MODEL_PATH):
-            print('Downloading model')
-            opener = urllib.request.URLopener()
-            opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_PATH)
+        with Lock(r, 'classifier_object_download'):
+            if not os.path.exists(MODEL_PATH):
+                print('Downloading model')
+                opener = urllib.request.URLopener()
+                opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_PATH)
 
-        if not os.path.exists(os.path.join(CKPT_PATH)):
-            print('Extracting model')
-            tar_file = tarfile.open(MODEL_PATH)
-            for file in tar_file.getmembers():
-                file_name = os.path.basename(file.name)
-                if 'frozen_inference_graph.pb' in file_name:
-                    tar_file.extract(file, os.getcwd())
+            if not os.path.exists(CKPT_PATH):
+                print('Extracting model')
+                tar_file = tarfile.open(MODEL_PATH)
+                for file in tar_file.getmembers():
+                    file_name = os.path.basename(file.name)
+                    if 'frozen_inference_graph.pb' in file_name:
+                        tar_file.extract(file, os.path.dirname(__file__))
 
     def load_graph(self, graph_file):
         graph = tf.Graph()
@@ -72,8 +77,8 @@ class ObjectModel:
                 all_tensor_names = {output.name for op in ops for output in op.outputs}
                 tensor_dict = {}
                 for key in [
-                        'num_detections', 'detection_boxes', 'detection_scores',
-                        'detection_classes', 'detection_masks'
+                    'num_detections', 'detection_boxes', 'detection_scores',
+                    'detection_classes', 'detection_masks'
                 ]:
                     tensor_name = key + ':0'
                     if tensor_name in all_tensor_names:

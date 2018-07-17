@@ -10,7 +10,7 @@ import psutil
 from classifiers.runners import StyleModel
 
 
-style_model = StyleModel()
+model = StyleModel()
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
 
 
@@ -27,7 +27,7 @@ class Command(BaseCommand):
             queues = ['classification_style']
             num_cpus = cpu_count()
             ram_mb_available = int(psutil.virtual_memory().available / 1024 / 1024)
-            num_fit_in_ram = max(1, int((ram_mb_available / style_model.approx_ram_mb) - 1))
+            num_fit_in_ram = max(1, int((ram_mb_available / model.approx_ram_mb) - 1))
             num_workers = min(num_cpus, num_fit_in_ram)
 
             print('Starting {} style classification workers\n'.format(num_workers))
