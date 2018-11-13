@@ -4,7 +4,7 @@ Photo management application based on web technologies.
 
 This project is currently in early stages. I have a lot of thoughts on how I want photo management and viewing to work. I'm on the way to an MVP and it's shaping up nicely so stay tuned... also please suggest a name for this thing! :)
 
-The easiest way to try it out is with docker-compose (though there are currently no pre-built images so it will take a while to download and build).
+The easiest way to try it out is with docker-compose (though there are currently no pre-built images so it will take a while to download and build). It's best to do development through Docker Compose as it means you have the correct PostgreSQL database set up with the correct GIS extensions and Redis.
 
 ```
 git clone git@github.com:damianmoore/photo-manager.git
@@ -24,6 +24,15 @@ docker-compose run photomanager bash
 python /srv/backend/manage.py shell
 ```
 
+
+## Todo
+
+* Use JS modules so they all get built and can be used with no internet access - use Create React App
+* Create GraphQL service using Graphene Django
+* Use Apollo on the client side for GraphQL querying and handling state changes (instead of client_data_synchronizer)
+* Use Apollo & GraphQL to build up filters for Location, Object, Person, Color, Style.
+
+
 ## Future work
 
 ### Deep learning
@@ -32,6 +41,7 @@ python /srv/backend/manage.py shell
 * Object detection with bounding boxes using [YOLO](https://pjreddie.com/darknet/yolo/). This might not be required if Tensorflow Detection Model Zoo is good enough, SSD seems better than YOLO now which is in the models above. Using this just on the pre-trained COCO dataset should be a good enough start as the labels are things that people would take search for. Locating and counting the people in photos will be a great use on it's own.
 * Use [Recognizing Image Style](http://sergeykarayev.com/recognizing-image-style) to label style of an image. Might be worth downloading the dataset and using it to retrain a modern model like Mobilenet. [Tensorflow implementation](https://github.com/joelthchao/tensorflow-finetune-flickr-style) and labels can be seen [here](https://github.com/joelthchao/tensorflow-finetune-flickr-style/blob/master/assemble_data.py#L15).
 * Score photos using [NIMA Neural Image Assessment](https://research.googleblog.com/2017/12/introducing-nima-neural-image-assessment.html). We can use this to determine things like what to use for album covers and slideshows.
+
 
 ### Updates
 

@@ -1,0 +1,26 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==1.11.16"
+daphne = "==1.1.0"
+channels = "==1.1.1"
+asgiref = "==1.0.1"
+asgi-redis = "==1.1.0"
+ipython = "*"
+pillow = "==4.0.0"
+psutil = "==5.4.6"
+"psycopg2" = "==2.7.6.1"
+python-redis-lock = "==3.2.0"
+requests = "==2.19.1"
+rq = "==0.11.0"
+tensorflow = "==1.8.0"
+inotify = "==0.2.8"
+graphene-django = "==2.2.0"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"

@@ -9,7 +9,7 @@ done
 
 
 >&2 echo "Running migrations"
-python3 /srv/backend/manage.py migrate
+pipenv run python /srv/backend/manage.py migrate
 
 >&2 echo "Starting supervisor"
 supervisord -c /etc/supervisord.conf

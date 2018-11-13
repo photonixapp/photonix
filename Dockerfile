@@ -28,9 +28,11 @@ WORKDIR /srv/ui
 RUN npm install && npm install --only=dev
 
 # Install Python dependencies
-COPY backend/requirements.txt /srv/backend/requirements.txt
-RUN pip3 install -vU setuptools pip
-RUN pip3 install -r /srv/backend/requirements.txt
+WORKDIR /srv
+COPY Pipfile /srv/Pipfile
+RUN pip3 install pipenv
+RUN pipenv run pip install pip==18.0
+RUN pipenv install
 
 COPY backend /srv/backend
 COPY ui/public /srv/ui/public
@@ -41,7 +43,6 @@ COPY run.sh /srv/run.sh
 COPY supervisord.conf /etc/supervisord.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
-WORKDIR /srv
 CMD ./run.sh
 
 EXPOSE 80

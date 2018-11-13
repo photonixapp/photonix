@@ -5,7 +5,7 @@ import mimetypes
 import os
 
 from channels import Channel
-from django.utils.timezone import UTC
+from django.utils.timezone import utc
 
 from config.managers import global_state
 from photos.models import Camera, Lens, Photo, PhotoFile
@@ -15,7 +15,7 @@ from photos.utils.metadata import PhotoMetadata, parse_datetime, get_datetime, p
 def record_photo(path):
     global_state.increment('photo_import_tasks_running')
 
-    file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=UTC())
+    file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
     try:
         photo_file = PhotoFile.objects.get(path=path)
@@ -68,15 +68,15 @@ def record_photo(path):
     except Photo.DoesNotExist:
         photo = Photo(
             taken_at=get_datetime(path),
-            taken_by=metadata.get('Artist'),
+            taken_by=metadata.get('Artist') or None,
             aperture=metadata.get('Aperture') and Decimal(metadata.get('Aperture')) or None,
-            exposure=metadata.get('Exposure Time'),
+            exposure=metadata.get('Exposure Time') or None,
             iso_speed=metadata.get('ISO') and int(metadata.get('ISO')) or None,
             focal_length=metadata.get('Focal Length') and metadata.get('Focal Length').split(' ', 1)[0] or None,
             flash=metadata.get('Flash') and 'on' in metadata.get('Flash').lower() or False,
-            metering_mode=metadata.get('Metering Mode'),
-            drive_mode=metadata.get('Drive Mode'),
-            shooting_mode=metadata.get('Shooting Mode'),
+            metering_mode=metadata.get('Metering Mode') or None,
+            drive_mode=metadata.get('Drive Mode') or None,
+            shooting_mode=metadata.get('Shooting Mode') or None,
             camera=camera,
             lens=lens,
             location=metadata.get('GPS Position') and parse_gps_location(metadata.get('GPS Position')) or None,
