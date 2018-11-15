@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'world',
     'web',
     'client_data_synchronizer',
+    'graphene_django',
 ]
 
 MIDDLEWARE = [
@@ -169,3 +170,7 @@ PHOTO_OUTPUT_DIRS = [
         'PATH': os.path.normpath(os.path.join(BASE_DIR, '..', 'data', 'raw_photos')),
     },
 ]
+
+GRAPHENE = {
+    'SCHEMA': 'web.schema.schema'
+}

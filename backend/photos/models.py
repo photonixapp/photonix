@@ -14,6 +14,9 @@ class Camera(UUIDModel, VersionedModel):
     earliest_photo  = models.DateTimeField()
     latest_photo    = models.DateTimeField()
 
+    class Meta:
+        ordering = ['make', 'model']
+
     def __str__(self):
         return '{} {}'.format(self.make, self.model)
 
@@ -25,6 +28,7 @@ class Lens(UUIDModel, VersionedModel):
 
     class Meta:
         verbose_name_plural = 'lenses'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -62,6 +66,9 @@ class Photo(UUIDModel, VersionedModel):
     classifier_style_version            = models.PositiveSmallIntegerField(null=True)
     classifier_style_queued_at          = models.DateTimeField(null=True)
     classifier_style_completed_at       = models.DateTimeField(null=True)
+
+    class Meta:
+        ordering = ['taken_at']
 
     def __str__(self):
         return str(self.id)

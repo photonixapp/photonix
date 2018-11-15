@@ -4,9 +4,12 @@
   "private": true,
   "proxy": "http://localhost:8000",
   "dependencies": {
+    "apollo-boost": "^0.1.20",
     "django-channels": "^1.1.1",
+    "graphql": "^14.0.2",
     "leaflet": "^1.0.3",
     "react": "^15.5.4",
+    "react-apollo": "^2.2.4",
     "react-dom": "^15.5.4",
     "react-leaflet": "^1.1.6",
     "react-redux": "^5.0.3",

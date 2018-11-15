@@ -19,11 +19,14 @@ const App = () => (
       </header>
       <div className="main flex-container-row">
         <section id="filters">
-          <h2>Date range</h2>
-          <h2>Tags</h2>
+          <h2>Location</h2>
+          <h2>Object</h2>
+          <h2>Person</h2>
+          <h2>Color</h2>
+          <h2>Style</h2>
+          <h2>Camera</h2>
+          <h2>Lens</h2>
           <Tags />
-          <h2>People</h2>
-          <h2>Cameras</h2>
         </section>
         <section id="content">
           <Route exact path="/" component={TimelineContainer} />
