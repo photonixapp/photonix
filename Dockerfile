@@ -20,7 +20,13 @@ RUN apt-get update && \
                    /var/tmp/*
 
 # Install Node
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - && apt-get update && apt-get install -y nodejs
+RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - && \
+    apt-get update && \
+    apt-get install -y nodejs && \
+         apt-get clean && \
+            rm -rf /var/lib/apt/lists/* \
+                   /tmp/* \
+                   /var/tmp/*
 
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
