@@ -133,6 +133,9 @@ class Tag(UUIDModel, VersionedModel):
     world_border    = models.ForeignKey(WorldBorder, related_name='tags', null=True)
     city            = models.ForeignKey(City, related_name='tags', null=True)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return '{} ({})'.format(self.name, self.type)
 

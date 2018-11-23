@@ -1,9 +1,11 @@
 header {
   background: #292929;
+  position: relative;
 }
 footer {
   background: #292929;
   padding: 5px 20px;
+  display: none;
 }
 
 .flex-container-column {
@@ -32,13 +34,16 @@ footer {
 .tabs {
   display: inline-block;
   margin: 0;
+  position: absolute;
+  right: 20px;
+  bottom: 0;
 }
 .tabs li {
   display: inline-block;
   list-style: none;
   padding: 10px 20px;
   background: #1d1d1d;
-  margin-right: 10px;
+  margin-left: 10px;
 }
 .tabs a {
   color: #ddd;
@@ -49,10 +54,11 @@ footer {
 }
 
 #filters {
-  width: 250px;
+  width: 300px;
   height: 100%;
   background: #222222;
   padding: 10px 20px;
+  overflow: auto;
 }
 #filters h2 {
   font-size: 18px;
@@ -62,4 +68,5 @@ footer {
 #content {
   width: 100%;
   padding: 0;
+  overflow: auto;
 }

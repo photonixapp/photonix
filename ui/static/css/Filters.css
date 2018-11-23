@@ -1,0 +1,97 @@
+.Filters {
+  overflow: auto;
+  margin: 0 -20px -20px;
+}
+.FiltersContent {
+  width: max-content;
+  margin: 0 20px;
+}
+.FilterGroup {
+  width: 250px;
+  max-height: 300px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  display: inline-block;
+  vertical-align: top;
+}
+.FilterGroup ul {
+  margin: 0;
+  padding: 0;
+}
+.FilterGroup li {
+  background: #333;
+  display: inline-block;
+  margin: 0 10px 10px 0;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.FilterGroup li.Color {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  overflow: hidden;
+  color: rgba(0, 0, 0, 0);
+  border: 1px solid #ddd;
+}
+.FilterGroup li.Red {
+  background: rgb(225, 32, 0);
+}
+.FilterGroup li.Darkorange {
+  background: rgb(162, 70, 21);
+}
+.FilterGroup li.Orange {
+  background: rgb(255, 159, 156);
+}
+.FilterGroup li.Palepink {
+  background: rgb(255, 159, 156);
+}
+.FilterGroup li.Lemonyellow {
+  background: rgb(255, 250, 0);
+}
+.FilterGroup li.Schoolbusyellow {
+  background: rgb(225, 32, 0);
+}
+.FilterGroup li.Green {
+  background: rgb(144, 226, 0);
+}
+.FilterGroup li.Darklimegreen {
+  background: rgb(0, 171, 0);
+}
+.FilterGroup li.Cyan {
+  background: rgb(0, 178, 212);
+}
+.FilterGroup li.Blue {
+  background: rgb(0, 98, 198);
+}
+.FilterGroup li.Violet {
+  background: rgb(140, 32, 186);
+}
+.FilterGroup li.Pink {
+  background: rgb(245, 35, 148);
+}
+.FilterGroup li.White {
+  background: rgb(255, 255, 255);
+}
+.FilterGroup li.Gray {
+  background: rgb(124, 124, 124);
+}
+.FilterGroup li.Black {
+  background: rgb(0, 0, 0);
+}
+/* 'Dark orange':          (162, 70, 21),
+'Orange':               (255, 124, 0),
+'Pale pink':            (255, 159, 156),
+'Lemon yellow':         (255, 250, 0),
+'School bus yellow':    (255, 207, 0),
+'Green':                (144, 226, 0),
+'Dark lime green':      (0, 171, 0),
+'Cyan':                 (0, 178, 212),
+'Blue':                 (0, 98, 198),
+'Violet':               (140, 32, 186),
+'Pink':                 (245, 35, 148),
+# 'White':                (255, 255, 255),
+# 'Gray':                 (124, 124, 124),
+# 'Black':                (0, 0, 0), */

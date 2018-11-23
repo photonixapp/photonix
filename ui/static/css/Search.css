@@ -1,0 +1,11 @@
+.Search {
+  padding: 20px;
+}
+.Search input[type="text"] {
+  width: 100%;
+  font-size: 20px;
+  padding: 8px 10px;
+}
+.Search h2 {
+  font-size: 18px;
+}
