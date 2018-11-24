@@ -1,8 +1,12 @@
-# photo-manager
+# Photo Manager
 
-Photo management application based on web technologies.
+*This project is in dire need of a name - please send suggestions!*
 
-This project is currently in early stages. I have a lot of thoughts on how I want photo management and viewing to work. I'm on the way to an MVP and it's shaping up nicely so stay tuned... also please suggest a name for this thing! :)
+This is a photo management application based on web technologies. Run it on your home server and it will let you find what you want from your photo collection using any device. Smart filtering is made possible automatically by object recognition, location awareness, color analysis and other algorithms.
+
+![Screenshot of photo list view](https://epixstudios.co.uk/uploads/filer_public/31/25/3125a68a-046a-443b-be24-59bbe210bdb6/photo_list.jpg)
+
+This project is currently in development and not all features are completed yet. If you don't mind putting up with broken parts or want to help out, clone the repo and give it a go. I'd love for other contributors to get involved.
 
 The easiest way to try it out is with docker-compose (though there are currently no pre-built images so it will take a while to download and build). It's best to do development through Docker Compose as it means you have the correct PostgreSQL database set up with the correct GIS extensions and Redis.
 
@@ -27,10 +31,13 @@ python /srv/backend/manage.py shell
 
 ## Todo
 
-* Use JS modules so they all get built and can be used with no internet access - use Create React App
-* Create GraphQL service using Graphene Django
-* Use Apollo on the client side for GraphQL querying and handling state changes (instead of client_data_synchronizer)
-* Use Apollo & GraphQL to build up filters for Location, Object, Person, Color, Style.
+* Improve filtering capabilities of the GraphQL API and hook up the filtering UI
+* Faceted search of remaining filters based on ones currently selected
+* Make photo detail view work with new state manager
+* Make map view work with new state manager
+* Pagination in photo list while scrolling
+* Timeline month histogram scroller on photo list view
+* Website with public demo
 
 
 ## Future work
@@ -39,10 +46,4 @@ python /srv/backend/manage.py shell
 
 * Use Tensorflow's [Detection Model Zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md) initially Mobilenet trained on COCO. It should be able to give bounding boxes. The Open Images dataset-trained models might also be useful for a wider range of labels.
 * Object detection with bounding boxes using [YOLO](https://pjreddie.com/darknet/yolo/). This might not be required if Tensorflow Detection Model Zoo is good enough, SSD seems better than YOLO now which is in the models above. Using this just on the pre-trained COCO dataset should be a good enough start as the labels are things that people would take search for. Locating and counting the people in photos will be a great use on it's own.
-* Use [Recognizing Image Style](http://sergeykarayev.com/recognizing-image-style) to label style of an image. Might be worth downloading the dataset and using it to retrain a modern model like Mobilenet. [Tensorflow implementation](https://github.com/joelthchao/tensorflow-finetune-flickr-style) and labels can be seen [here](https://github.com/joelthchao/tensorflow-finetune-flickr-style/blob/master/assemble_data.py#L15).
 * Score photos using [NIMA Neural Image Assessment](https://research.googleblog.com/2017/12/introducing-nima-neural-image-assessment.html). We can use this to determine things like what to use for album covers and slideshows.
-
-
-### Updates
-
-* New ML models could be dirtibuted via IPFS as they are quite big. The installation would include the IPFS client and once they have downloaded the new model they become a peer to share with other users and reduce bandwith.
