@@ -3,7 +3,7 @@ from django.conf import settings
 import os
 import shutil
 
-from photos.models import Camera, Photo, PhotoFile
+from photos.models import Camera, Lens, Photo, PhotoFile, Face, Tag
 
 
 class Command(BaseCommand):
@@ -21,9 +21,12 @@ class Command(BaseCommand):
                 print(e)
 
     def delete_all_photos(self):
+        Camera.objects.all().delete()
+        Lens.objects.all().delete()
         Photo.objects.all().delete()
         PhotoFile.objects.all().delete()
-        Camera.objects.all().delete()
+        Face.objects.all().delete()
+        Tag.objects.all().delete()
 
         self.clear_dir(settings.THUMBNAIL_ROOT)
 

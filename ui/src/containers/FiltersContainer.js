@@ -86,7 +86,7 @@ const FiltersContainer = () => (
             )),
           })
         }
-        if (data.allStyleTags.length) {
+        if (data.allCameras.length) {
           filterData.push({
             name: 'Cameras',
             items: data.allCameras.map((camera) => (
@@ -94,7 +94,7 @@ const FiltersContainer = () => (
             )),
           })
         }
-        if (data.allStyleTags.length) {
+        if (data.allLenses.length) {
           filterData.push({
             name: 'Lenses',
             items: data.allLenses.map((lens) => (

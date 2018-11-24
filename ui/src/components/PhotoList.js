@@ -1,11 +1,10 @@
-import React, { PropTypes } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
-import '../../static/css/Timeline.css'
-import '../../static/css/PhotoList.css'
+import '../static/css/PhotoList.css'
 
 
 const PhotoList = ({ photos }) => (
-  <div className="Timeline">
+  <div className="PhotoList">
     <ul className="thumbnails">
       {
         photos.map((photo) => (

@@ -9,8 +9,9 @@ from photos.models import Photo
 from photos.utils.metadata import PhotoMetadata
 
 
-def generate_thumbnails_for_photo(photo_id):
-    photo = Photo.objects.get(id=photo_id)
+def generate_thumbnails_for_photo(photo):
+    if not isinstance(photo, Photo):
+        photo = Photo.objects.get(id=photo)
     for thumbnail in settings.THUMBNAIL_SIZES:
         generate_thumbnail(photo, thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3])
 

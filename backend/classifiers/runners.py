@@ -20,8 +20,8 @@ def run_color_classifier_on_photo(photo_id):
         if not photo.photo_tags.filter(tag__name=name, tag__type='C', tag__source='C'):
             tag, created = Tag.objects.get_or_create(name=name, type='C', source='C')
             PhotoTag(photo=photo, tag=tag, source='C', confidence=score).save()
-    photo.last_tagged_objects_completed_at = timezone.now()
-    photo.last_tagged_objects_version = getattr(color_model, 'version', 0)
+    photo.classifier_color_completed_at = timezone.now()
+    photo.classifier_color_version = getattr(color_model, 'version', 0)
     photo.save()
 
 
@@ -33,8 +33,8 @@ def run_object_classifier_on_photo(photo_id):
         if not photo.photo_tags.filter(tag__name=result['label'], tag__type='O', tag__source='C'):
             tag, created = Tag.objects.get_or_create(name=result['label'], type='O', source='C')
             PhotoTag(photo=photo, tag=tag, source='C', confidence=result['score'], position_x=result['x'], position_y=result['y'], size_x=result['width'], size_y=result['height']).save()
-    photo.last_tagged_objects_completed_at = timezone.now()
-    photo.last_tagged_objects_version = getattr(object_model, 'version', 0)
+    photo.classifier_object_completed_at = timezone.now()
+    photo.classifier_object_version = getattr(object_model, 'version', 0)
     photo.save()
 
 
@@ -46,6 +46,6 @@ def run_style_classifier_on_photo(photo_id):
         if not photo.photo_tags.filter(tag__name=name, tag__type='S', tag__source='C'):
             tag, created = Tag.objects.get_or_create(name=name, type='S', source='C')
             PhotoTag(photo=photo, tag=tag, source='C', confidence=score).save()
-    photo.last_tagged_styles_completed_at = timezone.now()
-    photo.last_tagged_styles_version = getattr(style_model, 'version', 0)
+    photo.classifier_style_completed_at = timezone.now()
+    photo.classifier_style_version = getattr(style_model, 'version', 0)
     photo.save()

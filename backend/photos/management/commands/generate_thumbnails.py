@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
 
 from photos.models import Photo
-from photos.utils.thumbnails import generate_thumbnail
-from web.utils import notify
+from photos.utils.thumbnails import generate_thumbnails_for_photo
+from web.utils import notify_ui
 
 
 class Command(BaseCommand):
@@ -11,11 +11,11 @@ class Command(BaseCommand):
     def generate_thumbnails(self):
         for photo in Photo.objects.all().order_by('-taken_at'):
             try:
-                generate_thumbnail(photo)
+                generate_thumbnails_for_photo(photo)
             except FileNotFoundError:
                 pass
 
     def handle(self, *args, **options):
-        notify('photo_thubnails_generating', True)
+        notify_ui('photo_thubnails_generating', True)
         self.generate_thumbnails()
-        notify('photo_thubnails_generating', False)
+        notify_ui('photo_thubnails_generating', False)

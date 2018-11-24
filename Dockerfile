@@ -19,10 +19,12 @@ RUN apt-get update && \
                    /tmp/* \
                    /var/tmp/*
 
-# Install Node
+# Install Node & Yarn
 RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
     apt-get update && \
-    apt-get install -y nodejs && \
+    apt-get install -y nodejs yarn && \
          apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \
@@ -30,10 +32,12 @@ RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - && \
 
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
+COPY ui/yarn.lock /srv/ui/yarn.lock
 WORKDIR /srv/ui
-RUN npm install && npm install --only=dev
+RUN yarn install
 
 # Install Python dependencies
+ENV PIPENV_TIMEOUT 600
 WORKDIR /srv
 COPY Pipfile /srv/Pipfile
 RUN pip3 install pipenv
@@ -43,7 +47,6 @@ RUN pipenv install
 COPY backend /srv/backend
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
-COPY ui/static /srv/ui/static
 
 COPY run.sh /srv/run.sh
 COPY supervisord.conf /etc/supervisord.conf

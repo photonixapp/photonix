@@ -1,29 +1,30 @@
 {
-  "name": "my-app",
+  "name": "ui",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8000",
   "dependencies": {
-    "apollo-boost": "^0.1.20",
-    "django-channels": "^1.1.1",
+    "apollo-boost": "^0.1.22",
     "graphql": "^14.0.2",
-    "leaflet": "^1.0.3",
-    "react": "^15.5.4",
-    "react-apollo": "^2.2.4",
-    "react-dom": "^15.5.4",
-    "react-leaflet": "^1.1.6",
-    "react-redux": "^5.0.3",
-    "react-router-dom": "^4.0.0",
-    "redux": "^3.6.0",
-    "scriptjs": "^2.5.8"
-  },
-  "devDependencies": {
-    "react-scripts": "0.9.5"
+    "normalize.css": "^8.0.1",
+    "react": "^16.6.3",
+    "react-apollo": "^2.3.1",
+    "react-dom": "^16.6.3",
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "2.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
+    "test": "react-scripts test",
     "eject": "react-scripts eject"
-  }
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }

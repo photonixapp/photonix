@@ -1,10 +1,14 @@
 .Search {
-  padding: 20px;
+  padding: 40px;
 }
 .Search input[type="text"] {
   width: 100%;
   font-size: 20px;
   padding: 8px 10px;
+  background: rgba(255,255,255,0.2);
+  border: 0;
+  color: #fff;
+  margin-bottom: 20px;
 }
 .Search h2 {
   font-size: 18px;

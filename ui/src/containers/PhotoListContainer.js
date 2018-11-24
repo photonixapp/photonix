@@ -28,7 +28,6 @@ const PhotoListContainer = () => (
             thumbnail: `/thumbnails/256x256_cover_q50/${photo.id}.jpg`,
           }
         ))
-        console.log(photos)
         return <PhotoList photos={photos} />
       }}
     </Query>

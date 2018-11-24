@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 
 from photos.utils.organise import import_photos_in_place
 from photos.utils.system import missing_system_dependencies
-# from web.utils import notify
+# from web.utils import notify_ui
 
 
 class Command(BaseCommand):
@@ -22,6 +22,6 @@ class Command(BaseCommand):
             import_photos_in_place(path)
 
     def handle(self, *args, **options):
-        # notify('photo_dirs_scanning', True)
+        # notify_ui('photo_dirs_scanning', True)
         self.rescan_photos(options['paths'])
-        # notify('photo_dirs_scanning', False)
+        # notify_ui('photo_dirs_scanning', False)

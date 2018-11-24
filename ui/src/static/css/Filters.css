@@ -1,10 +1,13 @@
 .Filters {
   overflow: auto;
-  margin: 0 -20px -20px;
+  margin: 0 -40px -20px;
+}
+.Filters::-webkit-scrollbar {
+  display: none;
 }
 .FiltersContent {
   width: max-content;
-  margin: 0 20px;
+  margin: 0 40px;
 }
 .FilterGroup {
   width: 250px;
@@ -14,13 +17,14 @@
   padding: 0;
   display: inline-block;
   vertical-align: top;
+  margin-right: 20px;
 }
 .FilterGroup ul {
   margin: 0;
   padding: 0;
 }
 .FilterGroup li {
-  background: #333;
+  background: #383838;
   display: inline-block;
   margin: 0 10px 10px 0;
   padding: 5px 10px;
@@ -34,7 +38,7 @@
   padding: 0;
   overflow: hidden;
   color: rgba(0, 0, 0, 0);
-  border: 1px solid #ddd;
+  border: 1px solid #000;
 }
 .FilterGroup li.Red {
   background: rgb(225, 32, 0);

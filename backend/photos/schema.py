@@ -107,7 +107,8 @@ class Query(object):
         return None
 
     def resolve_all_photos(self, info, **kwargs):
-        return Photo.objects.all()
+        # return Photo.objects.all()
+        return Photo.objects.filter(last_thumbnailed_at__isnull=False)
 
     def resolve_all_location_tags(self, info, **kwargs):
         return Tag.objects.filter(type='L')

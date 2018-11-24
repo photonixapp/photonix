@@ -1,3 +1,26 @@
+html {
+  height: 100%;
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background: #1d1d1d;
+  color: #ddd;
+  font-family: sans-serif;
+  margin: 0;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
 header {
   background: #292929;
   position: relative;
@@ -11,7 +34,7 @@ footer {
 .flex-container-column {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;
 }
 .flex-container-row {
   display: flex;
@@ -69,4 +92,7 @@ footer {
   width: 100%;
   padding: 0;
   overflow: auto;
+}
+#content::-webkit-scrollbar {
+  display: none;
 }
