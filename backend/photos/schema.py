@@ -1,7 +1,10 @@
 from django.contrib.gis.db.models.fields import PointField
+import django_filters
 import graphene
+from graphene import Node
 from graphene_django.converter import convert_django_field
 from graphene_django.types import DjangoObjectType
+from graphene_django.filter import DjangoFilterConnectionField
 
 from .models import Camera, Lens, Photo, Tag
 
@@ -21,14 +24,44 @@ class LensType(DjangoObjectType):
         model = Lens
 
 
-class PhotoType(DjangoObjectType):
+class CustomNode(graphene.Node):
+
+    class Meta:
+        name = 'Node'
+
+    @staticmethod
+    def to_global_id(type, id):
+        return id
+
+
+class PhotoInterface(graphene.Interface):
+    photo_tags__tag__id = graphene.String()
+
+
+class PhotoNode(DjangoObjectType):
+
     class Meta:
         model = Photo
+        interfaces = (CustomNode, PhotoInterface)
 
     def resolve_location(self, info):
         if self.location:
             return '{},{}'.format(self.location.y, self.location.x)
         return None
+
+
+class PhotoFilter(django_filters.FilterSet):
+
+    class Meta:
+        model = Photo
+        fields = {
+            'aperture': ['exact'],
+            'camera__id': ['exact'],
+            'camera__make': ['exact', 'icontains'],
+            'lens__id': ['exact'],
+            'photo_tags__tag__id': ['exact', 'in'],
+            'photo_tags__tag__name': ['exact', 'icontains', 'in'],
+        }
 
 
 class LocationTagType(DjangoObjectType):
@@ -61,8 +94,8 @@ class Query(object):
     all_cameras = graphene.List(CameraType)
     lens = graphene.Field(LensType, id=graphene.String(), name=graphene.String())
     all_lenses = graphene.List(LensType)
-    photo = graphene.Field(PhotoType, id=graphene.String())
-    all_photos = graphene.List(PhotoType)
+    photo = Node.Field(PhotoNode)
+    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
     all_location_tags = graphene.List(LocationTagType)
     all_object_tags = graphene.List(ObjectTagType)
     all_person_tags = graphene.List(PersonTagType)
@@ -105,10 +138,6 @@ class Query(object):
         if id is not None:
             return Photo.objects.get(pk=id)
         return None
-
-    def resolve_all_photos(self, info, **kwargs):
-        # return Photo.objects.all()
-        return Photo.objects.filter(last_thumbnailed_at__isnull=False)
 
     def resolve_all_location_tags(self, info, **kwargs):
         return Tag.objects.filter(type='L')

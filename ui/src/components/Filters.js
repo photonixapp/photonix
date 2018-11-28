@@ -1,7 +1,7 @@
 import React from 'react'
 import '../static/css/Filters.css'
 
-const Filters = ({ data }) => (
+const Filters = ({ data, onToggle }) => (
   <section className="Filters">
     <div className="FiltersContent">
       {
@@ -15,7 +15,7 @@ const Filters = ({ data }) => (
                   if (group.name === 'Colors') {
                     className = `Color ${item.name.replace(/ /g, '')}`
                   }
-                  return <li key={item.id} className={className}>{item.name}</li>
+                  return <li key={item.id} className={className} onClick={() => onToggle(item.id)}>{item.name}</li>
                 })
               }
             </ul>

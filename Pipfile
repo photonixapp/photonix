@@ -20,6 +20,7 @@ rq = "==0.12.0"
 tensorflow = "==1.8.0"
 inotify = "==0.2.8"
 graphene-django = "==2.2.0"
+django-filter = "==2.0.0"
 
 [dev-packages]
 

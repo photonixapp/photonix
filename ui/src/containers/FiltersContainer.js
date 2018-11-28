@@ -4,43 +4,43 @@ import gql from "graphql-tag"
 import Filters from '../components/Filters'
 
 
-const FiltersContainer = () => (
+const GET_FILTERS = gql`
+  {
+    allLocationTags {
+      id
+      name
+    }
+    allObjectTags {
+      id
+      name
+    }
+    allPersonTags {
+      id
+      name
+    }
+    allColorTags {
+      id
+      name
+    }
+    allStyleTags {
+      id
+      name
+    }
+    allCameras {
+      id
+      make
+      model
+    }
+    allLenses {
+      id
+      name
+    }
+  }
+`
+
+const FiltersContainer = ({ onToggle }) => (
   <div>
-    <Query
-      query={gql`
-        {
-          allLocationTags {
-            id
-            name
-          }
-          allObjectTags {
-            id
-            name
-          }
-          allPersonTags {
-            id
-            name
-          }
-          allColorTags {
-            id
-            name
-          }
-          allStyleTags {
-            id
-            name
-          }
-          allCameras {
-            id
-            make
-            model
-          }
-          allLenses {
-            id
-            name
-          }
-        }
-      `}
-    >
+    <Query query={GET_FILTERS}>
       {({ loading, error, data }) => {
         if (loading) return <p>Loading...</p>;
         if (error) return <p>Error :(</p>;
@@ -103,7 +103,7 @@ const FiltersContainer = () => (
           })
         }
 
-        return <Filters data={filterData} />
+        return <Filters data={filterData} onToggle={onToggle} />
       }}
     </Query>
   </div>

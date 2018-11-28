@@ -25,7 +25,7 @@ If you want to access the Python shell for development, use the following:
 
 ```
 docker-compose run photomanager bash
-python /srv/backend/manage.py shell
+pipenv run python /srv/backend/manage.py shell
 ```
 
 

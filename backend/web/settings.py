@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'web',
     'client_data_synchronizer',
     'graphene_django',
+    'django_filters',
 ]
 
 MIDDLEWARE = [

@@ -13,12 +13,12 @@ import PhotoListContainer from '../containers/PhotoListContainer'
 
 const client = new ApolloClient()
 
-const App = () => (
+const App = ({ selectedFilters, onToggle }) => (
   <ApolloProvider client={client}>
     <Router>
       <div className="flex-container-column">
         <header>
-          <SearchContainer />
+          <SearchContainer selectedFilters={selectedFilters} onToggle={onToggle} />
           <ul className="tabs">
             <Link to="/"><li>Timeline</li></Link>
             <Link to="/map"><li>Map</li></Link>
@@ -26,7 +26,7 @@ const App = () => (
         </header>
         <div className="main flex-container-row">
           <section id="content">
-            <Route exact path="/" component={PhotoListContainer} />
+            <Route exact path="/" render={() => <PhotoListContainer selectedFilters={selectedFilters} />} />
             {/* <Route path="/map" component={MapContainer} /> */}
             {/* <Route path="/photo/:photoId" component={PhotoDetailContainer} /> */}
           </section>

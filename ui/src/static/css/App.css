@@ -13,7 +13,6 @@ body {
   background: #1d1d1d;
   color: #ddd;
   font-family: sans-serif;
-  margin: 0;
   height: 100%;
 }
 
@@ -58,7 +57,7 @@ footer {
   display: inline-block;
   margin: 0;
   position: absolute;
-  right: 20px;
+  right: 40px;
   bottom: 0;
 }
 .tabs li {
