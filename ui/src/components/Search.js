@@ -5,7 +5,7 @@ import '../static/css/Search.css'
 const Search = ({ selectedFilters, onToggle }) => {
   return (
     <div className="Search">
-      <input type="text" placeholder="Search" value={selectedFilters} />
+      <input type="text" placeholder="Search" defaultValue={selectedFilters} />
       <FiltersContainer onToggle={onToggle} />
     </div>
   )

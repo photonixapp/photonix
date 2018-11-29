@@ -1,5 +1,4 @@
-import { connect } from 'react-redux'
-import { runCommand } from '../websockets'
+import React  from 'react'
 import MapView from '../components/MapView'
 
 const mapStateToProps = state => {
@@ -25,11 +24,13 @@ const mapDispatchToProps = dispatch => {
         bounds._northEast.lng,
       ]
       console.log(bounds)
-      dispatch(runCommand('get_photos_by_bounds', { bounds: bounds }))
+      // dispatch(runCommand('get_photos_by_bounds', { bounds: bounds }))
     },
   }
 }
 
-const MapContainer = connect(mapStateToProps, mapDispatchToProps)(MapView)
-
-export default MapContainer
+export default class MapContainer extends React.Component {
+  render() {
+    return <MapView />
+  }
+}

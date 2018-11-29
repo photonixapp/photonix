@@ -9,6 +9,7 @@ export default class SearchContainer extends React.Component {
     super(props)
     this.state = {
       selectedFilters: [],
+      detailPhoto: null,
     }
   }
 

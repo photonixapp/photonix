@@ -1,10 +1,9 @@
 import React from 'react'
-import {getThumbnail} from '../utils/thumbnails'
-import '../../static/css/PhotoDetail.css'
+import '../static/css/PhotoDetail.css'
 
 
-const PhotoDetail = ({ photo, onPhotoClick }) => (
-  <div className="PhotoDetail" style={{backgroundImage: 'url(' + getThumbnail(photo.id, 1) + ')'}} onClick={() => onPhotoClick}></div>
+const PhotoDetail = ({ path }) => (
+  <div className="PhotoDetail" style={{backgroundImage: 'url(' + path + ')'}}></div>
 )
 
 export default PhotoDetail

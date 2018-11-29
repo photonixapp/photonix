@@ -1,5 +1,9 @@
 .Spinner {
-  width: 16px;
-  height: 16px;
-  margin: 10px;
+  margin: 40px;
+  display: block;
+  text-align: center;
+}
+.Spinner img {
+  width: 38px;
+  height: 38px;
 }

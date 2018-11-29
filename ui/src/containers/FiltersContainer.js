@@ -2,6 +2,7 @@ import React  from 'react'
 import { Query } from "react-apollo"
 import gql from "graphql-tag"
 import Filters from '../components/Filters'
+import Spinner from '../components/Spinner'
 
 
 const GET_FILTERS = gql`
@@ -42,8 +43,8 @@ const FiltersContainer = ({ onToggle }) => (
   <div>
     <Query query={GET_FILTERS}>
       {({ loading, error, data }) => {
-        if (loading) return <p>Loading...</p>;
-        if (error) return <p>Error :(</p>;
+        if (loading) return <Spinner />
+        if (error) return <p>Error :(</p>
 
         let filterData = []
         if (data.allLocationTags.length) {

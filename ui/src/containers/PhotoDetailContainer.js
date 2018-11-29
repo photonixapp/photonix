@@ -1,29 +1,27 @@
-import { connect } from 'react-redux'
+import React  from 'react'
+import { Query } from "react-apollo"
+import gql from "graphql-tag"
 import PhotoDetail from '../components/PhotoDetail'
+import Spinner from '../components/Spinner'
 
-const mapStateToProps = (state) => {
-  let sessionState = state.config.sessionState
-  let photo = {}
-  if (sessionState && sessionState.current_photo) {
-    photo = sessionState.current_photo
-  }
-
-  return {
-    photo: photo,
-  }
-}
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onPhotoClick: () => {
-      dispatch(history.go(-1))
+const GET_PHOTO = gql`
+  query Photo($id: UUID) {
+    photo (id: $id) {
+      path
     }
   }
+`
+
+export default class PhotoDetailContainer extends React.Component {
+  render = () => {
+    return (
+      <Query query={GET_PHOTO} variables={{id: this.props.photoId}}>
+        {({ loading, error, data }) => {
+          if (loading) return <Spinner />
+          if (error) return <p>Error :(</p>
+          return <PhotoDetail photoId={this.props.photoId} path={data.photo.path} />
+        }}
+      </Query>
+    )
+  }
 }
-
-const PhotoDetailContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(PhotoDetail)
-
-export default PhotoDetailContainer

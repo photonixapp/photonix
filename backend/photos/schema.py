@@ -39,6 +39,7 @@ class PhotoInterface(graphene.Interface):
 
 
 class PhotoNode(DjangoObjectType):
+    path = graphene.String()
 
     class Meta:
         model = Photo
@@ -48,6 +49,9 @@ class PhotoNode(DjangoObjectType):
         if self.location:
             return '{},{}'.format(self.location.y, self.location.x)
         return None
+
+    def resolve_path(self, info):
+        return self.file.path
 
 
 class PhotoFilter(django_filters.FilterSet):
@@ -90,12 +94,15 @@ class StyleTagType(DjangoObjectType):
 
 
 class Query(object):
-    camera = graphene.Field(CameraType, id=graphene.String(), make=graphene.String(), model=graphene.String())
+    camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
     all_cameras = graphene.List(CameraType)
-    lens = graphene.Field(LensType, id=graphene.String(), name=graphene.String())
+
+    lens = graphene.Field(LensType, id=graphene.UUID(), name=graphene.String())
     all_lenses = graphene.List(LensType)
-    photo = Node.Field(PhotoNode)
+
+    photo = graphene.Field(PhotoNode, id=graphene.UUID())
     all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
+
     all_location_tags = graphene.List(LocationTagType)
     all_object_tags = graphene.List(ObjectTagType)
     all_person_tags = graphene.List(PersonTagType)

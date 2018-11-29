@@ -2,6 +2,7 @@ import React  from 'react'
 import { Query } from "react-apollo"
 import gql from "graphql-tag"
 import PhotoList from '../components/PhotoList'
+import Spinner from '../components/Spinner'
 
 
 const GET_PHOTOS = gql`
@@ -10,9 +11,6 @@ const GET_PHOTOS = gql`
       edges {
         node {
           id
-          aperture
-          exposure
-          isoSpeed
         }
       }
     }
@@ -21,11 +19,9 @@ const GET_PHOTOS = gql`
 
 const PhotoListContainer = ({ selectedFilters }) => (
   <div>
-    <Query query={GET_PHOTOS} variables={{
-      "tagId": selectedFilters[0]
-    }}>
+    <Query query={GET_PHOTOS} variables={{tagId: selectedFilters[0]}}>
       {({ loading, error, data }) => {
-        if (loading) return <p>Loading...</p>
+        if (loading) return <Spinner />
         if (error) return <p>Error :(</p>
 
         let photos = data.allPhotos.edges.map((photo) => (
@@ -34,6 +30,7 @@ const PhotoListContainer = ({ selectedFilters }) => (
             thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}.jpg`,
           }
         ))
+
         return <PhotoList photos={photos} />
       }}
     </Query>

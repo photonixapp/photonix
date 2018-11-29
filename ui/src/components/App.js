@@ -7,13 +7,13 @@ import '../static/css/App.css'
 import SearchContainer from '../containers/SearchContainer'
 import PhotoListContainer from '../containers/PhotoListContainer'
 // import MapContainer from '../containers/MapContainer'
-// import PhotoDetailContainer from '../containers/PhotoDetailContainer'
+import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 // import FooterContainer from '../containers/FooterContainer'
 
 
 const client = new ApolloClient()
 
-const App = ({ selectedFilters, onToggle }) => (
+const App = ({ selectedFilters, onToggle, onDetailPhoto }) => (
   <ApolloProvider client={client}>
     <Router>
       <div className="flex-container-column">
@@ -28,7 +28,7 @@ const App = ({ selectedFilters, onToggle }) => (
           <section id="content">
             <Route exact path="/" render={() => <PhotoListContainer selectedFilters={selectedFilters} />} />
             {/* <Route path="/map" component={MapContainer} /> */}
-            {/* <Route path="/photo/:photoId" component={PhotoDetailContainer} /> */}
+            <Route path="/photo/:photoId" render={(params) => <PhotoDetailContainer photoId={params.match.params.photoId} />} />
           </section>
         </div>
         {/* <FooterContainer /> */}
