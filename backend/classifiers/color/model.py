@@ -9,11 +9,19 @@ from PIL import Image
 
 class ColorModel:
     version = 0
-    approx_ram_mb = 100
+    approx_ram_mb = 120
 
     def __init__(self):
         self.colors = {
             # Name: (red, green, blue)
+
+            # 'Red':                  (255, 0, 0),
+            # 'Yellow':               (255, 255, 0),
+            # 'Green':                (0, 255, 0),
+            # 'Cyan':                 (0, 255, 255),
+            # 'Blue':                 (0, 0, 255),
+            # 'Magenta':              (255, 0, 255),
+
             'Red':                  (225, 32, 0),
             'Dark orange':          (162, 70, 21),
             'Orange':               (255, 124, 0),
@@ -26,14 +34,16 @@ class ColorModel:
             'Blue':                 (0, 98, 198),
             'Violet':               (140, 32, 186),
             'Pink':                 (245, 35, 148),
-            # 'White':                (255, 255, 255),
-            # 'Gray':                 (124, 124, 124),
-            # 'Black':                (0, 0, 0),
+
+            'White':                (255, 255, 255),
+            'Gray':                 (124, 124, 124),
+            'Black':                (0, 0, 0),
         }
 
-    def predict(self, image_file, image_size=10, min_score=0.01):
+    def predict(self, image_file, image_size=32, min_score=0):
         image = Image.open(image_file)
-        image = image.resize((image_size, image_size), Image.NEAREST)
+        image = image.resize((1000, 1000), Image.BICUBIC)  # Remove sensor noise/grain
+        image = image.resize((image_size, image_size), Image.NEAREST)  # Get the interesting colors without muddying them
         pixels = np.asarray(image)
         pixels = [j for i in pixels for j in i]
 
@@ -78,4 +88,4 @@ if __name__ == '__main__':
     results = model.predict(sys.argv[1])
 
     for result in results:
-        print('{} (score: {:0.5f})'.format(result[0], result[1]))
+        print('{} (score: {:0.10f})'.format(result[0], result[1]))
