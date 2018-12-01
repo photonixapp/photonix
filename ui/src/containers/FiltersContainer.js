@@ -103,6 +103,9 @@ const FiltersContainer = ({ onToggle }) => (
             )),
           })
         }
+        // TODO: Add these filters (possibly as sliders)
+        // Aperture
+        // Shutter speed
 
         return <Filters data={filterData} onToggle={onToggle} />
       }}

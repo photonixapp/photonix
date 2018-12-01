@@ -53,27 +53,6 @@ footer {
   height: 75px;
   display: inline-block;
 }
-.tabs {
-  display: inline-block;
-  margin: 0;
-  position: absolute;
-  right: 40px;
-  bottom: 0;
-}
-.tabs li {
-  display: inline-block;
-  list-style: none;
-  padding: 10px 20px;
-  background: #1d1d1d;
-  margin-left: 10px;
-}
-.tabs a {
-  color: #ddd;
-  text-decoration: none;
-}
-.tabs button {
-  width: 32px;
-}
 
 #filters {
   width: 300px;
