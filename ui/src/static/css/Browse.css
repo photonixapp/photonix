@@ -11,8 +11,10 @@
   padding: 10px 20px;
   background: #1d1d1d;
   margin-left: 10px;
-  cursor: pointer;
 }
 .Browse .tabs button {
   width: 32px;
+}
+.Browse .tabs a {
+  color: #fff;
 }
