@@ -10,11 +10,11 @@ import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 
 const client = new ApolloClient()
 
-const App = ({ selectedFilters, onToggle, onDetailPhoto }) => (
+const App = ({ selectedFilters, onToggle }) => (
   <ApolloProvider client={client}>
     <Router>
       <div>
-        <Route path="/" render={(params) => <BrowseContainer selectedFilters={selectedFilters} search={params.location.search} />} />
+        <Route path="/" exact render={(params) => <BrowseContainer selectedFilters={selectedFilters} search={params.location.search} onToggle={onToggle} />} />
         <Route path="/photo/:photoId" render={(params) => <PhotoDetailContainer photoId={params.match.params.photoId} />} />
       </div>
     </Router>

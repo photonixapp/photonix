@@ -1,6 +1,7 @@
 import React from 'react'
-import '../static/css/Map.css'
+import { Link } from 'react-router-dom'
 import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
+import '../static/css/Map.css'
 
 
 const MapView = ({ photos, onChange }) => (
@@ -16,7 +17,9 @@ const MapView = ({ photos, onChange }) => (
             key={`marker-${photo.id}`}
             position={[photo.location[0], photo.location[1]]}>
             <Popup>
-              <img src={photo.thumbnail} style={{ width: 128, height: 128 }} alt="marker popup" />
+              <Link to={'/photo/' + photo.id} key={photo.id}>
+                <img src={photo.thumbnail} style={{ width: 128, height: 128 }} alt="marker popup" />
+              </Link>
             </Popup>
           </Marker>
         :
