@@ -1,8 +1,8 @@
 import React from 'react'
 import '../static/css/Filters.css'
 
-const Filters = ({ data, onToggle }) => (
-  <section className="Filters">
+const Filters = ({ data, scrollbarLeft, onToggle, onScroll }) => (
+  <section className="Filters" onScroll={onScroll}>
     <div className="FiltersContent">
       {
         data.map((group) => (
@@ -15,7 +15,7 @@ const Filters = ({ data, onToggle }) => (
                   if (group.name === 'Colors') {
                     className = `Color ${item.name.replace(/ /g, '')}`
                   }
-                  return <li key={item.id} className={className} onClick={() => onToggle(item.id)}>{item.name}</li>
+                  return <li key={item.id} className={className} onClick={() => onToggle(item.id)} title={group.name === 'Colors' ? item.name : ''}>{item.name}</li>
                 })
               }
             </ul>
@@ -23,6 +23,7 @@ const Filters = ({ data, onToggle }) => (
         ))
       }
     </div>
+    <div className="scrollbar" style={{left: scrollbarLeft}}></div>
   </section>
 )
 

@@ -23,6 +23,7 @@ body {
 header {
   background: #292929;
   position: relative;
+  height: 380px;
 }
 footer {
   background: #292929;
@@ -70,6 +71,8 @@ footer {
   width: 100%;
   padding: 0;
   overflow: auto;
+  background: #1d1d1d;
+  z-index: 0;
 }
 #content::-webkit-scrollbar {
   display: none;

@@ -33,8 +33,6 @@ pipenv run python /srv/backend/manage.py shell
 
 * Improve filtering capabilities of the GraphQL API and hook up the filtering UI
 * Faceted search of remaining filters based on ones currently selected
-* Make photo detail view work with new state manager
-* Make map view work with new state manager
 * Pagination in photo list while scrolling
 * Timeline month histogram scroller on photo list view
 * Website with public demo

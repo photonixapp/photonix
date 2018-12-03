@@ -1,16 +1,32 @@
 .Filters {
   overflow: auto;
   margin: 0 -40px -20px;
-}
-.Filters::-webkit-scrollbar {
-  display: none;
+  height: 350px;
 }
 .FiltersContent {
   width: max-content;
   margin: 0 40px;
 }
+
+.Filters .scrollbar {
+  width: 200px;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.2);
+  position: absolute;
+  bottom: 10px;
+  cursor: pointer;
+  left: 10px;
+  opacity: 0;
+  transition: 200ms;
+}
+.Filters:hover .scrollbar {
+  opacity: 1;
+}
+
 .FilterGroup {
   width: 250px;
+  height: 280px;
   max-height: 300px;
   overflow: auto;
   margin: 0;
@@ -85,17 +101,3 @@
 .FilterGroup li.Black {
   background: rgb(0, 0, 0);
 }
-/* 'Dark orange':          (162, 70, 21),
-'Orange':               (255, 124, 0),
-'Pale pink':            (255, 159, 156),
-'Lemon yellow':         (255, 250, 0),
-'School bus yellow':    (255, 207, 0),
-'Green':                (144, 226, 0),
-'Dark lime green':      (0, 171, 0),
-'Cyan':                 (0, 178, 212),
-'Blue':                 (0, 98, 198),
-'Violet':               (140, 32, 186),
-'Pink':                 (245, 35, 148),
-# 'White':                (255, 255, 255),
-# 'Gray':                 (124, 124, 124),
-# 'Black':                (0, 0, 0), */
