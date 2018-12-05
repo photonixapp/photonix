@@ -100,6 +100,14 @@ class Query(object):
     lens = graphene.Field(LensType, id=graphene.UUID(), name=graphene.String())
     all_lenses = graphene.List(LensType)
 
+    all_apertures = graphene.List(graphene.Float)
+    all_exposures = graphene.List(graphene.String)
+    all_iso_speeds = graphene.List(graphene.Int)
+    all_focal_lengths = graphene.List(graphene.Float)
+    all_metering_modes = graphene.List(graphene.String)
+    all_drive_modes = graphene.List(graphene.String)
+    all_shooting_modes = graphene.List(graphene.String)
+
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
     all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
@@ -139,6 +147,27 @@ class Query(object):
 
     def resolve_all_lenses(self, info, **kwargs):
         return Lens.objects.all()
+
+    def resolve_all_apertures(self, info, **kwargs):
+        return Photo.objects.exclude(aperture__isnull=True).values_list('aperture', flat=True).distinct().order_by('aperture')
+
+    def resolve_all_exposures(self, info, **kwargs):
+        return Photo.objects.exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
+
+    def resolve_all_iso_speeds(self, info, **kwargs):
+        return Photo.objects.exclude(iso_speed__isnull=True).values_list('iso_speed', flat=True).distinct().order_by('iso_speed')
+
+    def resolve_all_focal_lengths(self, info, **kwargs):
+        return Photo.objects.exclude(focal_length__isnull=True).values_list('focal_length', flat=True).distinct().order_by('focal_length')
+
+    def resolve_all_metering_modes(self, info, **kwargs):
+        return Photo.objects.exclude(metering_mode__isnull=True).values_list('metering_mode', flat=True).distinct().order_by('metering_mode')
+
+    def resolve_all_drive_modes(self, info, **kwargs):
+        return Photo.objects.exclude(drive_mode__isnull=True).values_list('drive_mode', flat=True).distinct().order_by('drive_mode')
+
+    def resolve_all_shooting_modes(self, info, **kwargs):
+        return Photo.objects.exclude(shooting_mode__isnull=True).values_list('shooting_mode', flat=True).distinct().order_by('shooting_mode')
 
     def resolve_photo(self, info, **kwargs):
         id = kwargs.get('id')

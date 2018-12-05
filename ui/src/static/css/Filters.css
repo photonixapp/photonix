@@ -35,6 +35,10 @@
   vertical-align: top;
   margin-right: 20px;
 }
+.FilterGroup::-webkit-scrollbar {
+  display: none;
+}
+
 .FilterGroup ul {
   margin: 0;
   padding: 0;

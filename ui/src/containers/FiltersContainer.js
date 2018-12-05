@@ -36,6 +36,13 @@ const GET_FILTERS = gql`
       id
       name
     }
+    allApertures
+    allExposures
+    allIsoSpeeds
+    allFocalLengths
+    allMeteringModes
+    allDriveModes
+    allShootingModes
   }
 `
 const PADDING = 40
@@ -60,8 +67,19 @@ export default class FiltersContainer extends React.Component {
     this.setState({scrollbarLeft: left})
   }
 
+  createTagSection(sectionName, data, tagPrefix='tag') {
+    return {
+      name: sectionName,
+      items: data.map((tag) => {
+        if (tag.toString() === '[object Object]') {
+          return {id: tagPrefix + ':' + tag.id, name: tag.name}
+        }
+        return {id: tagPrefix + ':' + tag, name: tag}
+      }),
+    }
+  }
+
   render() {
-    const onToggle = this.props.onToggle
     return <div>
       <Query query={GET_FILTERS}>
         {({ loading, error, data }) => {
@@ -69,67 +87,59 @@ export default class FiltersContainer extends React.Component {
           if (error) return <p>Error :(</p>
 
           let filterData = []
-          if (data.allLocationTags.length) {
-            filterData.push({
-              name: 'Locations',
-              items: data.allLocationTags.map((tag) => (
-                {id: tag.id, name: tag.name}
-              )),
-            })
-          }
           if (data.allObjectTags.length) {
-            filterData.push({
-              name: 'Objects',
-              items: data.allObjectTags.map((tag) => (
-                {id: tag.id, name: tag.name}
-              )),
-            })
+            filterData.push(this.createTagSection('Objects', data.allObjectTags))
+          }
+          if (data.allLocationTags.length) {
+            filterData.push(this.createTagSection('Locations', data.allLocationTags))
           }
           if (data.allPersonTags.length) {
-            filterData.push({
-              name: 'People',
-              items: data.allPersonTags.map((tag) => (
-                {id: tag.id, name: tag.name}
-              )),
-            })
+            filterData.push(this.createTagSection('People', data.allPersonTags))
           }
           if (data.allColorTags.length) {
-            filterData.push({
-              name: 'Colors',
-              items: data.allColorTags.map((tag) => (
-                {id: tag.id, name: tag.name}
-              )),
-            })
+            filterData.push(this.createTagSection('Colors', data.allColorTags))
           }
           if (data.allStyleTags.length) {
-            filterData.push({
-              name: 'Styles',
-              items: data.allStyleTags.map((tag) => (
-                {id: tag.id, name: tag.name}
-              )),
-            })
+            filterData.push(this.createTagSection('Styles', data.allStyleTags))
           }
           if (data.allCameras.length) {
             filterData.push({
               name: 'Cameras',
               items: data.allCameras.map((camera) => (
-                {id: camera.id, name: `${camera.make} ${camera.model}`}
+                {id: 'camera:' + camera.id, name: `${camera.make} ${camera.model}`}
               )),
             })
           }
           if (data.allLenses.length) {
-            filterData.push({
-              name: 'Lenses',
-              items: data.allLenses.map((lens) => (
-                {id: lens.id, name: lens.name}
-              )),
-            })
+            filterData.push(this.createTagSection('Lenses', data.allLenses))
           }
-          // TODO: Add these filters (possibly as sliders)
-          // Aperture
-          // Shutter speed
+          if (data.allApertures.length) {
+            filterData.push(this.createTagSection('Aperture', data.allApertures))
+          }
+          if (data.allExposures.length) {
+            filterData.push(this.createTagSection('Exposure', data.allExposures))
+          }
+          if (data.allIsoSpeeds.length) {
+            filterData.push(this.createTagSection('ISO Speed', data.allIsoSpeeds))
+          }
+          if (data.allFocalLengths.length) {
+            filterData.push(this.createTagSection('Focal Length', data.allFocalLengths))
+          }
+          filterData.push({
+            name: 'Flash',
+            items: [{id: 'flash:on', name: 'On'}, {id: 'flash:off', name: 'Off'}]
+          })
+          if (data.allMeteringModes.length) {
+            filterData.push(this.createTagSection('Metering Mode', data.allMeteringModes))
+          }
+          if (data.allDriveModes.length) {
+            filterData.push(this.createTagSection('Drive Mode', data.allDriveModes))
+          }
+          if (data.allShootingModes.length) {
+            filterData.push(this.createTagSection('Shooting Mode', data.allShootingModes))
+          }
 
-          return <Filters data={filterData} scrollbarLeft={this.state.scrollbarLeft} onToggle={onToggle} onScroll={this.onScroll} />
+          return <Filters data={filterData} scrollbarLeft={this.state.scrollbarLeft} onToggle={this.props.onToggle} onScroll={this.onScroll} />
         }}
       </Query>
     </div>

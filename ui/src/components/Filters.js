@@ -1,6 +1,7 @@
 import React from 'react'
 import '../static/css/Filters.css'
 
+
 const Filters = ({ data, scrollbarLeft, onToggle, onScroll }) => (
   <section className="Filters" onScroll={onScroll}>
     <div className="FiltersContent">
