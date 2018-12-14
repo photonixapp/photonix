@@ -1,5 +1,6 @@
 from django.contrib.gis.db.models.fields import PointField
 import django_filters
+from django_filters import Filter, CharFilter
 import graphene
 from graphene import Node
 from graphene_django.converter import convert_django_field
@@ -36,6 +37,7 @@ class CustomNode(graphene.Node):
 
 class PhotoInterface(graphene.Interface):
     photo_tags__tag__id = graphene.String()
+    multi_filter = graphene.String()
 
 
 class PhotoNode(DjangoObjectType):
@@ -55,6 +57,7 @@ class PhotoNode(DjangoObjectType):
 
 
 class PhotoFilter(django_filters.FilterSet):
+    multi_filter = CharFilter(method='multi_filter_filter')
 
     class Meta:
         model = Photo
@@ -63,9 +66,51 @@ class PhotoFilter(django_filters.FilterSet):
             'camera__id': ['exact'],
             'camera__make': ['exact', 'icontains'],
             'lens__id': ['exact'],
-            'photo_tags__tag__id': ['exact', 'in'],
+            'photo_tags__tag__id': ['exact', 'in', 'icontains'],
             'photo_tags__tag__name': ['exact', 'icontains', 'in'],
         }
+
+    def sanitize(self, value_list):
+        return [v for v in value_list if v != '']  # Remove empty items
+
+    def customize(self, value):
+        return value
+
+    def multi_filter_filter(self, queryset, name, value):
+        filters = value.split(',')
+        filters = self.sanitize(filters)
+        filters = map(self.customize, filters)
+
+        has_tags = False
+        for filter_val in filters:
+            if ':' in filter_val:
+                key, val = filter_val.split(':')
+                if key == 'tag':
+                    queryset = queryset.filter(photo_tags__tag__id=val)
+                    has_tags = True
+                elif key == 'camera':
+                    queryset = queryset.filter(camera__id=val)
+                elif key == 'lens':
+                    queryset = queryset.filter(lens__id=val)
+                elif key == 'aperture':
+                    queryset = queryset.filter(aperture=val)
+                elif key == 'exposure':
+                    queryset = queryset.filter(exposure=val)
+                elif key == 'isoSpeed':
+                    queryset = queryset.filter(iso_speed=val)
+                elif key == 'focalLength':
+                    queryset = queryset.filter(focal_length=val)
+                elif key == 'flash':
+                    queryset = queryset.filter(flash=val == 'on' and True or False)
+                elif key == 'meeteringMode':
+                    queryset = queryset.filter(metering_mode=val)
+                elif key == 'driveMode':
+                    queryset = queryset.filter(drive_mode=val)
+                elif key == 'shootingMode':
+                    queryset = queryset.filter(shooting_mode=val)
+        if has_tags:
+            queryset.order_by('-photo_tags__confidence')
+        return queryset
 
 
 class LocationTagType(DjangoObjectType):

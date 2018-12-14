@@ -5,8 +5,8 @@ import Browse from '../components/Browse'
 
 
 const GET_PHOTOS = gql`
-  query Photos($tagId: UUID) {
-    allPhotos(photoTags_Tag_Id: $tagId) {
+  query Photos($filters: String) {
+    allPhotos(multiFilter: $filters) {
       edges {
         node {
           id
@@ -17,12 +17,13 @@ const GET_PHOTOS = gql`
   }
 `
 
+
 const BrowseContainer = ({ selectedFilters, search, onToggle }) => {
   const params = new URLSearchParams(search)
   const mode = params.get('mode') ? params.get('mode').toUpperCase() : 'TIMELINE'
 
   return (
-    <Query query={GET_PHOTOS} variables={{tagId: selectedFilters[0]}}>
+    <Query query={GET_PHOTOS} variables={{filters: selectedFilters.join(',')}}>
       {({ loading, error, data }) => {
         let photos = []
         if (!loading && !error) {

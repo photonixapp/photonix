@@ -67,14 +67,14 @@ export default class FiltersContainer extends React.Component {
     this.setState({scrollbarLeft: left})
   }
 
-  createTagSection(sectionName, data, tagPrefix='tag') {
+  createFilterSelection(sectionName, data, prefix='tag') {
     return {
       name: sectionName,
       items: data.map((tag) => {
         if (tag.toString() === '[object Object]') {
-          return {id: tagPrefix + ':' + tag.id, name: tag.name}
+          return {id: prefix + ':' + tag.id, name: tag.name}
         }
-        return {id: tagPrefix + ':' + tag, name: tag}
+        return {id: prefix + ':' + tag, name: tag}
       }),
     }
   }
@@ -88,19 +88,19 @@ export default class FiltersContainer extends React.Component {
 
           let filterData = []
           if (data.allObjectTags.length) {
-            filterData.push(this.createTagSection('Objects', data.allObjectTags))
+            filterData.push(this.createFilterSelection('Objects', data.allObjectTags))
           }
           if (data.allLocationTags.length) {
-            filterData.push(this.createTagSection('Locations', data.allLocationTags))
+            filterData.push(this.createFilterSelection('Locations', data.allLocationTags))
           }
           if (data.allPersonTags.length) {
-            filterData.push(this.createTagSection('People', data.allPersonTags))
+            filterData.push(this.createFilterSelection('People', data.allPersonTags))
           }
           if (data.allColorTags.length) {
-            filterData.push(this.createTagSection('Colors', data.allColorTags))
+            filterData.push(this.createFilterSelection('Colors', data.allColorTags))
           }
           if (data.allStyleTags.length) {
-            filterData.push(this.createTagSection('Styles', data.allStyleTags))
+            filterData.push(this.createFilterSelection('Styles', data.allStyleTags))
           }
           if (data.allCameras.length) {
             filterData.push({
@@ -111,32 +111,32 @@ export default class FiltersContainer extends React.Component {
             })
           }
           if (data.allLenses.length) {
-            filterData.push(this.createTagSection('Lenses', data.allLenses))
+            filterData.push(this.createFilterSelection('Lenses', data.allLenses, 'lens'))
           }
           if (data.allApertures.length) {
-            filterData.push(this.createTagSection('Aperture', data.allApertures))
+            filterData.push(this.createFilterSelection('Aperture', data.allApertures, 'aperture'))
           }
           if (data.allExposures.length) {
-            filterData.push(this.createTagSection('Exposure', data.allExposures))
+            filterData.push(this.createFilterSelection('Exposure', data.allExposures, 'exposure'))
           }
           if (data.allIsoSpeeds.length) {
-            filterData.push(this.createTagSection('ISO Speed', data.allIsoSpeeds))
+            filterData.push(this.createFilterSelection('ISO Speed', data.allIsoSpeeds, 'isoSpeed'))
           }
           if (data.allFocalLengths.length) {
-            filterData.push(this.createTagSection('Focal Length', data.allFocalLengths))
+            filterData.push(this.createFilterSelection('Focal Length', data.allFocalLengths, 'focalLength'))
           }
           filterData.push({
             name: 'Flash',
             items: [{id: 'flash:on', name: 'On'}, {id: 'flash:off', name: 'Off'}]
           })
           if (data.allMeteringModes.length) {
-            filterData.push(this.createTagSection('Metering Mode', data.allMeteringModes))
+            filterData.push(this.createFilterSelection('Metering Mode', data.allMeteringModes, 'meeteringMode'))
           }
           if (data.allDriveModes.length) {
-            filterData.push(this.createTagSection('Drive Mode', data.allDriveModes))
+            filterData.push(this.createFilterSelection('Drive Mode', data.allDriveModes, 'driveMode'))
           }
           if (data.allShootingModes.length) {
-            filterData.push(this.createTagSection('Shooting Mode', data.allShootingModes))
+            filterData.push(this.createFilterSelection('Shooting Mode', data.allShootingModes, 'shootingMode'))
           }
 
           return <Filters data={filterData} scrollbarLeft={this.state.scrollbarLeft} onToggle={this.props.onToggle} onScroll={this.onScroll} />
