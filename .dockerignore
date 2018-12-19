@@ -3,3 +3,4 @@ openface
 data
 training_data
 ui/node_modules
+backend/classifiers/style/images

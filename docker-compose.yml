@@ -25,6 +25,7 @@ services:
      - "8888:80"
      - "8889:8000"
     environment:
+      ENV: dev
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
     volumes:

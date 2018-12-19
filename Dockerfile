@@ -44,14 +44,18 @@ RUN pip3 install pipenv
 RUN pipenv run pip install pip==18.0
 RUN pipenv install
 
+# Copy over the code
 COPY backend /srv/backend
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
 
-COPY run.sh /srv/run.sh
-COPY supervisord.conf /etc/supervisord.conf
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy system config and init scripts
+COPY system /srv/system
+COPY system/supervisord.conf /etc/supervisord.conf
 
-CMD ./run.sh
+# Build frontend app
+RUN cd ui && yarn build
+
+CMD ./system/run.sh
 
 EXPOSE 80
