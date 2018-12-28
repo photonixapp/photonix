@@ -68,7 +68,7 @@ class Photo(UUIDModel, VersionedModel):
     classifier_style_completed_at       = models.DateTimeField(null=True)
 
     class Meta:
-        ordering = ['taken_at']
+        ordering = ['-taken_at']
 
     def __str__(self):
         return str(self.id)

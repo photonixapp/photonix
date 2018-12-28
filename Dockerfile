@@ -1,4 +1,4 @@
-FROM python:3.6.5-slim-stretch
+FROM python:3.6.8-slim-stretch
 
 RUN apt-get update && \
     apt-get install -y \
@@ -9,7 +9,7 @@ RUN apt-get update && \
         libimage-exiftool-perl=10.40-1 \
         libjpeg-dev=1:1.5.1-2 \
         libpq-dev=9.6.10-0+deb9u1 \
-        libtiff5-dev=4.0.8-2+deb9u2 \
+        libtiff5-dev=4.0.8-2+deb9u4 \
         netcat=1.10-41 \
         nginx-light=1.10.3-1+deb9u2 \
         supervisor=3.3.1-1+deb9u1 \

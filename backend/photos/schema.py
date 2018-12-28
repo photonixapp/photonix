@@ -109,7 +109,7 @@ class PhotoFilter(django_filters.FilterSet):
                 elif key == 'shootingMode':
                     queryset = queryset.filter(shooting_mode=val)
         if has_tags:
-            queryset.order_by('-photo_tags__confidence')
+            queryset.order_by('-photo_tags__significance')
         return queryset
 
 
