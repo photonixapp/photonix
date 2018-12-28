@@ -4,8 +4,6 @@ services:
   postgres:
     container_name: pm-postgres
     image: mdillon/postgis:9.6
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: photo-manager
@@ -15,25 +13,17 @@ services:
   redis:
     container_name: pm-redis
     image: redis:3.2.8
-    ports:
-      - "6379:6379"
 
   photomanager:
     container_name: photomanager
-    build:
-      context: .
+    image: damianmoore/photo-manager:latest
     ports:
      - "8888:80"
-     - "8889:8000"
     environment:
-      ENV: dev
+      ENV: prd
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
     volumes:
-     - ./backend:/srv/backend
-     - ./ui/public:/srv/ui/public
-     - ./ui/src:/srv/ui/src
-     - ./ui/static:/srv/ui/static
      - ./data/photos:/data/photos
      - ./data/cache:/data/cache
      - ./data/models:/data/models

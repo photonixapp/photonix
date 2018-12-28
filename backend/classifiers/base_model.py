@@ -71,7 +71,7 @@ class BaseModel:
                             if file_data['filename'].endswith('.xz'):
                                 xz_path = '{}.xz'.format(f.name)
                                 shutil.move(f.name, xz_path)
-                                subprocess.run(['unxz', xz_path]).communicate()
+                                subprocess.run(['unxz', xz_path])
                                 final_path = final_path.replace('.xz', '')
 
                         shutil.move(f.name, final_path)
