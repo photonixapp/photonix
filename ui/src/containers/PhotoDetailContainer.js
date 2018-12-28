@@ -7,7 +7,7 @@ import Spinner from '../components/Spinner'
 const GET_PHOTO = gql`
   query Photo($id: UUID) {
     photo (id: $id) {
-      path
+      url
     }
   }
 `
@@ -19,7 +19,7 @@ export default class PhotoDetailContainer extends React.Component {
         {({ loading, error, data }) => {
           if (loading) return <Spinner />
           if (error) return <p>Error :(</p>
-          return <PhotoDetail photoId={this.props.photoId} path={data.photo.path} />
+          return <PhotoDetail photoId={this.props.photoId} path={data.photo.url} />
         }}
       </Query>
     )

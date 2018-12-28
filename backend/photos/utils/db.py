@@ -13,8 +13,6 @@ from photos.utils.metadata import PhotoMetadata, parse_datetime, get_datetime, p
 
 
 def record_photo(path):
-    global_state.increment('photo_import_tasks_running')
-
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
     try:
@@ -26,7 +24,6 @@ def record_photo(path):
         return False
 
     metadata = PhotoMetadata(path)
-
     date_taken = parse_datetime(metadata.get('Date/Time Original'))
 
     camera = None
@@ -62,12 +59,18 @@ def record_photo(path):
             lens = Lens(name=lens_name, earliest_photo=date_taken, latest_photo=date_taken)
             lens.save()
 
-    try:
-        # TODO: Match on file number/file name as well
-        photo = Photo.objects.get(taken_at=get_datetime(path))
-    except Photo.DoesNotExist:
+    photo = None
+    if date_taken:
+        try:
+            # TODO: Match on file number/file name as well
+            photo = Photo.objects.get(taken_at=date_taken)
+        except Photo.DoesNotExist:
+            pass
+
+    if not photo:
+        # Save Photo
         photo = Photo(
-            taken_at=get_datetime(path),
+            taken_at=date_taken,
             taken_by=metadata.get('Artist') or None,
             aperture=metadata.get('Aperture') and Decimal(metadata.get('Aperture')) or None,
             exposure=metadata.get('Exposure Time') or None,
@@ -84,9 +87,8 @@ def record_photo(path):
         )
         photo.save()
 
-        # Channel('photo-added').send({'text': json.dumps({'id': str(photo.id)})})
-
-    photo_file.photo            = photo
+    # Save PhotoFile
+    photo_file.photo = photo
     photo_file.path             = path
     photo_file.width            = metadata.get('Image Width')
     photo_file.height           = metadata.get('Image Height')
@@ -95,7 +97,5 @@ def record_photo(path):
     photo_file.bytes            = os.stat(path).st_size
     photo_file.preferred        = False  # TODO
     photo_file.save()
-
-    global_state.decrement('photo_import_tasks_running')
 
     return photo

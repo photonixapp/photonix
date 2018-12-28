@@ -19,8 +19,6 @@ class Command(BaseCommand):
                 print('{} queued photos for thumbnailing'. format(len(photos)))
                 for photo in photos:
                     generate_thumbnails_for_photo(photo)
-
-            print('')
             sleep(5)
 
     def handle(self, *args, **options):

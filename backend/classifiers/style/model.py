@@ -1,32 +1,47 @@
 import os
 import sys
 
+from django.conf import settings
 import numpy as np
+import redis
+from redis_lock import Lock
 import tensorflow as tf
 
-
-GRAPH_FILE = os.path.join(os.path.dirname(__file__), 'tf_files', 'graph.pb')
-LABEL_FILE = os.path.join(os.path.dirname(__file__), 'tf_files', 'labels.txt')
+from ..base_model import BaseModel
 
 
-class StyleModel:
-    version = 0
+r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
+GRAPH_FILE = os.path.join(settings.MODEL_DIR, 'style', 'graph.pb')
+LABEL_FILE = os.path.join(settings.MODEL_DIR, 'style', 'labels.txt')
+
+
+class StyleModel(BaseModel):
+    name = 'style'
+    version = 20180624
     approx_ram_mb = 100
+    max_num_workers = 2
 
     def __init__(self, graph_file=GRAPH_FILE, label_file=LABEL_FILE):
-        self.graph = self.load_graph(graph_file)
-        self.labels = self.load_labels(label_file)
+        super().__init__()
+        if self.ensure_downloaded():
+            self.graph = self.load_graph(graph_file)
+            self.labels = self.load_labels(label_file)
 
     def load_graph(self, graph_file):
-        graph = tf.Graph()
-        graph_def = tf.GraphDef()
+        with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
+            if self.name in self.graph_cache:
+                return self.graph_cache[self.name]
 
-        with open(graph_file, "rb") as f:
-            graph_def.ParseFromString(f.read())
-        with graph.as_default():
-            tf.import_graph_def(graph_def)
+            graph = tf.Graph()
+            graph_def = tf.GraphDef()
 
-        return graph
+            with open(graph_file, 'rb') as f:
+                graph_def.ParseFromString(f.read())
+            with graph.as_default():
+                tf.import_graph_def(graph_def)
+
+            self.graph_cache[self.name] = graph
+            return graph
 
     def load_labels(self, label_file):
         labels = []

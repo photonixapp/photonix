@@ -23,6 +23,7 @@ graphene-django = "==2.2.0"
 django-filter = "==2.0.0"
 
 [dev-packages]
+flake8 = "*"
 
 [requires]
 python_version = "3.6"

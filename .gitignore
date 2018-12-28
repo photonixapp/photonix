@@ -1,5 +1,8 @@
 data
 ui/node_modules
+backend/classifiers/style/images/*
+backend/classifiers/style/tf_files/*
+backend/classifiers/person
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

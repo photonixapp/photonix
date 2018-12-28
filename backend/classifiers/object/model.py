@@ -3,62 +3,52 @@ import six.moves.urllib as urllib
 import sys
 import tarfile
 
+from django.conf import settings
 import numpy as np
 from PIL import Image
 import redis
 from redis_lock import Lock
 import tensorflow as tf
 
+from ..base_model import BaseModel
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from classifiers.object.utils import label_map_util
 
 
-MODEL_NAME = 'faster_rcnn_inception_resnet_v2_atrous_lowproposals_oid_2018_01_28'
-MODEL_FILE = MODEL_NAME + '.tar.gz'
-MODEL_PATH = os.path.join(os.path.dirname(__file__), MODEL_FILE)
-DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
-
-GRAPH_FILE = os.path.join(os.path.dirname(__file__), MODEL_FILE)
-CKPT_PATH = os.path.join(os.path.dirname(__file__), MODEL_NAME, 'frozen_inference_graph.pb')
-LABEL_FILE = os.path.join(os.path.dirname(__file__), 'tf_files', 'labels', 'oid_bbox_trainable_label_map.pbtxt')
-
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
+GRAPH_FILE = os.path.join(settings.MODEL_DIR, 'object', 'faster_rcnn_inception_resnet_v2_atrous_lowproposals_oid_2018_01_28_frozen_inference_graph.pb')
+LABEL_FILE = os.path.join(settings.MODEL_DIR, 'object', 'oid_bbox_trainable_label_map.pbtxt')
 
 
-class ObjectModel:
-    version = 0
-    approx_ram_mb = 3500
+class ObjectModel(BaseModel):
+    name = 'object'
+    version = 20180124
+    approx_ram_mb = 2000
 
     def __init__(self, graph_file=GRAPH_FILE, label_file=LABEL_FILE):
-        self.ensure_graph_exists()
-        self.graph = self.load_graph(graph_file)
-        self.labels = self.load_labels(label_file)
-
-    def ensure_graph_exists(self):
-        with Lock(r, 'classifier_object_download'):
-            if not os.path.exists(MODEL_PATH):
-                print('Downloading model')
-                opener = urllib.request.URLopener()
-                opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_PATH)
-
-            if not os.path.exists(CKPT_PATH):
-                print('Extracting model')
-                tar_file = tarfile.open(MODEL_PATH)
-                for file in tar_file.getmembers():
-                    file_name = os.path.basename(file.name)
-                    if 'frozen_inference_graph.pb' in file_name:
-                        tar_file.extract(file, os.path.dirname(__file__))
+        super().__init__()
+        if self.ensure_downloaded():
+            self.graph = self.load_graph(graph_file)
+            self.labels = self.load_labels(label_file)
 
     def load_graph(self, graph_file):
-        graph = tf.Graph()
-        with graph.as_default():
-            od_graph_def = tf.GraphDef()
-            with tf.gfile.GFile(CKPT_PATH, 'rb') as fid:
-                serialized_graph = fid.read()
-                od_graph_def.ParseFromString(serialized_graph)
-                tf.import_graph_def(od_graph_def, name='')
+        with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
+            if self.name in self.graph_cache:
+                return self.graph_cache[self.name]
 
-        return graph
+            graph = tf.Graph()
+            graph_def = tf.GraphDef()
+
+            with graph.as_default():
+                od_graph_def = tf.GraphDef()
+                with tf.gfile.GFile(GRAPH_FILE, 'rb') as fid:
+                    serialized_graph = fid.read()
+                    od_graph_def.ParseFromString(serialized_graph)
+                    tf.import_graph_def(od_graph_def, name='')
+
+            self.graph_cache[self.name] = graph
+            return graph
 
     def load_labels(self, label_file):
         label_map = label_map_util.load_labelmap(label_file)

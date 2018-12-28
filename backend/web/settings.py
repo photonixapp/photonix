@@ -141,7 +141,7 @@ STATIC_URL = '/static/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'data')
 
-THUMBNAIL_ROOT = '/cache/thumbnails'
+THUMBNAIL_ROOT = '/data/cache/thumbnails'
 
 THUMBNAIL_SIZES = [
     (256, 256, 'cover', 50),
@@ -164,13 +164,18 @@ PHOTO_INPUT_DIRS = [os.path.normpath(os.path.join(BASE_DIR, '..', '..', 'photos_
 PHOTO_OUTPUT_DIRS = [
     {
         'EXTENSIONS': ['jpg', 'jpeg', 'mov', 'mp4', 'm4v', '3gp'],
-        'PATH': '/photos',
+        'PATH': '/data/photos',
     },
     {
         'EXTENSIONS': ['cr2'],
-        'PATH': os.path.normpath(os.path.join(BASE_DIR, '..', 'data', 'raw_photos')),
+        'PATH': '/data/raw-photos',
     },
 ]
+
+CACHE_DIR = '/data/cache'
+MODEL_DIR = '/data/models'
+
+MODEL_INFO_URL = 'https://photomanager.epixstudios.co.uk/models.json'
 
 GRAPHENE = {
     'SCHEMA': 'web.schema.schema'

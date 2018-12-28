@@ -13,7 +13,10 @@ def generate_thumbnails_for_photo(photo):
     if not isinstance(photo, Photo):
         photo = Photo.objects.get(id=photo)
     for thumbnail in settings.THUMBNAIL_SIZES:
-        generate_thumbnail(photo, thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3])
+        try:
+            generate_thumbnail(photo, thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3])
+        except (FileNotFoundError, IndexError):
+            pass
 
 
 def generate_thumbnail(photo, width=256, height=256, aspect='cover', quality=75):

@@ -41,7 +41,7 @@ class PhotoInterface(graphene.Interface):
 
 
 class PhotoNode(DjangoObjectType):
-    path = graphene.String()
+    url = graphene.String()
 
     class Meta:
         model = Photo
@@ -52,8 +52,8 @@ class PhotoNode(DjangoObjectType):
             return '{},{}'.format(self.location.y, self.location.x)
         return None
 
-    def resolve_path(self, info):
-        return self.file.path
+    def resolve_url(self, info):
+        return self.file.url
 
 
 class PhotoFilter(django_filters.FilterSet):

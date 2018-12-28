@@ -20,7 +20,8 @@ services:
 
   photomanager:
     container_name: photomanager
-    build: .
+    build:
+      context: .
     ports:
      - "8888:80"
      - "8889:8000"
@@ -33,9 +34,9 @@ services:
      - ./ui/public:/srv/ui/public
      - ./ui/src:/srv/ui/src
      - ./ui/static:/srv/ui/static
-     - ./data/photos:/photos
-     - ./data/cache:/cache
-     - ./data/models:/models
+     - ./data/photos:/data/photos
+     - ./data/cache:/data/cache
+     - ./data/models:/data/models
     links:
      - postgres
      - redis

@@ -29,6 +29,8 @@ class Command(BaseCommand):
             ram_mb_available = int(psutil.virtual_memory().available / 1024 / 1024)
             num_fit_in_ram = max(1, int((ram_mb_available / model.approx_ram_mb) - 1))
             num_workers = min(num_cpus, num_fit_in_ram)
+            if hasattr(model, 'max_num_workers'):
+                num_workers = min(num_workers, model.max_num_workers)
 
             print('Starting {} object classification workers\n'.format(num_workers))
 

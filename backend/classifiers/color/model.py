@@ -10,6 +10,7 @@ from PIL import Image
 class ColorModel:
     version = 0
     approx_ram_mb = 120
+    max_num_workers = 2
 
     def __init__(self):
         self.colors = {

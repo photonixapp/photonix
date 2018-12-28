@@ -49,21 +49,21 @@ class Photo(UUIDModel, VersionedModel):
     lens                                = models.ForeignKey(Lens, related_name='photos', null=True)
     location                            = PointField(null=True)
     altitude                            = models.DecimalField(max_digits=6, decimal_places=1, null=True)
-    last_thumbnailed_version            = models.PositiveSmallIntegerField(null=True)
+    last_thumbnailed_version            = models.PositiveIntegerField(null=True)
     last_thumbnailed_at                 = models.DateTimeField(null=True)
-    classifier_color_version            = models.PositiveSmallIntegerField(null=True)
+    classifier_color_version            = models.PositiveIntegerField(null=True)
     classifier_color_queued_at          = models.DateTimeField(null=True)
     classifier_color_completed_at       = models.DateTimeField(null=True)
-    classifier_location_version         = models.PositiveSmallIntegerField(null=True)
+    classifier_location_version         = models.PositiveIntegerField(null=True)
     classifier_location_queued_at       = models.DateTimeField(null=True)
     classifier_location_completed_at    = models.DateTimeField(null=True)
-    classifier_object_version           = models.PositiveSmallIntegerField(null=True)
+    classifier_object_version           = models.PositiveIntegerField(null=True)
     classifier_object_queued_at         = models.DateTimeField(null=True)
     classifier_object_completed_at      = models.DateTimeField(null=True)
-    classifier_person_version           = models.PositiveSmallIntegerField(null=True)
+    classifier_person_version           = models.PositiveIntegerField(null=True)
     classifier_person_queued_at         = models.DateTimeField(null=True)
     classifier_person_completed_at      = models.DateTimeField(null=True)
-    classifier_style_version            = models.PositiveSmallIntegerField(null=True)
+    classifier_style_version            = models.PositiveIntegerField(null=True)
     classifier_style_queued_at          = models.DateTimeField(null=True)
     classifier_style_completed_at       = models.DateTimeField(null=True)
 
@@ -97,6 +97,10 @@ class PhotoFile(UUIDModel, VersionedModel):
 
     def __str__(self):
         return str(self.path)
+
+    @property
+    def url(self):
+        return self.path.split('/data', 1)[1]
 
 
 SOURCE_CHOICES = (
@@ -141,19 +145,21 @@ class Tag(UUIDModel, VersionedModel):
 
 
 class PhotoTag(UUIDModel, VersionedModel):
-    photo       = models.ForeignKey(Photo, related_name='photo_tags')
-    tag         = models.ForeignKey(Tag, related_name='photo_tags')
-    source      = models.CharField(max_length=1, choices=SOURCE_CHOICES)
-    confidence  = models.FloatField()
-    verified    = models.BooleanField(default=False)
-    hidden      = models.BooleanField(default=False)
+    photo           = models.ForeignKey(Photo, related_name='photo_tags')
+    tag             = models.ForeignKey(Tag, related_name='photo_tags')
+    source          = models.CharField(max_length=1, choices=SOURCE_CHOICES)
+    model_version   = models.PositiveIntegerField(null=True)
+    confidence      = models.FloatField()
+    significance    = models.FloatField(null=True)
+    verified        = models.BooleanField(default=False)
+    hidden          = models.BooleanField(default=False)
     # Only if the tag type is 'Person'
-    face        = models.ForeignKey(Face, related_name='photo_tags', null=True)
+    face            = models.ForeignKey(Face, related_name='photo_tags', null=True)
     # Optional bounding boxes from object detection
-    position_x  = models.FloatField(null=True)
-    position_y  = models.FloatField(null=True)
-    size_x      = models.FloatField(null=True)
-    size_y      = models.FloatField(null=True)
+    position_x      = models.FloatField(null=True)
+    position_y      = models.FloatField(null=True)
+    size_x          = models.FloatField(null=True)
+    size_y          = models.FloatField(null=True)
 
     def __str__(self):
         return '{}: {}'.format(self.photo, self.tag)

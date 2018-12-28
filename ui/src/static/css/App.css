@@ -16,6 +16,10 @@ body {
   height: 100%;
 }
 
+a {
+  outline: 0;
+}
+
 #root {
   height: 100%;
 }
