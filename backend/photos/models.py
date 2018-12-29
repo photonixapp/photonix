@@ -139,6 +139,7 @@ class Tag(UUIDModel, VersionedModel):
 
     class Meta:
         ordering = ['name']
+        unique_together = (('name', 'type', 'source'),)
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.type)

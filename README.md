@@ -11,7 +11,7 @@ This project is currently in development and not feature complete for a version 
 
 ## Installing & Running
 
-The easiest way to run it is with Docker Compose using the pre-build image following these steps.
+The easiest way to run it is with Docker Compose using the pre-built image following these steps.
 
 Create a new directory to run inside and download the example Docker Compose file.
 
@@ -48,7 +48,6 @@ If you want to access the Bash or Python shells for development, you can use the
     ./docker_manage.sh  # Gets you into the Django/Python shell
 
 
-## Todo
 
 * Website with public demo
 * Improve filtering capabilities of the GraphQL API and hook up the filtering UI
@@ -63,6 +62,4 @@ If you want to access the Bash or Python shells for development, you can use the
 
 ### Deep learning
 
-* Use Tensorflow's [Detection Model Zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md) initially Mobilenet trained on COCO. It should be able to give bounding boxes. The Open Images dataset-trained models might also be useful for a wider range of labels.
-* Object detection with bounding boxes using [YOLO](https://pjreddie.com/darknet/yolo/). This might not be required if Tensorflow Detection Model Zoo is good enough, SSD seems better than YOLO now which is in the models above. Using this just on the pre-trained COCO dataset should be a good enough start as the labels are things that people would take search for. Locating and counting the people in photos will be a great use on it's own.
 * Score photos using [NIMA Neural Image Assessment](https://research.googleblog.com/2017/12/introducing-nima-neural-image-assessment.html). We can use this to determine things like what to use for album covers and slideshows.
