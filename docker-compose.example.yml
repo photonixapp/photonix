@@ -3,7 +3,7 @@ version: "2"
 services:
   postgres:
     container_name: pm-postgres
-    image: mdillon/postgis:9.6
+    image: mdillon/postgis:11
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: photo-manager
