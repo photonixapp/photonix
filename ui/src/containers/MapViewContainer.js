@@ -16,6 +16,33 @@ export default class MapContainer extends React.Component {
   }
 
   render() {
-    return <MapView photos={this.props.photos} />
+    // Calculate the maximum boundary of the photo points
+    let top = null
+    let bottom = null
+    let left = null
+    let right = null
+    this.props.photos.map((photo) => {
+      if (photo.location) {
+        if (!top || photo.location[0] > top) {
+          top = parseFloat(photo.location[0])
+        }
+        if (!bottom || photo.location[0] < bottom) {
+          bottom = parseFloat(photo.location[0])
+        }
+        if (!left || photo.location[1] < left) {
+          left = parseFloat(photo.location[1])
+        }
+        if (!right || photo.location[1] > right) {
+          right = parseFloat(photo.location[1])
+        }
+      }
+    })
+    // Default to show the whole world if none of the current photos have locations
+    let bounds = [['-45', '-1'], ['45', '1']]
+    if (top && bottom && left && right) {
+      bounds = [[bottom.toFixed(8), left.toFixed(8)], [top.toFixed(8), right.toFixed(8)]]
+    }
+
+    return <MapView photos={this.props.photos} bounds={bounds} />
   }
 }

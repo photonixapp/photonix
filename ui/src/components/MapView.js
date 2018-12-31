@@ -4,12 +4,12 @@ import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
 import '../static/css/Map.css'
 
 
-const MapView = ({ photos, onChange }) => (
+const MapView = ({ photos, bounds }) => (
   <div className="Map">
-    <Map center={[51.505, -0.09]} zoom={4} onMoveend={onChange}>
+    <Map bounds={bounds} boundsOptions={{padding: [100, 100], maxZoom: 15}}>
       <TileLayer
         attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
       {photos.map((photo, idx) => (
         photo.location ?
