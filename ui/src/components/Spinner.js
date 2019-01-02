@@ -4,7 +4,7 @@ import spinner from '../static/images/spinner.svg'
 
 const Spinner = ({ active }) => (
   <span className="Spinner">
-    <img src={spinner} alt="spinner" />
+    <img src={spinner} />
   </span>
 )
 

@@ -24,4 +24,13 @@
     background-size: cover;
     background-position: center;
 }
-  
+
+@media all and (max-width: 700px) {
+  .PhotoList {
+    padding: 20px 0 0 20px;
+  }
+  .PhotoList .thumbnail {
+    width: 96px;
+    height: 96px;
+  }
+}

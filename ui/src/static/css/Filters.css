@@ -105,3 +105,10 @@
 .FilterGroup li.Black {
   background: rgb(0, 0, 0);
 }
+
+@media all and (max-width: 700px) {
+  .FilterGroup {
+    width: 180px;
+    height: 250px;
+  }
+}
