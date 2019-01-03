@@ -33,6 +33,8 @@ RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - && \
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
 COPY ui/yarn.lock /srv/ui/yarn.lock
+COPY ui/config /srv/ui/config
+COPY ui/scripts /srv/ui/scripts
 WORKDIR /srv/ui
 RUN yarn install
 
