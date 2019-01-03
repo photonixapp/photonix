@@ -22,13 +22,15 @@ class BaseModel:
         global graph_cache
         self.graph_cache = graph_cache
 
-    def ensure_downloaded(self):
+    def ensure_downloaded(self, lock_name=None, model_dir=None):
         if self.name in self.graph_cache:
             return True
 
-        version_file = os.path.join(settings.MODEL_DIR, self.name, 'version.txt')
+        version_file = os.path.join(model_dir, self.name, 'version.txt')
+        if not lock_name:
+            lock_name = 'classifier_{}_download'.format(self.name)
 
-        with Lock(r, 'classifier_{}_download'.format(self.name)):
+        with Lock(r, lock_name):
             try:
                 with open(version_file) as f:
                     if f.read().strip() == str(self.version):
@@ -42,7 +44,7 @@ class BaseModel:
             error = False
 
             for file_data in model_info['files']:
-                final_path = os.path.join(settings.MODEL_DIR, self.name, file_data['filename'])
+                final_path = os.path.join(model_dir, self.name, file_data['filename'])
                 if not os.path.exists(final_path):
                     locations = file_data['locations']
                     index = random.choice(range(len(locations)))

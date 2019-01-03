@@ -46,20 +46,3 @@ If you want to access the Bash or Python shells for development, you can use the
 
     ./docker_bash.sh  # Gets you into the running container
     ./docker_manage.sh  # Gets you into the Django/Python shell
-
-
-
-* Website with public demo
-* Improve filtering capabilities of the GraphQL API and hook up the filtering UI
-* Faceted search of remaining filters based on ones currently selected
-* Pagination in photo list while scrolling
-* Detail view of photo whowing camera attributes, tags, mini map, bounding boxes from object detection
-* Timeline month histogram scroller on photo list view
-* Fix location tagging from country boundaries
-
-
-## Future work
-
-### Deep learning
-
-* Score photos using [NIMA Neural Image Assessment](https://research.googleblog.com/2017/12/introducing-nima-neural-image-assessment.html). We can use this to determine things like what to use for album covers and slideshows.

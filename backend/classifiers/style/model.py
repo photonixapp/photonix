@@ -11,8 +11,8 @@ from ..base_model import BaseModel
 
 
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-GRAPH_FILE = os.path.join(settings.MODEL_DIR, 'style', 'graph.pb')
-LABEL_FILE = os.path.join(settings.MODEL_DIR, 'style', 'labels.txt')
+GRAPH_FILE = os.path.join('style', 'graph.pb')
+LABEL_FILE = os.path.join('style', 'labels.txt')
 
 
 class StyleModel(BaseModel):
@@ -21,9 +21,16 @@ class StyleModel(BaseModel):
     approx_ram_mb = 100
     max_num_workers = 2
 
-    def __init__(self, graph_file=GRAPH_FILE, label_file=LABEL_FILE):
+    def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
         super().__init__()
-        if self.ensure_downloaded():
+
+        if not model_dir:
+            model_dir = settings.MODEL_DIR
+
+        graph_file = os.path.join(model_dir, graph_file)
+        label_file = os.path.join(model_dir, label_file)
+
+        if self.ensure_downloaded(lock_name=lock_name, model_dir=model_dir):
             self.graph = self.load_graph(graph_file)
             self.labels = self.load_labels(label_file)
 
