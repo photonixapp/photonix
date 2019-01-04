@@ -11,10 +11,10 @@ from classifiers.runners import StyleModel
 
 
 model = StyleModel()
-r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
 
 
 def worker(queues):
+    r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
     w = Worker(queues, connection=r)
     w.work()
 
