@@ -8,4 +8,9 @@ from classifiers.style.model import StyleModel
 class TestClassifiers(TestCase):
     def test_downloading(self):
         with tempfile.TemporaryDirectory() as model_dir:
-            model = StyleModel(lock_name=None, model_dir=model_dir)
+            model = StyleModel(lock_name=None, model_dir=model_dir)ing
+
+
+def test_downloading(tmpdir):
+    model = StyleModel(lock_name=None, model_dir=tempdir)
+
