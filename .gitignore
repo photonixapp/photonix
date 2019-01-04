@@ -94,5 +94,8 @@ ENV/
 # Rope project settings
 .ropeproject
 
-
+# User photos
 data/photos/*.*
+
+# OS files
+.DS_Store
