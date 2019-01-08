@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import sys
 
 from django.conf import settings
@@ -7,7 +8,12 @@ import redis
 from redis_lock import Lock
 import tensorflow as tf
 
-from ..base_model import BaseModel
+# Handle running this script directly from command line
+try:
+    from ..base_model import BaseModel
+except ValueError:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from base_model import BaseModel
 
 
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
@@ -21,16 +27,13 @@ class StyleModel(BaseModel):
     approx_ram_mb = 100
     max_num_workers = 2
 
-    def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
-        super().__init__()
+    def __init__(self, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None, model_dir=None):
+        super().__init__(model_dir=model_dir)
 
-        if not model_dir:
-            model_dir = settings.MODEL_DIR
+        graph_file = os.path.join(self.model_dir, graph_file)
+        label_file = os.path.join(self.model_dir, label_file)
 
-        graph_file = os.path.join(model_dir, graph_file)
-        label_file = os.path.join(model_dir, label_file)
-
-        if self.ensure_downloaded(lock_name=lock_name, model_dir=model_dir):
+        if self.ensure_downloaded(lock_name=lock_name):
             self.graph = self.load_graph(graph_file)
             self.labels = self.load_labels(label_file)
 
@@ -107,6 +110,26 @@ class StyleModel(BaseModel):
         normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
         sess = tf.Session()
         return sess.run(normalized)
+
+
+def run_on_photo(photo_id):
+    model = StyleModel()
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from runners import results_for_model_on_photo, get_or_create_tag
+    photo, results = results_for_model_on_photo(model, photo_id)
+
+    if photo:
+        from django.utils import timezone
+        from photos.models import PhotoTag
+        photo.clear_tags(source='C', type='S')
+        for name, score in results:
+            tag = get_or_create_tag(name=name, type='S', source='C')
+            PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
+        photo.classifier_style_completed_at = timezone.now()
+        photo.classifier_style_version = getattr(model, 'version', 0)
+        photo.save()
+
+    return photo, results
 
 
 if __name__ == '__main__':

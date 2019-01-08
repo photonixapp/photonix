@@ -1,16 +1,20 @@
 import os
-import six.moves.urllib as urllib
+from pathlib import Path
 import sys
 import tarfile
 
-from django.conf import settings
 import numpy as np
 from PIL import Image
 import redis
 from redis_lock import Lock
 import tensorflow as tf
 
-from ..base_model import BaseModel
+# Handle running this script directly from command line
+try:
+    from ..base_model import BaseModel
+except ValueError:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from base_model import BaseModel
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from classifiers.object.utils import label_map_util
@@ -26,16 +30,13 @@ class ObjectModel(BaseModel):
     version = 20180124
     approx_ram_mb = 2000
 
-    def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
+    def __init__(self, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
         super().__init__()
 
-        if not model_dir:
-            model_dir = settings.MODEL_DIR
+        graph_file = os.path.join(self.model_dir, graph_file)
+        label_file = os.path.join(self.model_dir, label_file)
 
-        graph_file = os.path.join(model_dir, graph_file)
-        label_file = os.path.join(model_dir, label_file)
-
-        if self.ensure_downloaded(lock_name=lock_name, model_dir=model_dir):
+        if self.ensure_downloaded(lock_name=lock_name):
             self.graph = self.load_graph(graph_file)
             self.labels = self.load_labels(label_file)
 
@@ -132,13 +133,32 @@ class ObjectModel(BaseModel):
         return self.format_output(output_dict, min_score)
 
 
+def run_on_photo(photo_id):
+    model = ObjectModel()
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from runners import results_for_model_on_photo, get_or_create_tag
+    photo, results = results_for_model_on_photo(model, photo_id)
+
+    if photo:
+        from django.utils import timezone
+        from photos.models import PhotoTag
+        photo.clear_tags(source='C', type='O')
+        for result in results:
+            tag = get_or_create_tag(name=result['label'], type='O', source='C')
+            PhotoTag(photo=photo, tag=tag, source='C', confidence=result['score'], significance=result['significance'], position_x=result['x'], position_y=result['y'], size_x=result['width'], size_y=result['height']).save()
+        photo.classifier_object_completed_at = timezone.now()
+        photo.classifier_object_version = getattr(model, 'version', 0)
+        photo.save()
+
+    return photo, results
+
 if __name__ == '__main__':
     model = ObjectModel()
     if len(sys.argv) != 2:
         print('Argument required: image file path')
         exit(1)
 
-    results = model.predict(sys.argv[1])
+    results = run_on_photo(sys.argv[1])
 
     for result in results:
         print('{} (score: {:0.5f}, significance: {:0.5f}, x: {:0.5f}, y: {:0.5f}, width: {:0.5f}, height: {:0.5f})'.format(result['label'], result['score'], result['significance'], result['x'], result['y'], result['width'], result['height']))

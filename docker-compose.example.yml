@@ -14,8 +14,8 @@ services:
     container_name: pm-redis
     image: redis:3.2.8
 
-  photomanager:
-    container_name: photomanager
+  photo-manager:
+    container_name: photo-manager
     image: damianmoore/photo-manager:latest
     ports:
      - "8888:80"

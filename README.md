@@ -46,3 +46,13 @@ If you want to access the Bash or Python shells for development, you can use the
 
     ./docker_bash.sh  # Gets you into the running container
     ./docker_manage.sh  # Gets you into the Django/Python shell
+
+
+### Testing
+
+PyTest is used as a test runner and for creating fixtures. The easiest way to run the tests is within the Docker container like this:
+
+    ./docker_bash.sh
+    pipenv shell
+    cd backend
+    python test.py

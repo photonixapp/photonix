@@ -1,6 +1,8 @@
 from collections import defaultdict
 from colorsys import rgb_to_hsv
 import operator
+from pathlib import Path
+import re
 import sys
 
 import numpy as np
@@ -8,7 +10,7 @@ from PIL import Image
 
 
 class ColorModel:
-    version = 0
+    version = 20181130
     approx_ram_mb = 120
     max_num_workers = 2
 
@@ -80,13 +82,32 @@ class ColorModel:
         return score
 
 
-if __name__ == '__main__':
+def run_on_photo(photo_id):
     model = ColorModel()
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from runners import results_for_model_on_photo, get_or_create_tag
+    photo, results = results_for_model_on_photo(model, photo_id)
+
+    if photo:
+        from django.utils import timezone
+        from photos.models import PhotoTag
+        photo.clear_tags(source='C', type='C')
+        for name, score in results:
+            tag = get_or_create_tag(name=name, type='C', source='C')
+            PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
+        photo.classifier_color_completed_at = timezone.now()
+        photo.classifier_color_version = getattr(model, 'version', 0)
+        photo.save()
+
+    return photo, results
+
+
+if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('Argument required: image file path')
         exit(1)
 
-    results = model.predict(sys.argv[1])
+    results = run_on_photo(sys.argv[1])
 
     for result in results:
         print('{} (score: {:0.10f})'.format(result[0], result[1]))

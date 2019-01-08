@@ -22,7 +22,7 @@ class Command(BaseCommand):
         while True:
             # Color queue
             print('{} items in color_queue'.format(len(color_queue)))
-            if len(color_queue) == 0:
+            if len(color_queue) < 20:
                 total = Photo.objects.filter(classifier_color_queued_at__isnull=True).order_by('created_at').count()
                 if total:
                     print('{} photos remaining for color classificaion'.format(total))
@@ -31,11 +31,11 @@ class Command(BaseCommand):
                     for photo in photos:
                         photo.classifier_color_queued_at = timezone.now()
                         photo.save()
-                        color_queue.enqueue('classifiers.runners.run_color_classifier_on_photo', photo.id, timeout=600)
+                        color_queue.enqueue('classifiers.color.model.run_on_photo', photo.id, timeout=600)
 
             # Object queue
             print('{} items in object_queue'.format(len(object_queue)))
-            if len(object_queue) == 0:
+            if len(object_queue) < 20:
                 total = Photo.objects.filter(classifier_object_queued_at__isnull=True).order_by('created_at').count()
                 if total:
                     print('{} photos remaining for object classificaion'.format(total))
@@ -44,11 +44,11 @@ class Command(BaseCommand):
                     for photo in photos:
                         photo.classifier_object_queued_at = timezone.now()
                         photo.save()
-                        object_queue.enqueue('classifiers.runners.run_object_classifier_on_photo', photo.id, timeout=600)
+                        object_queue.enqueue('classifiers.object.model.run_on_photo', photo.id, timeout=600)
 
-            # Style queue
+            # # Style queue
             print('{} items in style_queue'.format(len(style_queue)))
-            if len(style_queue) == 0:
+            if len(style_queue) < 20:
                 total = Photo.objects.filter(classifier_style_queued_at__isnull=True).order_by('created_at').count()
                 if total:
                     print('{} photos remaining for style classificaion'.format(total))
@@ -57,7 +57,7 @@ class Command(BaseCommand):
                     for photo in photos:
                         photo.classifier_style_queued_at = timezone.now()
                         photo.save()
-                        style_queue.enqueue('classifiers.runners.run_style_classifier_on_photo', photo.id, timeout=600)
+                        style_queue.enqueue('classifiers.style.model.run_on_photo', photo.id, timeout=600)
 
             print('')
             sleep(5)

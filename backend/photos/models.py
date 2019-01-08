@@ -84,6 +84,8 @@ class Photo(UUIDModel, VersionedModel):
     def file(self):
         return self.files.filter(mimetype='image/jpeg').order_by('preferred', '-created_at')[0]
 
+    def clear_tags(self, source, type):
+        self.photo_tags.filter(tag__source=source, tag__type=type).delete()
 
 class PhotoFile(UUIDModel, VersionedModel):
     photo               = models.ForeignKey(Photo, related_name='files')
@@ -161,6 +163,9 @@ class PhotoTag(UUIDModel, VersionedModel):
     position_y      = models.FloatField(null=True)
     size_x          = models.FloatField(null=True)
     size_y          = models.FloatField(null=True)
+
+    class Meta:
+        ordering = ['-significance']
 
     def __str__(self):
         return '{}: {}'.format(self.photo, self.tag)

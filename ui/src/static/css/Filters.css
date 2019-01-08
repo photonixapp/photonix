@@ -15,7 +15,7 @@
   background: rgba(255,255,255,0.2);
   position: absolute;
   bottom: 10px;
-  cursor: pointer;
+  cursor: move;
   left: 10px;
   opacity: 0;
   transition: 200ms;

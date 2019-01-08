@@ -7,7 +7,7 @@ from rq import Connection, Worker
 import psutil
 
 # Pre-load the model graphs so it doesn't have to be done for each job
-from classifiers.runners import StyleModel
+from classifiers.style import StyleModel
 
 
 model = StyleModel()

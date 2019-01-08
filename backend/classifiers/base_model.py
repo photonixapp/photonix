@@ -1,13 +1,15 @@
 import hashlib
+import importlib
 import json
 import lzma
 import os
+from pathlib import Path
 import random
 import shutil
+import sys
 import subprocess
 import tempfile
 
-from django.conf import settings
 import redis
 from redis_lock import Lock
 import requests
@@ -18,15 +20,24 @@ graph_cache = {}
 
 
 class BaseModel:
-    def __init__(self):
+    def __init__(self, model_dir=None):
         global graph_cache
         self.graph_cache = graph_cache
 
-    def ensure_downloaded(self, lock_name=None, model_dir=None):
+        if model_dir:
+            self.model_dir = model_dir
+        else:
+            try:
+                from django.conf import settings
+                self.model_dir = settings.MODEL_DIR
+            except:
+                self.model_dir = str(Path(__file__).parent.parent.parent / 'data' / 'models')
+
+    def ensure_downloaded(self, lock_name=None):
         if self.name in self.graph_cache:
             return True
 
-        version_file = os.path.join(model_dir, self.name, 'version.txt')
+        version_file = os.path.join(self.model_dir, self.name, 'version.txt')
         if not lock_name:
             lock_name = 'classifier_{}_download'.format(self.name)
 
@@ -38,13 +49,14 @@ class BaseModel:
             except FileNotFoundError:
                 pass
 
+            from django.conf import settings
             response = requests.get(settings.MODEL_INFO_URL)
             models_info = json.loads(response.content)
             model_info = models_info[self.name][str(self.version)]
             error = False
 
             for file_data in model_info['files']:
-                final_path = os.path.join(model_dir, self.name, file_data['filename'])
+                final_path = os.path.join(self.model_dir, self.name, file_data['filename'])
                 if not os.path.exists(final_path):
                     locations = file_data['locations']
                     index = random.choice(range(len(locations)))
