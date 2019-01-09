@@ -11,7 +11,7 @@ This project is currently in development and not feature complete for a version 
 
 ## Installing & Running
 
-The easiest way to run it is with Docker Compose (https://docs.docker.com/compose/install/#install-compose) using the pre-built image following these steps.
+The easiest way to run it is with [Docker Compose](https://docs.docker.com/compose/install/#install-compose) using the pre-built image following these steps.
 
 Create a new directory to run inside and download the example Docker Compose file.
 
