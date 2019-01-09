@@ -33,6 +33,15 @@ A few seconds after starting you should be able to go to [http://localhost:8888/
 You can move some photos into the folder `data/photos` and they should get detected and imported immediately. Once you have finished trying out the system you can edit the volume in the `docker-compose.yml` file where it says `./data/photos` to mount wherever you usually keep photos. System database, thumbnails and other cache data is stored separately from the photos so shouldn't pollute the area. You are responsible for keeping your own backups in case of error.
 
 
+## Upgrading
+
+If you are using the pre-built Docker image you can use kill, pull and bring back up using the following:
+
+    # Ctrl-C to kill
+    docker-compose pull
+    docker-compose up
+
+
 ## Developing
 
 There is a separate Docker Compose file `docker-compose.dev.yml` that you should run if you want to work on the project. Check out the repo and this setup will build the image, mount the code as volumes, hot-reload JS changes to the browser and reload the Python server for most changes.
@@ -48,7 +57,7 @@ If you want to access the Bash or Python shells for development, you can use the
     ./docker_manage.sh  # Gets you into the Django/Python shell
 
 
-### Testing
+## Testing
 
 PyTest is used as a test runner and for creating fixtures. The easiest way to run the tests is within the Docker container like this:
 
