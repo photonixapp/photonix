@@ -21,6 +21,8 @@ tensorflow = "==1.8.0"
 inotify = "==0.2.8"
 graphene-django = "==2.2.0"
 django-filter = "==2.0.0"
+pyshp = "==2.0.1"
+matplotlib = "==3.0.2"
 pytest = "==4.1.0"
 pytest-django = "==3.4.5"
 

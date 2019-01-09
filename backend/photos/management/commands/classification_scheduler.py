@@ -11,6 +11,7 @@ from photos.models import Photo
 
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
 color_queue = Queue('classification_color', connection=r)
+location_queue = Queue('classification_location', connection=r)
 object_queue = Queue('classification_object', connection=r)
 style_queue = Queue('classification_style', connection=r)
 
@@ -32,6 +33,19 @@ class Command(BaseCommand):
                         photo.classifier_color_queued_at = timezone.now()
                         photo.save()
                         color_queue.enqueue('classifiers.color.model.run_on_photo', photo.id, timeout=600)
+
+            # Location queue
+            print('{} items in location_queue'.format(len(location_queue)))
+            if len(location_queue) < 20:
+                total = Photo.objects.filter(classifier_location_queued_at__isnull=True).order_by('created_at').count()
+                if total:
+                    print('{} photos remaining for location classificaion'.format(total))
+                    photos = Photo.objects.filter(classifier_location_queued_at__isnull=True).order_by('created_at')[:100]
+                    print('{} queued photos for location classification'. format(len(photos)))
+                    for photo in photos:
+                        photo.classifier_location_queued_at = timezone.now()
+                        photo.save()
+                        location_queue.enqueue('classifiers.location.model.run_on_photo', photo.id, timeout=600)
 
             # Object queue
             print('{} items in object_queue'.format(len(object_queue)))

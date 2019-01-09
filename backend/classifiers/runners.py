@@ -2,7 +2,7 @@ import re
 from uuid import UUID
 
 
-def get_or_create_tag(name, type, source):
+def get_or_create_tag(name, type, source, parent=None):
     # get_or_create is not atomic so an instance could get created by another thread inbetween.
     # This causes an IntegrityError due to the unique_together constraint.
     from django.db import IntegrityError, transaction
@@ -10,9 +10,9 @@ def get_or_create_tag(name, type, source):
 
     try:
         with transaction.atomic():
-            tag, _ = Tag.objects.get_or_create(name=name, type=type, source=source)
+            tag, _ = Tag.objects.get_or_create(name=name, type=type, source=source, parent=parent)
     except IntegrityError:
-        tag = Tag.objects.get(name=name, type=type, source=source)
+        tag = Tag.objects.get(name=name, type=type, source=source, parent=parent)
     return tag
 
 
