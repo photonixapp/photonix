@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'photos',
     'world',
     'web',
-    'client_data_synchronizer',
     'graphene_django',
     'django_filters',
 ]
