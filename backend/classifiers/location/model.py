@@ -210,14 +210,15 @@ def run_on_photo(photo_id):
     from runners import results_for_model_on_photo, get_or_create_tag
     photo, results = results_for_model_on_photo(model, photo_id)
 
-    if photo:
+    if photo and results['country']:
         from django.utils import timezone
         from photos.models import PhotoTag
         photo.clear_tags(source='C', type='L')
         country_tag = get_or_create_tag(name=results['country']['name'], type='L', source='C')
         PhotoTag(photo=photo, tag=country_tag, source='C', confidence=1.0, significance=1.0).save()
-        city_tag = get_or_create_tag(name=results['city']['name'], type='L', source='C', parent=country_tag)
-        PhotoTag(photo=photo, tag=city_tag, source='C', confidence=0.5, significance=0.5).save()
+        if results['city']:
+            city_tag = get_or_create_tag(name=results['city']['name'], type='L', source='C', parent=country_tag)
+            PhotoTag(photo=photo, tag=city_tag, source='C', confidence=0.5, significance=0.5).save()
         photo.classifier_color_completed_at = timezone.now()
         photo.classifier_color_version = getattr(model, 'version', 0)
         photo.save()
