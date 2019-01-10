@@ -48,6 +48,8 @@ class Photo(UUIDModel, VersionedModel):
     camera                              = models.ForeignKey(Camera, related_name='photos', null=True)
     lens                                = models.ForeignKey(Lens, related_name='photos', null=True)
     location                            = PointField(null=True)
+    latitude                            = models.DecimalField(max_digits=9, decimal_places=6, null=True)
+    longitude                           = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     altitude                            = models.DecimalField(max_digits=6, decimal_places=1, null=True)
     last_thumbnailed_version            = models.PositiveIntegerField(null=True)
     last_thumbnailed_at                 = models.DateTimeField(null=True)
