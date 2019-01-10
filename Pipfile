@@ -26,6 +26,7 @@ matplotlib = "==3.0.2"
 pytest = "==4.1.0"
 pytest-django = "==3.4.5"
 codecov = "*"
+gunicorn = "==19.9.0"
 
 [dev-packages]
 flake8 = "*"
