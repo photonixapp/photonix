@@ -53,7 +53,7 @@ class LocationModel(BaseModel):
             metadata = PhotoMetadata(image_file)
             location = metadata.get('GPS Position') and parse_gps_location(metadata.get('GPS Position')) or None
             if location:
-                lon, lat = [location.y, location.x]
+                lon, lat = location
             else:
                 return {
                     'country': None,

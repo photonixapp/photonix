@@ -1,11 +1,8 @@
 from __future__ import unicode_literals
 
-from django.contrib.gis.db.models import PointField
 from django.db import models
 
 from common.models import UUIDModel, VersionedModel
-from world.models import WorldBorder, City
-from world.utils import country_from_point_field
 
 
 class Camera(UUIDModel, VersionedModel):
@@ -47,7 +44,6 @@ class Photo(UUIDModel, VersionedModel):
     shooting_mode                       = models.CharField(max_length=32, null=True)
     camera                              = models.ForeignKey(Camera, related_name='photos', null=True)
     lens                                = models.ForeignKey(Lens, related_name='photos', null=True)
-    location                            = PointField(null=True)
     latitude                            = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     longitude                           = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     altitude                            = models.DecimalField(max_digits=6, decimal_places=1, null=True)
@@ -75,9 +71,9 @@ class Photo(UUIDModel, VersionedModel):
     def __str__(self):
         return str(self.id)
 
-    @property
-    def country(self):
-        return country_from_point_field(self.location)
+    # @property
+    # def country(self):
+    #     return country_from_point_field(self.location)
 
     def thumbnail_url(self, thumbnail):
         return '/thumbnails/{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.id)
@@ -137,9 +133,6 @@ class Tag(UUIDModel, VersionedModel):
     parent          = models.ForeignKey('Tag', related_name='+', null=True)
     type            = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True)
     source          = models.CharField(max_length=1, choices=SOURCE_CHOICES)
-    # Only if the type is 'Location' and matches a country or city
-    world_border    = models.ForeignKey(WorldBorder, related_name='tags', null=True)
-    city            = models.ForeignKey(City, related_name='tags', null=True)
 
     class Meta:
         ordering = ['name']

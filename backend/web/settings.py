@@ -38,12 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',
-    'channels',
-    'config',
     'common',
     'photos',
-    'world',
     'web',
     'graphene_django',
     'django_filters',
@@ -82,21 +78,24 @@ WSGI_APPLICATION = 'web.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.contrib.gis.db.backends.mysql',
-    #     'NAME': 'photo_manager',
-    #     'USER': 'root',
-    #     'PASSWORD': 'password',
-    # }
-    'default': {
-        'ENGINE':   'django.contrib.gis.db.backends.postgis',
-        'HOST':     os.environ.get('POSTGRES_HOST', '127.0.0.1'),
-        'NAME':     'photo-manager',
-        'USER':     'postgres',
-        'PASSWORD': 'password',
+if os.environ.get('ENV'):
+    DATABASES = {
+        'default': {
+            'ENGINE':   'django.db.backends.sqlite3',
+            'NAME':     '/tmp/db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE':   'django.contrib.gis.db.backends.postgis',
+            # 'ENGINE':   'django.db.backends.postgresql',
+            'HOST':     os.environ.get('POSTGRES_HOST', '127.0.0.1'),
+            'NAME':     'photo-manager',
+            'USER':     'postgres',
+            'PASSWORD': 'password',
+        }
+    }
 
 
 # Password validation
@@ -148,15 +147,6 @@ THUMBNAIL_SIZES = [
 ]
 
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'asgi_redis.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [(os.environ.get('REDIS_HOST', '127.0.0.1'), 6379)],
-        },
-        'ROUTING': 'web.routing.channel_routing',
-    },
-}
 
 
 PHOTO_INPUT_DIRS = [os.path.normpath(os.path.join(BASE_DIR, '..', '..', 'photos_to_import'))]

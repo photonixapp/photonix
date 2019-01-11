@@ -34,14 +34,9 @@ def parse_gps_location(gps_str):
     m = re.search(regex, gps_str)
 
     latitude = float(m.group(1)) + (float(m.group(2)) / 60) + (float('{}.{}'.format(m.group(3), m.group(4))) / 60 / 100)
-    if m.group(5) == 'S':
-        latitude = latitude * -1
-
     longitude = float(m.group(6)) + (float(m.group(7)) / 60) + (float('{}.{}'.format(m.group(8), m.group(9))) / 60 / 100)
-    if m.group(10) == 'W':
-        longitude = longitude * -1
 
-    return GEOSGeometry('POINT({} {})'.format(longitude, latitude))
+    return (latitude, longitude)
 
 
 def get_datetime(path):

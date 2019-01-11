@@ -4,7 +4,6 @@ from PIL import Image
 import shutil
 from io import StringIO
 
-from config.managers import global_state
 from photos.utils.db import record_photo
 from photos.utils.metadata import get_datetime
 from photos.utils.fs import determine_destination, find_new_file_name, mkdir_p

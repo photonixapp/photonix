@@ -42,14 +42,15 @@ class PhotoInterface(graphene.Interface):
 
 class PhotoNode(DjangoObjectType):
     url = graphene.String()
+    location = graphene.String()
 
     class Meta:
         model = Photo
         interfaces = (CustomNode, PhotoInterface)
 
     def resolve_location(self, info):
-        if self.location:
-            return '{},{}'.format(self.location.y, self.location.x)
+        if self.latitude and self.longitude:
+            return '{},{}'.format(self.latitude, self.longitude)
         return None
 
     def resolve_url(self, info):

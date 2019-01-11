@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 
-from config.managers import global_state
 from photos.utils.organise import import_photos_from_dir
 from photos.utils.system import missing_system_dependencies
 
@@ -21,6 +20,4 @@ class Command(BaseCommand):
             import_photos_from_dir(path)
 
     def handle(self, *args, **options):
-        global_state.increment('photo_import_tasks_running')
         self.import_photos(options['paths'])
-        global_state.decrement('photo_import_tasks_running')

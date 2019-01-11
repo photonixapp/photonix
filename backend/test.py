@@ -9,6 +9,7 @@ import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.ERROR)
 
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
+os.environ['ENV'] = 'test'
 os.environ['DJANGO_SETTINGS_MODULE'] = 'web.settings'
 
 

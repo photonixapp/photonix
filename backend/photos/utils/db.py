@@ -7,7 +7,6 @@ import os
 from channels import Channel
 from django.utils.timezone import utc
 
-from config.managers import global_state
 from photos.models import Camera, Lens, Photo, PhotoFile
 from photos.utils.metadata import PhotoMetadata, parse_datetime, get_datetime, parse_gps_location
 
@@ -67,6 +66,12 @@ def record_photo(path):
         except Photo.DoesNotExist:
             pass
 
+    latitude = None
+    longitude = None
+    if metadata.get('GPS Position'):
+        latitude, longitude = parse_gps_location(metadata.get('GPS Position'))
+
+
     if not photo:
         # Save Photo
         photo = Photo(
@@ -82,7 +87,8 @@ def record_photo(path):
             shooting_mode=metadata.get('Shooting Mode') or None,
             camera=camera,
             lens=lens,
-            location=metadata.get('GPS Position') and parse_gps_location(metadata.get('GPS Position')) or None,
+            latitude=latitude,
+            longitude=longitude,
             altitude=metadata.get('GPS Altitude') and metadata.get('GPS Altitude').split(' ')[0]
         )
         photo.save()

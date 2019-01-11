@@ -3,7 +3,7 @@ version: "2"
 services:
   postgres:
     container_name: pm-postgres
-    image: mdillon/postgis:11
+    image: postgres:11.1-alpine
     ports:
       - "5432:5432"
     environment:
