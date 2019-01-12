@@ -1,105 +1,101 @@
-from datetime import datetime
 import os
-from pathlib import Path
+import pytest
 import tempfile
 import time
+from datetime import datetime
+from pathlib import Path
+import mock
 
-import pytest
 
+def test_downloading(tmpdir):
+    from classifiers.style.model import StyleModel
 
-class TestClassifierModels:
-    def test_downloading(self):
-        from classifiers.style.model import StyleModel
+    model_dir = tmpdir
+    start = time.mktime(datetime.now().timetuple())
+    model = StyleModel(lock_name=None, model_dir=model_dir)
 
-        with tempfile.TemporaryDirectory() as model_dir:
-            start = time.mktime(datetime.now().timetuple())
-            model = StyleModel(lock_name=None, model_dir=model_dir)
+    graph_path = str(Path(model_dir) / 'style' / 'graph.pb')
+    assert os.stat(graph_path).st_size > 1024 * 10 * 10
+    assert os.stat(graph_path).st_mtime > start
+    with open(str(Path(model_dir) / 'style' / 'version.txt')) as f:
+        content = f.read()
+        assert content.strip() == str(model.version)
 
-            graph_path = str(Path(model_dir) / 'style' / 'graph.pb')
-            assert os.stat(graph_path).st_size > 1024 * 10 * 10
-            assert os.stat(graph_path).st_mtime > start
-            with open(str(Path(model_dir) / 'style' / 'version.txt')) as f:
-                content = f.read()
-                assert content.strip() == str(model.version)
+def test_color_predict():
+    from classifiers.color.model import ColorModel
 
-    def test_color_predict(self):
-        from classifiers.color.model import ColorModel
+    model = ColorModel()
+    snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
+    result = model.predict(snow)
+    expected = [('Violet', '0.094'), ('Gray', '0.018'), ('Black', '0.006'), ('White', '0.005'), ('Pale pink', '0.001'), ('Dark orange', '0.000'), ('Dark lime green', '0.000')]
+    actual = [(x, '{:.3f}'.format(y)) for x, y in result]
+    assert expected == actual
 
-        model = ColorModel()
-        snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
-        result = model.predict(snow)
+def test_location_predict():
+    from classifiers.location.model import LocationModel
 
-        assert len(result) == 7
-        assert result[0][0] == 'Violet'
-        assert '{0:.3f}'.format(result[0][1]) == '0.094'
-        assert result[1][0] == 'Gray'
-        assert '{0:.3f}'.format(result[1][1]) == '0.018'
+    model = LocationModel()
 
-    def test_location_predict(self):
-        from classifiers.location.model import LocationModel
+    # London, UK - Tests multiple polygons of the UK
+    result = model.predict(location=[51.5304213, -0.1286445])
+    assert result['country']['name'] == 'United Kingdom'
+    assert result['city']['name'] == 'London'
+    assert result['city']['distance'] == 1405
+    assert result['city']['population'] == 7556900
 
-        model = LocationModel()
+    # In the sea near Oia, Santorini, Greece - Country is inferred from city
+    result = model.predict(location=[36.4396445,25.3560936])
+    assert result['country']['name'] == 'Greece'
+    assert result['city']['name'] == 'Oía'
+    assert result['city']['distance'] == 3132
+    assert result['city']['population'] == 3376
 
-        # London, UK - Tests multiple polygons of the UK
-        result = model.predict(location=[51.5304213, -0.1286445])
-        assert result['country']['name'] == 'United Kingdom'
-        assert result['city']['name'] == 'London'
-        assert result['city']['distance'] == 1405
-        assert result['city']['population'] == 7556900
+    # Too far off the coast of John o' Groats, Scotland, UK - No match
+    result = model.predict(location=[58.6876742,-3.4206862])
+    assert result['country'] == None
+    assert result['city'] == None
 
-        # In the sea near Oia, Santorini, Greece - Country is inferred from city
-        result = model.predict(location=[36.4396445,25.3560936])
-        assert result['country']['name'] == 'Greece'
-        assert result['city']['name'] == 'Oía'
-        assert result['city']['distance'] == 3132
-        assert result['city']['population'] == 3376
+    # Vernier, Switzerland - Tests country code mainly (CH can be China in some codings)
+    result = model.predict(location=[46.1760906,5.9929043])
+    assert result['country']['name'] == 'Switzerland'
+    assert result['country']['code'] == 'CH'
+    assert result['city']['country_name'] == 'Switzerland'
+    assert result['city']['country_code'] == 'CH'
 
-        # Too far off the coast of John o' Groats, Scotland, UK - No match
-        result = model.predict(location=[58.6876742,-3.4206862])
-        assert result['country'] == None
-        assert result['city'] == None
+    # In France but close to a 'city' in Belgium - City should be limited to within border of country
+    result = model.predict(location=[51.074323, 2.547278])
+    assert result['country']['name'] == 'France'
+    assert result['city']['country_name'] == 'France'
+    assert result['city']['name'] == 'Téteghem'
 
-        # Vernier, Switzerland - Tests country code mainly (CH can be China in some codings)
-        result = model.predict(location=[46.1760906,5.9929043])
-        assert result['country']['name'] == 'Switzerland'
-        assert result['country']['code'] == 'CH'
-        assert result['city']['country_name'] == 'Switzerland'
-        assert result['city']['country_code'] == 'CH'
+def test_object_predict():
+    from classifiers.object.model import ObjectModel
 
-        # In France but close to a 'city' in Belgium - City should be limited to within border of country
-        result = model.predict(location=[51.074323, 2.547278])
-        assert result['country']['name'] == 'France'
-        assert result['city']['country_name'] == 'France'
-        assert result['city']['name'] == 'Téteghem'
+    model = ObjectModel()
+    snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
+    result = model.predict(snow)
 
-    def test_object_predict(self):
-        from classifiers.object.model import ObjectModel
+    assert len(result) == 2
 
-        model = ObjectModel()
-        snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
-        result = model.predict(snow)
+    assert result[0]['label'] == 'Tree'
+    assert '{0:.3f}'.format(result[0]['score']) == '0.950'
+    assert '{0:.3f}'.format(result[0]['significance']) == '0.226'
+    assert '{0:.3f}'.format(result[0]['x']) == '0.791'
+    assert '{0:.3f}'.format(result[0]['y']) == '0.394'
+    assert '{0:.3f}'.format(result[0]['width']) == '0.341'
+    assert '{0:.3f}'.format(result[0]['height']) == '0.700'
 
-        assert len(result) == 2
+    assert result[1]['label'] == 'Tree'
+    assert '{0:.3f}'.format(result[1]['score']) == '0.819'
+    assert '{0:.3f}'.format(result[1]['significance']) == '0.035'
 
-        assert result[0]['label'] == 'Tree'
-        assert '{0:.3f}'.format(result[0]['score']) == '0.950'
-        assert '{0:.3f}'.format(result[0]['significance']) == '0.226'
-        assert '{0:.3f}'.format(result[0]['x']) == '0.791'
-        assert '{0:.3f}'.format(result[0]['y']) == '0.394'
-        assert '{0:.3f}'.format(result[0]['width']) == '0.341'
-        assert '{0:.3f}'.format(result[0]['height']) == '0.700'
+def test_style_predict():
+    from classifiers.style.model import StyleModel
 
-        assert result[1]['label'] == 'Tree'
-        assert '{0:.3f}'.format(result[1]['score']) == '0.819'
-        assert '{0:.3f}'.format(result[1]['significance']) == '0.035'
+    model = StyleModel()
+    snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
+    result = model.predict(snow)
 
-    def test_style_predict(self):
-        from classifiers.style.model import StyleModel
-
-        model = StyleModel()
-        snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
-        result = model.predict(snow)
-
-        assert len(result) == 1
-        assert result[0][0] == 'serene'
-        assert '{0:.3f}'.format(result[0][1]) == '0.915'
+    assert len(result) == 1
+    assert result[0][0] == 'serene'
+    assert '{0:.3f}'.format(result[0][1]) == '0.915'

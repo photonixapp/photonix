@@ -1,7 +1,6 @@
 import hashlib
 import importlib
 import json
-import lzma
 import os
 from pathlib import Path
 import random
@@ -15,7 +14,6 @@ from redis_lock import Lock
 import requests
 
 
-r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
 graph_cache = {}
 
 
@@ -45,6 +43,7 @@ class BaseModel:
         if not lock_name:
             lock_name = 'classifier_{}_download'.format(self.name)
 
+        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
         with Lock(r, lock_name):
             try:
                 with open(version_file) as f:
