@@ -33,8 +33,12 @@ class BaseModel:
             except:
                 self.model_dir = str(Path(__file__).parent.parent.parent / 'data' / 'models')
 
+    @property
+    def graph_cache_key(self):
+        return '{}:{}'.format(self.name, self.model_dir)
+
     def ensure_downloaded(self, lock_name=None):
-        if self.name in self.graph_cache:
+        if self.graph_cache_key in self.graph_cache:
             return True
 
         version_file = os.path.join(self.model_dir, self.name, 'version.txt')

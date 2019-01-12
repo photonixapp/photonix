@@ -26,7 +26,7 @@ class LocationModel(BaseModel):
     max_num_workers = 4
 
     def __init__(self, model_dir=None, world_file=WORLD_FILE, cities_file=CITIES_FILE, lock_name=None):
-        super().__init__()
+        super().__init__(model_dir=model_dir)
 
         world_file = str(Path(self.model_dir) / world_file)
         cities_file = str(Path(self.model_dir) / cities_file)

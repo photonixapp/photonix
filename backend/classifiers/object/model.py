@@ -30,8 +30,8 @@ class ObjectModel(BaseModel):
     version = 20180124
     approx_ram_mb = 2000
 
-    def __init__(self, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
-        super().__init__()
+    def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
+        super().__init__(model_dir=model_dir)
 
         graph_file = os.path.join(self.model_dir, graph_file)
         label_file = os.path.join(self.model_dir, label_file)
@@ -42,8 +42,8 @@ class ObjectModel(BaseModel):
 
     def load_graph(self, graph_file):
         with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
-            if self.name in self.graph_cache:
-                return self.graph_cache[self.name]
+            if self.graph_cache_key in self.graph_cache:
+                return self.graph_cache[self.graph_cache_key]
 
             graph = tf.Graph()
             graph_def = tf.GraphDef()
@@ -55,7 +55,7 @@ class ObjectModel(BaseModel):
                     od_graph_def.ParseFromString(serialized_graph)
                     tf.import_graph_def(od_graph_def, name='')
 
-            self.graph_cache[self.name] = graph
+            self.graph_cache[self.graph_cache_key] = graph
             return graph
 
     def load_labels(self, label_file):

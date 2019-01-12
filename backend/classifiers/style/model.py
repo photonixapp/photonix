@@ -27,7 +27,7 @@ class StyleModel(BaseModel):
     approx_ram_mb = 100
     max_num_workers = 2
 
-    def __init__(self, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None, model_dir=None):
+    def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
         super().__init__(model_dir=model_dir)
 
         graph_file = os.path.join(self.model_dir, graph_file)
@@ -39,8 +39,8 @@ class StyleModel(BaseModel):
 
     def load_graph(self, graph_file):
         with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
-            if self.name in self.graph_cache:
-                return self.graph_cache[self.name]
+            if self.graph_cache_key in self.graph_cache:
+                return self.graph_cache[self.graph_cache_key]
 
             graph = tf.Graph()
             graph_def = tf.GraphDef()
@@ -50,7 +50,7 @@ class StyleModel(BaseModel):
             with graph.as_default():
                 tf.import_graph_def(graph_def)
 
-            self.graph_cache[self.name] = graph
+            self.graph_cache[self.graph_cache_key] = graph
             return graph
 
     def load_labels(self, label_file):
