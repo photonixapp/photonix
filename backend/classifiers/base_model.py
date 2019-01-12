@@ -79,7 +79,7 @@ class BaseModel:
                     if hash_sha256.hexdigest() == file_data['sha256']:
                         dirname = os.path.dirname(final_path)
                         if not os.path.isdir(dirname):
-                            os.mkdirs(dirname)
+                            os.makedirs(dirname)
 
                         if file_data.get('decompress'):
                             if file_data['filename'].endswith('.xz'):

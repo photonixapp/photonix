@@ -158,12 +158,12 @@ PHOTO_OUTPUT_DIRS = [
     },
 ]
 
-if os.path.exists(str(Path(BASE_DIR).parent / 'data')):
-    CACHE_DIR = str(Path(BASE_DIR).parent / 'data' / 'cache')
-    MODEL_DIR = str(Path(BASE_DIR).parent / 'data' / 'models')
-else:
+if os.path.exists('/data'):
     CACHE_DIR = '/data/cache'
     MODEL_DIR = '/data/models'
+else:
+    CACHE_DIR = str(Path(BASE_DIR).parent / 'data' / 'cache')
+    MODEL_DIR = str(Path(BASE_DIR).parent / 'data' / 'models')
 
 MODEL_INFO_URL = 'https://photomanager.epixstudios.co.uk/models.json'
 
