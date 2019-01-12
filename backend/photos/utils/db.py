@@ -4,7 +4,6 @@ import json
 import mimetypes
 import os
 
-from channels import Channel
 from django.utils.timezone import utc
 
 from photos.models import Camera, Lens, Photo, PhotoFile

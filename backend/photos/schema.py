@@ -1,4 +1,3 @@
-from django.contrib.gis.db.models.fields import PointField
 import django_filters
 from django_filters import Filter, CharFilter
 import graphene
@@ -8,11 +7,6 @@ from graphene_django.types import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
 from .models import Camera, Lens, Photo, Tag
-
-
-@convert_django_field.register(PointField)
-def point_field_conversion(field, registry=None):
-    return graphene.String()
 
 
 class CameraType(DjangoObjectType):

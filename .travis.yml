@@ -1,6 +1,8 @@
 language: python
 python:
   - '3.6'
+services:
+  - redis
 install:
   - pip install pipenv && pipenv install --system
 script:

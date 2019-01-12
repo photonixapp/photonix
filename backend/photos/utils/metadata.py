@@ -3,7 +3,6 @@ import re
 from subprocess import Popen, PIPE
 from datetime import datetime
 
-from django.contrib.gis.geos.geometry import GEOSGeometry
 from django.utils.timezone import utc
 
 

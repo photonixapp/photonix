@@ -11,11 +11,11 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from pathlib import Path
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+BASE_DIR = str(Path(__file__).parent.parent.resolve())
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'web.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if os.environ.get('ENV'):
+if os.environ.get('ENV') == 'test':
     DATABASES = {
         'default': {
             'ENGINE':   'django.db.backends.sqlite3',
@@ -88,8 +88,7 @@ if os.environ.get('ENV'):
 else:
     DATABASES = {
         'default': {
-            'ENGINE':   'django.contrib.gis.db.backends.postgis',
-            # 'ENGINE':   'django.db.backends.postgresql',
+            'ENGINE':   'django.db.backends.postgresql',
             'HOST':     os.environ.get('POSTGRES_HOST', '127.0.0.1'),
             'NAME':     'photo-manager',
             'USER':     'postgres',
@@ -134,10 +133,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
+STATIC_DIR = str(Path(BASE_DIR) / 'static')
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'data')
+MEDIA_ROOT = str(Path(BASE_DIR).parent / 'data')
 
 THUMBNAIL_ROOT = '/data/cache/thumbnails'
 
@@ -147,9 +146,7 @@ THUMBNAIL_SIZES = [
 ]
 
 
-
-
-PHOTO_INPUT_DIRS = [os.path.normpath(os.path.join(BASE_DIR, '..', '..', 'photos_to_import'))]
+PHOTO_INPUT_DIRS = [str(Path(BASE_DIR).parent.parent / 'photos_to_import')]
 PHOTO_OUTPUT_DIRS = [
     {
         'EXTENSIONS': ['jpg', 'jpeg', 'mov', 'mp4', 'm4v', '3gp'],
@@ -161,8 +158,12 @@ PHOTO_OUTPUT_DIRS = [
     },
 ]
 
-CACHE_DIR = '/data/cache'
-MODEL_DIR = '/data/models'
+if os.path.exists(str(Path(BASE_DIR).parent / 'data')):
+    CACHE_DIR = str(Path(BASE_DIR).parent / 'data' / 'cache')
+    MODEL_DIR = str(Path(BASE_DIR).parent / 'data' / 'models')
+else:
+    CACHE_DIR = '/data/cache'
+    MODEL_DIR = '/data/models'
 
 MODEL_INFO_URL = 'https://photomanager.epixstudios.co.uk/models.json'
 
