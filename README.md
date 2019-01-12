@@ -1,6 +1,6 @@
 # Photo Manager
 
-![](https://img.shields.io/uptimerobot/status/m781745452-4f90c0e2a56b2086dd0c5092.svg?label=demo%20site) ![](https://img.shields.io/uptimerobot/ratio/m781745452-4f90c0e2a56b2086dd0c5092.svg)
+[![](https://img.shields.io/travis/damianmoore/photo-manager.svg)](https://travis-ci.org/damianmoore/photo-manager) [![](https://img.shields.io/codecov/c/github/damianmoore/photo-manager.svg)](https://codecov.io/gh/damianmoore/photo-manager) ![](https://img.shields.io/uptimerobot/status/m781745452-4f90c0e2a56b2086dd0c5092.svg?label=demo%20site) ![](https://img.shields.io/uptimerobot/ratio/m781745452-4f90c0e2a56b2086dd0c5092.svg)
 
 *This project is in dire need of a name - please send suggestions!*
 
