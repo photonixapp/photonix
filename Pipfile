@@ -13,7 +13,6 @@ python-redis-lock = "==3.2.0"
 requests = "==2.20.1"
 redis = "==2.10.6"
 rq = "==0.12.0"
-tensorflow = "==1.8.0"
 inotify = "==0.2.8"
 graphene-django = "==2.2.0"
 django-filter = "==2.0.0"
@@ -24,6 +23,7 @@ pytest-django = "==3.4.5"
 codecov = "==2.0.15"
 gunicorn = "==19.9.0"
 pip = "==18.0"
+tensorflow = {file = "https://github.com/damianmoore/tensorflow-builder/releases/download/v1.12.0/tensorflow-1.12.0-cp36-cp36m-linux_x86_64.whl"}
 
 [dev-packages]
 flake8 = "*"

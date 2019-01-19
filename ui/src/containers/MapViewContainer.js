@@ -36,6 +36,7 @@ export default class MapContainer extends React.Component {
           right = parseFloat(photo.location[1])
         }
       }
+      return true
     })
     // Default to show the whole world if none of the current photos have locations
     let bounds = [['-45', '-1'], ['45', '1']]

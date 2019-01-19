@@ -23,6 +23,7 @@ services:
       ENV: prd
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
+      ALLOWED_HOSTS: example.com
     volumes:
      - ./data/photos:/data/photos
      - ./data/cache:/data/cache
