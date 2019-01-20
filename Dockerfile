@@ -39,13 +39,10 @@ WORKDIR /srv/ui
 RUN yarn install
 
 # Install Python dependencies
-ENV PIPENV_TIMEOUT 600
 WORKDIR /srv
-COPY Pipfile /srv/Pipfile
-RUN sed -i "s|tensorflow = \"==1.12.0\"|tensorflow = {file = \"https://github.com/damianmoore/tensorflow-builder/releases/download/v1.12.0/tensorflow-1.12.0-cp36-cp36m-linux_x86_64.whl\"}|g" /srv/Pipfile
-RUN pip3 install pipenv
-RUN pipenv run pip install pip==18.0
-RUN pipenv install --skip-lock
+COPY requirements.txt /srv/requirements.txt
+RUN sed -i "s|tensorflow==1.12.0|https://github.com/damianmoore/tensorflow-builder/releases/download/v1.12.0/tensorflow-1.12.0-cp36-cp36m-linux_x86_64.whl|g" /srv/requirements.txt
+RUN pip install -r requirements.txt
 
 # Copy over the code
 COPY backend /srv/backend

@@ -9,10 +9,10 @@ done
 
 
 >&2 echo "Running migrations"
-pipenv run python /srv/backend/manage.py migrate
+python /srv/backend/manage.py migrate
 
 >&2 echo "Resetting Redis lock"
-pipenv run python /srv/backend/manage.py reset_redis_locks
+python /srv/backend/manage.py reset_redis_locks
 
 >&2 echo "Starting supervisor"
 supervisord -c /etc/supervisord.conf

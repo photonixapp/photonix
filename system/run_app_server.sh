@@ -2,8 +2,8 @@
 if [ "$ENV" = "dev" ]
 then
   >&2 echo "Starting Django runserver as not in prd mode"
-  pipenv run python /srv/backend/manage.py runserver 0.0.0.0:8000
+  python /srv/backend/manage.py runserver 0.0.0.0:8000
 else
   >&2 echo "Starting Gunicorn server as in prd mode"
-  cd /srv/backend && pipenv run gunicorn -b 0.0.0.0:8000 web.wsgi
+  cd /srv/backend && gunicorn -b 0.0.0.0:8000 web.wsgi
 fi

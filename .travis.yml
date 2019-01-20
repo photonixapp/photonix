@@ -6,7 +6,7 @@ services:
 before_install:
   - sudo apt-get install -y libimage-exiftool-perl
 install:
-  - pip install pipenv && pipenv install --system
+  - pip install -r requirements.txt
 script:
   - coverage run backend/test.py
 after_success:
