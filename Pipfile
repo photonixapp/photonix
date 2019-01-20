@@ -23,7 +23,7 @@ pytest-django = "==3.4.5"
 codecov = "==2.0.15"
 gunicorn = "==19.9.0"
 pip = "==18.0"
-tensorflow = {file = "https://github.com/damianmoore/tensorflow-builder/releases/download/v1.12.0/tensorflow-1.12.0-cp36-cp36m-linux_x86_64.whl"}
+tensorflow = "==1.12.0"
 
 [dev-packages]
 flake8 = "*"
