@@ -56,7 +56,7 @@ python-redis-lock==3.2.0
 pytz==2018.9
 redis==3.0.1
 requests==2.20.1
-rq==0.12.0
+rq==0.13.0
 Rx==1.6.1
 singledispatch==3.4.0.3
 six==1.12.0
