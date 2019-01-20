@@ -44,7 +44,7 @@ WORKDIR /srv
 COPY Pipfile /srv/Pipfile
 RUN pip3 install pipenv
 RUN pipenv run pip install pip==18.0
-RUN pipenv install
+RUN pipenv install --skip-lock
 
 # Copy over the code
 COPY backend /srv/backend
