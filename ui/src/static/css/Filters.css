@@ -18,7 +18,6 @@
   cursor: move;
   left: 10px;
   opacity: 0;
-  transition: 200ms;
 }
 .Filters:hover .scrollbar {
   opacity: 1;

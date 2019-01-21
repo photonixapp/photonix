@@ -46,7 +46,7 @@ const GET_FILTERS = gql`
   }
 `
 const PADDING = 40
-const SCROLLBAR_WIDTH = 200
+const SCROLLBAR_WIDTH = 220
 
 export default class FiltersContainer extends React.Component {
   constructor(props) {
@@ -54,17 +54,62 @@ export default class FiltersContainer extends React.Component {
     this.state = {
       scrollbarLeft: PADDING,
     }
+
+    this.containerRef = React.createRef()
+    this.mouseDownStart = 0
+    this.dragOffset = 0
+    this.viewportWidth = 0
+    this.contentWidth = 0
+    this.contentScrollDistance = 0
+    this.displayScrollbar = false
+  }
+
+  componentDidUpdate() {
+    if (this.containerRef.current) {
+      this.viewportWidth = this.containerRef.current.parentElement.clientWidth + (PADDING * 2)
+      this.contentWidth = this.containerRef.current.firstChild.clientWidth + PADDING
+      this.contentScrollDistance = this.contentWidth - this.viewportWidth
+      this.scrollbarScrollAvailable = this.viewportWidth - SCROLLBAR_WIDTH - (PADDING * 2)
+    }
+  }
+
+  viewportOffsetToScrollbarOffset = (viewportOffset) => {
+    const scrollProgress = viewportOffset / this.contentScrollDistance
+    const left = scrollProgress * this.scrollbarScrollAvailable + PADDING
+    return left
+  }
+
+  scrollbarOffsetToViewportOffset = (scrollbarOffset) => {
+    const scrollProgress = scrollbarOffset / this.scrollbarScrollAvailable
+    const left = scrollProgress * this.contentScrollDistance
+    return left
   }
 
   onScroll = (e) => {
-    const parentWidth = e.currentTarget.parentElement.clientWidth + (PADDING * 2)
-    const contentWidth = e.currentTarget.firstChild.clientWidth + PADDING
-    const contentScrollDistance = contentWidth - parentWidth
-    const scrollbarScrollAvailable = parentWidth - SCROLLBAR_WIDTH - (PADDING * 2)
-    const scrollProgress = e.currentTarget.scrollLeft / contentScrollDistance
-    const left = scrollProgress * scrollbarScrollAvailable + PADDING
-
+    const left = this.viewportOffsetToScrollbarOffset(e.currentTarget.scrollLeft)
     this.setState({scrollbarLeft: left})
+  }
+
+  onMouseDown = (e) => {
+    e.preventDefault()
+    this.mouseDownStart = e.clientX
+    this.scrollbarStart = this.state.scrollbarLeft | 0
+    document.onmouseup = this.scrollbarRelease
+    document.onmousemove = this.scrollbarDrag
+    this.setState({displayScrollbar: true})
+  }
+
+  scrollbarRelease = () => {
+    document.onmouseup = null
+    document.onmousemove = null
+    this.setState({displayScrollbar: false})
+  }
+
+  scrollbarDrag = (e) => {
+    e.preventDefault()
+    this.dragOffset = e.clientX - (this.mouseDownStart - this.scrollbarStart) - PADDING
+    const left = this.scrollbarOffsetToViewportOffset(this.dragOffset)
+    this.containerRef.current.scrollLeft = left
   }
 
   createFilterSelection(sectionName, data, prefix='tag') {
@@ -139,7 +184,14 @@ export default class FiltersContainer extends React.Component {
             filterData.push(this.createFilterSelection('Shooting Mode', data.allShootingModes, 'shootingMode'))
           }
 
-          return <Filters data={filterData} scrollbarLeft={this.state.scrollbarLeft} onToggle={this.props.onToggle} onScroll={this.onScroll} />
+          return <Filters
+            data={filterData}
+            scrollbarLeft={this.state.scrollbarLeft}
+            onToggle={this.props.onToggle}
+            onScroll={this.onScroll}
+            onMouseDown={this.onMouseDown}
+            containerRef={this.containerRef}
+            displayScrollbar={this.state.displayScrollbar} />
         }}
       </Query>
     </div>

@@ -2,8 +2,8 @@ import React from 'react'
 import '../static/css/Filters.css'
 
 
-const Filters = ({ data, scrollbarLeft, onToggle, onScroll }) => (
-  <section className="Filters" onScroll={onScroll}>
+const Filters = ({ data, scrollbarLeft, onToggle, onScroll, onMouseDown, containerRef, displayScrollbar }) => (
+  <section className="Filters" onScroll={onScroll} ref={containerRef}>
     <div className="FiltersContent">
       {
         data.map((group) => (
@@ -24,7 +24,7 @@ const Filters = ({ data, scrollbarLeft, onToggle, onScroll }) => (
         ))
       }
     </div>
-    <div className="scrollbar" style={{left: scrollbarLeft}}></div>
+    <div className="scrollbar" style={{left: scrollbarLeft, opacity:displayScrollbar ? 1 : null}} onMouseDown={onMouseDown}></div>
   </section>
 )
 
