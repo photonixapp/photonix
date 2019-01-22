@@ -69,19 +69,19 @@ export default class FiltersContainer extends React.Component {
       this.viewportWidth = this.containerRef.current.parentElement.clientWidth + (PADDING * 2)
       this.contentWidth = this.containerRef.current.firstChild.clientWidth + PADDING
       this.contentScrollDistance = this.contentWidth - this.viewportWidth
-      this.scrollbarScrollAvailable = this.viewportWidth - SCROLLBAR_WIDTH - (PADDING * 2)
+      this.scrollbarScrollAvailable = this.viewportWidth - SCROLLBAR_WIDTH - PADDING - 20
     }
   }
 
   viewportOffsetToScrollbarOffset = (viewportOffset) => {
     const scrollProgress = viewportOffset / this.contentScrollDistance
-    const left = scrollProgress * this.scrollbarScrollAvailable + PADDING
+    const left = parseInt(scrollProgress * this.scrollbarScrollAvailable + PADDING, 10)
     return left
   }
 
   scrollbarOffsetToViewportOffset = (scrollbarOffset) => {
     const scrollProgress = scrollbarOffset / this.scrollbarScrollAvailable
-    const left = scrollProgress * this.contentScrollDistance
+    const left = parseInt(scrollProgress * this.contentScrollDistance, 10)
     return left
   }
 

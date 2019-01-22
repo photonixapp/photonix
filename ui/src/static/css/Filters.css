@@ -14,8 +14,8 @@
   border-radius: 5px;
   background: rgba(255,255,255,0.2);
   position: absolute;
-  bottom: 10px;
   cursor: move;
+  bottom: 50px;
   left: 10px;
   opacity: 0;
 }

@@ -1,5 +1,6 @@
 .Search {
   padding: 40px;
+  overflow: hidden;
 }
 .Search input[type="text"] {
   width: 100%;
