@@ -2,10 +2,20 @@
   overflow: auto;
   margin: 0 -40px -20px;
   height: 350px;
+  transition: opacity 200ms;
 }
 .FiltersContent {
   width: max-content;
-  margin: 0 40px;
+  margin: 0 0 0 40px;
+}
+
+.FiltersContent {
+  width: max-content;
+  margin: 0 0 0 40px;
+}
+
+header.collapsed .Filters {
+  opacity: 0;
 }
 
 .Filters .scrollbar {
@@ -18,9 +28,14 @@
   bottom: 50px;
   left: 10px;
   opacity: 0;
+  transition: opacity 200ms;
 }
 .Filters:hover .scrollbar {
   opacity: 1;
+}
+
+.Filters h2 {
+  margin-top: 0;
 }
 
 .FilterGroup {
@@ -106,6 +121,12 @@
 }
 
 @media all and (max-width: 700px) {
+  .Filters {
+    margin: 0 -20px -20px;
+  }
+  .FiltersContent {
+    margin-left: 20px;
+  }
   .FilterGroup {
     width: 180px;
     height: 250px;

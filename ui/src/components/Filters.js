@@ -2,7 +2,7 @@ import React from 'react'
 import '../static/css/Filters.css'
 
 
-const Filters = ({ data, scrollbarLeft, onToggle, onScroll, onMouseDown, containerRef, displayScrollbar }) => (
+const Filters = ({ data, onToggle, onScroll, onMouseDown, containerRef, scrollbarHandleRef, displayScrollbar }) => (
   <section className="Filters" onScroll={onScroll} ref={containerRef}>
     <div className="FiltersContent">
       {
@@ -24,7 +24,7 @@ const Filters = ({ data, scrollbarLeft, onToggle, onScroll, onMouseDown, contain
         ))
       }
     </div>
-    <div className="scrollbar" style={{left: scrollbarLeft, opacity:displayScrollbar ? 1 : null}} onMouseDown={onMouseDown}></div>
+    <div className="scrollbar" ref={scrollbarHandleRef} style={{opacity: displayScrollbar ? 1 : null}} onMouseDown={onMouseDown}></div>
   </section>
 )
 

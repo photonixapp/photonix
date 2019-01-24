@@ -18,28 +18,47 @@ const GET_PHOTOS = gql`
 `
 
 
-const BrowseContainer = ({ selectedFilters, search, onToggle }) => {
-  const params = new URLSearchParams(search)
-  const mode = params.get('mode') ? params.get('mode').toUpperCase() : 'TIMELINE'
+export default class BrowseContainer extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      expanded: true,
+    }
+  }
 
-  return (
-    <Query query={GET_PHOTOS} variables={{filters: selectedFilters.join(',')}}>
-      {({ loading, error, data }) => {
-        let photos = []
-        if (!loading && !error) {
-          photos = data.allPhotos.edges.map((photo) => (
-          {
-            id: photo.node.id,
-            thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}.jpg`,
-            location: photo.node.location ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]] : null,
+  onExpandCollapse = () => {
+    this.setState({expanded: !this.state.expanded})
+  }
+
+  render() {
+    const params = new URLSearchParams(this.props.search)
+    const mode = params.get('mode') ? params.get('mode').toUpperCase() : 'TIMELINE'
+
+    return (
+      <Query query={GET_PHOTOS} variables={{filters: this.props.selectedFilters.join(',')}}>
+        {({ loading, error, data }) => {
+          let photos = []
+          if (!loading && !error) {
+            photos = data.allPhotos.edges.map((photo) => (
+            {
+              id: photo.node.id,
+              thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}.jpg`,
+              location: photo.node.location ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]] : null,
+            }
+            ))
           }
-          ))
-        }
 
-        return <Browse selectedFilters={selectedFilters} mode={mode} loading={loading} error={error} photos={photos} onToggle={onToggle} />
-      }}
-    </Query>
-  )
+          return <Browse
+            selectedFilters={this.props.selectedFilters}
+            mode={mode}
+            loading={loading}
+            error={error}
+            photos={photos}
+            onToggle={this.props.onToggle}
+            onExpandCollapse={this.onExpandCollapse}
+            expanded={this.state.expanded} />
+        }}
+      </Query>
+    )
+  }
 }
-
-export default BrowseContainer

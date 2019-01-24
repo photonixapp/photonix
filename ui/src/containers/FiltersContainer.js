@@ -45,58 +45,84 @@ const GET_FILTERS = gql`
     allShootingModes
   }
 `
-const PADDING = 40
-const SCROLLBAR_WIDTH = 220
 
 export default class FiltersContainer extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {
-      scrollbarLeft: PADDING,
-    }
+
+    this.padding = 40
+    this.scrollbarHandleWidth = 220
 
     this.containerRef = React.createRef()
+    this.scrollbarHandleRef = React.createRef()
+    this.gotRefs = false
+
     this.mouseDownStart = 0
     this.dragOffset = 0
-    this.viewportWidth = 0
+    this.scrollbarWidth = 0
     this.contentWidth = 0
-    this.contentScrollDistance = 0
+    this.contentScrollRange = 0
     this.displayScrollbar = false
+
+    this.state = {
+      displayScrollbar: this.displayScrollbar,
+    }
+
+    window.onresize = this.onWindowResize
   }
 
   componentDidUpdate() {
-    if (this.containerRef.current) {
-      this.viewportWidth = this.containerRef.current.parentElement.clientWidth + (PADDING * 2)
-      this.contentWidth = this.containerRef.current.firstChild.clientWidth + PADDING
-      this.contentScrollDistance = this.contentWidth - this.viewportWidth
-      this.scrollbarScrollAvailable = this.viewportWidth - SCROLLBAR_WIDTH - PADDING - 20
+    if (window.innerWidth < 700) {
+      this.padding = 20
+    }
+    if (!this.gotRefs && this.containerRef.current && this.scrollbarHandleRef.current) {
+      this.gotRefs = true
+      this.calculateSizes()
+      this.positionScrollbar()
     }
   }
 
-  viewportOffsetToScrollbarOffset = (viewportOffset) => {
-    const scrollProgress = viewportOffset / this.contentScrollDistance
-    const left = parseInt(scrollProgress * this.scrollbarScrollAvailable + PADDING, 10)
-    return left
+  calculateSizes = () => {
+    this.padding = 40
+    if (window.innerWidth < 700) {
+      this.padding = 20
+    }
+    this.contentWidth = this.containerRef.current.firstChild.clientWidth - this.padding
+    this.contentScrollRange = this.contentWidth - this.containerRef.current.clientWidth
+    this.scrollbarWidth = this.containerRef.current.parentElement.clientWidth
+    this.scrollbarScrollRange = this.scrollbarWidth - this.scrollbarHandleWidth
   }
 
-  scrollbarOffsetToViewportOffset = (scrollbarOffset) => {
-    const scrollProgress = scrollbarOffset / this.scrollbarScrollAvailable
-    const left = parseInt(scrollProgress * this.contentScrollDistance, 10)
-    return left
+  positionScrollbar = () => {
+    const contentOffset = this.containerRef.current.scrollLeft
+    const scrollProgress = contentOffset / this.contentScrollRange
+    const left = parseInt(this.padding + (scrollProgress * this.scrollbarScrollRange), 10)
+    this.scrollbarHandleRef.current.style.left = left + 'px'
   }
 
-  onScroll = (e) => {
-    const left = this.viewportOffsetToScrollbarOffset(e.currentTarget.scrollLeft)
-    this.setState({scrollbarLeft: left})
+  positionViewport = () => {
+    const scrollProgress = this.dragOffset / this.scrollbarScrollRange
+    const left = parseInt(scrollProgress * this.contentScrollRange, 10)
+    this.containerRef.current.scrollLeft = left
+    this.positionScrollbar()
+  }
+
+  onScroll = () => {
+    this.positionScrollbar()
   }
 
   onMouseDown = (e) => {
     e.preventDefault()
     this.mouseDownStart = e.clientX
-    this.scrollbarStart = this.state.scrollbarLeft | 0
+    this.scrollbarStart = this.scrollbarHandleRef.current.offsetLeft | 0
     document.onmouseup = this.scrollbarRelease
     document.onmousemove = this.scrollbarDrag
     this.setState({displayScrollbar: true})
+  }
+
+  onWindowResize = () => {
+    this.calculateSizes()
+    this.positionScrollbar()
   }
 
   scrollbarRelease = () => {
@@ -107,9 +133,8 @@ export default class FiltersContainer extends React.Component {
 
   scrollbarDrag = (e) => {
     e.preventDefault()
-    this.dragOffset = e.clientX - (this.mouseDownStart - this.scrollbarStart) - PADDING
-    const left = this.scrollbarOffsetToViewportOffset(this.dragOffset)
-    this.containerRef.current.scrollLeft = left
+    this.dragOffset = e.clientX - (this.mouseDownStart - this.scrollbarStart) - this.padding
+    this.positionViewport()
   }
 
   createFilterSelection(sectionName, data, prefix='tag') {
@@ -186,11 +211,11 @@ export default class FiltersContainer extends React.Component {
 
           return <Filters
             data={filterData}
-            scrollbarLeft={this.state.scrollbarLeft}
             onToggle={this.props.onToggle}
             onScroll={this.onScroll}
             onMouseDown={this.onMouseDown}
             containerRef={this.containerRef}
+            scrollbarHandleRef={this.scrollbarHandleRef}
             displayScrollbar={this.state.displayScrollbar} />
         }}
       </Query>

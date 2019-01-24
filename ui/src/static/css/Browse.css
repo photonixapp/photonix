@@ -19,3 +19,42 @@
   color: #fff;
   margin-left: 10px;
 }
+
+header {
+  background: #292929;
+  position: relative;
+  height: 330px;
+  transition: all 200ms;
+}
+header.collapsed {
+  height: 140px;
+}
+
+.Browse .expandCollapse {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  bottom: 10px;
+  left: 40px;
+  cursor: pointer;
+}
+.Browse .expandCollapse img {
+  filter: invert(1);
+  transition: all 600ms;
+}
+.Browse .expanded .expandCollapse img {
+  transform: rotate(-180deg);
+}
+
+@media all and (max-width: 700px) {
+  .Browse .tabs {
+    right: 20px;
+  }
+  header.collapsed {
+    height: 110px;
+  }
+  .Browse .expandCollapse {
+    bottom: 10px;
+    left: 20px;
+  }
+}

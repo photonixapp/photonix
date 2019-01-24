@@ -4,9 +4,10 @@ import SearchContainer from '../containers/SearchContainer'
 import PhotoListContainer from '../containers/PhotoListContainer'
 import MapViewContainer from '../containers/MapViewContainer'
 import Spinner from '../components/Spinner'
+import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/Browse.css'
 
-const Browse = ({ selectedFilters, mode, loading, error, photos, onToggle }) => {
+const Browse = ({ selectedFilters, mode, loading, error, photos, onToggle, onExpandCollapse, expanded }) => {
   let content = (mode === 'MAP')
   ?
     <MapViewContainer photos={photos} />
@@ -16,12 +17,15 @@ const Browse = ({ selectedFilters, mode, loading, error, photos, onToggle }) => 
   if (error) content = <p>Error :(</p>
 
   return <div className="Browse flex-container-column">
-    <header>
+    <header className={expanded ? `expanded` : `collapsed`}>
       <SearchContainer selectedFilters={selectedFilters} onToggle={onToggle} />
       <ul className="tabs">
         <Link to="?mode=timeline"><li>Timeline</li></Link>
         <Link to="?mode=map"><li>Map</li></Link>
       </ul>
+      <div className="expandCollapse" onClick={onExpandCollapse}>
+        <img src={arrowDown} alt="" />
+      </div>
     </header>
     <div className="main flex-container-row">
       <section id="content">
