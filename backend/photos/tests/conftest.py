@@ -1,6 +1,8 @@
-import pytest
-import mock
 import os
+
+import mock
+import pytest
+
 from django.conf import settings
 
 
@@ -22,5 +24,3 @@ def mock_redis(request):
     yield
     for m in mocks:
         m.stop()
-
-

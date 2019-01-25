@@ -1,10 +1,7 @@
 import os
-import pytest
-import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
-import mock
 
 
 def test_downloading(tmpdir):

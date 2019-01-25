@@ -1,10 +1,8 @@
 import django_filters
-from django_filters import Filter, CharFilter
 import graphene
-from graphene import Node
-from graphene_django.converter import convert_django_field
-from graphene_django.types import DjangoObjectType
+from django_filters import CharFilter
 from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django.types import DjangoObjectType
 
 from .models import Camera, Lens, Photo, Tag
 

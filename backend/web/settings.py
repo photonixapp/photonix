@@ -76,25 +76,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'web.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if os.environ.get('ENV') == 'test':
-    DATABASES = {
-        'default': {
-            'ENGINE':   'django.db.backends.sqlite3',
-            'NAME':     str(Path(BASE_DIR) / 'db.sqlite3'),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE':   'django.db.backends.postgresql',
+        'HOST':     os.environ.get('POSTGRES_HOST', '127.0.0.1'),
+        'NAME':     'photo-manager',
+        'USER':     'postgres',
+        'PASSWORD': 'password',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE':   'django.db.backends.postgresql',
-            'HOST':     os.environ.get('POSTGRES_HOST', '127.0.0.1'),
-            'NAME':     'photo-manager',
-            'USER':     'postgres',
-            'PASSWORD': 'password',
-        }
-    }
+}
 
 
 # Password validation
