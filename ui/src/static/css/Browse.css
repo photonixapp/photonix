@@ -25,6 +25,7 @@ header {
   position: relative;
   height: 330px;
   transition: all 200ms;
+  transition-timing-function: ease-in-out;
 }
 header.collapsed {
   height: 140px;
@@ -41,6 +42,7 @@ header.collapsed {
 .Browse .expandCollapse img {
   filter: invert(1);
   transition: all 600ms;
+  transition-timing-function: ease-in-out;
 }
 .Browse .expanded .expandCollapse img {
   transform: rotate(-180deg);

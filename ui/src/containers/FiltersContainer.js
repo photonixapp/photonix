@@ -51,17 +51,22 @@ export default class FiltersContainer extends React.Component {
     super(props)
 
     this.padding = 40
-    this.scrollbarHandleWidth = 220
+    this.scrollbarHandleWidth = 200
 
     this.containerRef = React.createRef()
     this.scrollbarHandleRef = React.createRef()
-    this.gotRefs = false
+    this.initialised = false
 
     this.mouseDownStart = 0
     this.dragOffset = 0
     this.scrollbarWidth = 0
     this.contentWidth = 0
     this.contentScrollRange = 0
+    this.contentOffset = 0
+    this.scrollProgress = 0
+    this.contentLeft = 0
+    this.contentViewLeft = 0
+    this.scrollbarLeft = 0
     this.displayScrollbar = false
 
     this.state = {
@@ -72,38 +77,48 @@ export default class FiltersContainer extends React.Component {
   }
 
   componentDidUpdate() {
-    if (window.innerWidth < 700) {
-      this.padding = 20
+    if (!this.initialised && this.containerRef.current && this.scrollbarHandleRef.current) {
+      this.forceUpdate(this.init())
     }
-    if (!this.gotRefs && this.containerRef.current && this.scrollbarHandleRef.current) {
-      this.gotRefs = true
-      this.calculateSizes()
-      this.positionScrollbar()
+    else if (!this.initialised) {
+      // Occasionally we get refs before the painting has completed so we have to force an update
+      setTimeout(() => {this.forceUpdate()}, 100)
     }
+  }
+
+  init() {
+    this.calculateSizes()
+    this.positionScrollbar()
   }
 
   calculateSizes = () => {
     this.padding = 40
+    this.scrollbarHandleWidth = 200
     if (window.innerWidth < 700) {
       this.padding = 20
+      this.scrollbarHandleWidth = 100
     }
-    this.contentWidth = this.containerRef.current.firstChild.clientWidth - this.padding
-    this.contentScrollRange = this.contentWidth - this.containerRef.current.clientWidth
+
+    this.contentWidth = this.containerRef.current.firstChild.clientWidth + this.padding
+    this.contentViewWidth = this.containerRef.current.clientWidth + (2 * this.padding)
+    this.contentScrollRange = this.contentWidth - this.contentViewWidth + (2 * this.padding)
     this.scrollbarWidth = this.containerRef.current.parentElement.clientWidth
     this.scrollbarScrollRange = this.scrollbarWidth - this.scrollbarHandleWidth
   }
 
   positionScrollbar = () => {
-    const contentOffset = this.containerRef.current.scrollLeft
-    const scrollProgress = contentOffset / this.contentScrollRange
-    const left = parseInt(this.padding + (scrollProgress * this.scrollbarScrollRange), 10)
-    this.scrollbarHandleRef.current.style.left = left + 'px'
+    this.contentOffset = this.containerRef.current.scrollLeft
+    this.scrollProgress = this.contentOffset / this.contentScrollRange
+    this.scrollbarLeft = parseInt((this.padding) + (this.scrollProgress * this.scrollbarScrollRange), 10)
+    this.scrollbarHandleRef.current.style.left = this.scrollbarLeft + 'px'
+    this.scrollbarHandleRef.current.style.width = this.scrollbarHandleWidth + 'px'
+    this.initialised = true
   }
 
   positionViewport = () => {
-    const scrollProgress = this.dragOffset / this.scrollbarScrollRange
-    const left = parseInt(scrollProgress * this.contentScrollRange, 10)
-    this.containerRef.current.scrollLeft = left
+    this.scrollProgress = this.dragOffset / this.scrollbarScrollRange
+    this.contentLeft = parseInt(this.scrollProgress * this.contentScrollRange, 10)
+    this.containerRef.current.scrollLeft = this.contentLeft
     this.positionScrollbar()
   }
 

@@ -19,7 +19,7 @@ header.collapsed .Filters {
 }
 
 .Filters .scrollbar {
-  width: 200px;
+  width: 10px;
   height: 10px;
   border-radius: 5px;
   background: rgba(255,255,255,0.2);
