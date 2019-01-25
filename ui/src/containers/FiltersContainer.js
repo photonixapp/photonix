@@ -72,11 +72,16 @@ export default class FiltersContainer extends React.Component {
     this.state = {
       displayScrollbar: this.displayScrollbar,
     }
-
-    window.onresize = this.onWindowResize
   }
 
-  componentDidUpdate() {
+  componentDidMount = () => {
+    window.addEventListener('resize', this.onWindowResize);
+  }
+  componentWillUnmount = () => {
+    window.removeEventListener('resize', this.onWindowResize);
+  }
+
+  componentDidUpdate = () => {
     if (!this.initialised && this.containerRef.current && this.scrollbarHandleRef.current) {
       this.forceUpdate(this.init())
     }
@@ -86,7 +91,7 @@ export default class FiltersContainer extends React.Component {
     }
   }
 
-  init() {
+  init = () => {
     this.calculateSizes()
     this.positionScrollbar()
   }

@@ -13,11 +13,11 @@
   border: 0;
 }
 .leaflet-bar a {
-  background-color: #292929;
+  background-color: #383838;
   border: 0;
 }
 .leaflet-bar a:hover {
-  background-color: #383838;
+  background-color: #ddd;
   border: 0;
 }
 .leaflet-bar a.leaflet-disabled {

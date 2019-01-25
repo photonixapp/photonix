@@ -1,2 +1,2 @@
 #!/bin/sh
-docker exec -ti `docker ps | grep photo-manager | awk '{print $1;}'` pipenv run backend/manage.py "$@"
+docker exec -ti `docker ps | grep photo-manager | awk '{print $1;}'` python backend/manage.py "$@"
