@@ -16,7 +16,6 @@ except ValueError:
     from base_model import BaseModel
 
 
-r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
 GRAPH_FILE = os.path.join('style', 'graph.pb')
 LABEL_FILE = os.path.join('style', 'labels.txt')
 
@@ -38,6 +37,7 @@ class StyleModel(BaseModel):
             self.labels = self.load_labels(label_file)
 
     def load_graph(self, graph_file):
+        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
         with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]

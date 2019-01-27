@@ -42,8 +42,8 @@ class Photo(UUIDModel, VersionedModel):
     metering_mode                       = models.CharField(max_length=32, null=True)
     drive_mode                          = models.CharField(max_length=32, null=True)
     shooting_mode                       = models.CharField(max_length=32, null=True)
-    camera                              = models.ForeignKey(Camera, related_name='photos', null=True)
-    lens                                = models.ForeignKey(Lens, related_name='photos', null=True)
+    camera                              = models.ForeignKey(Camera, related_name='photos', null=True, on_delete=models.CASCADE)
+    lens                                = models.ForeignKey(Lens, related_name='photos', null=True, on_delete=models.CASCADE)
     latitude                            = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     longitude                           = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     altitude                            = models.DecimalField(max_digits=6, decimal_places=1, null=True)
@@ -86,7 +86,7 @@ class Photo(UUIDModel, VersionedModel):
         self.photo_tags.filter(tag__source=source, tag__type=type).delete()
 
 class PhotoFile(UUIDModel, VersionedModel):
-    photo               = models.ForeignKey(Photo, related_name='files')
+    photo               = models.ForeignKey(Photo, related_name='files', on_delete=models.CASCADE)
     path                = models.CharField(max_length=512)
     width               = models.PositiveSmallIntegerField()
     height              = models.PositiveSmallIntegerField()
@@ -117,7 +117,7 @@ TAG_TYPE_CHOICES = (
 
 
 class Face(UUIDModel, VersionedModel):
-    photo       = models.ForeignKey(Photo, related_name='faces')
+    photo       = models.ForeignKey(Photo, related_name='faces', on_delete=models.CASCADE)
     position_x  = models.FloatField()
     position_y  = models.FloatField()
     size_x      = models.FloatField()
@@ -130,7 +130,7 @@ class Face(UUIDModel, VersionedModel):
 
 class Tag(UUIDModel, VersionedModel):
     name            = models.CharField(max_length=128)
-    parent          = models.ForeignKey('Tag', related_name='+', null=True)
+    parent          = models.ForeignKey('Tag', related_name='+', null=True, on_delete=models.CASCADE)
     type            = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True)
     source          = models.CharField(max_length=1, choices=SOURCE_CHOICES)
 
@@ -143,8 +143,8 @@ class Tag(UUIDModel, VersionedModel):
 
 
 class PhotoTag(UUIDModel, VersionedModel):
-    photo           = models.ForeignKey(Photo, related_name='photo_tags')
-    tag             = models.ForeignKey(Tag, related_name='photo_tags')
+    photo           = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE)
+    tag             = models.ForeignKey(Tag, related_name='photo_tags', on_delete=models.CASCADE)
     source          = models.CharField(max_length=1, choices=SOURCE_CHOICES)
     model_version   = models.PositiveIntegerField(null=True)
     confidence      = models.FloatField()
@@ -152,7 +152,7 @@ class PhotoTag(UUIDModel, VersionedModel):
     verified        = models.BooleanField(default=False)
     hidden          = models.BooleanField(default=False)
     # Only if the tag type is 'Person'
-    face            = models.ForeignKey(Face, related_name='photo_tags', null=True)
+    face            = models.ForeignKey(Face, related_name='photo_tags', null=True, on_delete=models.CASCADE)
     # Optional bounding boxes from object detection
     position_x      = models.FloatField(null=True)
     position_y      = models.FloatField(null=True)

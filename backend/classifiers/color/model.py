@@ -1,9 +1,8 @@
+import operator
+import sys
 from collections import defaultdict
 from colorsys import rgb_to_hsv
-import operator
 from pathlib import Path
-import re
-import sys
 
 import numpy as np
 from PIL import Image
