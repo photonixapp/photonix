@@ -1,0 +1,16 @@
+.ComponentsBrowser {
+  width: 100%;
+  background: #ddd;
+  padding: 40px;
+}
+
+.ComponentsBrowser h2 {
+  color: #333;
+}
+
+.ComponentsBrowser .preview {
+  display: block;
+  height: 400px;
+  background: #1d1d1d;
+  margin-bottom: 40px;
+}
