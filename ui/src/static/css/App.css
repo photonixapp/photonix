@@ -37,7 +37,6 @@ footer {
 .flex-container-row {
   display: flex;
   flex-direction: row;
-  height: 10%;
 }
 .main {
   flex-grow: 1;
@@ -68,7 +67,7 @@ footer {
 #content {
   width: 100%;
   padding: 0;
-  overflow: auto;
+  overflow: hidden;
   background: #1d1d1d;
   z-index: 0;
 }

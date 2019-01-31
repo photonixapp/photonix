@@ -4,13 +4,25 @@
   padding: 40px;
 }
 
-.ComponentsBrowser h2 {
+.ComponentsBrowser .preview > h2 {
   color: #333;
 }
 
-.ComponentsBrowser .preview {
+.ComponentsBrowser .preview > div {
   display: block;
   height: 400px;
   background: #1d1d1d;
   margin-bottom: 40px;
+  overflow: auto;
+}
+
+
+.ComponentsBrowser .PhotoListContainerPreview > div {
+  height: 400px;
+  overflow: hidden;
+}
+
+.ComponentsBrowser .FiltersContainerPreview > div {
+  height: 200px;
+  overflow: hidden;
 }
