@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import '../static/css/PhotoList.css'
 
 
-const PhotoList = ({ photos, onScroll, onMouseDown, containerRef, scrollbarHandleRef, displayScrollbar }) => (
+const PhotoList2 = ({ photos, onScroll, onMouseDown, containerRef, scrollbarHandleRef, displayScrollbar }) => (
   <div className="PhotoList">
     <div className="PhotoListScroller" onScroll={onScroll} ref={containerRef}>
       <ul className="thumbnails">
@@ -22,4 +22,4 @@ const PhotoList = ({ photos, onScroll, onMouseDown, containerRef, scrollbarHandl
   </div>
 )
 
-export default PhotoList
+export default PhotoList2

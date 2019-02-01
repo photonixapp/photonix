@@ -1,8 +1,8 @@
 import React  from 'react'
-import PhotoList from '../components/PhotoList'
+import PhotoList2 from '../components/PhotoList2'
 
 
-export default class PhotoListContainer extends React.Component {
+export default class PhotoListContainer2 extends React.Component {
   constructor(props) {
     super(props)
 
@@ -128,7 +128,7 @@ export default class PhotoListContainer extends React.Component {
   }
 
   render = () => {
-    return <PhotoList photos={this.props.photos}
+    return <PhotoList2 photos={this.props.photos}
       onToggle={this.props.onToggle}
       onScroll={this.onScroll}
       onMouseDown={this.onMouseDown}

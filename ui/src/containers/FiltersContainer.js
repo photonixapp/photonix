@@ -75,10 +75,10 @@ export default class FiltersContainer extends React.Component {
   }
 
   componentDidMount = () => {
-    window.addEventListener('resize', this.onWindowResize);
+    window.addEventListener('resize', this.onWindowResize)
   }
   componentWillUnmount = () => {
-    window.removeEventListener('resize', this.onWindowResize);
+    window.removeEventListener('resize', this.onWindowResize)
   }
 
   componentDidUpdate = () => {
@@ -157,7 +157,7 @@ export default class FiltersContainer extends React.Component {
     this.positionViewport()
   }
 
-  createFilterSelection(sectionName, data, prefix='tag') {
+  createFilterSelection = (sectionName, data, prefix='tag') => {
     return {
       name: sectionName,
       items: data.map((tag) => {
@@ -169,7 +169,7 @@ export default class FiltersContainer extends React.Component {
     }
   }
 
-  render() {
+  render = () => {
     return <div>
       <Query query={GET_FILTERS}>
         {({ loading, error, data }) => {
