@@ -8,7 +8,7 @@ export default class PhotoListContainer2 extends React.Component {
 
     this.padding = 0
     this.scrollbarPadding = 10
-    this.scrollbarHandleHeight = 200
+    this.scrollbarHandleHeight = 0
 
     this.containerRef = React.createRef()
     this.scrollbarHandleRef = React.createRef()
@@ -56,14 +56,14 @@ export default class PhotoListContainer2 extends React.Component {
 
   calculateSizes = () => {
     this.padding = 40
-    this.scrollbarHandleHeight = 200
+    this.scrollbarHandleHeight = 150
     if (window.innerWeight < 700) {
       this.padding = 20
       this.scrollbarHandleHeight = 100
     }
 
     this.contentHeight = this.containerRef.current.firstChild.clientHeight
-    this.contentViewHeight = this.containerRef.current.clientHeight + (2 * this.padding)
+    this.contentViewHeight = this.containerRef.current.clientHeight
     this.contentScrollRange = this.contentHeight - this.contentViewHeight + (2 * this.padding)
     this.scrollbarHeight = this.containerRef.current.parentElement.clientHeight
     this.scrollbarScrollRange = this.scrollbarHeight - this.scrollbarHandleHeight - (2 * this.scrollbarPadding)
@@ -79,10 +79,15 @@ export default class PhotoListContainer2 extends React.Component {
   }
 
   positionViewport = () => {
+    let sectionScrollbarJump = this.scrollbarScrollRange / this.props.photoSections.length
     this.scrollProgress = this.dragOffset / this.scrollbarScrollRange
-    this.contentTop = parseInt(this.scrollProgress * this.contentScrollRange, 10)
-    this.containerRef.current.scrollTop = this.contentTop
-    this.positionScrollbar()
+    let sectionNum = Math.floor(this.dragOffset / sectionScrollbarJump)
+    let sectionEl = this.containerRef.current.getElementsByClassName('section')[sectionNum]
+    if (sectionEl) {
+      this.contentTop = sectionEl.offsetTop
+      this.containerRef.current.scrollTop = this.contentTop - 20
+      this.positionScrollbar()
+    }
   }
 
   onScroll = () => {
@@ -111,7 +116,7 @@ export default class PhotoListContainer2 extends React.Component {
 
   scrollbarDrag = (e) => {
     e.preventDefault()
-    this.dragOffset = e.clientY - (this.mouseDownStart - this.scrollbarStart) - this.padding
+    this.dragOffset = e.clientY - (this.mouseDownStart - this.scrollbarStart) - this.scrollbarPadding
     this.positionViewport()
   }
 
@@ -128,7 +133,7 @@ export default class PhotoListContainer2 extends React.Component {
   }
 
   render = () => {
-    return <PhotoList2 photos={this.props.photos}
+    return <PhotoList2 photoSections={this.props.photoSections}
       onToggle={this.props.onToggle}
       onScroll={this.onScroll}
       onMouseDown={this.onMouseDown}
