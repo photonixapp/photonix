@@ -28,6 +28,7 @@ export default class PhotoListContainer2 extends React.Component {
 
     this.state = {
       displayScrollbar: this.displayScrollbar,
+      selectedSection: null,
     }
   }
 
@@ -81,12 +82,15 @@ export default class PhotoListContainer2 extends React.Component {
   positionViewport = () => {
     let sectionScrollbarJump = this.scrollbarScrollRange / this.props.photoSections.length
     this.scrollProgress = this.dragOffset / this.scrollbarScrollRange
-    let sectionNum = Math.floor(this.dragOffset / sectionScrollbarJump)
-    let sectionEl = this.containerRef.current.getElementsByClassName('section')[sectionNum]
+    this.selectedSection = Math.floor(this.dragOffset / sectionScrollbarJump)
+    let sectionEl = this.containerRef.current.getElementsByClassName('section')[this.selectedSection]
     if (sectionEl) {
       this.contentTop = sectionEl.offsetTop
       this.containerRef.current.scrollTop = this.contentTop - 20
       this.positionScrollbar()
+      // if (this.selectedSection != this.state.selectedSection) {
+      //   this.setState({selectedSection: this.selectedSection})
+      // }
     }
   }
 
@@ -139,6 +143,7 @@ export default class PhotoListContainer2 extends React.Component {
       onMouseDown={this.onMouseDown}
       containerRef={this.containerRef}
       scrollbarHandleRef={this.scrollbarHandleRef}
-      displayScrollbar={this.state.displayScrollbar} />
+      displayScrollbar={this.state.displayScrollbar}
+      selectedSection={this.state.selectedSection} />
   }
 }

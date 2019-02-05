@@ -54,7 +54,7 @@ const ComponentsBrowser = () => {
     for (let month of months) {
       let id = 'month:' + year + ':' + month
       let monthPhotos = []
-      for (let i = 0; i < Math.floor(Math.random() * 50, 10); i++) {
+      for (let i = 0; i < Math.floor(Math.random() * 150); i++) {
         let id = generateId()
         let photo = {
           id: id,
@@ -68,7 +68,7 @@ const ComponentsBrowser = () => {
         title: month + ' ' + year,
         segments: [
           {
-            num_photos: monthPhotos.length,
+            numPhotos: monthPhotos.length,
             photos: monthPhotos
           }
         ]
@@ -77,13 +77,13 @@ const ComponentsBrowser = () => {
     }
   }
 
-  let filters = {
-    allObjectTags: [
-      {id: "7d72cdd9-4d14-49a5-b1a9-5f778dede472", name: "Cat"},
-      {id: "3c9acab6-6832-48ad-b729-dc0b5080b5cb", name: "Tree"},
-      {id: "5bec3d91-8ef6-40ca-956f-f6b214f66abd", name: "Van"}
-    ]
-  }
+  // let filters = {
+  //   allObjectTags: [
+  //     {id: "7d72cdd9-4d14-49a5-b1a9-5f778dede472", name: "Cat"},
+  //     {id: "3c9acab6-6832-48ad-b729-dc0b5080b5cb", name: "Tree"},
+  //     {id: "5bec3d91-8ef6-40ca-956f-f6b214f66abd", name: "Van"}
+  //   ]
+  // }
 
   return (
     <div className="ComponentsBrowser">

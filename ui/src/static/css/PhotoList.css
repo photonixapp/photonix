@@ -1,37 +1,41 @@
 .PhotoList {
-    height: 100%;
-    position: relative;
+  height: 100%;
+  position: relative;
 }
 .PhotoList .PhotoListScroller {
-  padding: 40px 1000px 20px 40px;
+  padding: 40px 99px 20px 40px;
   height: 100%;
   overflow: auto;
-  margin-right: -1000px;
+  margin-right: -99px;
 }
 .PhotoList .thumbnails {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 .PhotoList .thumbnail {
-    width: 128px;
-    height: 128px;
-    border: 1px solid #888;
-    list-style: none;
-    margin: 0 20px 20px 0;
-    display: inline-block;
-    box-shadow: 0 2px 6px 1px rgba(0,0,0,.5);
-    background: #292929;
-    overflow: hidden;
-    cursor: pointer;
+  width: 128px;
+  height: 128px;
+  border: 1px solid #888;
+  list-style: none;
+  margin: 0 20px 20px 0;
+  display: inline-block;
+  box-shadow: 0 2px 6px 1px rgba(0,0,0,.5);
+  background: #292929;
+  overflow: hidden;
+  cursor: pointer;
 }
 .PhotoList .thumbnail .image {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
 }
 
-.PhotoList .scrollbar {
+.PhotoList .section h2 {
+  margin: 0 0 20px 0;
+}
+
+.PhotoList .Scrollbar {
   width: 10px;
   height: 10px;
   border-radius: 5px;
@@ -43,13 +47,28 @@
   opacity: 0;
   transition: opacity 200ms;
 }
-.PhotoList:hover .scrollbar {
+.PhotoList:hover .Scrollbar {
   opacity: 1;
+}
+
+.PhotoList .Histogram {
+  position: absolute;
+  top: 0;
+  right: 30px;
+  width: 0;
+  height: 100%;
+  padding: 20px 0;
+  justify-content: space-between;
+}
+.PhotoList .Histogram .Bar {
+  background: rgba(255,255,255,0.1);
+  height: 10px;
+  cursor: pointer;
 }
 
 @media all and (max-width: 700px) {
   .PhotoList .PhotoListScroller {
-    padding: 20px 1000px 0 20px;
+    padding: 20px 99px 0 20px;
   }
   .PhotoList .thumbnail {
     width: 96px;
