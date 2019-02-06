@@ -140,6 +140,13 @@ export default class FiltersContainer extends React.Component {
     this.setState({displayScrollbar: true})
   }
 
+  onTouchStart = (e) => {
+    this.mouseDownStart = e.touches[0].clientX
+    this.scrollbarStart = this.scrollbarHandleRef.current.offsetLeft | 0
+    document.ontouchend = this.scrollbarRelease
+    document.ontouchmove = this.scrollbarDragTouch
+  }
+
   onWindowResize = () => {
     this.calculateSizes()
     this.positionScrollbar()
@@ -148,12 +155,19 @@ export default class FiltersContainer extends React.Component {
   scrollbarRelease = () => {
     document.onmouseup = null
     document.onmousemove = null
+    document.ontouchend = null
+    document.ontouchmove = null
     this.setState({displayScrollbar: false})
   }
 
   scrollbarDrag = (e) => {
     e.preventDefault()
     this.dragOffset = e.clientX - (this.mouseDownStart - this.scrollbarStart) - this.padding
+    this.positionViewport()
+  }
+
+  scrollbarDragTouch = (e) => {
+    this.dragOffset = e.touches[0].clientX - (this.mouseDownStart - this.scrollbarStart) - this.padding
     this.positionViewport()
   }
 
@@ -234,6 +248,7 @@ export default class FiltersContainer extends React.Component {
             onToggle={this.props.onToggle}
             onScroll={this.onScroll}
             onMouseDown={this.onMouseDown}
+            onTouchStart={this.onTouchStart}
             containerRef={this.containerRef}
             scrollbarHandleRef={this.scrollbarHandleRef}
             displayScrollbar={this.state.displayScrollbar} />

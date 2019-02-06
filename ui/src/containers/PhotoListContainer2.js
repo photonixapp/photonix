@@ -107,8 +107,9 @@ export default class PhotoListContainer2 extends React.Component {
         break
       }
     }
-    this.selectedSection = selectedSection
+
     if (this.selectedSection !== this.state.selectedSection) {
+      this.selectedSection = parseInt(selectedSection, 10)
       this.setState({selectedSection: this.selectedSection})
     }
   }
@@ -135,6 +136,13 @@ export default class PhotoListContainer2 extends React.Component {
     this.setState({displayScrollbar: true})
   }
 
+  onTouchStart = (e) => {
+    this.mouseDownStart = e.touches[0].clientY
+    this.scrollbarStart = this.scrollbarHandleRef.current.offsetTop | 0
+    document.ontouchend = this.scrollbarRelease
+    document.ontouchmove = this.scrollbarDragTouch
+  }
+
   onWindowResize = () => {
     this.calculateSizes()
     this.positionScrollbar()
@@ -143,12 +151,19 @@ export default class PhotoListContainer2 extends React.Component {
   scrollbarRelease = () => {
     document.onmouseup = null
     document.onmousemove = null
+    document.ontouchend = null
+    document.ontouchmove = null
     this.setState({displayScrollbar: false})
   }
 
   scrollbarDrag = (e) => {
     e.preventDefault()
     this.dragOffset = e.clientY - (this.mouseDownStart - this.scrollbarStart) - this.scrollbarPadding
+    this.positionViewportFromScrollbar()
+  }
+
+  scrollbarDragTouch = (e) => {
+    this.dragOffset = e.touches[0].clientY - (this.mouseDownStart - this.scrollbarStart) - this.scrollbarPadding
     this.positionViewportFromScrollbar()
   }
 
@@ -169,6 +184,7 @@ export default class PhotoListContainer2 extends React.Component {
       onToggle={this.props.onToggle}
       onScroll={this.onScroll}
       onMouseDown={this.onMouseDown}
+      onTouchStart={this.onTouchStart}
       onHistogramClick={this.onHistogramClick}
       containerRef={this.containerRef}
       scrollbarHandleRef={this.scrollbarHandleRef}
