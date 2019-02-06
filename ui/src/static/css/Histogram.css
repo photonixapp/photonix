@@ -1,0 +1,17 @@
+.Histogram {
+  position: absolute;
+  top: 0;
+  right: 30px;
+  width: 0;
+  height: 100%;
+  padding: 20px 0;
+  justify-content: space-between;
+}
+.Histogram .Bar {
+  background: rgba(255,255,255,0.1);
+  height: 10px;
+  cursor: pointer;
+}
+.Histogram .selected {
+  background: rgba(255,255,255,0.3);
+}

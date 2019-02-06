@@ -79,23 +79,51 @@ export default class PhotoListContainer2 extends React.Component {
     this.initialised = true
   }
 
-  positionViewport = () => {
+  positionViewportFromScrollbar = () => {
     let sectionScrollbarJump = this.scrollbarScrollRange / this.props.photoSections.length
     this.scrollProgress = this.dragOffset / this.scrollbarScrollRange
     this.selectedSection = Math.floor(this.dragOffset / sectionScrollbarJump)
+    this.positionViewportToSection()
+  }
+
+  positionViewportToSection = () => {
     let sectionEl = this.containerRef.current.getElementsByClassName('section')[this.selectedSection]
     if (sectionEl) {
       this.contentTop = sectionEl.offsetTop
       this.containerRef.current.scrollTop = this.contentTop - 20
       this.positionScrollbar()
-      // if (this.selectedSection != this.state.selectedSection) {
-      //   this.setState({selectedSection: this.selectedSection})
-      // }
+    }
+  }
+
+  detectSectionScrolledTo = () => {
+    let sectionEls = this.containerRef.current.getElementsByClassName('section')
+    let selectedSection = null
+    for (let sectionIndex in sectionEls) {
+      let el = sectionEls[sectionIndex]
+      if (this.containerRef.current.scrollTop + 20 >= el.offsetTop) {
+        selectedSection = sectionIndex
+      }
+      else {
+        break
+      }
+    }
+    this.selectedSection = selectedSection
+    if (this.selectedSection !== this.state.selectedSection) {
+      this.setState({selectedSection: this.selectedSection})
+    }
+  }
+
+  onHistogramClick = (index) => {
+    if (index !== this.state.selectedSection) {
+      this.selectedSection = index
+      this.setState({selectedSection: index})
+      this.positionViewportToSection()
     }
   }
 
   onScroll = () => {
     this.positionScrollbar()
+    this.detectSectionScrolledTo()
   }
 
   onMouseDown = (e) => {
@@ -121,7 +149,7 @@ export default class PhotoListContainer2 extends React.Component {
   scrollbarDrag = (e) => {
     e.preventDefault()
     this.dragOffset = e.clientY - (this.mouseDownStart - this.scrollbarStart) - this.scrollbarPadding
-    this.positionViewport()
+    this.positionViewportFromScrollbar()
   }
 
   createFilterSelection = (sectionName, data, prefix='tag') => {
@@ -141,6 +169,7 @@ export default class PhotoListContainer2 extends React.Component {
       onToggle={this.props.onToggle}
       onScroll={this.onScroll}
       onMouseDown={this.onMouseDown}
+      onHistogramClick={this.onHistogramClick}
       containerRef={this.containerRef}
       scrollbarHandleRef={this.scrollbarHandleRef}
       displayScrollbar={this.state.displayScrollbar}

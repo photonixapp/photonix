@@ -51,21 +51,6 @@
   opacity: 1;
 }
 
-.PhotoList .Histogram {
-  position: absolute;
-  top: 0;
-  right: 30px;
-  width: 0;
-  height: 100%;
-  padding: 20px 0;
-  justify-content: space-between;
-}
-.PhotoList .Histogram .Bar {
-  background: rgba(255,255,255,0.1);
-  height: 10px;
-  cursor: pointer;
-}
-
 @media all and (max-width: 700px) {
   .PhotoList .PhotoListScroller {
     padding: 20px 99px 0 20px;
