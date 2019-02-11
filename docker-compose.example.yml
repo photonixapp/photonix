@@ -2,7 +2,7 @@ version: "2"
 
 services:
   postgres:
-    container_name: pm-postgres
+    container_name: photonix-postgres
     image: postgres:11.1-alpine
     environment:
       POSTGRES_PASSWORD: password
@@ -11,11 +11,11 @@ services:
       - ./data/db:/var/lib/postgresql/data
 
   redis:
-    container_name: pm-redis
+    container_name: photonix-redis
     image: redis:3.2.8
 
-  photo-manager:
-    container_name: photo-manager
+  photonix:
+    container_name: photonix
     image: damianmoore/photo-manager:latest
     ports:
      - "8888:80"
