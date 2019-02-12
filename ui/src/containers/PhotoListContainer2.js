@@ -19,7 +19,7 @@ export default class PhotoListContainer2 extends React.Component {
     this.scrollbarHeight = 0
     this.contentHeight = 0
     this.contentScrollRange = 0
-    this.contentOffset = 0
+    this.contentOffset = -1
     this.scrollProgress = 0
     this.contentTop = 0
     this.contentViewTop = 0
@@ -71,11 +71,14 @@ export default class PhotoListContainer2 extends React.Component {
   }
 
   positionScrollbar = () => {
-    this.contentOffset = this.containerRef.current.scrollTop
-    this.scrollProgress = this.contentOffset / this.contentScrollRange
-    this.scrollbarTop = parseInt(this.scrollbarPadding + (this.scrollProgress * this.scrollbarScrollRange), 10)
-    this.scrollbarHandleRef.current.style.top = this.scrollbarTop + 'px'
-    this.scrollbarHandleRef.current.style.height = this.scrollbarHandleHeight + 'px'
+    let newOffset = this.containerRef.current.scrollTop
+    if (newOffset !== this.contentOffset) {
+      this.contentOffset = this.containerRef.current.scrollTop
+      this.scrollProgress = this.contentOffset / this.contentScrollRange
+      this.scrollbarTop = parseInt(this.scrollbarPadding + (this.scrollProgress * this.scrollbarScrollRange), 10)
+      this.scrollbarHandleRef.current.style.top = this.scrollbarTop + 'px'
+      this.scrollbarHandleRef.current.style.height = this.scrollbarHandleHeight + 'px'
+    }
     this.initialised = true
   }
 
@@ -83,6 +86,8 @@ export default class PhotoListContainer2 extends React.Component {
     let sectionScrollbarJump = this.scrollbarScrollRange / this.props.photoSections.length
     this.scrollProgress = this.dragOffset / this.scrollbarScrollRange
     this.selectedSection = Math.floor(this.dragOffset / sectionScrollbarJump)
+    this.selectedSection = Math.max(this.selectedSection, 0)
+    this.selectedSection = Math.min(this.selectedSection, this.props.photoSections.length - 1)
     this.positionViewportToSection()
   }
 
