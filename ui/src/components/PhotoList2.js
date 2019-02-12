@@ -11,8 +11,8 @@ const PhotoList2 = ({ photoSections, onScroll, onMouseDown, onTouchStart, onHist
     <div className="PhotoListScroller" ref={containerRef} onScroll={onScroll}>
       <Thumbnails photoSections={photoSections} />
     </div>
-    <Histogram photoSections={photoSections} selectedSection={selectedSection} onClick={onHistogramClick} />
     <div className="Scrollbar" ref={scrollbarHandleRef} style={{opacity: displayScrollbar ? 1 : null}} onMouseDown={onMouseDown} onTouchStart={onTouchStart}></div>
+    <Histogram photoSections={photoSections} selectedSection={selectedSection} onClick={onHistogramClick} />
   </div>
 )
 
