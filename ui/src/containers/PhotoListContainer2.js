@@ -21,6 +21,7 @@ export default class PhotoListContainer2 extends React.Component {
     this.contentScrollRange = 0
     this.contentOffset = -1
     this.scrollProgress = 0
+    this.selectedSection = 0
     this.contentTop = 0
     this.contentViewTop = 0
     this.scrollbarTop = 0
@@ -113,7 +114,7 @@ export default class PhotoListContainer2 extends React.Component {
       }
     }
 
-    if (this.selectedSection !== this.state.selectedSection) {
+    if (this.selectedSection !== selectedSection) {
       this.selectedSection = parseInt(selectedSection, 10)
       this.setState({selectedSection: this.selectedSection})
     }

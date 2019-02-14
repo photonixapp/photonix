@@ -32,11 +32,11 @@
   color: #fff;
   position: absolute;
   opacity: 0;
-  left: -505px;
+  left: -155px;
   top: -2px;
   font-size: 12px;
   text-align: right;
-  width: 500px;
+  width: 150px;
 }
 .Histogram .Bar:hover .Caption, .Histogram .selected .Caption {
   opacity: 1;
