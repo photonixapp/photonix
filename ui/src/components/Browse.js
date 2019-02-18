@@ -7,7 +7,7 @@ import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/Browse.css'
 
-const Browse = ({ selectedFilters, mode, loading, error, photos, onToggle, onExpandCollapse, expanded }) => {
+const Browse = ({ selectedFilters, mode, loading, error, photos, onFilterToggle, onExpandCollapse, expanded }) => {
   let content = (mode === 'MAP')
   ?
     <MapViewContainer photos={photos} />
@@ -18,7 +18,7 @@ const Browse = ({ selectedFilters, mode, loading, error, photos, onToggle, onExp
 
   return <div className="Browse flex-container-column">
     <header className={expanded ? `expanded` : `collapsed`}>
-      <SearchContainer selectedFilters={selectedFilters} onToggle={onToggle} />
+      <SearchContainer selectedFilters={selectedFilters} onFilterToggle={onFilterToggle} />
       <ul className="tabs">
         <Link to="?mode=timeline"><li>Timeline</li></Link>
         <Link to="?mode=map"><li>Map</li></Link>

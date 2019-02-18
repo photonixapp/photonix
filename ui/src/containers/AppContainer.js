@@ -4,31 +4,41 @@ import React  from 'react'
 import App from '../components/App'
 
 
-export default class SearchContainer extends React.Component {
+export default class AppContainer extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      selectedFilterIds: [],
       selectedFilters: [],
       detailPhoto: null,
     }
   }
 
-  onToggle = (id) => {
+  onFilterToggle = (id, group, name) => {
+    let filterIds = this.state.selectedFilterIds
     let filters = this.state.selectedFilters
-    let index = filters.indexOf(id)
+
+    let index = filterIds.indexOf(id)
     if (index === -1) {
-      filters.push(id)
+      filterIds.push(id)
+      filters.push({
+        id: id,
+        name: name,
+        group: group,
+      })
     }
     else {
+      filterIds.splice(index, 1)
       filters.splice(index, 1)
     }
 
     this.setState({
+      selectedFilterIds: filterIds,
       selectedFilters: filters,
     })
   }
 
   render() {
-    return <App selectedFilters={this.state.selectedFilters} onToggle={this.onToggle} />
+    return <App selectedFilters={this.state.selectedFilters} onFilterToggle={this.onFilterToggle} />
   }
 }

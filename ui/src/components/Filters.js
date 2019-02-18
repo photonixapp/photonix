@@ -16,7 +16,7 @@ const Filters = ({ data, onToggle, onScroll, onMouseDown, onTouchStart, containe
                   if (group.name === 'Colors') {
                     className = `Color ${item.name.replace(/ /g, '')}`
                   }
-                  return <li key={item.id} className={className} onClick={() => onToggle(item.id)} title={group.name === 'Colors' ? item.name : ''}>{item.name}</li>
+                  return <li key={item.id} className={className} onClick={() => onToggle(item.id, group.name, item.name)} title={group.name === 'Colors' ? item.name : ''}>{item.name}</li>
                 })
               }
             </ul>

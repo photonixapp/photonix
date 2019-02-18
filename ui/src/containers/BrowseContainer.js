@@ -33,9 +33,12 @@ export default class BrowseContainer extends React.Component {
   render() {
     const params = new URLSearchParams(this.props.search)
     const mode = params.get('mode') ? params.get('mode').toUpperCase() : 'TIMELINE'
+    const filtersStr = this.props.selectedFilters.map((filter) => (
+      filter.id
+    )).join(',')
 
     return (
-      <Query query={GET_PHOTOS} variables={{filters: this.props.selectedFilters.join(',')}}>
+      <Query query={GET_PHOTOS} variables={{filters: filtersStr}}>
         {({ loading, error, data }) => {
           let photos = []
           if (!loading && !error) {
@@ -54,7 +57,7 @@ export default class BrowseContainer extends React.Component {
             loading={loading}
             error={error}
             photos={photos}
-            onToggle={this.props.onToggle}
+            onFilterToggle={this.props.onFilterToggle}
             onExpandCollapse={this.onExpandCollapse}
             expanded={this.state.expanded} />
         }}

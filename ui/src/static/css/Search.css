@@ -2,19 +2,6 @@
   padding: 40px;
   overflow: hidden;
 }
-.Search input[type="text"] {
-  width: 100%;
-  font-size: 20px;
-  padding: 8px 10px;
-  background: rgba(255,255,255,0.15);
-  border: 0;
-  color: #fff;
-  margin-bottom: 20px;
-}
-.Search input[type="text"]::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-  color: rgba(255,255,255,0.6);
-  opacity: 1; /* Firefox */
-}
 .Search h2 {
   font-size: 18px;
 }

@@ -245,7 +245,7 @@ export default class FiltersContainer extends React.Component {
 
           return <Filters
             data={filterData}
-            onToggle={this.props.onToggle}
+            onToggle={this.props.onFilterToggle}
             onScroll={this.onScroll}
             onMouseDown={this.onMouseDown}
             onTouchStart={this.onTouchStart}
