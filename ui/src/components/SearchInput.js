@@ -1,44 +1,49 @@
 import React from 'react'
 import '../static/css/SearchInput.css'
-import closeIcon from '../static/images/close.svg'
-import objectsIcon from '../static/images/label.svg'
-import locationsIcon from '../static/images/location_on.svg'
-import colorsIcon from '../static/images/color_lens.svg'
-import stylesIcon from '../static/images/style.svg'
-import camerasIcon from '../static/images/photo_camera.svg'
+import { ReactComponent as CloseIcon } from '../static/images/close.svg'
+import { ReactComponent as ObjectsIcon } from '../static/images/label.svg'
+import { ReactComponent as LocationsIcon} from '../static/images/location_on.svg'
+import { ReactComponent as ColorsIcon } from '../static/images/color_lens.svg'
+import { ReactComponent as StylesIcon } from '../static/images/style.svg'
+import { ReactComponent as CamerasIcon } from '../static/images/photo_camera.svg'
 
 const GROUP_ICONS = {
-  'Objects':        objectsIcon,
-  'Locations':      locationsIcon,
-  'Colors':         colorsIcon,
-  'Styles':         stylesIcon,
-  'Cameras':        camerasIcon,
-  'Lenses':         camerasIcon,
-  'Aperture':       camerasIcon,
-  'Exposure':       camerasIcon,
-  'ISO Speed':      camerasIcon,
-  'Focal Length':   camerasIcon,
-  'Flash':          camerasIcon,
-  'Metering Mode':  camerasIcon,
-  'Drive Mode':     camerasIcon,
-  'Shooting Mode':  camerasIcon,
+  'Objects':        ObjectsIcon,
+  'Locations':      LocationsIcon,
+  'Colors':         ColorsIcon,
+  'Styles':         StylesIcon,
+  'Cameras':        CamerasIcon,
+  'Lenses':         CamerasIcon,
+  'Aperture':       CamerasIcon,
+  'Exposure':       CamerasIcon,
+  'ISO Speed':      CamerasIcon,
+  'Focal Length':   CamerasIcon,
+  'Flash':          CamerasIcon,
+  'Metering Mode':  CamerasIcon,
+  'Drive Mode':     CamerasIcon,
+  'Shooting Mode':  CamerasIcon,
 }
 
-const SearchInput = ({ selectedFilters, onFilterToggle }) => {
+const SearchInput = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
   return (
     <div className="SearchInput">
       <ul>
         {
-          selectedFilters.map((filter) => (
-            <li className="filter" key={filter.id}>
-              {/* <span className={`group group-` + filter.group} /> */}
-              <img className="groupIcon" src={GROUP_ICONS[filter.group]} alt={filter.group} />
-              {filter.name}
-              <span onClick={() => onFilterToggle(filter.id)}>
-                <img className="removeIcon" src={closeIcon} alt="Remove" />
-              </span>
-            </li>
-          ))
+          selectedFilters.map((filter) => {
+            let icon = React.createElement(
+              GROUP_ICONS[filter.group],
+              {className: 'groupIcon', alt: filter.group}
+            )
+            return (
+              <li className="filter" key={filter.id}>
+                {icon}
+                {filter.name}
+                <span onClick={() => onFilterToggle(filter.id)}>
+                  <CloseIcon className="removeIcon" alt="Remove" />
+                </span>
+              </li>
+            )
+          })
         }
       </ul>
       <input type="text" placeholder="Search" defaultValue="" />

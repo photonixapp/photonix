@@ -18,6 +18,9 @@ body {
 a {
   outline: 0;
 }
+*:focus {
+  outline: none;
+}
 
 #root {
   height: 100%;
