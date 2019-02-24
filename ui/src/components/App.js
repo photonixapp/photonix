@@ -11,11 +11,11 @@ import ComponentsBrowser from '../components/ComponentsBrowser'
 
 const client = new ApolloClient()
 
-const App = ({ selectedFilters, onFilterToggle }) => (
+const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => (
   <ApolloProvider client={client}>
     <Router>
       <div>
-        <Route path="/" exact render={(params) => <BrowseContainer selectedFilters={selectedFilters} search={params.location.search} onFilterToggle={onFilterToggle} />} />
+        <Route path="/" exact render={(params) => <BrowseContainer selectedFilters={selectedFilters} search={params.location.search} onFilterToggle={onFilterToggle} onClearFilters={onClearFilters} />} />
         <Route path="/photo/:photoId" render={(params) => <PhotoDetailContainer photoId={params.match.params.photoId} />} />
         <Route path="/components" exact render={(params) => <ComponentsBrowser />} />
       </div>

@@ -1,2 +1,2 @@
 #!/bin/sh
-docker exec -ti `docker ps | grep photo-manager | awk '{print $1;}'` bash
+docker exec -ti `docker ps | grep photonix_photonix | awk '{print $1;}'` bash

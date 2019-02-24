@@ -1,6 +1,7 @@
 .SearchInput {
   background: #484848;
   margin-bottom: 20px;
+  position: relative;
 }
 .SearchInput ul {
   margin: 0;
@@ -35,7 +36,7 @@
 .SearchInput input[type="text"] {
   width: 100%;
   font-size: 20px;
-  padding: 10px 15px 10px 15px;
+  padding: 10px 40px 10px 15px;
   background: #484848;
   border: 0;
   color: #fff;
@@ -43,4 +44,15 @@
 .SearchInput input[type="text"]::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
   color: rgba(255,255,255,0.6);
   opacity: 1; /* Firefox */
+}
+.SearchInput svg.clearAll {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.4;
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+}
+.SearchInput svg.clearAll:hover {
+  opacity: 0.6;
 }

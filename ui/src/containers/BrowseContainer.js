@@ -30,7 +30,7 @@ export default class BrowseContainer extends React.Component {
     this.setState({expanded: !this.state.expanded})
   }
 
-  render() {
+  render = () => {
     const params = new URLSearchParams(this.props.search)
     const mode = params.get('mode') ? params.get('mode').toUpperCase() : 'TIMELINE'
     const filtersStr = this.props.selectedFilters.map((filter) => (
@@ -58,6 +58,7 @@ export default class BrowseContainer extends React.Component {
             error={error}
             photos={photos}
             onFilterToggle={this.props.onFilterToggle}
+            onClearFilters={this.props.onClearFilters}
             onExpandCollapse={this.onExpandCollapse}
             expanded={this.state.expanded} />
         }}

@@ -38,7 +38,17 @@ export default class AppContainer extends React.Component {
     })
   }
 
-  render() {
-    return <App selectedFilters={this.state.selectedFilters} onFilterToggle={this.onFilterToggle} />
+  onClearFilters = () => {
+    this.setState({
+      selectedFilterIds: [],
+      selectedFilters: [],
+    })
+  }
+
+  render = () => {
+    return <App
+      selectedFilters={this.state.selectedFilters}
+      onFilterToggle={this.onFilterToggle}
+      onClearFilters={this.onClearFilters} />
   }
 }
