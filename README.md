@@ -15,9 +15,9 @@ The easiest way to run it is with [Docker Compose](https://docs.docker.com/compo
 
 Create a new directory to run inside and download the example Docker Compose file.
 
-    mkdir photo-manager
-    cd photo-manager
-    curl https://raw.githubusercontent.com/damianmoore/photo-manager/master/docker-compose.example.yml > docker-compose.yml
+    mkdir photonix
+    cd photonix
+    curl https://raw.githubusercontent.com/damianmoore/photonix/master/docker-compose.example.yml > docker-compose.yml
 
 Make volume directories for data stored outside the container.
 
@@ -46,8 +46,8 @@ If you are using the pre-built Docker image you can use kill, pull and bring bac
 
 There is a separate Docker Compose file `docker-compose.dev.yml` that you should run if you want to work on the project. Check out the repo and this setup will build the image, mount the code as volumes, hot-reload JS changes to the browser and reload the Python server for most changes.
 
-    git clone git@github.com:damianmoore/photo-manager.git
-    cd photo-manager
+    git clone git@github.com:damianmoore/photonix.git
+    cd photonix
     docker-compose -f docker-compose.dev.yml build
     docker-compose -f docker-compose.dev.yml up
 
