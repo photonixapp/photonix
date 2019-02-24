@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.utils import timezone
 
 from common.models import UUIDModel, VersionedModel
 
@@ -32,6 +33,7 @@ class Lens(UUIDModel, VersionedModel):
 
 
 class Photo(UUIDModel, VersionedModel):
+    visible                             = models.BooleanField(default=False)
     taken_at                            = models.DateTimeField(null=True)
     taken_by                            = models.CharField(max_length=128, blank=True, null=True)
     aperture                            = models.DecimalField(max_digits=3, decimal_places=1, null=True)
@@ -110,22 +112,10 @@ SOURCE_CHOICES = (
 TAG_TYPE_CHOICES = (
     ('L', 'Location'),
     ('O', 'Object'),
-    ('P', 'Person'),
+    ('F', 'Face'),
     ('C', 'Color'),
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
 )
-
-
-class Face(UUIDModel, VersionedModel):
-    photo       = models.ForeignKey(Photo, related_name='faces', on_delete=models.CASCADE)
-    position_x  = models.FloatField()
-    position_y  = models.FloatField()
-    size_x      = models.FloatField()
-    size_y      = models.FloatField()
-    source      = models.CharField(max_length=1, choices=SOURCE_CHOICES)
-    confidence  = models.FloatField()
-    verified    = models.BooleanField(default=False)
-    hidden      = models.BooleanField(default=False)
 
 
 class Tag(UUIDModel, VersionedModel):
@@ -151,9 +141,7 @@ class PhotoTag(UUIDModel, VersionedModel):
     significance    = models.FloatField(null=True)
     verified        = models.BooleanField(default=False)
     hidden          = models.BooleanField(default=False)
-    # Only if the tag type is 'Person'
-    face            = models.ForeignKey(Face, related_name='photo_tags', null=True, on_delete=models.CASCADE)
-    # Optional bounding boxes from object detection
+    # Optional bounding boxes from object detection or face detection
     position_x      = models.FloatField(null=True)
     position_y      = models.FloatField(null=True)
     size_x          = models.FloatField(null=True)
@@ -164,3 +152,34 @@ class PhotoTag(UUIDModel, VersionedModel):
 
     def __str__(self):
         return '{}: {}'.format(self.photo, self.tag)
+
+
+TASK_STATUS_CHOICES = (
+    ('P', 'Pending'),
+    ('S', 'Started'),
+    ('C', 'Completed'),
+    ('F', 'Failed'),
+)
+
+class Task(UUIDModel, VersionedModel):
+    type            = models.CharField(max_length=128, db_index=True)
+    subject_id      = models.UUIDField()
+    status          = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, default='P', db_index=True)
+    started_at      = models.DateTimeField(null=True)
+    finished_at     = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return '{}: {}'.format(self.type, self.created_at)
+
+    def start(self):
+        self.status = 'S'
+        self.started_at = timezone.now()
+        self.save()
+
+    def complete(self, next_type=None, next_subject_id=None):
+        # Set status of current task and queue up next task if appropriate
+        self.status = 'C'
+        self.finished_at = timezone.now()
+        self.save()
+        if next_type:
+            Task(type=next_type, subject_id=next_subject_id).save()

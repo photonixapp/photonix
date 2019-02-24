@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Camera, Lens, Photo, PhotoFile, Face, Tag, PhotoTag
+from .models import Camera, Lens, Photo, PhotoFile, Tag, PhotoTag
 
 
 class CameraAdmin(admin.ModelAdmin):
@@ -19,10 +19,6 @@ class PhotoFileAdmin(admin.ModelAdmin):
     pass
 
 
-class FaceAdmin(admin.ModelAdmin):
-    pass
-
-
 class TagAdmin(admin.ModelAdmin):
     pass
 
@@ -35,6 +31,5 @@ admin.site.register(Camera, CameraAdmin)
 admin.site.register(Lens, LensAdmin)
 admin.site.register(Photo, PhotoAdmin)
 admin.site.register(PhotoFile, PhotoFileAdmin)
-admin.site.register(Face, FaceAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(PhotoTag, PhotoTagAdmin)

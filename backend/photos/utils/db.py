@@ -6,7 +6,7 @@ import os
 
 from django.utils.timezone import utc
 
-from photos.models import Camera, Lens, Photo, PhotoFile
+from photos.models import Camera, Lens, Photo, PhotoFile, Task
 from photos.utils.metadata import PhotoMetadata, parse_datetime, get_datetime, parse_gps_location
 
 
@@ -102,5 +102,11 @@ def record_photo(path):
     photo_file.bytes            = os.stat(path).st_size
     photo_file.preferred        = False  # TODO
     photo_file.save()
+
+    # Create task to ensure JPEG version of file exists (used for thumbnailing, analysing etc.)
+    Task(
+        type='ensure_jpeg_exists',
+        subject_id=photo.id
+    ).save()
 
     return photo
