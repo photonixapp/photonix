@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from common.models import UUIDModel, VersionedModel
@@ -173,6 +173,9 @@ class Task(UUIDModel, VersionedModel):
 
         if self.parent and self.parent.complete_with_children:
             # If all siblings are complete, we should mark our parent as complete
-            if self.parent.children.filter(status='C').count() == self.parent.children.count():
-                self.parent.status = 'C'
-                self.parent.save()
+            with transaction.atomic():
+                # select_for_update() will block if another process is working with these children
+                siblings = self.parent.children.select_for_update().filter(status='C')
+                if siblings.count() == self.parent.children.count():
+                    self.parent.status = 'C'
+                    self.parent.save()
