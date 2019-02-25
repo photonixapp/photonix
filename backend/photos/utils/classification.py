@@ -1,5 +1,6 @@
 from time import sleep
 
+from django.db import transaction
 from django.utils import timezone
 
 from photos.models import Photo, Task
@@ -25,8 +26,8 @@ def generate_classifier_tasks_for_photo(photo_id, task):
     started = timezone.now()
 
     # Add task for each classifier on current photo
-    # TODO: Add with atomic
-    for classifier in CLASSIFIERS:
-        Task(type='classify.{}'.format(classifier), subject_id=photo_id, parent=task).save()
-    task.complete_with_children = True
-    task.save()
+    with transaction.atomic():
+        for classifier in CLASSIFIERS:
+            Task(type='classify.{}'.format(classifier), subject_id=photo_id, parent=task).save()
+        task.complete_with_children = True
+        task.save()
