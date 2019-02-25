@@ -49,23 +49,6 @@ class Photo(UUIDModel, VersionedModel):
     latitude                            = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     longitude                           = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     altitude                            = models.DecimalField(max_digits=6, decimal_places=1, null=True)
-    last_thumbnailed_version            = models.PositiveIntegerField(null=True)
-    last_thumbnailed_at                 = models.DateTimeField(null=True)
-    classifier_color_version            = models.PositiveIntegerField(null=True)
-    classifier_color_queued_at          = models.DateTimeField(null=True)
-    classifier_color_completed_at       = models.DateTimeField(null=True)
-    classifier_location_version         = models.PositiveIntegerField(null=True)
-    classifier_location_queued_at       = models.DateTimeField(null=True)
-    classifier_location_completed_at    = models.DateTimeField(null=True)
-    classifier_object_version           = models.PositiveIntegerField(null=True)
-    classifier_object_queued_at         = models.DateTimeField(null=True)
-    classifier_object_completed_at      = models.DateTimeField(null=True)
-    classifier_person_version           = models.PositiveIntegerField(null=True)
-    classifier_person_queued_at         = models.DateTimeField(null=True)
-    classifier_person_completed_at      = models.DateTimeField(null=True)
-    classifier_style_version            = models.PositiveIntegerField(null=True)
-    classifier_style_queued_at          = models.DateTimeField(null=True)
-    classifier_style_completed_at       = models.DateTimeField(null=True)
 
     class Meta:
         ordering = ['-taken_at']
@@ -162,11 +145,13 @@ TASK_STATUS_CHOICES = (
 )
 
 class Task(UUIDModel, VersionedModel):
-    type            = models.CharField(max_length=128, db_index=True)
-    subject_id      = models.UUIDField()
-    status          = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, default='P', db_index=True)
-    started_at      = models.DateTimeField(null=True)
-    finished_at     = models.DateTimeField(null=True)
+    type                    = models.CharField(max_length=128, db_index=True)
+    subject_id              = models.UUIDField(db_index=True)
+    status                  = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, default='P', db_index=True)
+    started_at              = models.DateTimeField(null=True)
+    finished_at             = models.DateTimeField(null=True)
+    parent                  = models.ForeignKey('self', related_name='children', null=True)
+    complete_with_children  = models.BooleanField(default=False)
 
     def __str__(self):
         return '{}: {}'.format(self.type, self.created_at)
@@ -181,5 +166,13 @@ class Task(UUIDModel, VersionedModel):
         self.status = 'C'
         self.finished_at = timezone.now()
         self.save()
+
+        # Create next task in the chain if there should be one
         if next_type:
             Task(type=next_type, subject_id=next_subject_id).save()
+
+        if self.parent and self.parent.complete_with_children:
+            # If all siblings are complete, we should mark our parent as complete
+            if self.parent.children.filter(status='C').count() == self.parent.children.count():
+                self.parent.status = 'C'
+                self.parent.save()

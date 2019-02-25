@@ -60,7 +60,7 @@ class Command(BaseCommand):
                         photo.save()
                         object_queue.enqueue('classifiers.object.model.run_on_photo', photo.id, timeout=600)
 
-            # # Style queue
+            # Style queue
             print('{} items in style_queue'.format(len(style_queue)))
             if len(style_queue) < 20:
                 total = Photo.objects.filter(classifier_style_queued_at__isnull=True).order_by('created_at').count()

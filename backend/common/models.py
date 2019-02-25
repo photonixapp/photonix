@@ -12,7 +12,7 @@ class UUIDModel(models.Model):
 
 
 class VersionedModel(models.Model):
-    created_at = models.DateTimeField(blank=True)
+    created_at = models.DateTimeField(blank=True, db_index=True)
     updated_at = models.DateTimeField(blank=True)
 
     class Meta:
