@@ -105,7 +105,7 @@ def record_photo(path):
 
     # Create task to ensure JPEG version of file exists (used for thumbnailing, analysing etc.)
     Task(
-        type='ensure_jpeg_exists',
+        type='ensure_raw_processed',
         subject_id=photo.id
     ).save()
 

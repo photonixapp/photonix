@@ -1,1 +1,1 @@
-from .model import StyleModel
+from .model import StyleModel, run_on_photo

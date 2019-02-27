@@ -3,6 +3,7 @@ from time import sleep
 from django.db import transaction
 from django.utils import timezone
 
+from classifiers.color.model import run_on_photo
 from photos.models import Photo, Task
 from photos.utils.metadata import PhotoMetadata
 

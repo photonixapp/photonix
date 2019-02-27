@@ -1,1 +1,1 @@
-from .model import LocationModel
+from .model import LocationModel, run_on_photo

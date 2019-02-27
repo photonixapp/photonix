@@ -8,13 +8,13 @@ NON_RAW_MIMETYPES = [
 ]
 
 
-def process_ensure_jpeg_exists_tasks():
-    for task in Task.objects.filter(type='ensure_jpeg_exists', status='P').order_by('created_at'):
+def process_ensure_raw_processed_tasks():
+    for task in Task.objects.filter(type='ensure_raw_processed', status='P').order_by('created_at'):
         photo_id = task.subject_id
-        ensure_jpeg_exists(photo_id, task)
+        ensure_raw_processed(photo_id, task)
 
 
-def ensure_jpeg_exists(photo_id, task):
+def ensure_raw_processed(photo_id, task):
     task.start()
     photo = Photo.objects.get(id=photo_id)
     has_raw_photos = False

@@ -4,7 +4,7 @@ from django.utils import timezone
 import pytest
 
 from photos.models import Task
-from photos.utils.raw import process_ensure_jpeg_exists_tasks
+from photos.utils.raw import process_ensure_raw_processed_tasks
 from photos.utils.thumbnails import process_generate_thumbnails_tasks
 from photos.utils.classification import process_classify_images_tasks
 
@@ -20,7 +20,7 @@ def photo_fixture_snow(db):
 
 def test_tasks_created_updated(photo_fixture_snow):
     # Task should have been created for the fixture
-    task = Task.objects.get(type='ensure_jpeg_exists', status='P', subject_id=photo_fixture_snow.id)
+    task = Task.objects.get(type='ensure_raw_processed', status='P', subject_id=photo_fixture_snow.id)
     assert (timezone.now() - task.created_at).seconds < 1
     assert (timezone.now() - task.updated_at).seconds < 1
     assert task.started_at == None
@@ -37,8 +37,8 @@ def test_tasks_created_updated(photo_fixture_snow):
     task.save()
 
     # Calling this function should complete the task and queue up a new one for generating thumbnails
-    process_ensure_jpeg_exists_tasks()
-    task = Task.objects.get(type='ensure_jpeg_exists', subject_id=photo_fixture_snow.id)
+    process_ensure_raw_processed_tasks()
+    task = Task.objects.get(type='ensure_raw_processed', subject_id=photo_fixture_snow.id)
     assert task.status == 'C'
     assert (timezone.now() - task.started_at).seconds < 1
     assert (timezone.now() - task.finished_at).seconds < 1

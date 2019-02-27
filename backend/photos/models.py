@@ -153,6 +153,9 @@ class Task(UUIDModel, VersionedModel):
     parent                  = models.ForeignKey('self', related_name='children', null=True)
     complete_with_children  = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['created_at']
+
     def __str__(self):
         return '{}: {}'.format(self.type, self.created_at)
 

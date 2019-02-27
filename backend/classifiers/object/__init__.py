@@ -1,1 +1,1 @@
-from .model import ObjectModel
+from .model import ObjectModel, run_on_photo
