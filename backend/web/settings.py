@@ -120,15 +120,20 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.10/howto/static-files/
+if os.path.exists('/data'):
+    CACHE_DIR = '/data/cache'
+    MODEL_DIR = '/data/models'
+else:
+    CACHE_DIR = str(Path(BASE_DIR).parent / 'data' / 'cache')
+    MODEL_DIR = str(Path(BASE_DIR).parent / 'data' / 'models')
+
 
 STATIC_DIR = str(Path(BASE_DIR) / 'static')
 STATIC_URL = '/static/'
 
 MEDIA_ROOT = str(Path(BASE_DIR).parent / 'data')
 
-THUMBNAIL_ROOT = '/data/cache/thumbnails'
+THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
 
 THUMBNAIL_SIZES = [
     (256, 256, 'cover', 50),
@@ -147,13 +152,6 @@ PHOTO_OUTPUT_DIRS = [
         'PATH': '/data/raw-photos',
     },
 ]
-
-if os.path.exists('/data'):
-    CACHE_DIR = '/data/cache'
-    MODEL_DIR = '/data/models'
-else:
-    CACHE_DIR = str(Path(BASE_DIR).parent / 'data' / 'cache')
-    MODEL_DIR = str(Path(BASE_DIR).parent / 'data' / 'models')
 
 MODEL_INFO_URL = 'https://photomanager.epixstudios.co.uk/models.json'
 

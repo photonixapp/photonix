@@ -1,3 +1,5 @@
+import tempfile
+
 from .settings import *
 
 
@@ -7,3 +9,7 @@ DATABASES = {
         'NAME':     ':memory:'
     }
 }
+
+DATA_DIR = '/monkey'# tempfile.mkdtemp()
+CACHE_DIR = str(Path(DATA_DIR) / 'cache')
+THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
