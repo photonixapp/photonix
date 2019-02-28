@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import os
 import queue
 import threading
@@ -46,9 +47,20 @@ class Command(BaseCommand):
 
         try:
             while True:
+                # Set old, failed jobs to 'Pending'
+                for task in Task.objects.filter(type='classify.object', status='S', updated_at__lt=datetime.now() - timedelta(hours=24))[:8]:
+                    task.status = 'P'
+                    task.save()
+                for task in Task.objects.filter(type='classify.object', status='F', updated_at__lt=datetime.now() - timedelta(hours=24))[:8]:
+                    task.status = 'P'
+                    task.save()
+
+                # Load 'Pending' tasks onto worker threads
                 for task in Task.objects.filter(type='classify.object', status='P')[:64]:
                     q.put(task)
-                q.join()  # Blocks until all threads have finished and queue is empty
+
+                # Wait until all threads have finished
+                q.join()
                 sleep(1)
 
         except KeyboardInterrupt:
