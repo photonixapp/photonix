@@ -6,6 +6,7 @@ from multiprocessing import cpu_count
 from time import sleep
 
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 # Pre-load the model graphs so it doesn't have to be done for each job
 from classifiers.style import StyleModel, run_on_photo
@@ -48,10 +49,10 @@ class Command(BaseCommand):
         try:
             while True:
                 # Set old, failed jobs to 'Pending'
-                for task in Task.objects.filter(type='classify.style', status='S', updated_at__lt=datetime.now() - timedelta(hours=24))[:8]:
+                for task in Task.objects.filter(type='classify.style', status='S', updated_at__lt=timezone.now() - timedelta(hours=24))[:8]:
                     task.status = 'P'
                     task.save()
-                for task in Task.objects.filter(type='classify.style', status='F', updated_at__lt=datetime.now() - timedelta(hours=24))[:8]:
+                for task in Task.objects.filter(type='classify.style', status='F', updated_at__lt=timezone.now() - timedelta(hours=24))[:8]:
                     task.status = 'P'
                     task.save()
 
