@@ -121,12 +121,12 @@ USE_TZ = True
 
 
 if os.path.exists('/data'):
-    CACHE_DIR = '/data/cache'
-    MODEL_DIR = '/data/models'
+    DATA_DIR = str(Path('data'))
 else:
-    CACHE_DIR = str(Path(BASE_DIR).parent / 'data' / 'cache')
-    MODEL_DIR = str(Path(BASE_DIR).parent / 'data' / 'models')
+    DATA_DIR = str(Path(BASE_DIR).parent / 'data')
 
+CACHE_DIR = str(Path(DATA_DIR) / 'cache')
+MODEL_DIR = str(Path(DATA_DIR) / 'models')
 
 STATIC_DIR = str(Path(BASE_DIR) / 'static')
 STATIC_URL = '/static/'
@@ -153,7 +153,7 @@ PHOTO_OUTPUT_DIRS = [
     },
 ]
 
-MODEL_INFO_URL = 'https://photomanager.epixstudios.co.uk/models.json'
+MODEL_INFO_URL = 'https://photonix.org/models.json'
 
 GRAPHENE = {
     'SCHEMA': 'web.schema.schema'

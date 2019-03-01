@@ -1,6 +1,6 @@
 {
-  "short_name": "Photo Manager",
-  "name": "Photo Manager",
+  "short_name": "Photonix",
+  "name": "Photonix Photo Manager",
   "icons": [
     {
       "src": "favicon.png",
@@ -11,5 +11,5 @@
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#ffffff",
-  "background_color": "#000000"
+  "background_color": "#1d1d1d"
 }

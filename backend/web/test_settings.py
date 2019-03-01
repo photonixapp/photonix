@@ -10,6 +10,6 @@ DATABASES = {
     }
 }
 
-DATA_DIR = '/monkey'# tempfile.mkdtemp()
+DATA_DIR = tempfile.mkdtemp()
 CACHE_DIR = str(Path(DATA_DIR) / 'cache')
 THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')

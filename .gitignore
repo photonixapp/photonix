@@ -3,6 +3,12 @@ ui/node_modules
 backend/classifiers/style/images/*
 backend/classifiers/style/tf_files/*
 backend/classifiers/person
+backend/photos/tests/photos/*.dng
+backend/photos/tests/photos/*.DNG
+backend/photos/tests/photos/*.CR2
+backend/photos/tests/photos/*.RWL
+backend/photos/tests/photos/*.NEF
+backend/photos/tests/photos/*.ARW
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

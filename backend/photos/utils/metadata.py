@@ -63,3 +63,9 @@ def get_datetime(path):
             date_str = '{}-{}-{}'.format(matched.group(1), matched.group(2), matched.group(3))
             return datetime.strptime(date_str, '%Y-%m-%d')
         return None
+
+def get_dimensions(path):
+    metadata = PhotoMetadata(path)
+    if metadata.data.get('Image Width') and metadata.data.get('Image Height'):
+        return (int(metadata.data['Image Width']), int(metadata.data['Image Height']))
+    return (None, None)

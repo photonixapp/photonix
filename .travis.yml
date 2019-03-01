@@ -4,7 +4,7 @@ python:
 services:
   - redis
 before_install:
-  - sudo apt-get install -y libimage-exiftool-perl
+  - sudo apt-get install -y libimage-exiftool-perl dcraw
 install:
   - pip install -r requirements.txt
 script:

@@ -3,6 +3,7 @@ FROM python:3.6.8-slim-stretch
 RUN apt-get update && \
     apt-get install -y \
         curl=7.52.1-5+deb9u9 \
+        dcraw=9.27-1+b1 \
         build-essential=12.3 \
         gnupg=2.1.18-8~deb9u4 \
         gunicorn=19.6.0-10+deb9u1 \
