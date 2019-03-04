@@ -29,6 +29,7 @@ def test_extract_jpg():
 
         assert process_params == intended_process_params
         assert identified_as_jpeg(output_path) == True
-        assert os.stat(output_path).st_size == intended_filesize
+        filesizes = [intended_filesize, os.stat(output_path).st_size]
+        assert max(filesizes) / min(filesizes) < 1.2
 
         os.remove(output_path)
