@@ -152,6 +152,7 @@ PHOTO_OUTPUT_DIRS = [
         'PATH': '/data/raw-photos',
     },
 ]
+PHOTO_RAW_PROCESSED_DIR = '/data/raw-photos-processed'
 
 MODEL_INFO_URL = 'https://photonix.org/models.json'
 

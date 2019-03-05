@@ -71,14 +71,18 @@ class Photo(UUIDModel, VersionedModel):
         self.photo_tags.filter(tag__source=source, tag__type=type).delete()
 
 class PhotoFile(UUIDModel, VersionedModel):
-    photo               = models.ForeignKey(Photo, related_name='files', on_delete=models.CASCADE)
-    path                = models.CharField(max_length=512)
-    width               = models.PositiveSmallIntegerField()
-    height              = models.PositiveSmallIntegerField()
-    mimetype            = models.CharField(max_length=32, blank=True)
-    file_modified_at    = models.DateTimeField()
-    bytes               = models.PositiveIntegerField()
-    preferred           = models.BooleanField(default=False)
+    photo                   = models.ForeignKey(Photo, related_name='files', on_delete=models.CASCADE)
+    path                    = models.CharField(max_length=512)
+    width                   = models.PositiveSmallIntegerField()
+    height                  = models.PositiveSmallIntegerField()
+    mimetype                = models.CharField(max_length=32, blank=True, null=True)
+    file_modified_at        = models.DateTimeField()
+    bytes                   = models.PositiveIntegerField()
+    preferred               = models.BooleanField(default=False)
+    raw_processed           = models.BooleanField(default=False)
+    raw_version             = models.PositiveIntegerField(null=True)
+    raw_external_params     = models.CharField(max_length=16, blank=True, null=True)
+    raw_external_version    = models.CharField(max_length=16, blank=True, null=True)
 
     def __str__(self):
         return str(self.path)
@@ -171,7 +175,7 @@ class Task(UUIDModel, VersionedModel):
         self.save()
 
         # Create next task in the chain if there should be one
-        if next_type:
+        if not self.parent and next_type:
             Task(type=next_type, subject_id=next_subject_id).save()
 
         if self.parent and self.parent.complete_with_children:
@@ -180,5 +184,4 @@ class Task(UUIDModel, VersionedModel):
                 # select_for_update() will block if another process is working with these children
                 siblings = self.parent.children.select_for_update().filter(status='C')
                 if siblings.count() == self.parent.children.count():
-                    self.parent.status = 'C'
-                    self.parent.save()
+                    self.parent.complete(next_type=next_type, next_subject_id=next_subject_id)

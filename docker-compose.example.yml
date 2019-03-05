@@ -26,6 +26,7 @@ services:
       ALLOWED_HOSTS: localhost,example.com
     volumes:
      - ./data/photos:/data/photos
+     - ./data/raw-photos-processed:/data/raw-photos-processed
      - ./data/cache:/data/cache
      - ./data/models:/data/models
     links:

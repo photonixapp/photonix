@@ -36,6 +36,7 @@ services:
      - ./ui/src:/srv/ui/src
      - ./ui/static:/srv/ui/static
      - ./data/photos:/data/photos
+     - ./data/raw-photos-processed:/data/raw-photos-processed
      - ./data/cache:/data/cache
      - ./data/models:/data/models
     links:
