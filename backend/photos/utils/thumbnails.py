@@ -25,7 +25,8 @@ def generate_thumbnails_for_photo(photo_id, task):
         try:
             generate_thumbnail(photo, thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3])
         except (FileNotFoundError, IndexError):
-            pass
+            task.failed()
+            return
 
     # Complete task for photo and add next task for classifying images
     task.complete(next_type='classify_images', next_subject_id=photo_id)

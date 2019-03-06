@@ -121,7 +121,7 @@ USE_TZ = True
 
 
 if os.path.exists('/data'):
-    DATA_DIR = str(Path('data'))
+    DATA_DIR = str(Path('/data'))
 else:
     DATA_DIR = str(Path(BASE_DIR).parent / 'data')
 

@@ -1,6 +1,7 @@
+from django.conf import settings
 import django_filters
-import graphene
 from django_filters import CharFilter
+import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
@@ -46,7 +47,8 @@ class PhotoNode(DjangoObjectType):
         return None
 
     def resolve_url(self, info):
-        return self.file.url
+        size = settings.THUMBNAIL_SIZES[-1]
+        return self.thumbnail_url(size)
 
 
 class PhotoFilter(django_filters.FilterSet):

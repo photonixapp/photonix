@@ -16,7 +16,7 @@ class Command(BaseCommand):
                 print('{} photos remaining for thumbnailing'.format(num_remaining))
                 process_generate_thumbnails_tasks()
                 print('Finished scheduling thumbnailing')
-            sleep(5)
+            sleep(1)
 
     def handle(self, *args, **options):
         try:

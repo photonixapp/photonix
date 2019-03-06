@@ -27,11 +27,10 @@ class Command(BaseCommand):
         PhotoFile.objects.all().delete()
         Tag.objects.all().delete()
 
-        self.clear_dir(settings.THUMBNAIL_ROOT)
-
-        for section in settings.PHOTO_OUTPUT_DIRS:
+        dirs = [section['PATH'] for section in settings.PHOTO_OUTPUT_DIRS] + [settings.THUMBNAIL_ROOT] + [settings.PHOTO_RAW_PROCESSED_DIR]
+        for path in dirs:
             try:
-                self.clear_dir(section['PATH'])
+                self.clear_dir(path)
             except OSError:
                 pass
 

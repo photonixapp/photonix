@@ -83,15 +83,15 @@ class Photo(UUIDModel, VersionedModel):
     def base_image_path(self):
         return self.base_file.base_image_path
 
-
     def clear_tags(self, source, type):
         self.photo_tags.filter(tag__source=source, tag__type=type).delete()
+
 
 class PhotoFile(UUIDModel, VersionedModel):
     photo                   = models.ForeignKey(Photo, related_name='files', on_delete=models.CASCADE)
     path                    = models.CharField(max_length=512)
-    width                   = models.PositiveSmallIntegerField()
-    height                  = models.PositiveSmallIntegerField()
+    width                   = models.PositiveSmallIntegerField(null=True)
+    height                  = models.PositiveSmallIntegerField(null=True)
     mimetype                = models.CharField(max_length=32, blank=True, null=True)
     file_modified_at        = models.DateTimeField()
     bytes                   = models.PositiveIntegerField()
@@ -208,3 +208,8 @@ class Task(UUIDModel, VersionedModel):
                 siblings = self.parent.children.select_for_update().filter(status='C')
                 if siblings.count() == self.parent.children.count():
                     self.parent.complete(next_type=next_type, next_subject_id=next_subject_id)
+
+    def failed(self):
+        self.status = 'F'
+        self.finished_at = timezone.now()
+        self.save()
