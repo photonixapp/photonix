@@ -43,9 +43,10 @@ def test_extract_jpg():
 @pytest.fixture
 def photo_fixture_raw(db):
     from photos.utils.db import record_photo
-    raw_photo_path = str(Path(__file__).parent / 'photos' / PHOTOS[0][0])
+    photo_index = 4  # Photo selected because it doesn't have width and height metadata
+    raw_photo_path = str(Path(__file__).parent / 'photos' / PHOTOS[photo_index][0])
     if not os.path.exists(raw_photo_path):
-        url = PHOTOS[0][3]
+        url = PHOTOS[photo_index][3]
         download_file(url, raw_photo_path)
     return record_photo(raw_photo_path)
 
@@ -67,6 +68,10 @@ def test_task_raw_processing(photo_fixture_raw):
     assert parent_task.status == 'S'
     assert child_task.status == 'P'
 
+    # PhotoFile should have been created widthout dimensions as metadata for this photo doesn't include it
+    photo_file = PhotoFile.objects.get(id=child_task.subject_id)
+    assert photo_file.width is None
+
     # Call the processing function
     process_raw_tasks()
 
@@ -80,12 +85,13 @@ def test_task_raw_processing(photo_fixture_raw):
     photo_file = PhotoFile.objects.get(id=child_task.subject_id)
     assert photo_file.raw_processed == True
     assert photo_file.raw_version == 20190305
-    assert photo_file.raw_external_params == 'dcraw -e'
+    assert photo_file.raw_external_params == 'dcraw -w'
     assert '9.' in photo_file.raw_external_version
     output_path = Path(settings.PHOTO_RAW_PROCESSED_DIR) / '{}.jpg'.format(photo_file.id)
     assert os.path.exists(output_path)
     assert os.path.exists(output_path) == os.path.exists(photo_fixture_raw.base_image_path)
     assert os.stat(output_path).st_size > 1024 * 1024  # JPEG greater than 1MB in size
+    assert photo_file.width == 3684  # Width should now be set
 
     # Thumbnailing task should have been created as ensure_raw_processed and process_raw have completed
     assert Task.objects.filter(type='generate_thumbnails', subject_id=photo_fixture_raw.id).count() == 1
@@ -107,8 +113,8 @@ def test_task_raw_processing(photo_fixture_raw):
         path = photo_fixture_raw.thumbnail_path(thumbnail)
         assert os.path.exists(path)
     thumbnail_path = photo_fixture_raw.thumbnail_path((256, 256, 'cover', 50))
-    assert os.stat(thumbnail_path).st_size > 7619 * 0.8
-    assert os.stat(thumbnail_path).st_size < 7619 * 1.2
+    assert os.stat(thumbnail_path).st_size > 9463 * 0.8
+    assert os.stat(thumbnail_path).st_size < 9463 * 1.2
 
     # Tidy up filesystem
     os.remove(output_path)

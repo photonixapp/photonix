@@ -67,6 +67,12 @@ def process_raw_task(photo_file_id, task):
     photo_file.raw_version = version
     photo_file.raw_external_params = process_params
     photo_file.raw_external_version = external_version
+
+    if not photo_file.width or not photo_file.height:
+        width, height = get_dimensions(photo_file.base_image_path)
+        photo_file.width = width
+        photo_file.height = height
+
     photo_file.save()
 
     task.complete(next_type='generate_thumbnails', next_subject_id=photo_file.photo.id)
