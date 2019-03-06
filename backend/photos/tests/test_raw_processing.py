@@ -81,7 +81,7 @@ def test_task_raw_processing(photo_fixture_raw):
     assert photo_file.raw_processed == True
     assert photo_file.raw_version == 20190305
     assert photo_file.raw_external_params == 'dcraw -e'
-    assert photo_file.raw_external_version == '9.27'
+    assert '9.' in photo_file.raw_external_version
     output_path = Path(settings.PHOTO_RAW_PROCESSED_DIR) / '{}.jpg'.format(photo_file.id)
     assert os.path.exists(output_path)
     assert os.path.exists(output_path) == os.path.exists(photo_fixture_raw.base_image_path)
