@@ -57,13 +57,18 @@ def process_raw_task(photo_file_id, task):
     task.start()
     photo_file = PhotoFile.objects.get(id=photo_file_id)
     output_path, version, process_params, external_version = generate_jpeg(photo_file.path)
+
+    if not os.path.isdir(settings.PHOTO_RAW_PROCESSED_DIR):
+        os.mkdir(settings.PHOTO_RAW_PROCESSED_DIR)
     destination_path = Path(settings.PHOTO_RAW_PROCESSED_DIR) / str('{}.jpg'.format(photo_file.id))
     shutil.move(output_path, str(destination_path))
+
     photo_file.raw_processed = True
     photo_file.raw_version = version
     photo_file.raw_external_params = process_params
     photo_file.raw_external_version = external_version
     photo_file.save()
+
     task.complete(next_type='generate_thumbnails', next_subject_id=photo_file.photo.id)
 
 

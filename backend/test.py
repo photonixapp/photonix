@@ -10,7 +10,7 @@ tf.logging.set_verbosity(tf.logging.ERROR)
 
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
 os.environ['ENV'] = 'test'
-os.environ['DJANGO_SETTINGS_MODULE'] = 'web.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'web.test_settings'
 
 
 if __name__ == '__main__':
