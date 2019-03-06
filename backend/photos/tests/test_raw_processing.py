@@ -8,6 +8,7 @@ import pytest
 from photos.models import PhotoFile, Task
 from photos.utils.fs import download_file
 from photos.utils.raw import generate_jpeg, ensure_raw_processing_tasks, identified_as_jpeg, process_raw_tasks
+from photos.utils.thumbnails import process_generate_thumbnails_tasks
 
 
 PHOTOS = [
@@ -83,6 +84,7 @@ def test_task_raw_processing(photo_fixture_raw):
     assert photo_file.raw_external_version == '9.27'
     output_path = Path(settings.PHOTO_RAW_PROCESSED_DIR) / '{}.jpg'.format(photo_file.id)
     assert os.path.exists(output_path)
+    assert os.path.exists(output_path) == os.path.exists(photo_fixture_raw.base_image_path)
     assert os.stat(output_path).st_size > 1024 * 1024  # JPEG greater than 1MB in size
 
     # Thumbnailing task should have been created as ensure_raw_processed and process_raw have completed
@@ -92,3 +94,24 @@ def test_task_raw_processing(photo_fixture_raw):
     assert (timezone.now() - task.updated_at).seconds < 1
     assert task.started_at == None
     assert task.finished_at == None
+
+    # Process tasks to generate thumbnails which should add new task for classification
+    process_generate_thumbnails_tasks()
+    task = Task.objects.get(type='generate_thumbnails', subject_id=photo_fixture_raw.id)
+    assert task.status == 'C'
+    assert (timezone.now() - task.started_at).seconds < 10
+    assert (timezone.now() - task.finished_at).seconds < 1
+
+    # Make sure thumbnails got generated
+    for thumbnail in settings.THUMBNAIL_SIZES:
+        path = photo_fixture_raw.thumbnail_path(thumbnail)
+        assert os.path.exists(path)
+    thumbnail_path = photo_fixture_raw.thumbnail_path((256, 256, 'cover', 50))
+    assert os.stat(thumbnail_path).st_size > 7619 * 0.8
+    assert os.stat(thumbnail_path).st_size < 7619 * 1.2
+
+    # Tidy up filesystem
+    os.remove(output_path)
+    for thumbnail in settings.THUMBNAIL_SIZES:
+        path = photo_fixture_raw.thumbnail_path(thumbnail)
+        os.remove(path)

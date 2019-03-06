@@ -37,6 +37,6 @@ def results_for_model_on_photo(model, photo_id):
         from photos.models import Photo, PhotoTag
         photo = Photo.objects.get(id=photo_id)
 
-    results = model.predict(photo.file.path)
+    results = model.predict(photo.base_file.path)
 
     return is_photo_instance and photo or None, results

@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
+from pathlib import Path
 
+from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -63,9 +65,24 @@ class Photo(UUIDModel, VersionedModel):
     def thumbnail_url(self, thumbnail):
         return '/thumbnails/{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.id)
 
+    def thumbnail_path(self, thumbnail):
+        return str(Path(settings.THUMBNAIL_ROOT) / '{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.id))
+
     @property
-    def file(self):
-        return self.files.filter(mimetype='image/jpeg').order_by('preferred', '-created_at')[0]
+    def base_file(self):
+        preferred_files = self.files.filter(preferred=True)
+        if not preferred_files:
+            preferred_files = self.files.filter(raw_processed=True)
+        if not preferred_files:
+            preferred_files = self.files.filter(mimetype='image/jpeg').order_by('-created_at')
+        if preferred_files:
+            return preferred_files[0]
+        return None
+
+    @property
+    def base_image_path(self):
+        return self.base_file.base_image_path
+
 
     def clear_tags(self, source, type):
         self.photo_tags.filter(tag__source=source, tag__type=type).delete()
@@ -90,6 +107,12 @@ class PhotoFile(UUIDModel, VersionedModel):
     @property
     def url(self):
         return self.path.split('/data', 1)[1]
+
+    @property
+    def base_image_path(self):
+        if self.raw_processed:
+            return str(Path(settings.PHOTO_RAW_PROCESSED_DIR) / str('{}.jpg'.format(self.id)))
+        return self.path
 
 
 SOURCE_CHOICES = (

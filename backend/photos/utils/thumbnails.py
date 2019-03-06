@@ -32,13 +32,13 @@ def generate_thumbnails_for_photo(photo_id, task):
 
 
 def generate_thumbnail(photo, width=256, height=256, aspect='cover', quality=75):
-    pf = photo.files.filter(mimetype='image/jpeg')[0]
-    im = Image.open(pf.path)
+    path = photo.base_image_path
+    im = Image.open(path)
 
     if im.mode != 'RGB':
         im = im.convert("RGB")
 
-    metadata = PhotoMetadata(pf.path)
+    metadata = PhotoMetadata(path)
 
     if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
         im = im.rotate(-90, expand=True)
