@@ -35,12 +35,6 @@ def ensure_raw_processed(photo_id, task):
         if photo_file.mimetype not in NON_RAW_MIMETYPES:
             has_raw_photos = True
             Task(type='process_raw', subject_id=photo_file.id, parent=task).save()
-            # break
-
-    # next_task_type = 'generate_thumbnails'
-    # if has_raw_photos:
-    #     # TODO: Make task for parallel raw processing
-    #     output_path, process_params = generate_jpeg(photo_file.file)
 
     # Complete and add next task to generate thumbnails
     if not has_raw_photos:

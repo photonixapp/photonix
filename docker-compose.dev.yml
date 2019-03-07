@@ -39,6 +39,7 @@ services:
      - ./data/raw-photos-processed:/data/raw-photos-processed
      - ./data/cache:/data/cache
      - ./data/models:/data/models
+     - ./system/supervisord.conf:/etc/supervisord.conf
     links:
      - postgres
      - redis

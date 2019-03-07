@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 import os
 import queue
 import threading
@@ -6,11 +5,11 @@ from multiprocessing import cpu_count
 from time import sleep
 
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
 # Pre-load the model graphs so it doesn't have to be done for each job
 from classifiers.location import LocationModel, run_on_photo
 from photos.models import Task
+from photos.utils.tasks import requeue_stuck_tasks
 
 
 print('Loading object location model')
@@ -33,9 +32,9 @@ def worker():
 
 
 class Command(BaseCommand):
-    help = 'Runs the RQ workers with the location classification model.'
+    help = 'Runs the workers with the location classification model.'
 
-    def handle(self, *args, **options):
+    def run_processors(self):
         num_workers = 4
         threads = []
 
@@ -48,13 +47,7 @@ class Command(BaseCommand):
 
         try:
             while True:
-                # Set old, failed jobs to 'Pending'
-                for task in Task.objects.filter(type='classify.location', status='S', updated_at__lt=timezone.now() - timedelta(hours=24))[:8]:
-                    task.status = 'P'
-                    task.save()
-                for task in Task.objects.filter(type='classify.location', status='F', updated_at__lt=timezone.now() - timedelta(hours=24))[:8]:
-                    task.status = 'P'
-                    task.save()
+                requeue_stuck_tasks('classify.location')
 
                 # Load 'Pending' tasks onto worker threads
                 for task in Task.objects.filter(type='classify.location', status='P')[:64]:
@@ -70,3 +63,6 @@ class Command(BaseCommand):
                 q.put(None)
             for t in threads:
                 t.join()
+
+    def handle(self, *args, **options):
+        self.run_processors()

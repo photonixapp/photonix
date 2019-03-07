@@ -1,4 +1,3 @@
-import os
 import queue
 import threading
 from multiprocessing import cpu_count
@@ -6,14 +5,11 @@ from time import sleep
 
 from django.core.management.base import BaseCommand
 
-# Pre-load the model graphs so it doesn't have to be done for each job
-from classifiers.color import ColorModel, run_on_photo
 from photos.models import Task
 from photos.utils.tasks import requeue_stuck_tasks
+from photos.utils.thumbnails import generate_thumbnails_for_photo
 
 
-print('Loading style color model')
-model = ColorModel()
 q = queue.Queue()
 
 
@@ -24,21 +20,19 @@ def worker():
         if task is None:
             break
 
-        task.start()
-        run_on_photo(task.subject_id)
-        task.complete()
+        generate_thumbnails_for_photo(task.subject_id, task)
 
         q.task_done()
 
 
 class Command(BaseCommand):
-    help = 'Runs the workers with the color classification model.'
+    help = 'Processes full-sized photos into thumbnails of various sizes.'
 
     def run_processors(self):
-        num_workers = 4
+        num_workers = cpu_count()
         threads = []
 
-        print('Starting {} color classification workers\n'.format(num_workers))
+        print('Starting {} thumbnail processor workers\n'.format(num_workers))
 
         for i in range(num_workers):
             t = threading.Thread(target=worker)
@@ -47,7 +41,16 @@ class Command(BaseCommand):
 
         try:
             while True:
-                requeue_stuck_tasks('classify.color')
+                requeue_stuck_tasks('generate_thumbnails')
+
+                num_remaining = Task.objects.filter(type='generate_thumbnails', status='P').count()
+                if num_remaining:
+                    print('{} tasks remaining for thumbnail processing'.format(num_remaining))
+
+                # Load 'Pending' tasks onto worker threads
+                for task in Task.objects.filter(type='generate_thumbnails', status='P')[:64]:
+                    q.put(task)
+                    print('Finished thumbnail processing batch')
 
                 # Wait until all threads have finished
                 q.join()
@@ -59,6 +62,7 @@ class Command(BaseCommand):
                 q.put(None)
             for t in threads:
                 t.join()
+
 
     def handle(self, *args, **options):
         self.run_processors()
