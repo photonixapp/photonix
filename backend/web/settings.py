@@ -136,8 +136,12 @@ MEDIA_ROOT = str(Path(BASE_DIR).parent / 'data')
 THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
 
 THUMBNAIL_SIZES = [
-    (256, 256, 'cover', 50),
-    (1920, 1080, 'contain', 75),
+    # Width, height, crop method, JPEG quality, whether it should be generated upon upload
+    (256, 256, 'cover', 50, True),  # Square thumbnails
+    # We use the largest dimension for both dimensions as they won't crop and some with in portrait mode 
+    (960, 960, 'contain', 75, False),  # 960px
+    (1920, 1920, 'contain', 75, False),  # 2k
+    (3840, 3840, 'contain', 75, False),  # 4k
 ]
 
 
