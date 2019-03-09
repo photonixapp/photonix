@@ -5,8 +5,8 @@ services:
     container_name: photonix-postgres
     image: postgres:11.1-alpine
     environment:
+      POSTGRES_DB: photonix
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: photo-manager
     volumes:
       - ./data/db:/var/lib/postgresql/data
 
@@ -22,6 +22,9 @@ services:
     environment:
       ENV: prd
       POSTGRES_HOST: postgres
+      POSTGRES_DB: photonix
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
       REDIS_HOST: redis
       ALLOWED_HOSTS: localhost,example.com
     volumes:

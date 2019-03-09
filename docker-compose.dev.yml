@@ -7,8 +7,8 @@ services:
     ports:
       - "5432:5432"
     environment:
+      POSTGRES_DB: photonix
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: photo-manager
     volumes:
       - ./data/db:/var/lib/postgresql/data
 
@@ -29,6 +29,9 @@ services:
     environment:
       ENV: dev
       POSTGRES_HOST: postgres
+      POSTGRES_DB: photonix
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
       REDIS_HOST: redis
     volumes:
      - ./backend:/srv/backend

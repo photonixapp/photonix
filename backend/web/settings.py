@@ -80,9 +80,9 @@ DATABASES = {
     'default': {
         'ENGINE':   'django.db.backends.postgresql',
         'HOST':     os.environ.get('POSTGRES_HOST', '127.0.0.1'),
-        'NAME':     'photo-manager',
-        'USER':     'postgres',
-        'PASSWORD': 'password',
+        'NAME':     os.environ.get('POSTGRES_DB', 'photonix'),
+        'USER':     os.environ.get('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'password'),
     }
 }
 
