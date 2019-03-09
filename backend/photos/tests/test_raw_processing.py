@@ -110,8 +110,9 @@ def test_task_raw_processing(photo_fixture_raw):
 
     # Make sure thumbnails got generated
     for thumbnail in settings.THUMBNAIL_SIZES:
-        path = photo_fixture_raw.thumbnail_path(thumbnail)
-        assert os.path.exists(path)
+        if thumbnail[4]:
+            path = photo_fixture_raw.thumbnail_path(thumbnail)
+            assert os.path.exists(path)
     thumbnail_path = photo_fixture_raw.thumbnail_path((256, 256, 'cover', 50))
     assert os.stat(thumbnail_path).st_size > 9463 * 0.8
     assert os.stat(thumbnail_path).st_size < 9463 * 1.2
@@ -119,5 +120,6 @@ def test_task_raw_processing(photo_fixture_raw):
     # Tidy up filesystem
     os.remove(output_path)
     for thumbnail in settings.THUMBNAIL_SIZES:
-        path = photo_fixture_raw.thumbnail_path(thumbnail)
-        os.remove(path)
+        if thumbnail[4]:
+            path = photo_fixture_raw.thumbnail_path(thumbnail)
+            os.remove(path)

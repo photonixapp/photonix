@@ -32,7 +32,7 @@ def generate_thumbnails_for_photo(photo, task):
                 return
 
     # Complete task for photo and add next task for classifying images
-    task.complete(next_type='classify_images', next_subject_id=photo_id)
+    task.complete(next_type='classify_images', next_subject_id=photo.id)
 
 
 def get_thumbnail_path(photo, width=256, height=256, crop='cover', quality=75):
@@ -60,10 +60,10 @@ def get_thumbnail(photo, width=256, height=256, crop='cover', quality=75, return
 
     # Read base image and metadata
     input_path = photo.base_image_path
-    im = Image.open(path)
+    im = Image.open(input_path)
 
     if im.mode != 'RGB':
-        im = im.convert("RGB")
+        im = im.convert('RGB')
 
     metadata = PhotoMetadata(input_path)
 
