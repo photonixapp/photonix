@@ -49,6 +49,10 @@ class Command(BaseCommand):
             while True:
                 requeue_stuck_tasks('classify.color')
 
+                # Load 'Pending' tasks onto worker threads
+                for task in Task.objects.filter(type='classify.color', status='P')[:64]:
+                    q.put(task)
+
                 # Wait until all threads have finished
                 q.join()
                 sleep(1)
