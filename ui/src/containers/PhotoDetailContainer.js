@@ -19,7 +19,7 @@ export default class PhotoDetailContainer extends React.Component {
         {({ loading, error, data }) => {
           if (loading) return <Spinner />
           if (error) return <p>Error :(</p>
-          return <PhotoDetail photoId={this.props.photoId} path={data.photo.url} />
+          return <PhotoDetail photoId={this.props.photoId} />
         }}
       </Query>
     )

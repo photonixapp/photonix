@@ -20,7 +20,11 @@ def generate_thumbnails_for_photo(photo, task):
     task.start()
 
     if not isinstance(photo, Photo):
-        photo = Photo.objects.get(id=photo)
+        try:
+            photo = Photo.objects.get(id=photo)
+        except Photo.DoesNotExist:
+            task.failed()
+            return
 
     # TODO: Put these tasks on a thumbnailing queue like the classification_scheduler so it can be done in parallel
     for thumbnail in settings.THUMBNAIL_SIZES:

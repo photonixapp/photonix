@@ -45,7 +45,7 @@ export default class BrowseContainer extends React.Component {
             photos = data.allPhotos.edges.map((photo) => (
             {
               id: photo.node.id,
-              thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}.jpg`,
+              thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
               location: photo.node.location ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]] : null,
             }
             ))

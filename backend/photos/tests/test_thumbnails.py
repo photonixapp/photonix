@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from django.conf import settings
+from django.test import Client
 import pytest
 
 from photos.utils.thumbnails import get_thumbnail, get_thumbnail_path
@@ -32,3 +33,36 @@ def test_generate_thumbnail(photo_fixture_snow):
     assert len(result) == os.stat(path).st_size
     assert os.stat(path).st_size > 5929 * 0.8
     assert os.stat(path).st_size < 5929 * 1.2
+
+
+def test_view(photo_fixture_snow):
+    # Start with no thumbnail on disk
+    width, height, crop, quality, _ = settings.THUMBNAIL_SIZES[0]
+    path = get_thumbnail_path(photo_fixture_snow, width, height, crop, quality)
+    assert not os.path.exists(path)
+
+    # Make a web request to the thumbnail API
+    client = Client()
+    url = '/thumbnails/256x256_cover_q50/{}/'.format(photo_fixture_snow.id)
+    response = client.get(url)
+
+    # We should get thumbnail back
+    assert response.status_code == 200
+    assert response.content[:10] == b'\xff\xd8\xff\xe0\x00\x10JFIF'
+    assert response._headers['content-type'][1] == 'image/jpeg'
+    response_length = len(response.content)
+    assert response_length > 5929 * 0.8
+    assert response_length < 5929 * 1.2
+
+    # Thumbnail should be now on disk
+    assert os.path.exists(path)
+
+    # Now we check that if we make the same request again, the file on disk is used rather than re-generating
+    # Modify the file by appending 4 bytes
+    with open(path, 'a') as thumbfile:
+        thumbfile.write('test')
+
+    # Get and check the new file length
+    response = client.get(url)
+    assert len(response.content) == (response_length + 4)
+    os.remove(path)
