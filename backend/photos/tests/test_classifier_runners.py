@@ -39,6 +39,7 @@ def test_color_via_runner(photo_fixture_snow):
     assert photo_fixture_snow.photo_tags.all()[0].tag.type == 'C'
     assert '{0:.3f}'.format(photo_fixture_snow.photo_tags.all()[0].significance) == '0.094'
 
+
 def test_location_via_runner(photo_fixture_tree):
     from classifiers.location.model import run_on_photo
 
@@ -71,6 +72,7 @@ def test_location_via_runner(photo_fixture_tree):
     assert photo.photo_tags.all()[1].significance == 0.5
     assert photo.photo_tags.all()[1].tag.parent.name == 'Greece'
 
+
 def test_object_via_runner(photo_fixture_snow):
     from classifiers.object.model import run_on_photo
 
@@ -90,6 +92,7 @@ def test_object_via_runner(photo_fixture_snow):
     assert photo_fixture_snow.photo_tags.all()[0].tag.name == 'Tree'
     assert photo_fixture_snow.photo_tags.all()[0].tag.type == 'O'
     assert '{0:.3f}'.format(photo_fixture_snow.photo_tags.all()[0].significance) == '0.226'
+
 
 def test_style_via_runner(photo_fixture_snow):
     from classifiers.style.model import run_on_photo

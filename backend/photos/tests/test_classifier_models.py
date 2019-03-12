@@ -18,6 +18,7 @@ def test_downloading(tmpdir):
         content = f.read()
         assert content.strip() == str(model.version)
 
+
 def test_color_predict():
     from classifiers.color.model import ColorModel
 
@@ -27,6 +28,7 @@ def test_color_predict():
     expected = [('Violet', '0.094'), ('Gray', '0.018'), ('Black', '0.006'), ('White', '0.005'), ('Pale pink', '0.001'), ('Dark orange', '0.000'), ('Dark lime green', '0.000')]
     actual = [(x, '{:.3f}'.format(y)) for x, y in result]
     assert expected == actual
+
 
 def test_location_predict():
     from classifiers.location.model import LocationModel
@@ -65,6 +67,7 @@ def test_location_predict():
     assert result['city']['country_name'] == 'France'
     assert result['city']['name'] == 'Téteghem'
 
+
 def test_object_predict():
     from classifiers.object.model import ObjectModel
 
@@ -85,6 +88,7 @@ def test_object_predict():
     assert result[1]['label'] == 'Tree'
     assert '{0:.3f}'.format(result[1]['score']) == '0.819'
     assert '{0:.3f}'.format(result[1]['significance']) == '0.035'
+
 
 def test_style_predict():
     from classifiers.style.model import StyleModel

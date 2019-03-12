@@ -45,24 +45,28 @@ def parse_gps_location(gps_str):
 
 def get_datetime(path):
     '''
-    Tries to get date/time from EXIF data which works on JPEG and CR2 files.
+    Tries to get date/time from EXIF data which works on JPEG and raw files.
     Failing it that it tries to find the date in the filename.
     '''
-    # TODO: Use PhotoMetadata class
     # TODO: Use 'GPS Date/Time' if available as it's more accurate
-    try:
-        result = Popen(['exiftool', '-dateTimeOriginal', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
-        date_str = result.split(' : ')[1].strip()
+
+    # First try the date in the metadate
+    metadata = PhotoMetadata(path)
+    date_str = metadata.get('Date/Time Original')
+    if date_str:
         return parse_datetime(date_str)
-    except (IndexError, ValueError):
-        fn = os.path.split(path)[1]
-        matched = re.search(r'(20[0-9]{2})-([0-9]{2})-([0-9]{2})\D', fn)
-        if not matched:
-            matched = re.search(r'\D(20[0-9]{2})([0-9]{2})([0-9]{2})\D', fn)
-        if matched:
-            date_str = '{}-{}-{}'.format(matched.group(1), matched.group(2), matched.group(3))
-            return datetime.strptime(date_str, '%Y-%m-%d')
-        return None
+
+    # If there was not date metadata, try to infer it from filename
+    fn = os.path.split(path)[1]
+    matched = re.search(r'((19|20)[0-9]{2})-([0-9]{2})-([0-9]{2})\D', fn)
+    if not matched:
+        matched = re.search(r'\D((19|20)[0-9]{2})([0-9]{2})([0-9]{2})\D', fn)
+    if matched:
+        # import pdb; pdb.set_trace()
+        date_str = '{}-{}-{}'.format(matched.group(1), matched.group(3), matched.group(4))
+        return datetime.strptime(date_str, '%Y-%m-%d')
+    return None
+
 
 def get_dimensions(path):
     metadata = PhotoMetadata(path)
