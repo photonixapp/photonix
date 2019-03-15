@@ -35,6 +35,8 @@ services:
       REDIS_HOST: redis
     volumes:
      - ./photonix:/srv/photonix
+     - ./tests:/srv/tests
+     - ./test.py:/srv/test.py
      - ./ui/public:/srv/ui/public
      - ./ui/src:/srv/ui/src
      - ./ui/static:/srv/ui/static

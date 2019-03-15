@@ -57,6 +57,8 @@ COPY system/supervisord.conf /etc/supervisord.conf
 # Build frontend app
 RUN cd ui && yarn build
 
+ENV PYTHONPATH /srv
+
 CMD ./system/run.sh
 
 EXPOSE 80
