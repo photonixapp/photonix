@@ -2,9 +2,10 @@ import queue
 import threading
 from time import sleep
 
-# Pre-load the model graphs so it doesn't have to be done for each job
 from django.core.management.base import BaseCommand
+# Pre-load the model graphs so it doesn't have to be done for each job
 from photonix.classifiers.color import ColorModel, run_on_photo
+from photonix.photos.models import Task
 from photonix.photos.utils.tasks import requeue_stuck_tasks
 
 print('Loading style color model')
