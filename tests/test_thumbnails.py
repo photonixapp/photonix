@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from django.conf import settings
+from django.test import Client
 from photonix.photos.utils.thumbnails import get_thumbnail, get_thumbnail_path
 
 
