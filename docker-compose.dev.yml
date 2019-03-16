@@ -34,7 +34,9 @@ services:
       POSTGRES_PASSWORD: password
       REDIS_HOST: redis
     volumes:
-     - ./backend:/srv/backend
+     - ./photonix:/srv/photonix
+     - ./tests:/srv/tests
+     - ./test.py:/srv/test.py
      - ./ui/public:/srv/ui/public
      - ./ui/src:/srv/ui/src
      - ./ui/static:/srv/ui/static

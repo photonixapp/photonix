@@ -9,10 +9,10 @@ done
 
 
 >&2 echo "Running migrations"
-python /srv/backend/manage.py migrate
+python /srv/photonix/manage.py migrate
 
 >&2 echo "Resetting Redis lock"
-python /srv/backend/manage.py reset_redis_locks
+python /srv/photonix/manage.py reset_redis_locks
 
 >&2 echo "Starting supervisor"
 supervisord -c /etc/supervisord.conf

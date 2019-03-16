@@ -46,7 +46,7 @@ RUN sed -i "s|tensorflow==1.12.0|https://github.com/damianmoore/tensorflow-build
 RUN pip install -r requirements.txt
 
 # Copy over the code
-COPY backend /srv/backend
+COPY photonix /srv/photonix
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
 
@@ -56,6 +56,8 @@ COPY system/supervisord.conf /etc/supervisord.conf
 
 # Build frontend app
 RUN cd ui && yarn build
+
+ENV PYTHONPATH /srv
 
 CMD ./system/run.sh
 
