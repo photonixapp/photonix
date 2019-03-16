@@ -177,7 +177,7 @@ class Task(UUIDModel, VersionedModel):
     status                  = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, default='P', db_index=True)
     started_at              = models.DateTimeField(null=True)
     finished_at             = models.DateTimeField(null=True)
-    parent                  = models.ForeignKey('self', related_name='children', null=True)
+    parent                  = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)
     complete_with_children  = models.BooleanField(default=False)
 
     class Meta:
