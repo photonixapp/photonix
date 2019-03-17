@@ -18,13 +18,13 @@
   font-size: 14px;
 }
 .SearchInput li.filter svg.groupIcon {
-  filter: invert(1);
+  filter: invert(0.9);
   display: inline-block;
-  margin: -3px 5px 0 -6px;
+  margin: -3px 7px 0 -6px;
   vertical-align: middle;
 }
 .SearchInput li.filter svg.removeIcon {
-  filter: invert(1);
+  filter: invert(0.9);
   cursor: pointer;
   vertical-align: middle;
   margin: 0 0 3px 7px;
@@ -36,7 +36,7 @@
 .SearchInput input[type="text"] {
   width: 100%;
   font-size: 20px;
-  padding: 10px 40px 10px 15px;
+  padding: 11px 40px 9px 13px;
   background: #484848;
   border: 0;
   color: #fff;
@@ -46,9 +46,8 @@
   opacity: 1; /* Firefox */
 }
 .SearchInput svg.clearAll {
-  filter: invert(1);
+  filter: invert(0.6);
   cursor: pointer;
-  opacity: 0.4;
   position: absolute;
   right: 9px;
   bottom: 9px;

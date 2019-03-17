@@ -14,7 +14,7 @@
   margin: 0 0 0 40px;
 }
 
-header.collapsed .Filters {
+.Browse .collapsed .Filters {
   opacity: 0;
 }
 
@@ -58,7 +58,7 @@ header.collapsed .Filters {
   background: #383838;
   display: inline-block;
   margin: 0 10px 10px 0;
-  padding: 5px 10px;
+  padding: 6px 10px 4px;
   font-size: 12px;
   border-radius: 4px;
   cursor: pointer;

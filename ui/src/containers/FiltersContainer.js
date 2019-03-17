@@ -104,20 +104,24 @@ export default class FiltersContainer extends React.Component {
       this.scrollbarHandleWidth = 100
     }
 
-    this.contentWidth = this.containerRef.current.firstChild.clientWidth + this.padding
-    this.contentViewWidth = this.containerRef.current.clientWidth + (2 * this.padding)
-    this.contentScrollRange = this.contentWidth - this.contentViewWidth + (2 * this.padding)
-    this.scrollbarWidth = this.containerRef.current.parentElement.clientWidth
-    this.scrollbarScrollRange = this.scrollbarWidth - this.scrollbarHandleWidth
+    if (this.containerRef.current) {
+      this.contentWidth = this.containerRef.current.firstChild.clientWidth + this.padding
+      this.contentViewWidth = this.containerRef.current.clientWidth + (2 * this.padding)
+      this.contentScrollRange = this.contentWidth - this.contentViewWidth + (2 * this.padding)
+      this.scrollbarWidth = this.containerRef.current.parentElement.clientWidth
+      this.scrollbarScrollRange = this.scrollbarWidth - this.scrollbarHandleWidth
+    }
   }
 
   positionScrollbar = () => {
-    this.contentOffset = this.containerRef.current.scrollLeft
-    this.scrollProgress = this.contentOffset / this.contentScrollRange
-    this.scrollbarLeft = parseInt((this.padding) + (this.scrollProgress * this.scrollbarScrollRange), 10)
-    this.scrollbarHandleRef.current.style.left = this.scrollbarLeft + 'px'
-    this.scrollbarHandleRef.current.style.width = this.scrollbarHandleWidth + 'px'
-    this.initialised = true
+    if (this.containerRef.current) {
+      this.contentOffset = this.containerRef.current.scrollLeft
+      this.scrollProgress = this.contentOffset / this.contentScrollRange
+      this.scrollbarLeft = parseInt((this.padding) + (this.scrollProgress * this.scrollbarScrollRange), 10)
+      this.scrollbarHandleRef.current.style.left = this.scrollbarLeft + 'px'
+      this.scrollbarHandleRef.current.style.width = this.scrollbarHandleWidth + 'px'
+      this.initialised = true
+    }
   }
 
   positionViewport = () => {

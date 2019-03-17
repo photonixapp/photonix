@@ -1,3 +1,6 @@
+.Browse {
+  position: relative;
+}
 .Browse .tabs {
   display: inline-block;
   margin: 0;
@@ -11,23 +14,24 @@
   list-style: none;
   padding: 10px 20px;
   background: #1d1d1d;
+  font-weight: 600;
 }
 .Browse .tabs button {
   width: 32px;
 }
 .Browse .tabs a {
-  color: #fff;
+  color: #ddd;
   margin-left: 10px;
 }
 
-header {
+.Browse .searchBar {
   background: #292929;
   position: relative;
   height: 330px;
   transition: all 200ms;
   transition-timing-function: ease-in-out;
 }
-header.collapsed {
+.Browse .searchBar.collapsed {
   height: 140px;
 }
 
@@ -40,7 +44,7 @@ header.collapsed {
   cursor: pointer;
 }
 .Browse .expandCollapse img {
-  filter: invert(1);
+  filter: invert(0.9);
   transition: all 600ms;
   transition-timing-function: ease-in-out;
 }
@@ -52,7 +56,7 @@ header.collapsed {
   .Browse .tabs {
     right: 20px;
   }
-  header.collapsed {
+  .Browse .searchBar.collapsed {
     height: 110px;
   }
   .Browse .expandCollapse {

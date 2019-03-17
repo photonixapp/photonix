@@ -1,0 +1,71 @@
+header {
+  height: 50px;
+  flex: none;
+  justify-content: space-between;
+  background: #484848;
+  z-index: 20;
+}
+
+header .logo {
+  flex: none;
+  font-size: 28px;
+  font-weight: 400;
+  margin: 10px 15px;
+}
+header .navigation {
+  flex-grow: 1;
+}
+header .notifications {
+  width: 50px;
+}
+header .user {
+  width: 84px;
+}
+header .logo img {
+  width: 50px;
+  height: 50px;
+  padding: 10px 0 10px 10px;
+}
+header .notifications img, header .user img {
+  filter: invert(0.9);
+  padding: 10px 0 10px 10px;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
+header .user img.arrowDown {
+  width: 34px;
+  padding: 10px 10px 10px 0;
+}
+
+.menu {
+  display: none;
+  position: absolute;
+  width: 200px;
+  right: 0px;
+  top: 50px;
+  z-index: 10;
+  background: #484848;
+  margin: 0;
+  list-style: none;
+  padding: 0;
+  box-shadow: -3px 8px 17px rgba(0, 0, 0, 0.15);
+}
+.menu li {
+  cursor: pointer;
+  padding: 15px 20px;
+}
+.menu li:hover {
+  background: rgba(255,255,255,0.1);
+}
+header .user .menu img {
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  vertical-align: -5px;
+  margin-right: 10px;
+}
+
+header .user:hover .menu {
+  display: block;
+}

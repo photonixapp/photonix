@@ -11,7 +11,6 @@ body {
   padding: 0;
   background: #1d1d1d;
   color: #ddd;
-  font-family: Ubuntu, Roboto, -apple-system-body, BlinkMacSystemFont, sans-serif;
   height: 100%;
 }
 
@@ -49,12 +48,6 @@ footer {
   text-align: center;
 }
 
-.logo {
-  width: 200px;
-  height: 75px;
-  display: inline-block;
-}
-
 #filters {
   width: 300px;
   height: 100%;
@@ -79,7 +72,7 @@ footer {
 }
 
 @media all and (max-width: 700px) {
-  header {
+  .Browse .searchBar {
     height: 330px;
   }
 }
