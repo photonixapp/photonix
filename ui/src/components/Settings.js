@@ -1,8 +1,9 @@
 import React from 'react'
 import '../static/css/Settings.css'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
+import folder from '../static/images/folder.svg'
 
-const Settings = ({ data, parentSettings, onHideModals }) => (
+const Settings = ({ data, parentSettings, onSelectSourceDir, onHideModals }) => (
   <div className="Settings" onClick={onHideModals}>
     <div className="modal" onClick={(e) => {e.stopPropagation()}}>
       <span onClick={onHideModals}>
@@ -12,7 +13,21 @@ const Settings = ({ data, parentSettings, onHideModals }) => (
       <ul>
         {data.map((item, index) => {
           if (parentSettings) {
-            return <li key={item.key}>{item.name} &nbsp; {parentSettings ? parentSettings[item.key] : 'empty'}</li>
+            let field = null
+            let icon = null
+
+            if (item.type === 'path') {
+              field = <input type="text" value={parentSettings ? parentSettings[item.key] : 'empty'} />
+              icon = <span onClick={onSelectSourceDir}><img src={folder} className="folder" alt="" /></span>
+            }
+
+            return (
+              <li key={item.key}>
+                <div>{item.name}</div>
+                <div>{field}</div>
+                {icon}
+              </li>
+            )
           }
         })}
       </ul>

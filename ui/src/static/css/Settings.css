@@ -27,6 +27,13 @@
 }
 .Settings .modal li {
   margin-bottom: 20px;
+  display: flex;
+}
+.Settings .modal li div {
+  flex: 50%;
+}
+.Settings img {
+  filter: invert(0.9);
 }
 .Settings .modal .closeIcon {
   filter: invert(0.9);
@@ -34,4 +41,16 @@
   top: 10px;
   right: 10px;
   cursor: pointer;
+}
+.Settings .modal input {
+  background: #484848;
+  color: #fff;
+  border: 0;
+  padding: 10px;
+  width: 100%;
+}
+.Settings .modal .folder {
+  cursor: pointer;
+  margin: 5px 0 0 20px;
+  vertical-align: middle;
 }

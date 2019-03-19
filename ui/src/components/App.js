@@ -25,7 +25,7 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters, onShowSettings, 
     <SettingsContainer visible={showSettings} onHideModals={onHideModals} onGetParentSettings={onGetParentSettings} settings={settings} data={[
       {
         key: 'sourceDirs',
-        type: 'string',
+        type: 'path',
         name: 'Source folder',
       },
       {

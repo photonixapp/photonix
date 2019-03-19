@@ -25,9 +25,16 @@ export default class SettingsContainer extends React.Component {
     }
   }
 
+  onSelectSourceDir = () => {
+    if (window.sendSyncToElectron) {
+      window.sendToElectron('select-dir')
+      setTimeout(this.props.onGetParentSettings, 1000)
+    }
+  }
+
   render = () => {
     if (this.props.visible) {
-      return <Settings data={this.props.data} parentSettings={this.props.settings} onHideModals={this.props.onHideModals} />
+      return <Settings data={this.props.data} parentSettings={this.props.settings} onSelectSourceDir={this.onSelectSourceDir} onHideModals={this.props.onHideModals} />
     }
     return null
   }
