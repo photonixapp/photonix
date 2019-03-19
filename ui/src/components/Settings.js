@@ -2,7 +2,7 @@ import React from 'react'
 import '../static/css/Settings.css'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
-const Settings = ({ data, onHideModals }) => (
+const Settings = ({ data, parentSettings, onHideModals }) => (
   <div className="Settings" onClick={onHideModals}>
     <div className="modal" onClick={(e) => {e.stopPropagation()}}>
       <span onClick={onHideModals}>
@@ -11,7 +11,9 @@ const Settings = ({ data, onHideModals }) => (
       <h2>Settings</h2>
       <ul>
         {data.map((item, index) => {
-          return <li key={item.key}>{item.name} &nbsp; {item.val}</li>
+          if (parentSettings) {
+            return <li key={item.key}>{item.name} &nbsp; {parentSettings ? parentSettings[item.key] : 'empty'}</li>
+          }
         })}
       </ul>
     </div>

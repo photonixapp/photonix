@@ -11,30 +11,13 @@ export default class AppContainer extends React.Component {
       selectedFilterIds: [],
       selectedFilters: [],
       detailPhoto: null,
-      config: {},
+      settings: null,
       showSettings: false,
     }
-  }
-
-  componentDidMount = () => {
-    window.addEventListener('message', this.onMessageReceived, false);
-  }
-
-  componentWillUnmount = () => {
-    window.removeEventListener('message', this.onMessageReceived, false);
-  }
-
-  onMessageReceived = (event) => {
-    if (event.origin !== 'file://') {
-        return
-    }
-    console.log('received message')
-    console.log(event)
-    if (event.data.type === 'show-settings') {
-      this.onShowSettings()
-    }
-    else if (event.data.type === 'logout') {
-      alert('logged out')
+    window.showSettings = (message) => {
+      this.setState({
+        showSettings: true
+      })
     }
   }
 
@@ -81,6 +64,13 @@ export default class AppContainer extends React.Component {
     })
   }
 
+  onGetParentSettings = () => {
+    if (window.sendSyncToElectron) {
+      let result = window.sendSyncToElectron('get-settings')
+      this.setState({settings: result})
+    }
+  }
+
   logout = () => {
     console.log('logged out')
   }
@@ -92,6 +82,8 @@ export default class AppContainer extends React.Component {
       onClearFilters={this.onClearFilters}
       onShowSettings={this.onShowSettings}
       showSettings={this.state.showSettings}
-      onHideModals={this.onHideModals} />
+      onHideModals={this.onHideModals}
+      settings={this.state.settings}
+      onGetParentSettings={this.onGetParentSettings} />
   }
 }

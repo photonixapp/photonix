@@ -14,7 +14,7 @@ const Header = ({onShowSettings}) => {
         <div className="notifications"><img src={notifications} alt="Notifications" /></div>
         <div className="user">
           <img src={accountCircle} alt="User account" />
-          <img src={arrowDown} className="arrowDown" />
+          <img src={arrowDown} className="arrowDown" alt="" />
           <ul className="menu">
             <li onClick={onShowSettings}><img src={settings} /> Settings</li>
           </ul>

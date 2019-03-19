@@ -13,7 +13,7 @@ import ComponentsBrowser from '../components/ComponentsBrowser'
 
 const client = new ApolloClient()
 
-const App = ({ selectedFilters, onFilterToggle, onClearFilters, onShowSettings, showSettings, onHideModals }) => (
+const App = ({ selectedFilters, onFilterToggle, onClearFilters, onShowSettings, showSettings, onHideModals, settings, onGetParentSettings }) => (
   <ApolloProvider client={client}>
     <Router>
       <div>
@@ -22,16 +22,14 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters, onShowSettings, 
         <Route path="/components" exact render={(params) => <ComponentsBrowser />} />
       </div>
     </Router>
-    <SettingsContainer visible={showSettings} onHideModals={onHideModals} data={[
+    <SettingsContainer visible={showSettings} onHideModals={onHideModals} onGetParentSettings={onGetParentSettings} settings={settings} data={[
       {
-        key: 'sourceDir',
-        value: null,
+        key: 'sourceDirs',
         type: 'string',
         name: 'Source folder',
       },
       {
-        key: 'watchSourceDir',
-        value: null,
+        key: 'watchSourceDirs',
         type: 'boolean',
         name: 'Watch folder for new photos',
       },
