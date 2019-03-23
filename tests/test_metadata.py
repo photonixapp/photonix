@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from photos.utils.metadata import PhotoMetadata, parse_gps_location, get_datetime
+from photonix.photos.utils.metadata import PhotoMetadata, parse_gps_location, get_datetime
 
 
 def test_metadata():

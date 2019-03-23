@@ -29,6 +29,7 @@ const Settings = ({ data, parentSettings, onSelectSourceDir, onHideModals }) => 
               </li>
             )
           }
+          return null
         })}
       </ul>
     </div>
