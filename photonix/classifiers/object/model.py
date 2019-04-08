@@ -13,13 +13,13 @@ from photonix.classifiers.object.utils import label_map_util
 from photonix.classifiers.base_model import BaseModel
 
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-GRAPH_FILE = os.path.join('object', 'faster_rcnn_inception_resnet_v2_atrous_lowproposals_oid_2018_01_28_frozen_inference_graph.pb')
-LABEL_FILE = os.path.join('object', 'oid_bbox_trainable_label_map.pbtxt')
+GRAPH_FILE = os.path.join('object', 'ssd_mobilenet_v2_oid_v4_2018_12_12_frozen_inference_graph.pb')
+LABEL_FILE = os.path.join('object', 'oid_v4_label_map.pbtxt')
 
 
 class ObjectModel(BaseModel):
     name = 'object'
-    version = 20180124
+    version = 20190407
     approx_ram_mb = 2000
 
     def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
@@ -86,7 +86,7 @@ class ObjectModel(BaseModel):
 
                 # all outputs are float32 numpy arrays, so convert types as appropriate
                 output_dict['num_detections'] = int(output_dict['num_detections'][0])
-                output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint8)
+                output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint16)
                 output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
                 output_dict['detection_scores'] = output_dict['detection_scores'][0]
         return output_dict
@@ -113,7 +113,7 @@ class ObjectModel(BaseModel):
             })
         return results
 
-    def predict(self, image_file, min_score=0.66):
+    def predict(self, image_file, min_score=0.1):
         image = Image.open(image_file)
         # the array based representation of the image will be used later in order to prepare the
         # result image with boxes and labels on it.

@@ -82,17 +82,17 @@ def test_object_via_runner(photo_fixture_snow):
     photo, result = run_on_photo(snow)
 
     assert photo is None
-    assert len(result) == 2
+    assert len(result) == 3
     assert result[0]['label'] == 'Tree'
-    assert '{0:.3f}'.format(result[0]['significance']) == '0.226'
+    assert '{0:.3f}'.format(result[0]['significance']) == '0.134'
 
     # Passing in a Photo object should tag the object
     assert photo_fixture_snow.photo_tags.count() == 0
     photo, result = run_on_photo(photo_fixture_snow.id)
-    assert photo_fixture_snow.photo_tags.count() == 2
+    assert photo_fixture_snow.photo_tags.count() == 3
     assert photo_fixture_snow.photo_tags.all()[0].tag.name == 'Tree'
     assert photo_fixture_snow.photo_tags.all()[0].tag.type == 'O'
-    assert '{0:.3f}'.format(photo_fixture_snow.photo_tags.all()[0].significance) == '0.226'
+    assert '{0:.3f}'.format(photo_fixture_snow.photo_tags.all()[0].significance) == '0.134'
 
 
 def test_style_via_runner(photo_fixture_snow):

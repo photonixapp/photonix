@@ -43,7 +43,7 @@ RUN yarn install
 WORKDIR /srv
 COPY requirements.txt /srv/requirements.txt
 RUN sed -i "s|tensorflow==1.12.0|https://github.com/damianmoore/tensorflow-builder/releases/download/v1.12.0/tensorflow-1.12.0-cp36-cp36m-linux_x86_64.whl|g" /srv/requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy over the code
 COPY photonix /srv/photonix

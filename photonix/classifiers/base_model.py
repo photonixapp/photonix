@@ -33,6 +33,13 @@ class BaseModel:
     def graph_cache_key(self):
         return '{}:{}'.format(self.name, self.model_dir)
 
+    def get_model_info(self):
+        from django.conf import settings
+        response = requests.get(settings.MODEL_INFO_URL)
+        models_info = json.loads(response.content)
+        model_info = models_info[self.name][str(self.version)]
+        return model_info
+
     def ensure_downloaded(self, lock_name=None):
         if self.graph_cache_key in self.graph_cache:
             return True
@@ -50,10 +57,7 @@ class BaseModel:
             except FileNotFoundError:
                 pass
 
-            from django.conf import settings
-            response = requests.get(settings.MODEL_INFO_URL)
-            models_info = json.loads(response.content)
-            model_info = models_info[self.name][str(self.version)]
+            model_info = self.get_model_info()
             error = False
 
             for file_data in model_info['files']:

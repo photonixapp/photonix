@@ -74,20 +74,25 @@ def test_object_predict():
     model = ObjectModel()
     snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
     result = model.predict(snow)
+#     import pdb; pdb.set_trace()
 
-    assert len(result) == 2
+    assert len(result) == 3
 
     assert result[0]['label'] == 'Tree'
-    assert '{0:.3f}'.format(result[0]['score']) == '0.950'
-    assert '{0:.3f}'.format(result[0]['significance']) == '0.226'
-    assert '{0:.3f}'.format(result[0]['x']) == '0.791'
-    assert '{0:.3f}'.format(result[0]['y']) == '0.394'
-    assert '{0:.3f}'.format(result[0]['width']) == '0.341'
-    assert '{0:.3f}'.format(result[0]['height']) == '0.700'
+    assert '{0:.3f}'.format(result[0]['score']) == '0.602'
+    assert '{0:.3f}'.format(result[0]['significance']) == '0.134'
+    assert '{0:.3f}'.format(result[0]['x']) == '0.787'
+    assert '{0:.3f}'.format(result[0]['y']) == '0.374'
+    assert '{0:.3f}'.format(result[0]['width']) == '0.340'
+    assert '{0:.3f}'.format(result[0]['height']) == '0.655'
 
     assert result[1]['label'] == 'Tree'
-    assert '{0:.3f}'.format(result[1]['score']) == '0.819'
-    assert '{0:.3f}'.format(result[1]['significance']) == '0.035'
+    assert '{0:.3f}'.format(result[1]['score']) == '0.525'
+    assert '{0:.3f}'.format(result[1]['significance']) == '0.016'
+
+    assert result[2]['label'] == 'Tree'
+    assert '{0:.3f}'.format(result[2]['score']) == '0.453'
+    assert '{0:.3f}'.format(result[2]['significance']) == '0.025'
 
 
 def test_style_predict():
