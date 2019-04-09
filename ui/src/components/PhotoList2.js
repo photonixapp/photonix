@@ -12,7 +12,11 @@ const PhotoList2 = ({ photoSections, onScroll, onMouseDown, onTouchStart, onHist
       <Thumbnails photoSections={photoSections} />
     </div>
     <div className="Scrollbar" ref={scrollbarHandleRef} style={{opacity: displayScrollbar ? 1 : null}} onMouseDown={onMouseDown} onTouchStart={onTouchStart}></div>
-    <Histogram photoSections={photoSections} selectedSection={selectedSection} onClick={onHistogramClick} />
+    {
+      photoSections.length >= 5 ?
+      <Histogram photoSections={photoSections} selectedSection={selectedSection} onClick={onHistogramClick} />
+      : null
+    }
   </div>
 )
 

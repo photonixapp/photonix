@@ -42,6 +42,9 @@ footer {
 }
 .main {
   flex-grow: 1;
+  overflow: hidden;
+  background: #1b1b1b;
+  z-index: 1;
 }
 
 .App {

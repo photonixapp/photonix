@@ -40,23 +40,36 @@ export default class BrowseContainer extends React.Component {
     return (
       <Query query={GET_PHOTOS} variables={{filters: filtersStr}}>
         {({ loading, error, data }) => {
+          let photoSections = []
           let photos = []
           if (!loading && !error) {
             photos = data.allPhotos.edges.map((photo) => (
-            {
-              id: photo.node.id,
-              thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
-              location: photo.node.location ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]] : null,
-            }
+              {
+                id: photo.node.id,
+                thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+                location: photo.node.location ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]] : null,
+              }
             ))
           }
+
+          let section = {
+            id: 12345,
+            title: null,
+            segments: [
+              {
+                numPhotos: photos.length,
+                photos: photos,
+              }
+            ]
+          }
+          photoSections.push(section)
 
           return <Browse
             selectedFilters={this.props.selectedFilters}
             mode={mode}
             loading={loading}
             error={error}
-            photos={photos}
+            photoSections={photoSections}
             onFilterToggle={this.props.onFilterToggle}
             onClearFilters={this.props.onClearFilters}
             onExpandCollapse={this.onExpandCollapse}

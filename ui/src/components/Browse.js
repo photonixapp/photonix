@@ -2,18 +2,18 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import HeaderContainer from '../containers/HeaderContainer'
 import SearchContainer from '../containers/SearchContainer'
-import PhotoListContainer from '../containers/PhotoListContainer'
+import PhotoListContainer2 from '../containers/PhotoListContainer2'
 import MapViewContainer from '../containers/MapViewContainer'
 import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/Browse.css'
 
-const Browse = ({ selectedFilters, mode, loading, error, photos, onFilterToggle, onClearFilters, onExpandCollapse, expanded, onShowSettings }) => {
+const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilterToggle, onClearFilters, onExpandCollapse, expanded, onShowSettings }) => {
   let content = (mode === 'MAP')
   ?
-    <MapViewContainer photos={photos} />
+    <MapViewContainer photos={photoSections} />
   :
-    <PhotoListContainer selectedFilters={selectedFilters} photos={photos} />
+    <PhotoListContainer2 selectedFilters={selectedFilters} photoSections={photoSections} />
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
 
@@ -32,10 +32,8 @@ const Browse = ({ selectedFilters, mode, loading, error, photos, onFilterToggle,
         <img src={arrowDown} alt="" />
       </div>
     </div>
-    <div className="main flex-container-row">
-      <section id="content">
-        { content }
-      </section>
+    <div className="main">
+      { content }
     </div>
   </div>
 }

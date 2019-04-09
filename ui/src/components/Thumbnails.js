@@ -11,7 +11,7 @@ const Thumbnails = ({ photoSections }) => (
       photoSections.map((section) => {
         return (
           <div className="section" id={section.id} key={section.id}>
-            <h2>{section.title}</h2>
+            { section.title ? <h2>{section.title}</h2> : null }
             {
               section.segments.map((segment) => (
                 segment.photos.map((photo) => (
