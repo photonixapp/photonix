@@ -15,11 +15,11 @@ const GET_PHOTO = gql`
 export default class PhotoDetailContainer extends React.Component {
   render = () => {
     return (
-      <Query query={GET_PHOTO} variables={{id: this.props.photoId}}>
+      <Query query={GET_PHOTO} variables={{id: this.props.match.params.photoId}}>
         {({ loading, error, data }) => {
           if (loading) return <Spinner />
           if (error) return <p>Error :(</p>
-          return <PhotoDetail photoId={this.props.photoId} />
+          return <PhotoDetail photoId={this.props.match.params.photoId} />
         }}
       </Query>
     )

@@ -74,6 +74,12 @@ footer {
   display: none;
 }
 
+.react-router-modal__modal {
+  border: 0;
+  border-radius: 0;
+  background: rgba(0,0,0,0);
+}
+
 @media all and (max-width: 700px) {
   .Browse .searchBar {
     height: 330px;

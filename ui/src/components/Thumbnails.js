@@ -15,7 +15,7 @@ const Thumbnails = ({ photoSections }) => (
             {
               section.segments.map((segment) => (
                 segment.photos.map((photo) => (
-                  <Link to={'/photo/' + photo.id} key={photo.id}>
+                  <Link to={`/photo/${photo.id}`} key={photo.id}>
                     <li className="thumbnail">
                       <div className="image" style={{backgroundImage: 'url(' + photo.thumbnail + ')'}} />
                     </li>

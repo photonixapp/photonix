@@ -1,5 +1,7 @@
 .PhotoDetail {
+  width: 100vw;
   height: 100vh;
+  background-color: #1b1b1b;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
