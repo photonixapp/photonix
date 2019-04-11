@@ -11,7 +11,7 @@ import '../static/css/Browse.css'
 const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilterToggle, onClearFilters, onExpandCollapse, expanded, onShowSettings }) => {
   let content = (mode === 'MAP')
   ?
-    <MapViewContainer photos={photoSections} />
+    <MapViewContainer photos={photoSections[0].segments[0].photos} />
   :
     <PhotoListContainer2 selectedFilters={selectedFilters} photoSections={photoSections} />
   if (loading) content = <Spinner />
