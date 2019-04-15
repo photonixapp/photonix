@@ -18,14 +18,14 @@
 .PhotoDetail .metadata {
   padding-top: 100vh;
   min-height: 200px;
-  width: 110vw;
+  width: 100vw;
 }
 .PhotoDetail .metadata h2 {
   font-size: 18px;
   margin: 0 0 20px 0;
 }
 .PhotoDetail .metadata .boxes {
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.75);
   padding: 40px 20px 20px 40px;
 }
 .PhotoDetail .metadata .boxes .box {

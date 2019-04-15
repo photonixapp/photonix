@@ -85,3 +85,10 @@ footer {
     height: 330px;
   }
 }
+
+@media only screen and (max-device-width: 1024px) {
+  .react-router-modal__container {
+    -webkit-transform: none;
+    transform: none;
+  }
+}
