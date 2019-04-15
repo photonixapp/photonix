@@ -6,4 +6,37 @@
   background-repeat: no-repeat;
   background-position: center;
   cursor: pointer;
+  overflow: hidden;
+}
+
+.PhotoDetail .content {
+  width: 110vw;
+  height: 100vh;
+  overflow: auto;
+}
+
+.PhotoDetail .metadata {
+  padding-top: 100vh;
+  min-height: 200px;
+  width: 110vw;
+}
+.PhotoDetail .metadata h2 {
+  font-size: 18px;
+  margin: 0 0 20px 0;
+}
+.PhotoDetail .metadata .boxes {
+  background: rgba(0,0,0,0.5);
+  padding: 40px 20px 20px 40px;
+}
+.PhotoDetail .metadata .boxes .box {
+  display: inline-block;
+  width: 200px;
+  vertical-align: top;
+  margin: 0 20px 20px 0;
+}
+
+.PhotoDetail .metadata .boxes .box ul {
+  padding: 0;
+  list-style: none;
+  margin: 0;
 }
