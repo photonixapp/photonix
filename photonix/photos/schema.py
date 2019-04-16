@@ -5,7 +5,7 @@ import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
-from .models import Camera, Lens, Photo, Tag
+from .models import Camera, Lens, Photo, Tag, PhotoTag
 
 
 class CameraType(DjangoObjectType):
@@ -16,6 +16,10 @@ class CameraType(DjangoObjectType):
 class LensType(DjangoObjectType):
     class Meta:
         model = Lens
+
+class PhotoTagType(DjangoObjectType):
+    class Meta:
+        model = PhotoTag
 
 
 class CustomNode(graphene.Node):
@@ -36,6 +40,10 @@ class PhotoInterface(graphene.Interface):
 class PhotoNode(DjangoObjectType):
     url = graphene.String()
     location = graphene.String()
+    location_tags = graphene.List(PhotoTagType)
+    object_tags = graphene.List(PhotoTagType)
+    color_tags = graphene.List(PhotoTagType)
+    style_tags = graphene.List(PhotoTagType)
 
     class Meta:
         model = Photo
@@ -49,6 +57,18 @@ class PhotoNode(DjangoObjectType):
     def resolve_url(self, info):
         size = settings.THUMBNAIL_SIZES[-1]
         return self.thumbnail_url(size)
+
+    def resolve_location_tags(self, info):
+        return self.photo_tags.filter(tag__type='L')
+
+    def resolve_object_tags(self, info):
+        return self.photo_tags.filter(tag__type='O')
+
+    def resolve_color_tags(self, info):
+        return self.photo_tags.filter(tag__type='C')
+
+    def resolve_style_tags(self, info):
+        return self.photo_tags.filter(tag__type='S')
 
 
 class PhotoFilter(django_filters.FilterSet):

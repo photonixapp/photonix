@@ -19,16 +19,74 @@ const PhotoDetail = ({ photoId, photo }) => (
               <li>Focal length: {photo.focalLength}</li>
               <li>Flash: {photo.flash ? 'ON' : 'OFF'}</li>
               <li>Metering mode: {photo.meteringMode}</li>
-              {photo.driveMode ? `<li>Drive mode: ${photo.driveMode}</li>` : ''}
-              {photo.shootingMode ? `<li>Shooting mode: ${photo.shootingMode}</li>` : ''}
+              {photo.driveMode ? <li>Drive mode: {photo.driveMode}</li> : ''}
+              {photo.shootingMode ? <li>Shooting mode: {photo.shootingMode}</li> : ''}
             </ul>
           </div>
-          <div className="box">
-            <h2>Tags</h2>
-          </div>
-          <div className="box">
-            <h2>Map</h2>
-          </div>
+          {
+            photo.locationTags.length
+            ?
+            <div className="box">
+              <h2>Locations</h2>
+              <ul>
+                {
+                  photo.locationTags.map((photoTag) => (
+                    <li>{photoTag.tag.name}</li>
+                  ))
+                }
+              </ul>
+            </div>
+            :
+            ''
+          }
+          {
+            photo.colorTags.length
+            ?
+            <div className="box">
+              <h2>Colors</h2>
+              <ul>
+                {
+                  photo.colorTags.map((photoTag) => (
+                    <li>{photoTag.tag.name}</li>
+                  ))
+                }
+              </ul>
+            </div>
+            :
+            ''
+          }
+          {
+            photo.objectTags.length
+            ?
+            <div className="box">
+              <h2>Objects</h2>
+              <ul>
+                {
+                  photo.objectTags.map((photoTag) => (
+                    <li>{photoTag.tag.name}</li>
+                  ))
+                }
+              </ul>
+            </div>
+            :
+            ''
+          }
+          {
+            photo.styleTags.length
+            ?
+            <div className="box">
+              <h2>Styles</h2>
+              <ul>
+                {
+                  photo.styleTags.map((photoTag) => (
+                    <li>{photoTag.tag.name}</li>
+                  ))
+                }
+              </ul>
+            </div>
+            :
+            ''
+          }
         </div>
       </div>
     </div>

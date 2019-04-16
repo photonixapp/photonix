@@ -5,33 +5,57 @@ import PhotoDetail from '../components/PhotoDetail'
 import Spinner from '../components/Spinner'
 
 const GET_PHOTO = gql`
-  query Photo($id: UUID) {
-    photo(id: $id) {
+query Photo($id: UUID) {
+  photo(id: $id) {
+    id
+    takenAt
+    takenBy
+    aperture
+    exposure
+    isoSpeed
+    focalLength
+    flash
+    meteringMode
+    driveMode
+    shootingMode
+    camera {
       id
-      takenAt
-      takenBy
-      aperture
-      exposure
-      isoSpeed
-      focalLength
-      flash
-      meteringMode
-      driveMode
-      shootingMode
-      camera {
-        id
-        make
-        model
-      }
-      lens {
-        id
+      make
+      model
+    }
+    lens {
+      id
+      name
+    }
+    location
+    altitude
+    url
+    locationTags {
+      id
+      tag {
         name
       }
-      location
-      altitude
-      url
+    }
+    objectTags {
+      id
+      tag {
+        name
+      }
+    }
+    colorTags {
+      id
+      tag {
+        name
+      }
+    }
+    styleTags {
+      id
+      tag {
+        name
+      }
     }
   }
+}
 `
 
 export default class PhotoDetailContainer extends React.Component {
