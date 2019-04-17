@@ -41,6 +41,10 @@ query Photo($id: UUID) {
       tag {
         name
       }
+      positionX
+      positionY
+      sizeX
+      sizeY
     }
     colorTags {
       id
@@ -54,6 +58,8 @@ query Photo($id: UUID) {
         name
       }
     }
+    width
+    height
   }
 }
 `

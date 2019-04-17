@@ -44,6 +44,8 @@ class PhotoNode(DjangoObjectType):
     object_tags = graphene.List(PhotoTagType)
     color_tags = graphene.List(PhotoTagType)
     style_tags = graphene.List(PhotoTagType)
+    width = graphene.Int()
+    height = graphene.Int()
 
     class Meta:
         model = Photo
@@ -69,6 +71,12 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_style_tags(self, info):
         return self.photo_tags.filter(tag__type='S')
+
+    def resolve_width(self, info):
+        return self.dimensions[0]
+
+    def resolve_height(self, info):
+        return self.dimensions[1]
 
 
 class PhotoFilter(django_filters.FilterSet):

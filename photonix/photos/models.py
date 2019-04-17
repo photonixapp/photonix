@@ -83,6 +83,13 @@ class Photo(UUIDModel, VersionedModel):
     def base_image_path(self):
         return self.base_file.base_image_path
 
+    @property
+    def dimensions(self):
+        file = self.base_file
+        if file:
+            return (file.width, file.height)
+        return (None, None)
+
     def clear_tags(self, source, type):
         self.photo_tags.filter(tag__source=source, tag__type=type).delete()
 

@@ -13,6 +13,8 @@
   width: 110vw;
   height: 100vh;
   overflow: auto;
+  position: absolute;
+  z-index: 1;
 }
 
 .PhotoDetail .metadata {
@@ -39,4 +41,17 @@
   padding: 0;
   list-style: none;
   margin: 0;
+}
+
+.PhotoDetail .BoundingBoxesContainer {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+}
+
+/* When two boxes can no longer fit next to each other */
+@media all and (max-width: 500px) {
+  .PhotoDetail .metadata .boxes .box {
+    width: 100%;
+  }
 }
