@@ -3,7 +3,15 @@
   height: 100%;
 }
 .BoundingBoxes .FeatureBox {
-  border: 3px solid #f00;
+  border: 3px solid rgba(255,0,0,0.75);
   position: absolute;
-  opacity: 0.75;
+}
+.BoundingBoxes .FeatureBox .FeatureLabel {
+  color: #FFF;
+  font-size: 14px;
+  background-color: rgba(255,0,0,0.75);
+  display: inline-block;
+  overflow: hidden;
+  max-width: 100%;
+  padding: 0 5px 2px 2px;
 }

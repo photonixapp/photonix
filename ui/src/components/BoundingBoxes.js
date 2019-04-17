@@ -20,7 +20,11 @@ const BoundingBoxes = ({ photoWidth, photoHeight, boxes }) => {
           let height = (box.sizeY * displayHeight) + 'px'
           let left = offsetLeft + (box.positionX * displayWidth) - (box.sizeX * displayWidth / 2) + 'px'
           let top = offsetTop + (box.positionY * displayHeight) - (box.sizeY * displayHeight / 2) + 'px'
-          return <div className="FeatureBox" key={index} style={{left: left, top: top, width: width, height: height}} />
+          return (
+            <div className="FeatureBox" key={index} style={{left: left, top: top, width: width, height: height}}>
+              <div className="FeatureLabel" key={index}>{box.name}</div>
+            </div>
+          )
         })
       }
     </div>

@@ -9,6 +9,7 @@ const history = createHistory()
 const PhotoDetail = ({ photoId, photo }) => {
   let boxes = photo.objectTags.map((objectTag) => {
     return {
+      name: objectTag.tag.name,
       positionX: objectTag.positionX,
       positionY: objectTag.positionY,
       sizeX: objectTag.sizeX,
@@ -24,7 +25,7 @@ const PhotoDetail = ({ photoId, photo }) => {
             <div className="box">
               <h2>Camera</h2>
               <ul>
-                <li>{photo.camera.make} {photo.camera.model}</li>
+                {photo.camera ? <li>{photo.camera.make} {photo.camera.model}</li> : ''}
                 <li>Aperture: {photo.aperture}</li>
                 <li>Exposure: {photo.exposure}</li>
                 <li>ISO speed: {photo.isoSpeed}</li>
