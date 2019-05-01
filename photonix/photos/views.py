@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 
 from photonix.photos.utils.thumbnails import get_thumbnail
 
