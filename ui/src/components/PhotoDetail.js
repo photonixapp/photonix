@@ -2,6 +2,7 @@ import React from 'react'
 import createHistory from 'history/createBrowserHistory'
 
 import BoundingBoxes from './BoundingBoxes'
+import MapViewContainer from '../containers/MapViewContainer'
 import '../static/css/PhotoDetail.css'
 
 const history = createHistory()
@@ -16,6 +17,13 @@ const PhotoDetail = ({ photoId, photo }) => {
       sizeY: objectTag.sizeY,
     }
   })
+
+  let location = null
+  if (photo.location) {
+    location = [null, null]
+    location[0] = parseFloat(photo.location.split(',')[0])
+    location[1] = parseFloat(photo.location.split(',')[1])
+  }
 
   return (
     <div className="PhotoDetail" style={{backgroundImage: `url('/thumbnails/3840x3840_contain_q75/${photoId}/')`}} onClick={history.goBack}>
@@ -48,6 +56,20 @@ const PhotoDetail = ({ photoId, photo }) => {
                     ))
                   }
                 </ul>
+              </div>
+              :
+              ''
+            }
+            {
+              photo.location
+              ?
+              <div className="box">
+                <h2>Map</h2>
+                <div className="map">
+                {
+                  <MapViewContainer location={location} hideAttribution={true} zoom={6} />
+                }
+                </div>
               </div>
               :
               ''

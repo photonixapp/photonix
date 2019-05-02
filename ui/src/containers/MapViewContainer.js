@@ -21,29 +21,37 @@ export default class MapContainer extends React.Component {
     let bottom = null
     let left = null
     let right = null
-    this.props.photos.map((photo) => {
-      if (photo.location) {
-        if (!top || photo.location[0] > top) {
-          top = parseFloat(photo.location[0])
+
+    if (this.props.photos) {
+      this.props.photos.map((photo) => {
+        if (photo.location) {
+          if (!top || photo.location[0] > top) {
+            top = parseFloat(photo.location[0])
+          }
+          if (!bottom || photo.location[0] < bottom) {
+            bottom = parseFloat(photo.location[0])
+          }
+          if (!left || photo.location[1] < left) {
+            left = parseFloat(photo.location[1])
+          }
+          if (!right || photo.location[1] > right) {
+            right = parseFloat(photo.location[1])
+          }
         }
-        if (!bottom || photo.location[0] < bottom) {
-          bottom = parseFloat(photo.location[0])
-        }
-        if (!left || photo.location[1] < left) {
-          left = parseFloat(photo.location[1])
-        }
-        if (!right || photo.location[1] > right) {
-          right = parseFloat(photo.location[1])
-        }
+        return true
+      })
+
+      // Default to show the whole world if none of the current photos have locations
+      let bounds = [['-45', '-1'], ['45', '1']]
+      if (top && bottom && left && right) {
+        bounds = [[bottom.toFixed(8), left.toFixed(8)], [top.toFixed(8), right.toFixed(8)]]
       }
-      return true
-    })
-    // Default to show the whole world if none of the current photos have locations
-    let bounds = [['-45', '-1'], ['45', '1']]
-    if (top && bottom && left && right) {
-      bounds = [[bottom.toFixed(8), left.toFixed(8)], [top.toFixed(8), right.toFixed(8)]]
+
+      return <MapView photos={this.props.photos} bounds={bounds} hideAttribution={this.props.hideAttribution} />
     }
 
-    return <MapView photos={this.props.photos} bounds={bounds} />
+    if (this.props.location) {
+      return <MapView location={this.props.location} zoom={this.props.zoom} hideAttribution={this.props.hideAttribution} />
+    }
   }
 }
