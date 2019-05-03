@@ -53,7 +53,7 @@ There is a separate Docker Compose file `docker-compose.dev.yml` that you should
 
 If you want to access the Bash or Python shells for development, you can use the following helper scripts:
 
-    ./docker_bash.sh  # Gets you into the running container
+    ./docker_shell.sh  # Gets you into the running container
     ./docker_manage.sh  # Gets you into the Django/Python shell
 
 
@@ -61,6 +61,6 @@ If you want to access the Bash or Python shells for development, you can use the
 
 PyTest is used as a test runner and for creating fixtures. The easiest way to run the tests is within the Docker container like this:
 
-    ./docker_bash.sh
+    ./docker_shell.sh
     cd photonix
     python test.py

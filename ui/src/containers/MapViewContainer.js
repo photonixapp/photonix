@@ -11,7 +11,6 @@ export default class MapContainer extends React.Component {
       bounds._northEast.lat,
       bounds._northEast.lng,
     ]
-    console.log(bounds)
     // dispatch(runCommand('get_photos_by_bounds', { bounds: bounds }))
   }
 
