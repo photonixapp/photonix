@@ -91,11 +91,18 @@ def record_photo(path):
         )
         photo.save()
 
+    width = metadata.get('Image Width')
+    height = metadata.get('Image Height')
+    if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW', 'Rotate 90 CCW', 'Rotate 270 CW']:
+        old_width = width
+        width = height
+        height = old_width
+
     # Save PhotoFile
     photo_file.photo = photo
     photo_file.path             = path
-    photo_file.width            = metadata.get('Image Width')
-    photo_file.height           = metadata.get('Image Height')
+    photo_file.width            = width
+    photo_file.height           = height
     photo_file.mimetype         = mimetypes.guess_type(path)[0]
     photo_file.file_modified_at = file_modified_at
     photo_file.bytes            = os.stat(path).st_size
