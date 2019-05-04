@@ -82,6 +82,13 @@ def determine_same_file(origpath, destpath, fhc=None):
     return False
 
 
+def blacklisted_type(file):
+    if file[-4:].lower() == '.mov' or file[-4:].lower() == '.mp4' or file[-4:].lower() == '.mkv':
+        return True
+    if file == '.DS_Store':
+        return True
+    return False
+
 def import_photos_from_dir(orig, move=False):
     imported = 0
     were_duplicates = 0
@@ -91,11 +98,17 @@ def import_photos_from_dir(orig, move=False):
         for fn in sorted(f):
             filepath = os.path.join(r, fn)
             dest = determine_destination(filepath)
-            if not dest:
+            if blacklisted_type(fn):
+                # Blacklisted type
+                were_bad += 1
+            elif not dest:
                 # No filters match this file type
                 pass
             elif os.path.getsize(filepath) < 102400:
                 print('FILE VERY SMALL (<100k - PROBABLY THUMBNAIL), NOT IMPORTING {}'.format(filepath))
+                were_bad += 1
+            elif os.path.getsize(filepath) > 1073741824:
+                print('FILE VERY LARGE (>1G - PROBABLY VIDEO), NOT IMPORTING {}'.format(filepath))
                 were_bad += 1
             else:
                 t = get_datetime(filepath)
@@ -149,8 +162,14 @@ def import_photos_in_place(orig):
     for r, d, f in os.walk(orig):
         for fn in sorted(f):
             filepath = os.path.join(r, fn)
-            if os.path.getsize(filepath) < 102400:
+            if blacklisted_type(fn):
+                # Blacklisted type
+                were_bad += 1
+            elif os.path.getsize(filepath) < 102400:
                 print('FILE VERY SMALL (<100k - PROBABLY THUMBNAIL), NOT IMPORTING {}'.format(filepath))
+                were_bad += 1
+            elif os.path.getsize(filepath) > 1073741824:
+                print('FILE VERY LARGE (>1G - PROBABLY VIDEO), NOT IMPORTING {}'.format(filepath))
                 were_bad += 1
             else:
                 modified = record_photo(filepath)
