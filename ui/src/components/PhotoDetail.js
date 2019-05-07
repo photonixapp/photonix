@@ -3,6 +3,8 @@ import createHistory from 'history/createBrowserHistory'
 
 import BoundingBoxes from './BoundingBoxes'
 import MapViewContainer from '../containers/MapViewContainer'
+
+import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/PhotoDetail.css'
 
 const history = createHistory()
@@ -125,8 +127,13 @@ const PhotoDetail = ({ photoId, photo }) => {
           </div>
         </div>
       </div>
-      <div className="BoundingBoxesContainer">
+      <div className="boundingBoxesContainer">
         <BoundingBoxes photoWidth={photo.width} photoHeight={photo.height} boxes={boxes} />
+      </div>
+      <div className="scrollHint">
+        <img src={arrowDown} className="img1" alt="" />
+        <img src={arrowDown} className="img2" alt="" />
+        <img src={arrowDown} className="img3" alt="" />
       </div>
     </div>
   )

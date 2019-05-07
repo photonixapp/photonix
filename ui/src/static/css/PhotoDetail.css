@@ -55,6 +55,40 @@
   position: fixed;
 }
 
+.PhotoDetail .scrollHint {
+  position: absolute;
+  width: 100%;
+  bottom: 20px;
+}
+@keyframes example {
+  0%   {opacity: 0;}
+  25%  {opacity: 1;}
+  50%  {opacity: 0;}
+  100% {opacity: 0;}
+}
+.PhotoDetail .scrollHint img {
+  filter: invert(0.9);
+  transition: all 600ms;
+  transition-timing-function: ease-in-out;
+  display: block;
+  margin: 0 auto -15px;
+  opacity: 0;
+  animation-name: example;
+  animation-duration: 1600ms;
+  animation-iteration-count: 3;
+}
+.PhotoDetail .scrollHint img.img1 {
+  animation-delay: 0ms;
+}
+.PhotoDetail .scrollHint img.img2 {
+  animation-delay: 200ms;
+}
+.PhotoDetail .scrollHint img.img3 {
+  animation-delay: 400ms;
+}
+
+animation-delay: 2s;
+
 /* When two boxes can no longer fit next to each other */
 @media all and (max-width: 500px) {
   .PhotoDetail .metadata .boxes .box {

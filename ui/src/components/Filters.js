@@ -23,6 +23,7 @@ const Filters = ({ data, onToggle, onScroll, onMouseDown, onTouchStart, containe
           </div>
         ))
       }
+      <div className="filterGradient"></div>
     </div>
     <div className="scrollbar" ref={scrollbarHandleRef} style={{opacity: displayScrollbar ? 1 : null}} onMouseDown={onMouseDown} onTouchStart={onTouchStart}></div>
   </section>
