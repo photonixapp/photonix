@@ -15,7 +15,9 @@ class Camera(UUIDModel, VersionedModel):
     latest_photo    = models.DateTimeField()
 
     class Meta:
+        unique_together = [['make', 'model']]
         ordering = ['make', 'model']
+        app_label = 'photos'
 
     def __str__(self):
         return '{} {}'.format(self.make, self.model)
