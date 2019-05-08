@@ -4,7 +4,8 @@ import createHistory from 'history/createBrowserHistory'
 import BoundingBoxes from './BoundingBoxes'
 import MapViewContainer from '../containers/MapViewContainer'
 
-import arrowDown from '../static/images/arrow_down.svg'
+import { ReactComponent as CloseIcon } from '../static/images/close.svg'
+import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import '../static/css/PhotoDetail.css'
 
 const history = createHistory()
@@ -28,7 +29,7 @@ const PhotoDetail = ({ photoId, photo }) => {
   }
 
   return (
-    <div className="PhotoDetail" style={{backgroundImage: `url('/thumbnails/3840x3840_contain_q75/${photoId}/')`}} onClick={history.goBack}>
+    <div className="PhotoDetail" style={{backgroundImage: `url('/thumbnails/3840x3840_contain_q75/${photoId}/')`}}>
       <div className="content">
         <div className="metadata">
           <div className="boxes">
@@ -130,10 +131,13 @@ const PhotoDetail = ({ photoId, photo }) => {
       <div className="boundingBoxesContainer">
         <BoundingBoxes photoWidth={photo.width} photoHeight={photo.height} boxes={boxes} />
       </div>
+      <div className="closeIcon" title="[Esc] or [Backspace]">
+        <CloseIcon alt="Close" onClick={history.goBack} />
+      </div>
       <div className="scrollHint">
-        <img src={arrowDown} className="img1" alt="" />
-        <img src={arrowDown} className="img2" alt="" />
-        <img src={arrowDown} className="img3" alt="" />
+        <ArrowDownIcon className="img1" alt="" />
+        <ArrowDownIcon className="img2" alt="" />
+        <ArrowDownIcon className="img3" alt="" />
       </div>
     </div>
   )

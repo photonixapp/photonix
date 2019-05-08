@@ -5,7 +5,6 @@
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  cursor: pointer;
   overflow: hidden;
 }
 
@@ -55,6 +54,17 @@
   position: fixed;
 }
 
+.PhotoDetail .closeIcon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  z-index: 10;
+}
+.PhotoDetail .closeIcon svg {
+  filter: invert(0.9);
+}
+
 .PhotoDetail .scrollHint {
   position: absolute;
   width: 100%;
@@ -66,7 +76,7 @@
   50%  {opacity: 0;}
   100% {opacity: 0;}
 }
-.PhotoDetail .scrollHint img {
+.PhotoDetail .scrollHint svg {
   filter: invert(0.9);
   transition: all 600ms;
   transition-timing-function: ease-in-out;
@@ -77,13 +87,13 @@
   animation-duration: 1600ms;
   animation-iteration-count: 3;
 }
-.PhotoDetail .scrollHint img.img1 {
+.PhotoDetail .scrollHint svg.img1 {
   animation-delay: 0ms;
 }
-.PhotoDetail .scrollHint img.img2 {
+.PhotoDetail .scrollHint svg.img2 {
   animation-delay: 200ms;
 }
-.PhotoDetail .scrollHint img.img3 {
+.PhotoDetail .scrollHint svg.img3 {
   animation-delay: 400ms;
 }
 
