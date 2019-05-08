@@ -72,10 +72,21 @@ def record_photo(path):
 
     if not photo:
         # Save Photo
+
+        aperture = None
+        aperturestr = metadata.get('Aperture')
+        if aperturestr:
+            try:
+                aperture = Decimal(aperturestr)
+                if aperture.is_infinite():
+                    aperture = None
+            except:
+                pass
+
         photo = Photo(
             taken_at=date_taken,
             taken_by=metadata.get('Artist') or None,
-            aperture=metadata.get('Aperture') and Decimal(metadata.get('Aperture')) or None,
+            aperture=aperture,
             exposure=metadata.get('Exposure Time') or None,
             iso_speed=metadata.get('ISO') and int(metadata.get('ISO')) or None,
             focal_length=metadata.get('Focal Length') and metadata.get('Focal Length').split(' ', 1)[0] or None,
