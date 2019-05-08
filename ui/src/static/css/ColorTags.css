@@ -1,0 +1,60 @@
+.ColorTags li {
+  background: #383838;
+  display: inline-block;
+  margin: 0 10px 10px 0;
+  padding: 0;
+  font-size: 12px;
+  border-radius: 4px;
+  width: 25px;
+  height: 25px;
+  overflow: hidden;
+  color: rgba(0, 0, 0, 0);
+  border: 1px solid #888;
+  display: inline-block;
+  cursor: default;
+}
+.ColorTags li.Red {
+  background: rgb(225, 32, 0);
+}
+.ColorTags li.Darkorange {
+  background: rgb(162, 70, 21);
+}
+.ColorTags li.Orange {
+  background: rgb(255, 124, 0);
+}
+.ColorTags li.Palepink {
+  background: rgb(255, 159, 156);
+}
+.ColorTags li.Lemonyellow {
+  background: rgb(255, 250, 0);
+}
+.ColorTags li.Schoolbusyellow {
+  background: rgb(225, 32, 0);
+}
+.ColorTags li.Green {
+  background: rgb(144, 226, 0);
+}
+.ColorTags li.Darklimegreen {
+  background: rgb(0, 171, 0);
+}
+.ColorTags li.Cyan {
+  background: rgb(0, 178, 212);
+}
+.ColorTags li.Blue {
+  background: rgb(0, 98, 198);
+}
+.ColorTags li.Violet {
+  background: rgb(140, 32, 186);
+}
+.ColorTags li.Pink {
+  background: rgb(245, 35, 148);
+}
+.ColorTags li.White {
+  background: rgb(255, 255, 255);
+}
+.ColorTags li.Gray {
+  background: rgb(124, 124, 124);
+}
+.ColorTags li.Black {
+  background: rgb(0, 0, 0);
+}

@@ -1,4 +1,7 @@
 import React from 'react'
+
+import ColorTags from './ColorTags'
+
 import '../static/css/Filters.css'
 
 
@@ -9,17 +12,18 @@ const Filters = ({ data, onToggle, onScroll, onMouseDown, onTouchStart, containe
         data.map((group) => (
           <div className="FilterGroup" key={group.name}>
             <h2>{group.name}</h2>
-            <ul>
-              {
-                group.items.map((item) => {
-                  let className = ''
-                  if (group.name === 'Colors') {
-                    className = `Color ${item.name.replace(/ /g, '')}`
-                  }
-                  return <li key={item.id} className={className} onClick={() => onToggle(item.id, group.name, item.name)} title={group.name === 'Colors' ? item.name : ''}>{item.name}</li>
-                })
-              }
-            </ul>
+            {
+              group.name === 'Colors'
+              ?
+                <ColorTags tags={group.items.map((item) => {
+                  item.onClick = () => onToggle(item.id, group.name, item.name)
+                  return item
+                })} />
+              :
+                group.items.map((item) => (
+                  <li key={item.id} onClick={() => onToggle(item.id, group.name, item.name)}>{item.name}</li>
+                ))
+            }
           </div>
         ))
       }

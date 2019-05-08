@@ -3,6 +3,7 @@ import createHistory from 'history/createBrowserHistory'
 
 import BoundingBoxes from './BoundingBoxes'
 import MapViewContainer from '../containers/MapViewContainer'
+import ColorTags from './ColorTags'
 
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
@@ -82,13 +83,7 @@ const PhotoDetail = ({ photoId, photo }) => {
               ?
               <div className="box">
                 <h2>Colors</h2>
-                <ul>
-                  {
-                    photo.colorTags.map((photoTag, index) => (
-                      <li key={index}>{photoTag.tag.name}</li>
-                    ))
-                  }
-                </ul>
+                <ColorTags tags={photo.colorTags.map((item) => (item.tag))} />
               </div>
               :
               ''
