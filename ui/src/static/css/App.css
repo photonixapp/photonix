@@ -12,6 +12,8 @@ body {
   background: #1d1d1d;
   color: #ddd;
   height: 100%;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 a {

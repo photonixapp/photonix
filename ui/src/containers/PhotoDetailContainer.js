@@ -40,7 +40,11 @@ query Photo($id: UUID) {
     locationTags {
       id
       tag {
+        id
         name
+        parent {
+          id
+        }
       }
     }
     objectTags {

@@ -27,13 +27,13 @@
 }
 .PhotoDetail .metadata .boxes {
   background: rgba(0,0,0,0.75);
-  padding: 40px 20px 20px 40px;
+  padding: 40px 0 0 40px;
 }
 .PhotoDetail .metadata .boxes .box {
   display: inline-block;
-  width: 200px;
+  width: 220px;
   vertical-align: top;
-  margin: 0 20px 20px 0;
+  margin: 0 40px 40px 0;
 }
 
 .PhotoDetail .metadata .boxes .box ul {
@@ -96,8 +96,6 @@
 .PhotoDetail .scrollHint svg.img3 {
   animation-delay: 400ms;
 }
-
-animation-delay: 2s;
 
 /* When two boxes can no longer fit next to each other */
 @media all and (max-width: 500px) {

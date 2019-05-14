@@ -10,6 +10,9 @@ const GET_FILTERS = gql`
     allLocationTags {
       id
       name
+      parent {
+        id
+      }
     }
     allObjectTags {
       id
@@ -179,10 +182,16 @@ export default class FiltersContainer extends React.Component {
     return {
       name: sectionName,
       items: data.map((tag) => {
-        if (tag.toString() === '[object Object]') {
-          return {id: prefix + ':' + tag.id, name: tag.name}
+        let item = {
+          id: prefix + ':' + tag,
+          name: tag,
         }
-        return {id: prefix + ':' + tag, name: tag}
+        if (tag.toString() === '[object Object]') {
+          item.name = tag.name
+          item.id = prefix + ':' + tag.id
+          item.parent = tag.parent ? prefix + ':' + tag.parent.id : null
+        }
+        return item
       }),
     }
   }

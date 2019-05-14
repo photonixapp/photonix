@@ -4,6 +4,7 @@ import createHistory from 'history/createBrowserHistory'
 import BoundingBoxes from './BoundingBoxes'
 import MapViewContainer from '../containers/MapViewContainer'
 import ColorTags from './ColorTags'
+import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
 
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
@@ -53,13 +54,11 @@ const PhotoDetail = ({ photoId, photo }) => {
               ?
               <div className="box">
                 <h2>Locations</h2>
-                <ul>
-                  {
-                    photo.locationTags.map((photoTag, index) => (
-                      <li key={index}>{photoTag.tag.name}</li>
-                    ))
-                  }
-                </ul>
+                <HierarchicalTagsContainer tags={photo.locationTags.map((item) => {
+                  let newItem = item.tag
+                  newItem.parent = item.parent
+                  return newItem
+                })} />
               </div>
               :
               ''

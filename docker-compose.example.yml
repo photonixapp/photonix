@@ -18,7 +18,7 @@ services:
     container_name: photonix
     image: damianmoore/photonix:latest
     ports:
-     - "8888:80"
+      - "8888:80"
     environment:
       ENV: prd
       POSTGRES_HOST: postgres
@@ -28,10 +28,10 @@ services:
       REDIS_HOST: redis
       ALLOWED_HOSTS: localhost,example.com
     volumes:
-     - ./data/photos:/data/photos
-     - ./data/raw-photos-processed:/data/raw-photos-processed
-     - ./data/cache:/data/cache
-     - ./data/models:/data/models
+      - ./data/photos:/data/photos
+      - ./data/raw-photos-processed:/data/raw-photos-processed
+      - ./data/cache:/data/cache
+      - ./data/models:/data/models
     links:
-     - postgres
-     - redis
+      - postgres
+      - redis
