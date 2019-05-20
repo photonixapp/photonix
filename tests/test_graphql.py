@@ -86,3 +86,10 @@ def test_filter_photos(photo_fixture_snow, photo_fixture_tree, api_client):
     assert response.status_code == 200
     data = get_graphql_content(response)
     assert len(data['data']['allPhotos']['edges']) == 2
+
+    # Add 'Tree' to the last photo again (allowed). Querying should not return duplicates
+    tree_photo_tag, _ = PhotoTag.objects.get_or_create(photo=photo_fixture_tree, tag=tree_tag, confidence=0.9)
+    response = api_client.post_graphql(query, {'filters': multi_filter})
+    assert response.status_code == 200
+    data = get_graphql_content(response)
+    assert len(data['data']['allPhotos']['edges']) == 2

@@ -133,7 +133,7 @@ class PhotoFilter(django_filters.FilterSet):
                     queryset = queryset.filter(shooting_mode=val)
         if has_tags:
             queryset.order_by('-photo_tags__significance')
-        return queryset
+        return queryset.distinct()
 
 
 class LocationTagType(DjangoObjectType):
