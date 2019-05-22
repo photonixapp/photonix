@@ -15,12 +15,14 @@ function displayChildren(items, expandedTags, onToggleExpand) {
     let mainEl = <li key={item.id} title={item.name} onClick={item.onClick}>{item.name}</li>
     if (item.expandable) {
       let icon = <AddIcon alt="Expand" onClick={(e) => onToggleExpand(e, item.id)} />
+      let classes = "expandable"
       if (foundIndex > -1) {
         icon = <RemoveIcon alt="Expand" onClick={(e) => onToggleExpand(e, item.id)} />
+        classes += ' newline'
       }
-      mainEl = <li key={item.id} title={item.name} onClick={item.onClick} className="expandable">{icon}{item.name}</li>
+      mainEl = <li key={item.id} title={item.name} onClick={item.onClick} className={classes}>{icon}{item.name}</li>
     }
-    let childrenEl = <ul></ul>
+    let childrenEl = null
 
     if (item.children && foundIndex > -1) {
       childrenEl = (

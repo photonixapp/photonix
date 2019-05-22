@@ -9,6 +9,9 @@
 .HierarchicalTags li.expandable {
   padding-left: 3px;
 }
+.HierarchicalTags li.newline {
+  display: block;
+}
 .HierarchicalTags ul.children {
   margin-left: 20px;
 }
