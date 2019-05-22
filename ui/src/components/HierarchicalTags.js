@@ -1,37 +1,49 @@
 import React from 'react'
 
+import { ReactComponent as AddIcon } from '../static/images/add.svg'
+import { ReactComponent as RemoveIcon } from '../static/images/remove.svg'
 import '../static/css/HierarchicalTags.css'
 
 
-function displayChildren(items) {
+function displayChildren(items, expandedTags, onToggleExpand) {
   return items.map((item) => {
+    let foundIndex = -1
+    if (expandedTags) {
+      foundIndex = expandedTags.indexOf(item.id)
+    }
+
     let mainEl = <li key={item.id} title={item.name} onClick={item.onClick}>{item.name}</li>
+    if (item.expandable) {
+      let icon = <AddIcon alt="Expand" onClick={(e) => onToggleExpand(e, item.id)} />
+      if (foundIndex > -1) {
+        icon = <RemoveIcon alt="Expand" onClick={(e) => onToggleExpand(e, item.id)} />
+      }
+      mainEl = <li key={item.id} title={item.name} onClick={item.onClick} className="expandable">{icon}{item.name}</li>
+    }
     let childrenEl = <ul></ul>
 
-    if (item.children) {
+    if (item.children && foundIndex > -1) {
       childrenEl = (
-        <ul>
+        <ul className="children">
           {displayChildren(item.children)}
         </ul>
       )
     }
 
     return (
-      <>
+      <span key={item.id}>
         {mainEl}
         {childrenEl}
-      </>
+      </span>
     )
   })
 }
 
 
-const HierarchicalTags = ({ tags }) => {
-  return (
-    <ul className="HeirarchicalTags">
-      {displayChildren(tags)}
-    </ul>
-  )
-}
+const HierarchicalTags = ({ tags, expandedTags, onToggleExpand }) => (
+  <ul className="HierarchicalTags">
+    {displayChildren(tags, expandedTags, onToggleExpand)}
+  </ul>
+)
 
 export default HierarchicalTags

@@ -8,12 +8,26 @@ export default class HierarchicalTagsContainer extends React.Component {
     super(props)
     this.state = {
       hierarchicalTags: [],
+      expandedTags: [],
     }
   }
   
-  onSelectParent = (e,  id) => {
-    console.log(e, id)
-    this.selectedTagId = id
+  onToggleExpand = (e, id) => {
+    let expandedTags = this.state.expandedTags
+    let foundIndex = expandedTags.indexOf(id)
+    if (foundIndex > -1) {
+      expandedTags.splice(foundIndex, 1)
+    }
+    else {
+      expandedTags.push(id)
+    }
+
+    this.setState({
+      expandedTags: expandedTags,
+    })
+
+    e.preventDefault()
+    e.stopPropagation()
   }
   
   componentDidMount = () => {
@@ -32,7 +46,8 @@ export default class HierarchicalTagsContainer extends React.Component {
       for (let i = 0; i < tree.length; i++) {  // Traverse the entire tree in to find the parent
         if (tree[i].id === item.parent) {
           tree[i].children.push(item)  // add the child to his parent
-          tree[i].onClick = () => this.onSelectParent(tree[i].id)
+          tree[i].expandable = true
+
           break
         }
         else {
@@ -72,7 +87,7 @@ export default class HierarchicalTagsContainer extends React.Component {
     return (
       <>
         <div>{this.selectedTagId}</div>
-        <HierarchicalTags tags={this.state.hierarchicalTags} onSelectParent={this.onSelectParent} expandAll={true} />
+        <HierarchicalTags tags={this.state.hierarchicalTags} expandedTags={this.state.expandedTags} onToggleExpand={this.onToggleExpand} expandAll={this.props.expandAll} />
       </>
     )
   }

@@ -22,7 +22,10 @@ const Filters = ({ data, onToggle, onScroll, onMouseDown, onTouchStart, containe
             }
 
             else if (group.name === 'Locations') {
-              items = <HierarchicalTagsContainer tags={group.items} />
+              items = <HierarchicalTagsContainer tags={group.items.map((item) => {
+                item.onClick = () => onToggle(item.id, group.name, item.name)
+                return item
+              })} />
             }
 
             else {
