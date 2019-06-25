@@ -1,0 +1,29 @@
+database: sqlite:////tmp/photonix.db
+
+# $XDG_CONFIG_HOME
+# $XDG_DATA_HOME
+media:
+  - path: $HOME/.local/share/photonix/masters
+    exts:
+      - jpg
+      - jpeg
+      - mov
+      - mp4
+      - m4v
+      - 3gp
+  - path: $HOME/.local/share/photonix/raw
+    exts:
+      - cr2
+
+# $HOME/.cache
+thumbnail: $HOME/.local/share/photonix/thumbnails
+
+thumbnail_sizes:
+  - crop: cover
+    width: 256
+    height: 256
+    quality: 50
+  - crop: contain
+    width: 1920
+    height: 1080
+    quality: 75
