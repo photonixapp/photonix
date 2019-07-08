@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+import logging
 
 import requests
 
@@ -14,6 +15,7 @@ from redis_lock import Lock
 
 graph_cache = {}
 
+logger = logging.getLogger(__name__)
 
 class BaseModel:
     def __init__(self, model_dir=None):
@@ -71,6 +73,8 @@ class BaseModel:
 
                     if request.status_code != 200:
                         error = True
+                        logger.error(f"Failed to fetch model for {location}: "
+                                     f"Got {request.status_code}")
                         continue
 
                     # Download file to temporary location
@@ -96,6 +100,8 @@ class BaseModel:
                         shutil.move(f.name, final_path)
                     else:
                         error = True
+                        logger.error(f"File downloaded from {location} is "
+                                     "corrupt as indicated by bad hash")
                         # TODO: Delete badly downloaded file
 
             # Write version file
