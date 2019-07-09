@@ -64,7 +64,7 @@ Rx==1.6.1
 singledispatch==3.4.0.3
 six==1.12.0
 tensorboard==1.12.2
-tensorflow==1.12.0
+tensorflow==1.12.2
 termcolor==1.1.0
 text-unidecode==1.2
 traitlets==4.3.2
