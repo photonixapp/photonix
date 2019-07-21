@@ -4,7 +4,7 @@
 
 This is a photo management application based on web technologies. Run it on your home server and it will let you find what you want from your photo collection using any device. Smart filtering is made possible automatically by object recognition, location awareness, color analysis and other algorithms.
 
-![Screenshot of photo list view](https://epixstudios.co.uk/uploads/filer_public/31/25/3125a68a-046a-443b-be24-59bbe210bdb6/photo_list.jpg)
+![Screenshot of photo list view](https://epixstudios.co.uk/uploads/filer_public/52/dc/52dcdff4-d96d-4dfd-b158-b57b0696154e/photo_list.jpg)
 
 This project is currently in development and not feature complete for a version 1.0 yet. If you don't mind putting up with broken parts or want to help out, run the Docker image and give it a go. I'd love for other contributors to get involved.
 
