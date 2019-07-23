@@ -30,6 +30,11 @@ const PhotoDetail = ({ photoId, photo }) => {
     location[1] = parseFloat(photo.location.split(',')[1])
   }
 
+if (photo.takenAt) {
+  var date = new Date(photo.takenAt)
+  date = new Intl.DateTimeFormat().format(date) 
+}
+
   return (
     <div className="PhotoDetail" style={{backgroundImage: `url('/thumbnails/3840x3840_contain_q75/${photoId}/')`}}>
       <div className="content">
@@ -39,6 +44,7 @@ const PhotoDetail = ({ photoId, photo }) => {
               <h2>Camera</h2>
               <ul>
                 {photo.camera ? <li>{photo.camera.make} {photo.camera.model}</li> : ''}
+                {date ?<li>Date: {date}</li> : ''}
                 <li>Aperture: {photo.aperture}</li>
                 <li>Exposure: {photo.exposure}</li>
                 <li>ISO speed: {photo.isoSpeed}</li>
