@@ -1,6 +1,6 @@
 #!/bin/sh
 
-until nc -z -v -w5 postgres 5432; do
+until nc -z -v -w5 $POSTGRES_HOST 5432; do
   >&2 echo "Postgres is unavailable - sleeping"
   sleep 1
 done
