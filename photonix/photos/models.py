@@ -99,8 +99,8 @@ class Photo(UUIDModel, VersionedModel):
 class PhotoFile(UUIDModel, VersionedModel):
     photo                   = models.ForeignKey(Photo, related_name='files', on_delete=models.CASCADE)
     path                    = models.CharField(max_length=512)
-    width                   = models.PositiveSmallIntegerField(null=True)
-    height                  = models.PositiveSmallIntegerField(null=True)
+    width                   = models.PositiveIntegerField(null=True)
+    height                  = models.PositiveIntegerField(null=True)
     mimetype                = models.CharField(max_length=32, blank=True, null=True)
     file_modified_at        = models.DateTimeField()
     bytes                   = models.PositiveIntegerField()
