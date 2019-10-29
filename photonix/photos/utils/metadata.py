@@ -2,6 +2,7 @@ import os
 import re
 from subprocess import Popen, PIPE
 from datetime import datetime
+from dateutil.parser import parse as parse_date
 
 from django.utils.timezone import utc
 
@@ -24,7 +25,13 @@ def parse_datetime(date_str):
         return None
     if '.' in date_str:
         date_str = date_str.split('.', 1)[0]
-    return datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S').replace(tzinfo=utc)
+    try:
+        return datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S').replace(tzinfo=utc)
+    except ValueError:
+        parsed_date = parse_date(date_str)
+        if not parsed_date.tzinfo:
+            parsed_date = parsed_date.replace(tzinfo=utc)
+        return parsed_date
 
 
 def parse_gps_location(gps_str):
