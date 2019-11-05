@@ -5,13 +5,13 @@ import ApolloClient from 'apollo-boost'
 import { ApolloProvider } from 'react-apollo'
 import 'normalize.css'
 import 'react-router-modal/css/react-router-modal.css';
+
 import '../static/css/App.css'
 import '../static/css/typography.css'
 import BrowseContainer from '../containers/BrowseContainer'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 import SettingsContainer from '../containers/SettingsContainer'
 import ComponentsBrowser from '../components/ComponentsBrowser'
-
 import history from '../history'
 
 

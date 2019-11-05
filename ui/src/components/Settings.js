@@ -2,11 +2,13 @@ import React from 'react'
 import '../static/css/Settings.css'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import folder from '../static/images/folder.svg'
+import history from '../history'
 
-const Settings = ({ data, parentSettings, onSelectSourceDir, onHideModals }) => (
-  <div className="Settings" onClick={onHideModals}>
+
+const Settings = ({ data, parentSettings, onSelectSourceDir }) => (
+  <div className="Settings">
     {/* <div className="modal" onClick={(e) => {e.stopPropagation()}}> */}
-      <span onClick={onHideModals}>
+      <span onClick={history.goBack}>
         <CloseIcon className="closeIcon" alt="Close" />
       </span>
       <h2>Settings</h2>

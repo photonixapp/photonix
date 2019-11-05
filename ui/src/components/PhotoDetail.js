@@ -10,6 +10,7 @@ import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import '../static/css/PhotoDetail.css'
 
+
 const history = createHistory()
 
 const PhotoDetail = ({ photoId, photo }) => {

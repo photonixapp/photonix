@@ -8,6 +8,7 @@ import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/Browse.css'
 
+
 const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilterToggle, onClearFilters, onExpandCollapse, expanded }) => {
   let content = (mode === 'MAP')
   ?

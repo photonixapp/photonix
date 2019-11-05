@@ -7,38 +7,38 @@
   position: relative;
   cursor: auto;
 }
-.Settings .modal h2 {
+.Settings h2 {
   margin: 0 0 40px;
 }
-.Settings .modal ul {
+.Settings ul {
   padding: 0;
   list-style: none;
 }
-.Settings .modal li {
+.Settings li {
   margin-bottom: 20px;
   display: flex;
 }
-.Settings .modal li div {
+.Settings li div {
   flex: 50%;
 }
 .Settings img {
   filter: invert(0.9);
 }
-.Settings .modal .closeIcon {
+.Settings .closeIcon {
   filter: invert(0.9);
   position: absolute;
   top: 10px;
   right: 10px;
   cursor: pointer;
 }
-.Settings .modal input {
+.Settings input {
   background: #484848;
   color: #fff;
   border: 0;
   padding: 10px;
   width: 100%;
 }
-.Settings .modal .folder {
+.Settings .folder {
   cursor: pointer;
   margin: 5px 0 0 20px;
   vertical-align: middle;
