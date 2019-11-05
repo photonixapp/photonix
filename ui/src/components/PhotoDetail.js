@@ -44,7 +44,7 @@ if (photo.takenAt) {
               <h2>Camera</h2>
               <ul>
                 {photo.camera ? <li>{photo.camera.make} {photo.camera.model}</li> : ''}
-                {date ?<li>Date: {date}</li> : ''}
+                {date ? <li>Date: {date}</li> : ''}
                 <li>Aperture: {photo.aperture}</li>
                 <li>Exposure: {photo.exposure}</li>
                 <li>ISO speed: {photo.isoSpeed}</li>

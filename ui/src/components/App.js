@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Route } from 'react-router-dom'
+import { Router, Route, Switch } from 'react-router-dom'
 import { ModalContainer, ModalRoute } from 'react-router-modal'
 import ApolloClient from 'apollo-boost'
 import { ApolloProvider } from 'react-apollo'
@@ -12,20 +12,27 @@ import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 import SettingsContainer from '../containers/SettingsContainer'
 import ComponentsBrowser from '../components/ComponentsBrowser'
 
+import history from '../history'
+
 
 const client = new ApolloClient()
 
-const App = ({ selectedFilters, onFilterToggle, onClearFilters, onShowSettings, showSettings, onHideModals, settings, onGetParentSettings }) => (
+const App = ({ selectedFilters, onFilterToggle, onClearFilters, onHideModals, settings, onGetParentSettings }) => (
   <ApolloProvider client={client}>
-    <Router>
+    <Router history={history}>
       <div>
-        <Route path="/" render={(params) => <BrowseContainer selectedFilters={selectedFilters} search={params.location.search} onFilterToggle={onFilterToggle} onClearFilters={onClearFilters} onShowSettings={onShowSettings} />} />
-        <ModalRoute path="/photo/:photoId" parentPath="/" component={PhotoDetailContainer} />
-        <Route path="/components" exact render={(params) => <ComponentsBrowser />} />
-        <ModalContainer />
+          <BrowseContainer selectedFilters={selectedFilters} search="" onFilterToggle={onFilterToggle} onClearFilters={onClearFilters} />
+
+          <Switch>
+            <ModalRoute path="/photo/:photoId" parentPath="/" component={PhotoDetailContainer} />
+            <ModalRoute path="/settings" parentPath="/" component={SettingsContainer}  />
+            <Route path="/components" exact render={(params) => <ComponentsBrowser />} />
+          </Switch>
+          <ModalContainer />
       </div>
     </Router>
-    <SettingsContainer visible={showSettings} onHideModals={onHideModals} onGetParentSettings={onGetParentSettings} settings={settings} data={[
+
+    {/* <SettingsContainer visible={showSettings} onHideModals={onHideModals} onGetParentSettings={onGetParentSettings} settings={settings} data={[
       {
         key: 'sourceDirs',
         type: 'path',
@@ -36,7 +43,7 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters, onShowSettings, 
         type: 'boolean',
         name: 'Watch folder for new photos',
       },
-    ]} />
+    ]} /> */}
   </ApolloProvider>
 )
 

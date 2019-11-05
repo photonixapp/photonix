@@ -1,11 +1,12 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import accountCircle from '../static/images/account_circle.svg'
 import arrowDown from '../static/images/arrow_down.svg'
 import notifications from '../static/images/notifications.svg'
 import settings from '../static/images/settings.svg'
 import '../static/css/Header.css'
 
-const Header = ({onShowSettings}) => {
+const Header = () => {
   return (
     <>
       <header className="flex-container-row">
@@ -16,7 +17,9 @@ const Header = ({onShowSettings}) => {
           <img src={accountCircle} alt="User account" />
           <img src={arrowDown} className="arrowDown" alt="" />
           <ul className="menu">
-            <li onClick={onShowSettings}><img src={settings} alt="Settings" /> Settings</li>
+            <Link to="/settings">
+              <li><img src={settings} alt="Settings" /> Settings</li>
+            </Link>
           </ul>
         </div>
       </header>

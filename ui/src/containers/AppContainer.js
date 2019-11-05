@@ -1,6 +1,5 @@
 import React  from 'react'
-// import { Query } from "react-apollo"
-// import gql from "graphql-tag"
+import history from '../history'
 import App from '../components/App'
 
 
@@ -12,12 +11,9 @@ export default class AppContainer extends React.Component {
       selectedFilters: [],
       detailPhoto: null,
       settings: null,
-      showSettings: false,
     }
-    window.showSettings = (message) => {
-      this.setState({
-        showSettings: true
-      })
+    window.showSettings = () => {
+      history.push('/settings')
     }
   }
 
@@ -58,12 +54,6 @@ export default class AppContainer extends React.Component {
     })
   }
 
-  onHideModals = () => {
-    this.setState({
-      showSettings: false,
-    })
-  }
-
   onGetParentSettings = () => {
     if (window.sendSyncToElectron) {
       let result = window.sendSyncToElectron('get-settings')
@@ -80,9 +70,6 @@ export default class AppContainer extends React.Component {
       selectedFilters={this.state.selectedFilters}
       onFilterToggle={this.onFilterToggle}
       onClearFilters={this.onClearFilters}
-      onShowSettings={this.onShowSettings}
-      showSettings={this.state.showSettings}
-      onHideModals={this.onHideModals}
       settings={this.state.settings}
       onGetParentSettings={this.onGetParentSettings} />
   }

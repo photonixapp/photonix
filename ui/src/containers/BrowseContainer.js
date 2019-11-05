@@ -73,8 +73,7 @@ export default class BrowseContainer extends React.Component {
             onFilterToggle={this.props.onFilterToggle}
             onClearFilters={this.props.onClearFilters}
             onExpandCollapse={this.onExpandCollapse}
-            expanded={this.state.expanded}
-            onShowSettings={this.props.onShowSettings} />
+            expanded={this.state.expanded} />
         }}
       </Query>
     )

@@ -78,8 +78,6 @@ export default class HierarchicalTagsContainer extends React.Component {
     }
 
     this.buildTree(hierarchicalTags)
-    console.log(hierarchicalTags)
-
     this.setState({hierarchicalTags: hierarchicalTags})
   }
 

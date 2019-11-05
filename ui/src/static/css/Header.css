@@ -11,6 +11,7 @@ header .logo {
   font-size: 28px;
   font-weight: 400;
   margin: 10px 15px;
+  line-height: 1.1;
 }
 header .navigation {
   flex-grow: 1;
@@ -57,6 +58,10 @@ header .user img.arrowDown {
 }
 .menu li:hover {
   background: rgba(255,255,255,0.1);
+}
+.menu a {
+  color: #fff;
+  text-decoration: none;
 }
 header .user .menu img {
   padding: 0;

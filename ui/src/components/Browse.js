@@ -8,7 +8,7 @@ import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/Browse.css'
 
-const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilterToggle, onClearFilters, onExpandCollapse, expanded, onShowSettings }) => {
+const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilterToggle, onClearFilters, onExpandCollapse, expanded }) => {
   let content = (mode === 'MAP')
   ?
     <MapViewContainer photos={photoSections[0].segments[0].photos} />
@@ -18,7 +18,7 @@ const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilter
   if (error) content = <p>Error :(</p>
 
   return <div className="Browse flex-container-column">
-    <HeaderContainer onShowSettings={onShowSettings} />
+    <HeaderContainer />
     <div className={expanded ? ` searchBar expanded` : `searchBar collapsed`}>
       <SearchContainer
         selectedFilters={selectedFilters}
