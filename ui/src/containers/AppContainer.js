@@ -10,8 +10,8 @@ export default class AppContainer extends React.Component {
       selectedFilterIds: [],
       selectedFilters: [],
       detailPhoto: null,
-      settings: null,
     }
+
     window.showSettings = () => {
       history.push('/settings')
     }
@@ -48,19 +48,6 @@ export default class AppContainer extends React.Component {
     })
   }
 
-  onShowSettings = () => {
-    this.setState({
-      showSettings: true,
-    })
-  }
-
-  onGetParentSettings = () => {
-    if (window.sendSyncToElectron) {
-      let result = window.sendSyncToElectron('get-settings')
-      this.setState({settings: result})
-    }
-  }
-
   logout = () => {
     console.log('logged out')
   }
@@ -69,8 +56,6 @@ export default class AppContainer extends React.Component {
     return <App
       selectedFilters={this.state.selectedFilters}
       onFilterToggle={this.onFilterToggle}
-      onClearFilters={this.onClearFilters}
-      settings={this.state.settings}
-      onGetParentSettings={this.onGetParentSettings} />
+      onClearFilters={this.onClearFilters} />
   }
 }
