@@ -31,7 +31,7 @@ export default class BrowseContainer extends React.Component {
   }
 
   render = () => {
-    const params = new URLSearchParams(this.props.search)
+    const params = new URLSearchParams(window.location.search)
     const mode = params.get('mode') ? params.get('mode').toUpperCase() : 'TIMELINE'
     const filtersStr = this.props.selectedFilters.map((filter) => (
       filter.id
