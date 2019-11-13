@@ -28,6 +28,13 @@ export default function Settings2() {
     setSettings(newSettings)
   }
 
+  function onSelectSourceDir() {
+    if (window.sendSyncToElectron) {
+      let dirs = window.sendSyncToElectron('select-dir')
+      setSettings({sourceDirs: dirs})
+    }
+  }
+
 
   return (
     <div className="Settings">
@@ -44,7 +51,7 @@ export default function Settings2() {
             if (item.type === 'path') {
               console.log(settings[item.key])
               field = <input type="text" value={settings ? settings[item.key] : 'empty'} />
-              icon = <span><img src={folder} className="folder" alt="" /></span>
+              icon = <span onClick={onSelectSourceDir}><img src={folder} className="folder" alt="" /></span>
             }
 
             else if (item.type === 'boolean') {
