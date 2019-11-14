@@ -25,4 +25,5 @@
 .ComponentsBrowser .FiltersContainerPreview > div {
   height: 200px;
   overflow: hidden;
+  position: relative;
 }

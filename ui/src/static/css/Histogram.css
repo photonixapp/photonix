@@ -4,7 +4,7 @@
   right: -30px;
   opacity: 0;
   width: 130px;
-  height: 100%;
+  height: 100% !important;
   padding: 20px 30px 20px 0;
   justify-content: space-between;
   transition: all 200ms;

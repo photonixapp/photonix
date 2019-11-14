@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import HeaderContainer from '../containers/HeaderContainer'
 import SearchContainer from '../containers/SearchContainer'
-import PhotoListContainer2 from '../containers/PhotoListContainer2'
+import PhotoListContainer from '../containers/PhotoListContainer'
 import MapViewContainer from '../containers/MapViewContainer'
 import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
@@ -14,7 +14,7 @@ const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilter
   ?
     <MapViewContainer photos={photoSections[0].segments[0].photos} />
   :
-    <PhotoListContainer2 selectedFilters={selectedFilters} photoSections={photoSections} />
+    <PhotoListContainer selectedFilters={selectedFilters} photoSections={photoSections} />
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
 

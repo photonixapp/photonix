@@ -3,7 +3,6 @@ import React from 'react'
 import FiltersContainer from '../containers/FiltersContainer'
 import MapViewContainer from '../containers/MapViewContainer'
 import PhotoListContainer from '../containers/PhotoListContainer'
-import PhotoListContainer2 from '../containers/PhotoListContainer2'
 import '../static/css/ComponentsBrowser.css'
 
 
@@ -88,16 +87,9 @@ const ComponentsBrowser = () => {
   return (
     <div className="ComponentsBrowser">
       <div className="preview PhotoListContainerPreview">
-        <h2>PhotoListContainer2</h2>
-        <div>
-          <PhotoListContainer2 photoSections={photoSections} />
-        </div>
-      </div>
-
-      <div className="preview PhotoListContainerPreview">
         <h2>PhotoListContainer</h2>
         <div>
-          <PhotoListContainer photos={photos} />
+          <PhotoListContainer photoSections={photoSections} />
         </div>
       </div>
 
