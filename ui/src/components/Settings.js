@@ -6,7 +6,7 @@ import '../static/css/Settings.css'
 import folder from '../static/images/folder.svg'
 
 
-export default function Settings2() {
+export default function Settings() {
   const [settings, setSettings] = useSettings()
 
   const availableSettings = [

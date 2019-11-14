@@ -22,14 +22,13 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => (
   <ApolloProvider client={client}>
     <Router history={history}>
       <div>
+        <Switch>
+          <ModalRoute path="/photo/:photoId" parentPath="/" component={PhotoDetailContainer} />
+          <ModalRoute path="/settings" parentPath="/" component={() => (<Settings />)} />
+          <Route path="/components" exact render={() => <ComponentsBrowser />} />
           <BrowseContainer selectedFilters={selectedFilters} search="" onFilterToggle={onFilterToggle} onClearFilters={onClearFilters} />
-
-          <Switch>
-            <ModalRoute path="/photo/:photoId" parentPath="/" component={PhotoDetailContainer} />
-            <ModalRoute path="/settings" parentPath="/" component={ () => (<Settings />)} />
-            <Route path="/components" exact render={(params) => <ComponentsBrowser />} />
-          </Switch>
-          <ModalContainer />
+        </Switch>
+        <ModalContainer />
       </div>
     </Router>
   </ApolloProvider>
