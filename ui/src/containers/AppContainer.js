@@ -1,7 +1,6 @@
-import React  from 'react'
+import React from 'react'
 import history from '../history'
 import App from '../components/App'
-
 
 export default class AppContainer extends React.Component {
   constructor(props) {
@@ -29,8 +28,7 @@ export default class AppContainer extends React.Component {
         name: name,
         group: group,
       })
-    }
-    else {
+    } else {
       filterIds.splice(index, 1)
       filters.splice(index, 1)
     }
@@ -53,9 +51,12 @@ export default class AppContainer extends React.Component {
   }
 
   render = () => {
-    return <App
-      selectedFilters={this.state.selectedFilters}
-      onFilterToggle={this.onFilterToggle}
-      onClearFilters={this.onClearFilters} />
+    return (
+      <App
+        selectedFilters={this.state.selectedFilters}
+        onFilterToggle={this.onFilterToggle}
+        onClearFilters={this.onClearFilters}
+      />
+    )
   }
 }

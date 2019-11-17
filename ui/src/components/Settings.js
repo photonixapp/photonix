@@ -1,10 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import history from '../history'
+import {
+  Switch,
+  Flex,
+  Stack,
+  Heading,
+  FormLabel,
+  Input,
+  InputGroup,
+  IconButton,
+} from '@chakra-ui/core'
 
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import '../static/css/Settings.css'
 import folder from '../static/images/folder.svg'
-
 
 export default function Settings() {
   const [settings, setSettings] = useSettings()
@@ -31,53 +40,57 @@ export default function Settings() {
   function onSelectSourceDir() {
     if (window.sendSyncToElectron) {
       let dirs = window.sendSyncToElectron('select-dir')
-      setSettings({sourceDirs: dirs})
+      setSettings({ sourceDirs: dirs })
     }
   }
-
 
   return (
     <div className="Settings">
       <span onClick={history.goBack}>
         <CloseIcon className="closeIcon" alt="Close" />
       </span>
-      <h2>Settings</h2>
-      <ul>
+      <Heading>Settings</Heading>
+      <Stack spacing={4}>
         {availableSettings.map((item, index) => {
           let field = null
-          let icon = null
 
           if (settings) {
             if (item.type === 'path') {
-              console.log(settings[item.key])
-              field = <input type="text" value={settings ? settings[item.key] : 'empty'} />
-              icon = <span onClick={onSelectSourceDir}><img src={folder} className="folder" alt="" /></span>
-            }
-
-            else if (item.type === 'boolean') {
-              console.log(item.key + ': ' + settings[item.key])
-              if (settings[item.key]) {
-                field = <span onClick={() => toggleBooleanSetting(item.key)}>Yes</span>
-              }
-              else {
-                field = <span onClick={() => toggleBooleanSetting(item.key)}>No</span>
-              }
+              field = (
+                <InputGroup size="sm">
+                  <Input
+                    rounded="0"
+                    value={settings ? settings[item.key] : 'empty'}
+                  />
+                  <IconButton
+                    aria-label="Select source folder"
+                    icon="search"
+                    onClick={onSelectSourceDir}
+                  />
+                </InputGroup>
+              )
+            } else if (item.type === 'boolean') {
+              field = (
+                <Switch
+                  id={item.key + 'New'}
+                  isChecked={settings[item.key]}
+                  onChange={() => toggleBooleanSetting(item.key)}
+                />
+              )
             }
           }
 
           return (
-            <li key={item.key}>
-              <div>{item.name}</div>
-              <div>{field}</div>
-              {icon}
-            </li>
+            <Flex justify="space-between" key={item.key + item.type}>
+              <FormLabel htmlFor={item.key}>{item.name}</FormLabel>
+              {field}
+            </Flex>
           )
         })}
-      </ul>
+      </Stack>
     </div>
-  );
+  )
 }
-
 
 const useSettings = () => {
   const [existingSettings, setSettings] = useState({})

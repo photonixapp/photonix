@@ -27,7 +27,8 @@ header .logo img {
   height: 50px;
   padding: 10px 0 10px 10px;
 }
-header .notifications img, header .user img {
+header .notifications img,
+header .user img {
   filter: invert(0.9);
   padding: 10px 0 10px 10px;
   width: 50px;
@@ -57,7 +58,7 @@ header .user img.arrowDown {
   padding: 15px 20px;
 }
 .menu li:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 .menu a {
   color: #fff;

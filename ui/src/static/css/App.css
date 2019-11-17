@@ -2,7 +2,9 @@ html {
   height: 100%;
   box-sizing: border-box;
 }
-*, *:before, *:after {
+*,
+*:before,
+*:after {
   box-sizing: inherit;
 }
 
@@ -79,10 +81,14 @@ footer {
 .react-router-modal__modal {
   border: 0;
   border-radius: 0;
-  background: rgba(0,0,0,0);
+  background: rgba(0, 0, 0, 0);
 }
 .react-router-modal__backdrop {
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
+}
+
+button {
+  border: 0;
 }
 
 @media all and (max-width: 700px) {
