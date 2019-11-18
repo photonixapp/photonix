@@ -1,11 +1,11 @@
-version: "2"
+version: '2'
 
 services:
   postgres:
     container_name: photonix-postgres
     image: postgres:11.1-alpine
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       POSTGRES_DB: photonix
       POSTGRES_PASSWORD: password
@@ -16,7 +16,7 @@ services:
     container_name: photonix-redis
     image: redis:3.2.8
     ports:
-      - "6379:6379"
+      - '6379:6379'
 
   photonix:
     container_name: photonix
@@ -24,8 +24,8 @@ services:
     build:
       context: .
     ports:
-      - "8888:80"
-      - "8889:8000"
+      - '8888:80'
+      - '8889:8000'
     environment:
       ENV: dev
       POSTGRES_HOST: postgres
@@ -33,6 +33,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       REDIS_HOST: redis
+      ALLOWED_HOSTS: '*'
     volumes:
       - ./photonix:/srv/photonix
       - ./tests:/srv/tests
