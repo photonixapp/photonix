@@ -24,27 +24,26 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => (
       <ThemeProvider theme={customTheme}>
         {/* <CSSReset /> */}
         <Switch>
+          <Route path="/components" render={ComponentsBrowser} />
+          <Route
+            path="/"
+            render={() => (
+              <BrowseContainer
+                selectedFilters={selectedFilters}
+                search=""
+                onFilterToggle={onFilterToggle}
+                onClearFilters={onClearFilters}
+              />
+            )}
+          />
+        </Switch>
+        <Switch>
           <ModalRoute
             path="/photo/:photoId"
             parentPath="/"
             component={PhotoDetailContainer}
           />
-          <ModalRoute
-            path="/settings"
-            parentPath="/"
-            component={() => <Settings />}
-          />
-          <Route
-            path="/components"
-            exact
-            render={() => <ComponentsBrowser />}
-          />
-          <BrowseContainer
-            selectedFilters={selectedFilters}
-            search=""
-            onFilterToggle={onFilterToggle}
-            onClearFilters={onClearFilters}
-          />
+          <ModalRoute path="/settings" parentPath="/" component={Settings} />
         </Switch>
         <ModalContainer />
       </ThemeProvider>
