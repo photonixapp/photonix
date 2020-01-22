@@ -11,7 +11,7 @@ codecov==2.0.15
 coverage==4.5.2
 cycler==0.10.0
 decorator==4.3.0
-Django==1.11.23
+Django==1.11.27
 django-filter==2.0.0
 factory-boy==2.11.1
 Faker==1.0.4
