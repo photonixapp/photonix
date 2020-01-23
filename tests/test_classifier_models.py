@@ -104,4 +104,4 @@ def test_style_predict():
 
     assert len(result) == 1
     assert result[0][0] == 'serene'
-    assert '{0:.3f}'.format(result[0][1]) == '0.915'
+    assert '{0:.3f}'.format(result[0][1]) == '0.962'

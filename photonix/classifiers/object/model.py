@@ -38,11 +38,11 @@ class ObjectModel(BaseModel):
                 return self.graph_cache[self.graph_cache_key]
 
             graph = tf.Graph()
-            graph_def = tf.GraphDef()
+            graph_def = tf.compat.v1.GraphDef()
 
             with graph.as_default():
-                od_graph_def = tf.GraphDef()
-                with tf.gfile.GFile(graph_file, 'rb') as fid:
+                od_graph_def = tf.compat.v1.GraphDef()
+                with tf.io.gfile.GFile(graph_file, 'rb') as fid:
                     serialized_graph = fid.read()
                     od_graph_def.ParseFromString(serialized_graph)
                     tf.import_graph_def(od_graph_def, name='')
@@ -61,9 +61,9 @@ class ObjectModel(BaseModel):
 
     def run_inference_for_single_image(self, image):
         with self.graph.as_default():
-            with tf.Session() as sess:
+            with tf.compat.v1.Session() as sess:
                 # Get handles to input and output tensors
-                ops = tf.get_default_graph().get_operations()
+                ops = tf.compat.v1.get_default_graph().get_operations()
                 all_tensor_names = {output.name for op in ops for output in op.outputs}
                 tensor_dict = {}
                 for key in [
@@ -72,14 +72,14 @@ class ObjectModel(BaseModel):
                 ]:
                     tensor_name = key + ':0'
                     if tensor_name in all_tensor_names:
-                        tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
+                        tensor_dict[key] = tf.compat.v1.get_default_graph().get_tensor_by_name(tensor_name)
                 if 'detection_masks' in tensor_dict:
                     # The following processing is only for single image
                     detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
                     # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
                     real_num_detection = tf.cast(tensor_dict['num_detections'][0], tf.int32)
                     detection_boxes = tf.slice(detection_boxes, [0, 0], [real_num_detection, -1])
-                image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+                image_tensor = tf.compat.v1.get_default_graph().get_tensor_by_name('image_tensor:0')
 
                 # Run inference
                 output_dict = sess.run(tensor_dict, feed_dict={image_tensor: np.expand_dims(image, 0)})

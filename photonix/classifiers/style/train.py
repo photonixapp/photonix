@@ -1003,7 +1003,7 @@ def main(_):
       FLAGS.flip_left_right, FLAGS.random_crop, FLAGS.random_scale,
       FLAGS.random_brightness)
 
-  with tf.Session(graph=graph) as sess:
+  with tf.compat.v1.Session(graph=graph) as sess:
     # Set up the image decoding sub-graph.
     jpeg_data_tensor, decoded_image_tensor = add_jpeg_decoding(
         model_info['input_width'], model_info['input_height'],

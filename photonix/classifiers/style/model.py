@@ -24,6 +24,8 @@ class StyleModel(BaseModel):
     def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
         super().__init__(model_dir=model_dir)
 
+        tf.compat.v1.disable_eager_execution()
+
         graph_file = os.path.join(self.model_dir, graph_file)
         label_file = os.path.join(self.model_dir, label_file)
 
@@ -38,7 +40,7 @@ class StyleModel(BaseModel):
                 return self.graph_cache[self.graph_cache_key]
 
             graph = tf.Graph()
-            graph_def = tf.GraphDef()
+            graph_def = tf.compat.v1.GraphDef()
 
             with open(graph_file, 'rb') as f:
                 graph_def.ParseFromString(f.read())
@@ -50,7 +52,7 @@ class StyleModel(BaseModel):
 
     def load_labels(self, label_file):
         labels = []
-        proto_as_ascii_lines = tf.gfile.GFile(label_file).readlines()
+        proto_as_ascii_lines = tf.io.gfile.GFile(label_file).readlines()
         for l in proto_as_ascii_lines:
             labels.append(l.rstrip())
         return labels
@@ -75,7 +77,7 @@ class StyleModel(BaseModel):
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
-        with tf.Session(graph=self.graph) as sess:
+        with tf.compat.v1.Session(graph=self.graph) as sess:
             results = sess.run(output_operation.outputs[0], {input_operation.outputs[0]: t})
         results = np.squeeze(results)
 
@@ -90,7 +92,7 @@ class StyleModel(BaseModel):
     def read_tensor_from_image_file(self, file_name, input_height=299, input_width=299, input_mean=0, input_std=255):
         input_name = "file_reader"
 
-        file_reader = tf.read_file(file_name, input_name)
+        file_reader = tf.io.read_file(file_name, input_name)
         if file_name.endswith(".png"):
             image_reader = tf.image.decode_png(file_reader, channels = 3, name='png_reader')
         elif file_name.endswith(".gif"):
@@ -101,9 +103,9 @@ class StyleModel(BaseModel):
             image_reader = tf.image.decode_jpeg(file_reader, channels = 3, name='jpeg_reader')
         float_caster = tf.cast(image_reader, tf.float32)
         dims_expander = tf.expand_dims(float_caster, 0)
-        resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
+        resized = tf.image.resize(dims_expander, [input_height, input_width], method=tf.image.ResizeMethod.BILINEAR, antialias=True)
         normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
-        sess = tf.Session()
+        sess = tf.compat.v1.Session()
         return sess.run(normalized)
 
 
