@@ -6,7 +6,6 @@ RUN apt-get update && \
         dcraw \
         build-essential \
         gnupg \
-        gunicorn \
         libimage-exiftool-perl \
         libjpeg-dev \
         libpq-dev \
@@ -21,7 +20,7 @@ RUN apt-get update && \
                    /var/tmp/*
 
 # Install Node & Yarn
-RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - && \
+RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - && \
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
     apt-get update && \

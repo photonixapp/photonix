@@ -13,7 +13,7 @@ import {
 
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import '../static/css/Settings.css'
-import folder from '../static/images/folder.svg'
+// import folder from '../static/images/folder.svg'
 
 export default function Settings() {
   const [settings, setSettings] = useSettings()

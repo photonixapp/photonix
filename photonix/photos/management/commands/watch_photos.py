@@ -16,7 +16,7 @@ class Command(BaseCommand):
         for path in paths:
             print(path)
             # TODO: Work out how to watch multiple paths at once
-            i = inotify.adapters.InotifyTree(path.encode('utf-8'))
+            i = inotify.adapters.InotifyTree(path)
 
             for event in i.event_gen():
                 if event is not None:

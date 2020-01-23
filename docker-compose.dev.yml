@@ -42,6 +42,8 @@ services:
       - ./ui/src:/srv/ui/src
       - ./ui/static:/srv/ui/static
       - ./ui/yarn.lock:/srv/ui/yarn.lock
+      - ./ui/config:/srv/ui/config
+      - ./ui/scripts:/srv/ui/scripts
       - ./data/photos:/data/photos
       - ./data/raw-photos-processed:/data/raw-photos-processed
       - ./data/cache:/data/cache
