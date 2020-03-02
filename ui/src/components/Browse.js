@@ -7,6 +7,7 @@ import MapViewContainer from '../containers/MapViewContainer'
 import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/Browse.css'
+import SimpleExample from './SimpleExample'
 
 
 const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilterToggle, onClearFilters, onExpandCollapse, expanded }) => {
@@ -34,7 +35,8 @@ const Browse = ({ selectedFilters, mode, loading, error, photoSections, onFilter
       </div>
     </div>
     <div className="main">
-      { content }
+      {/* { content } */}
+      <SimpleExample />
     </div>
   </div>
 }

@@ -6,6 +6,10 @@
   font-size: 18px;
 }
 
+.Search .scrollarea-content {
+  width: max-content;
+}
+
 @media all and (max-width: 700px) {
   .Search {
     padding: 20px;

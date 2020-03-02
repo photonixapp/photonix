@@ -1,8 +1,9 @@
 .Filters {
-  overflow: auto;
+  /* overflow: auto; */
   margin: 0 -40px -20px;
-  height: 350px;
+  height: 200px;
   transition: opacity 200ms;
+  width: max-content;
 }
 .FiltersContent {
   width: max-content;
@@ -54,7 +55,7 @@
 .FilterGroup {
   width: 250px;
   height: 227px;
-  max-height: 300px;
+  max-height: 180px;
   overflow: auto;
   margin: 0;
   padding: 0 0 70px 0;
