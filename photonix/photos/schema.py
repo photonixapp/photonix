@@ -4,6 +4,7 @@ from django_filters import CharFilter
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
+from graphql_jwt.decorators import login_required
 
 from .models import Camera, Lens, Photo, Tag, PhotoTag
 
@@ -198,6 +199,7 @@ class Query(object):
 
         return None
 
+    # @login_required
     def resolve_all_cameras(self, info, **kwargs):
         return Camera.objects.all()
 

@@ -2,10 +2,40 @@ from __future__ import unicode_literals
 from pathlib import Path
 
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.db import models, transaction
 from django.utils import timezone
 
 from photonix.common.models import UUIDModel, VersionedModel
+
+
+class User(AbstractUser):
+    pass
+
+
+BACKEND_TYPE_CHOICES = (
+    ('Lo', 'Local filesystem'),
+    ('S3', 'S3-compatible block storage'),
+)
+
+
+class Library(UUIDModel, VersionedModel):
+    backend_type                    = models.CharField(max_length=2, choices=BACKEND_TYPE_CHOICES, help_text='What type of storage to use for imported photos')
+    base_path                       = models.CharField(max_length=128, blank=True, null=True, help_text='Path for storing photos - local path or bucket name')
+    base_url                        = models.CharField(max_length=128, blank=True, null=True, help_text='If a public-facing URL is available to access block storage, client will use this to download photos')
+    base_thumbnail_path             = models.CharField(max_length=128, blank=True, null=True, help_text='Path for storing auto-generated photo thumbnails - local path or bucket name')
+    base_thumbnail_url              = models.CharField(max_length=128, blank=True, null=True, help_text='If a public-facing URL is available to access block storage, client will use this to download thumbnails')
+    import_path                     = models.CharField(max_length=128, blank=True, null=True, help_text='Local path where photos should be imported from')
+    delete_after_import             = models.BooleanField(default=False, help_text='Remove the photo from import_path after import succeeded?')
+    watch_files                     = models.BooleanField(default=False, help_text='Watch local filesystem for changes?')
+    classification_color_enabled    = models.BooleanField(default=False, help_text='Run color analysis on photos?')
+    classification_location_enabled = models.BooleanField(default=False, help_text='Run location detection on photos?')
+    classification_style_enabled    = models.BooleanField(default=False, help_text='Run style classification on photos?')
+    classification_object_enabled   = models.BooleanField(default=False, help_text='Run object detection on photos?')
+    # encrypted
+
+    class Meta:
+        verbose_name_plural = 'Libraries'
 
 
 class Camera(UUIDModel, VersionedModel):
@@ -37,6 +67,7 @@ class Lens(UUIDModel, VersionedModel):
 
 
 class Photo(UUIDModel, VersionedModel):
+    library                             = models.ForeignKey(Library, related_name='photos', null=True, on_delete=models.CASCADE)
     visible                             = models.BooleanField(default=False)
     taken_at                            = models.DateTimeField(null=True)
     taken_by                            = models.CharField(max_length=128, blank=True, null=True)

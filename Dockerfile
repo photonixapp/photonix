@@ -58,6 +58,8 @@ RUN cd ui && yarn build
 
 ENV PYTHONPATH /srv
 
+RUN python photonix/manage.py collectstatic --noinput --link
+
 CMD ./system/run.sh
 
 EXPOSE 80

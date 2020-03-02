@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'photonix.common',
     'photonix.photos',
     'photonix.web',
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -86,6 +88,12 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    'graphql_jwt.backends.JSONWebTokenBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AUTH_USER_MODEL = 'photos.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -128,7 +136,7 @@ else:
 CACHE_DIR = str(Path(DATA_DIR) / 'cache')
 MODEL_DIR = str(Path(DATA_DIR) / 'models')
 
-STATIC_DIR = str(Path(BASE_DIR) / 'static')
+STATIC_ROOT = str(Path(BASE_DIR) / 'static')
 STATIC_URL = '/static/'
 
 MEDIA_ROOT = str(Path(BASE_DIR).parent / 'data')
@@ -161,5 +169,12 @@ PHOTO_RAW_PROCESSED_DIR = '/data/raw-photos-processed'
 MODEL_INFO_URL = 'https://photonix.org/models.json'
 
 GRAPHENE = {
-    'SCHEMA': 'photonix.web.schema.schema'
+    'SCHEMA': 'photonix.web.schema.schema',
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
 }
+
+APPEND_SLASHES = False
+
+CORS_ORIGIN_WHITELIST = []
