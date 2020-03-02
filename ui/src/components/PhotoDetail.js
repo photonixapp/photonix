@@ -1,6 +1,6 @@
 import React from 'react'
-import createHistory from 'history/createBrowserHistory'
 
+import history from '../history'
 import BoundingBoxes from './BoundingBoxes'
 import MapViewContainer from '../containers/MapViewContainer'
 import ColorTags from './ColorTags'
@@ -10,8 +10,6 @@ import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import '../static/css/PhotoDetail.css'
 
-
-const history = createHistory()
 
 const PhotoDetail = ({ photoId, photo }) => {
   let boxes = photo.objectTags.map((objectTag) => {

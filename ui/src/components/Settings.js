@@ -29,9 +29,30 @@ export default function Settings() {
       type: 'boolean',
       name: 'Watch folder for new photos',
     },
+    {
+      key: 'classificationColor',
+      type: 'boolean',
+      name: 'Run color analysis on photos?',
+    },
+    {
+      key: 'classificationLocation',
+      type: 'boolean',
+      name: 'Run location detection on photos?',
+    },
+    {
+      key: 'classificationStyle',
+      type: 'boolean',
+      name: 'Run style classification on photos?',
+    },
+    {
+      key: 'classificationObject',
+      type: 'boolean',
+      name: 'Run object detection on photos?',
+    },
   ]
 
   function toggleBooleanSetting(key) {
+    console.log(key)
     let newSettings = {}
     newSettings[key] = !settings[key]
     setSettings(newSettings)
