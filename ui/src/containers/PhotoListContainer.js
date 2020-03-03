@@ -3,6 +3,8 @@ import PhotoList from '../components/PhotoList'
 
 
 export default class PhotoListContainer extends React.Component {
+  // TODO: Migrate this to use common <ScrollArea/> component
+
   constructor(props) {
     super(props)
 
