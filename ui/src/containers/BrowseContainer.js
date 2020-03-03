@@ -33,19 +33,18 @@ const BrowseContainer = (props) => {
     }
   })
 
-  if (loading) return <Spinner />
-  if (error) return <p>Error :(</p>
-
   let photoSections = []
   let photos = []
 
-  photos = data.allPhotos.edges.map((photo) => (
-    {
-      id: photo.node.id,
-      thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
-      location: photo.node.location ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]] : null,
-    }
-  ))
+  if (data) {
+    photos = data.allPhotos.edges.map((photo) => (
+      {
+        id: photo.node.id,
+        thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+        location: photo.node.location ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]] : null,
+      }
+    ))
+  }
 
   let section = {
     id: 12345,
