@@ -2,7 +2,6 @@ import React, { useState }  from 'react'
 import { useQuery } from '@apollo/react-hooks';
 import gql from "graphql-tag"
 import Browse from '../components/Browse'
-import Spinner from '../components/Spinner'
 
 
 const GET_PHOTOS = gql`

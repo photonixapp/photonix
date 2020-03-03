@@ -2,13 +2,14 @@ import React from 'react'
 
 import ColorTags from './ColorTags'
 import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
+import ScrollArea from './ScrollArea'
 
 import '../static/css/Filters.css'
 
 
-const Filters = ({ data, onToggle, onScroll, onMouseDown, onTouchStart, containerRef, scrollbarHandleRef, displayScrollbar }) => {
+const Filters = ({ data, onToggle }) => {
   return (
-    <section className="Filters" onScroll={onScroll} ref={containerRef}>
+    <ScrollArea>
       <div className="FiltersContent">
         {
           data.map((group) => {
@@ -49,8 +50,7 @@ const Filters = ({ data, onToggle, onScroll, onMouseDown, onTouchStart, containe
         }
         <div className="filterGradient"></div>
       </div>
-      <div className="scrollbar" ref={scrollbarHandleRef} style={{opacity: displayScrollbar ? 1 : null}} onMouseDown={onMouseDown} onTouchStart={onTouchStart}></div>
-    </section>
+    </ScrollArea>
   )
 }
 
