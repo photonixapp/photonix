@@ -162,7 +162,7 @@ class StyleTagType(DjangoObjectType):
         model = Tag
 
 
-class Query(object):
+class Query(graphene.ObjectType):
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
     all_cameras = graphene.List(CameraType)
 
@@ -199,7 +199,7 @@ class Query(object):
 
         return None
 
-    # @login_required
+    @login_required
     def resolve_all_cameras(self, info, **kwargs):
         return Camera.objects.all()
 
@@ -244,6 +244,10 @@ class Query(object):
         if id is not None:
             return Photo.objects.get(pk=id)
         return None
+
+    @login_required
+    def resolve_all_photos(self, info, **kwargs):
+        return Photo.objects.all()
 
     def resolve_all_location_tags(self, info, **kwargs):
         return Tag.objects.filter(type='L')

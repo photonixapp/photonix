@@ -27,7 +27,7 @@ class Library(UUIDModel, VersionedModel):
     base_thumbnail_url              = models.CharField(max_length=128, blank=True, null=True, help_text='If a public-facing URL is available to access block storage, client will use this to download thumbnails')
     import_path                     = models.CharField(max_length=128, blank=True, null=True, help_text='Local path where photos should be imported from')
     delete_after_import             = models.BooleanField(default=False, help_text='Remove the photo from import_path after import succeeded?')
-    watch_files                     = models.BooleanField(default=False, help_text='Watch local filesystem for changes?')
+    watch_files                     = models.BooleanField(default=False, help_text='Watch import_path for local filesystem changes?')
     classification_color_enabled    = models.BooleanField(default=False, help_text='Run color analysis on photos?')
     classification_location_enabled = models.BooleanField(default=False, help_text='Run location detection on photos?')
     classification_style_enabled    = models.BooleanField(default=False, help_text='Run style classification on photos?')

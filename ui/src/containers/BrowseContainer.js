@@ -1,6 +1,8 @@
 import React, { useState }  from 'react'
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery } from '@apollo/react-hooks'
+import { Redirect } from 'react-router-dom'
 import gql from "graphql-tag"
+
 import Browse from '../components/Browse'
 
 
@@ -31,6 +33,10 @@ const BrowseContainer = (props) => {
       filters: filtersStr,
     }
   })
+
+  if (error && error.message.indexOf('You do not have permission') > -1) {
+    return <Redirect to="/login/" />
+  }
 
   let photoSections = []
   let photos = []

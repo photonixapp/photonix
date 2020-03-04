@@ -11,7 +11,7 @@ import { ThemeProvider } from '@chakra-ui/core'
 
 import BrowseContainer from '../containers/BrowseContainer'
 import ComponentsBrowser from '../components/ComponentsBrowser'
-// import Login from '../components/Login'
+import Login from '../components/Login'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 import Settings from '../components/Settings'
 import customTheme from '../theme'
@@ -19,7 +19,17 @@ import '../static/css/App.css'
 import '../static/css/typography.css'
 
 
-const client = new ApolloClient()
+const client = new ApolloClient({
+  request: (operation) => {
+    const token = localStorage.getItem('token')
+    operation.setContext({
+      headers: {
+        Authorization: token ? `JWT ${token}` : ''
+      }
+    })
+  }
+})
+
 
 const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => (
   <ApolloProvider client={client}>
@@ -27,7 +37,7 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => (
       <ThemeProvider theme={customTheme}>
         {/* <CSSReset /> */}
         <Switch>
-          {/* <Route path="/login" render={Login} /> */}
+          <Route path="/login" render={() => (<Login/>)} />
           <Route path="/components" render={ComponentsBrowser} />
           <Route
             path="/"
