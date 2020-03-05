@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+from datetime import timedelta
 import os
 from pathlib import Path
 
@@ -26,7 +27,8 @@ SECRET_KEY = 'r*z#sh2aqb!zjz#s7h@5&toyx@t_r4nfrgwg%r$4)2@d@8ypyb'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('ENV', 'prd') != 'prd'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',')
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',')
 
 
 # Application definition
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
     'corsheaders',
     'photonix.common',
     'photonix.photos',
@@ -146,7 +149,7 @@ THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
 THUMBNAIL_SIZES = [
     # Width, height, crop method, JPEG quality, whether it should be generated upon upload
     (256, 256, 'cover', 50, True),  # Square thumbnails
-    # We use the largest dimension for both dimensions as they won't crop and some with in portrait mode 
+    # We use the largest dimension for both dimensions as they won't crop and some with in portrait mode
     (960, 960, 'contain', 75, False),  # 960px
     (1920, 1920, 'contain', 75, False),  # 2k
     (3840, 3840, 'contain', 75, False),  # 4k
@@ -173,6 +176,13 @@ GRAPHENE = {
     'MIDDLEWARE': [
         'graphql_jwt.middleware.JSONWebTokenMiddleware',
     ],
+}
+
+GRAPHQL_JWT = {
+    'JWT_VERIFY_EXPIRATION': True,
+    'JWT_LONG_RUNNING_REFRESH_TOKEN': True,
+    'JWT_EXPIRATION_DELTA': timedelta(minutes=15),
+    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=365),
 }
 
 APPEND_SLASHES = False
