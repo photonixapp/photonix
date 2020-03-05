@@ -46,7 +46,6 @@ export const refreshToken = () => {
       console.log(response.data)
       if (response.data && response.data.refreshToken) {
         // We got token and refreshToken
-        localStorage.setItem('token', response.data.refreshToken.token)
         localStorage.setItem(
           'refreshToken',
           response.data.refreshToken.refreshToken
@@ -124,9 +123,8 @@ export const revokeRefreshToken = refreshToken => {
     })
 }
 
-export const logIn = (token, refreshToken) => {
-  if (token && refreshToken) {
-    localStorage.setItem('token', token)
+export const logIn = refreshToken => {
+  if (refreshToken) {
     localStorage.setItem('refreshToken', refreshToken)
   }
   loggedIn = true
@@ -138,7 +136,6 @@ export const logOut = () => {
   if (oldToken) {
     revokeRefreshToken(oldToken)
     localStorage.removeItem('refreshToken')
-    localStorage.removeItem('token')
   }
   if (timeout) {
     clearTimeout(timeout)

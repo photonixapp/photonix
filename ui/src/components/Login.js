@@ -17,7 +17,7 @@ const Login = props => {
   const [authUser, { data, loading, error }] = useMutation(AUTH_USER)
 
   if (data && data.tokenAuth) {
-    logIn(data.tokenAuth.token, data.tokenAuth.refreshToken)
+    logIn(data.tokenAuth.refreshToken)
     scheduleTokenRefresh() // We don't have the token expiry from the tokenAuth mutation but this will start the refresh cycle off in a few seconds
     return <Redirect to="/" />
   }
