@@ -62,7 +62,10 @@ export const refreshToken = () => {
             `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
           )
           // refreshToken expired or some other problem
-          if (message.indexOf('Refresh token is expired') > -1) {
+          if (
+            message.indexOf('Refresh token is expired') > -1 ||
+            message.indexOf('Invalid refresh token') > -1
+          ) {
             history.push('/login')
             return false
           }

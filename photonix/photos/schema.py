@@ -217,7 +217,8 @@ class Query(graphene.ObjectType):
 
     @login_required
     def resolve_all_cameras(self, info, **kwargs):
-        return Camera.objects.all()
+        user = info.context.user
+        return Camera.objects.filter(library__users__user=user)
 
     def resolve_lens(self, info, **kwargs):
         id = kwargs.get('id')
@@ -232,28 +233,36 @@ class Query(graphene.ObjectType):
         return None
 
     def resolve_all_lenses(self, info, **kwargs):
-        return Lens.objects.all()
+        user = info.context.user
+        return Lens.objects.filter(library__users__user=user)
 
     def resolve_all_apertures(self, info, **kwargs):
-        return Photo.objects.exclude(aperture__isnull=True).values_list('aperture', flat=True).distinct().order_by('aperture')
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user).exclude(aperture__isnull=True).values_list('aperture', flat=True).distinct().order_by('aperture')
 
     def resolve_all_exposures(self, info, **kwargs):
-        return Photo.objects.exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user).exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
 
     def resolve_all_iso_speeds(self, info, **kwargs):
-        return Photo.objects.exclude(iso_speed__isnull=True).values_list('iso_speed', flat=True).distinct().order_by('iso_speed')
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user).exclude(iso_speed__isnull=True).values_list('iso_speed', flat=True).distinct().order_by('iso_speed')
 
     def resolve_all_focal_lengths(self, info, **kwargs):
-        return Photo.objects.exclude(focal_length__isnull=True).values_list('focal_length', flat=True).distinct().order_by('focal_length')
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user).exclude(focal_length__isnull=True).values_list('focal_length', flat=True).distinct().order_by('focal_length')
 
     def resolve_all_metering_modes(self, info, **kwargs):
-        return Photo.objects.exclude(metering_mode__isnull=True).values_list('metering_mode', flat=True).distinct().order_by('metering_mode')
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user).exclude(metering_mode__isnull=True).values_list('metering_mode', flat=True).distinct().order_by('metering_mode')
 
     def resolve_all_drive_modes(self, info, **kwargs):
-        return Photo.objects.exclude(drive_mode__isnull=True).values_list('drive_mode', flat=True).distinct().order_by('drive_mode')
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user).exclude(drive_mode__isnull=True).values_list('drive_mode', flat=True).distinct().order_by('drive_mode')
 
     def resolve_all_shooting_modes(self, info, **kwargs):
-        return Photo.objects.exclude(shooting_mode__isnull=True).values_list('shooting_mode', flat=True).distinct().order_by('shooting_mode')
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user).exclude(shooting_mode__isnull=True).values_list('shooting_mode', flat=True).distinct().order_by('shooting_mode')
 
     def resolve_photo(self, info, **kwargs):
         id = kwargs.get('id')
@@ -267,16 +276,21 @@ class Query(graphene.ObjectType):
         return Photo.objects.filter(library__users__user=user)
 
     def resolve_all_location_tags(self, info, **kwargs):
-        return Tag.objects.filter(type='L')
+        user = info.context.user
+        return Tag.objects.filter(library__users__user=user, type='L')
 
     def resolve_all_object_tags(self, info, **kwargs):
-        return Tag.objects.filter(type='O')
+        user = info.context.user
+        return Tag.objects.filter(library__users__user=user, type='O')
 
     def resolve_all_person_tags(self, info, **kwargs):
-        return Tag.objects.filter(type='P')
+        user = info.context.user
+        return Tag.objects.filter(library__users__user=user, type='P')
 
     def resolve_all_color_tags(self, info, **kwargs):
-        return Tag.objects.filter(type='C')
+        user = info.context.user
+        return Tag.objects.filter(library__users__user=user, type='C')
 
     def resolve_all_style_tags(self, info, **kwargs):
-        return Tag.objects.filter(type='S')
+        user = info.context.user
+        return Tag.objects.filter(library__users__user=user, type='S')

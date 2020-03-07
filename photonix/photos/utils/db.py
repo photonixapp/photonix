@@ -38,7 +38,7 @@ def record_photo(path, library):
                 camera.latest_photo = date_taken
                 camera.save()
         except Camera.DoesNotExist:
-            camera = Camera(make=camera_make, model=camera_model,
+            camera = Camera(library=library, make=camera_make, model=camera_model,
                             earliest_photo=date_taken, latest_photo=date_taken)
             camera.save()
 
@@ -54,7 +54,7 @@ def record_photo(path, library):
                 lens.latest_photo = date_taken
                 lens.save()
         except Lens.DoesNotExist:
-            lens = Lens(name=lens_name, earliest_photo=date_taken,
+            lens = Lens(library=library, name=lens_name, earliest_photo=date_taken,
                         latest_photo=date_taken)
             lens.save()
 

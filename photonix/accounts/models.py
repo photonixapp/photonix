@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 
+from photonix.common.models import UUIDModel, VersionedModel
 
-class User(AbstractUser):
+
+class User(UUIDModel, AbstractUser):
     pass

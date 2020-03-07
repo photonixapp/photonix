@@ -10,7 +10,8 @@ class Command(BaseCommand):
     help = 'Watches photo directories and creates relevant database records for all photos that are added or modified.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--paths', nargs='+', default=[item['PATH'] for item in settings.PHOTO_OUTPUT_DIRS])
+        parser.add_argument(
+            '--paths', nargs='+', default=[item['PATH'] for item in settings.PHOTO_OUTPUT_DIRS])
 
     def watch_photos(self, paths):
         for path in paths:
@@ -23,7 +24,7 @@ class Command(BaseCommand):
                     (header, type_names, watch_path, filename) = event
                     # if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_FROM', 'IN_MOVED_TO']):  # TODO: Make moving photos really efficient by using the 'from' path
                     if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_TO']):
-                        photo_path = '{}/{}'.format(watch_path.decode('utf-8'), filename.decode('utf-8'))
+                        photo_path = '{}/{}'.format(watch_path, filename)
                         record_photo(photo_path)
 
     def handle(self, *args, **options):

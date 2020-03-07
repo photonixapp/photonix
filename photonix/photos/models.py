@@ -71,13 +71,15 @@ class LibraryUser(UUIDModel, VersionedModel):
 
 
 class Camera(UUIDModel, VersionedModel):
+    library = models.ForeignKey(
+        Library, related_name='cameras', on_delete=models.CASCADE)
     make = models.CharField(max_length=128)
     model = models.CharField(max_length=128)
     earliest_photo = models.DateTimeField()
     latest_photo = models.DateTimeField()
 
     class Meta:
-        unique_together = [['make', 'model']]
+        unique_together = [['library', 'make', 'model']]
         ordering = ['make', 'model']
         app_label = 'photos'
 
@@ -86,6 +88,8 @@ class Camera(UUIDModel, VersionedModel):
 
 
 class Lens(UUIDModel, VersionedModel):
+    library = models.ForeignKey(
+        Library, related_name='lenses', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     earliest_photo = models.DateTimeField()
     latest_photo = models.DateTimeField()
@@ -209,6 +213,8 @@ TAG_TYPE_CHOICES = (
 
 
 class Tag(UUIDModel, VersionedModel):
+    library = models.ForeignKey(
+        Library, related_name='tags', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     parent = models.ForeignKey(
         'Tag', related_name='+', null=True, on_delete=models.CASCADE)
@@ -217,7 +223,7 @@ class Tag(UUIDModel, VersionedModel):
 
     class Meta:
         ordering = ['name']
-        unique_together = (('name', 'type', 'source'),)
+        unique_together = [['library', 'name', 'type', 'source']]
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.type)
