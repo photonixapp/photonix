@@ -9,7 +9,7 @@ from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime,
                                             parse_gps_location)
 
 
-def record_photo(path):
+def record_photo(path, library):
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
     try:
@@ -38,7 +38,8 @@ def record_photo(path):
                 camera.latest_photo = date_taken
                 camera.save()
         except Camera.DoesNotExist:
-            camera = Camera(make=camera_make, model=camera_model, earliest_photo=date_taken, latest_photo=date_taken)
+            camera = Camera(make=camera_make, model=camera_model,
+                            earliest_photo=date_taken, latest_photo=date_taken)
             camera.save()
 
     lens = None
@@ -53,7 +54,8 @@ def record_photo(path):
                 lens.latest_photo = date_taken
                 lens.save()
         except Lens.DoesNotExist:
-            lens = Lens(name=lens_name, earliest_photo=date_taken, latest_photo=date_taken)
+            lens = Lens(name=lens_name, earliest_photo=date_taken,
+                        latest_photo=date_taken)
             lens.save()
 
     photo = None
@@ -69,10 +71,8 @@ def record_photo(path):
     if metadata.get('GPS Position'):
         latitude, longitude = parse_gps_location(metadata.get('GPS Position'))
 
-
     if not photo:
         # Save Photo
-
         aperture = None
         aperturestr = metadata.get('Aperture')
         if aperturestr:
@@ -84,13 +84,16 @@ def record_photo(path):
                 pass
 
         photo = Photo(
+            library=library,
             taken_at=date_taken,
             taken_by=metadata.get('Artist') or None,
             aperture=aperture,
             exposure=metadata.get('Exposure Time') or None,
             iso_speed=metadata.get('ISO') and int(metadata.get('ISO')) or None,
-            focal_length=metadata.get('Focal Length') and metadata.get('Focal Length').split(' ', 1)[0] or None,
-            flash=metadata.get('Flash') and 'on' in metadata.get('Flash').lower() or False,
+            focal_length=metadata.get('Focal Length') and metadata.get(
+                'Focal Length').split(' ', 1)[0] or None,
+            flash=metadata.get('Flash') and 'on' in metadata.get(
+                'Flash').lower() or False,
             metering_mode=metadata.get('Metering Mode') or None,
             drive_mode=metadata.get('Drive Mode') or None,
             shooting_mode=metadata.get('Shooting Mode') or None,
@@ -98,7 +101,8 @@ def record_photo(path):
             lens=lens,
             latitude=latitude,
             longitude=longitude,
-            altitude=metadata.get('GPS Altitude') and metadata.get('GPS Altitude').split(' ')[0]
+            altitude=metadata.get('GPS Altitude') and metadata.get(
+                'GPS Altitude').split(' ')[0]
         )
         photo.save()
 
@@ -111,13 +115,13 @@ def record_photo(path):
 
     # Save PhotoFile
     photo_file.photo = photo
-    photo_file.path             = path
-    photo_file.width            = width
-    photo_file.height           = height
-    photo_file.mimetype         = mimetypes.guess_type(path)[0]
+    photo_file.path = path
+    photo_file.width = width
+    photo_file.height = height
+    photo_file.mimetype = mimetypes.guess_type(path)[0]
     photo_file.file_modified_at = file_modified_at
-    photo_file.bytes            = os.stat(path).st_size
-    photo_file.preferred        = False  # TODO
+    photo_file.bytes = os.stat(path).st_size
+    photo_file.preferred = False  # TODO
     photo_file.save()
 
     # Create task to ensure JPEG version of file exists (used for thumbnailing, analysing etc.)

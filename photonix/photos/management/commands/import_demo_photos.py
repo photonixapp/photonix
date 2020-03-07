@@ -1,10 +1,16 @@
 import os
 from pathlib import Path
 
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from django.db.utils import IntegrityError
 
+from photonix.photos.models import Library, LibraryUser
 from photonix.photos.utils.db import record_photo
 from photonix.photos.utils.fs import determine_destination, download_file
+
+
+User = get_user_model()
 
 
 URLS = [
@@ -25,6 +31,28 @@ class Command(BaseCommand):
     help = 'Downloads sample photos for displaying on the demo site'
 
     def import_photos(self):
+        # Create demo User account
+        try:
+            user = User.objects.create_user(
+                username='demo', email='demo@photonix.org', password='demo')
+        except IntegrityError:
+            user = User.objects.get(username='demo')
+
+        # Create Library
+        library, _ = Library.objects.get_or_create(
+            name='Demo Library',
+            backend_type='Lo',
+            base_path='/data/photos/',
+            base_url='/photos/',
+            base_thumbnail_path='/data/cache/thumbnails/',
+            base_thumbnail_url='/thumbnails/'
+        )
+        library_user, _ = LibraryUser.objects.get_or_create(
+            library=library,
+            user=user
+        )
+
+        # Add photos
         for url in URLS:
             dest_dir = determine_destination(url)
             fn = url.split('/')[-1]
@@ -33,7 +61,7 @@ class Command(BaseCommand):
             if not os.path.exists(dest_path):
                 print('Fetching {} -> {}'.format(url, dest_path))
                 download_file(url, dest_path)
-                record_photo(dest_path)
+                record_photo(dest_path, library)
 
     def handle(self, *args, **options):
         self.import_photos()

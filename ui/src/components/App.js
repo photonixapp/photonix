@@ -25,7 +25,7 @@ import customTheme from '../theme'
 import '../static/css/App.css'
 import '../static/css/typography.css'
 
-if (localStorage.getItem('token')) {
+if (localStorage.getItem('refreshToken')) {
   logIn()
   refreshToken()
 } else {

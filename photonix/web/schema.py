@@ -1,20 +1,17 @@
 import graphene
-import graphql_jwt
 
-from photonix.photos.schema import Query as OtherQuery
+from photonix.photos.schema import Query as PhotosQuery
+from photonix.accounts.schema import Mutation as AccountsMutation
 
 
-class Query(OtherQuery, graphene.ObjectType):
+class Query(PhotosQuery, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     pass
 
 
-class Mutation(graphene.ObjectType):
-    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
-    verify_token = graphql_jwt.Verify.Field()
-    refresh_token = graphql_jwt.Refresh.Field()
-    revoke_token = graphql_jwt.Revoke.Field()
+class Mutation(AccountsMutation, graphene.ObjectType):
+    pass
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

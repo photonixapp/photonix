@@ -6,7 +6,12 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
 
-from .models import Camera, Lens, Photo, Tag, PhotoTag
+from .models import Library, Camera, Lens, Photo, Tag, PhotoTag
+
+
+class LibraryType(DjangoObjectType):
+    class Meta:
+        model = Library
 
 
 class CameraType(DjangoObjectType):
@@ -17,6 +22,7 @@ class CameraType(DjangoObjectType):
 class LensType(DjangoObjectType):
     class Meta:
         model = Lens
+
 
 class PhotoTagType(DjangoObjectType):
     class Meta:
@@ -92,6 +98,7 @@ class PhotoFilter(django_filters.FilterSet):
             'lens__id': ['exact'],
             'photo_tags__tag__id': ['exact', 'in', 'icontains'],
             'photo_tags__tag__name': ['exact', 'icontains', 'in'],
+            'library__id': ['exact'],
         }
 
     def sanitize(self, value_list):
@@ -125,7 +132,8 @@ class PhotoFilter(django_filters.FilterSet):
                 elif key == 'focalLength':
                     queryset = queryset.filter(focal_length=val)
                 elif key == 'flash':
-                    queryset = queryset.filter(flash=val == 'on' and True or False)
+                    queryset = queryset.filter(
+                        flash=val == 'on' and True or False)
                 elif key == 'meeteringMode':
                     queryset = queryset.filter(metering_mode=val)
                 elif key == 'driveMode':
@@ -163,7 +171,10 @@ class StyleTagType(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
-    camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
+    all_libraries = graphene.List(LibraryType)
+
+    camera = graphene.Field(CameraType, id=graphene.UUID(
+    ), make=graphene.String(), model=graphene.String())
     all_cameras = graphene.List(CameraType)
 
     lens = graphene.Field(LensType, id=graphene.UUID(), name=graphene.String())
@@ -178,13 +189,18 @@ class Query(graphene.ObjectType):
     all_shooting_modes = graphene.List(graphene.String)
 
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
-    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
+    all_photos = DjangoFilterConnectionField(
+        PhotoNode, filterset_class=PhotoFilter)
 
     all_location_tags = graphene.List(LocationTagType)
     all_object_tags = graphene.List(ObjectTagType)
     all_person_tags = graphene.List(PersonTagType)
     all_color_tags = graphene.List(ColorTagType)
     all_style_tags = graphene.List(StyleTagType)
+
+    def resolve_all_libraries(self, info, **kwargs):
+        user = info.context.user
+        return Library.objects.filter(users__user=user)
 
     def resolve_camera(self, info, **kwargs):
         id = kwargs.get('id')
@@ -247,7 +263,8 @@ class Query(graphene.ObjectType):
 
     @login_required
     def resolve_all_photos(self, info, **kwargs):
-        return Photo.objects.all()
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user)
 
     def resolve_all_location_tags(self, info, **kwargs):
         return Tag.objects.filter(type='L')
