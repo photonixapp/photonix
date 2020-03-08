@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 import pytest
 
+from .factories import LibraryFactory
 from photonix.photos.models import PhotoFile, Task
 from photonix.photos.utils.fs import download_file
 from photonix.photos.utils.raw import generate_jpeg, ensure_raw_processing_tasks, identified_as_jpeg, process_raw_tasks
@@ -56,6 +57,7 @@ def photo_fixture_raw(db):
     from photonix.photos.utils.db import record_photo
     photo_index = 4  # Photo selected because it doesn't have width and height metadata
     raw_photo_path = str(Path(__file__).parent / 'photos' / PHOTOS[photo_index][0])
+
     if not os.path.exists(raw_photo_path):
         urls = PHOTOS[photo_index][3]
         for url in urls:
@@ -64,7 +66,9 @@ def photo_fixture_raw(db):
                 break
             except:
                 pass
-    return record_photo(raw_photo_path)
+
+    library = LibraryFactory()
+    return record_photo(raw_photo_path, library)
 
 
 def test_task_raw_processing(photo_fixture_raw):

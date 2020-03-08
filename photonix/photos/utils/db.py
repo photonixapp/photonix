@@ -30,7 +30,7 @@ def record_photo(path, library):
         camera_model = camera_model.replace(camera_make, '').strip()
     if camera_make and camera_model:
         try:
-            camera = Camera.objects.get(make=camera_make, model=camera_model)
+            camera = Camera.objects.get(library=library, make=camera_make, model=camera_model)
             if date_taken < camera.earliest_photo:
                 camera.earliest_photo = date_taken
                 camera.save()

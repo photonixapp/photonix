@@ -1,9 +1,9 @@
 from pathlib import Path
 
+from django.utils import timezone
 import pytest
 
-from django.utils import timezone
-
+from .factories import LibraryFactory
 from photonix.photos.models import Task
 from photonix.photos.utils.classification import process_classify_images_tasks
 from photonix.photos.utils.raw import ensure_raw_processing_tasks
@@ -16,7 +16,8 @@ from photonix.photos.utils.thumbnails import process_generate_thumbnails_tasks
 def photo_fixture_snow(db):
     from photonix.photos.utils.db import record_photo
     snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
-    return record_photo(snow_path)
+    library = LibraryFactory()
+    return record_photo(snow_path, library)
 
 
 def test_tasks_created_updated(photo_fixture_snow):

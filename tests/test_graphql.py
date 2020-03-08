@@ -4,6 +4,7 @@ from pathlib import Path
 import graphene
 import pytest
 
+from .factories import LibraryFactory
 from .utils import get_graphql_content
 from photonix.photos.models import Tag, PhotoTag
 
@@ -12,14 +13,16 @@ from photonix.photos.models import Tag, PhotoTag
 def photo_fixture_snow(db):
     from photonix.photos.utils.db import record_photo
     snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
-    return record_photo(snow_path)
+    library = LibraryFactory()
+    return record_photo(snow_path, library)
 
 
 @pytest.fixture
 def photo_fixture_tree(db):
     from photonix.photos.utils.db import record_photo
     tree_path = str(Path(__file__).parent / 'photos' / 'tree.jpg')
-    return record_photo(tree_path)
+    library = LibraryFactory()
+    return record_photo(tree_path, library)
 
 
 def test_get_photo(photo_fixture_snow, api_client):

@@ -154,12 +154,12 @@ class LocationModel(BaseModel):
         R = 6372800
         lat1, lon1 = coord1
         lat2, lon2 = coord2
-        
-        phi1, phi2 = math.radians(lat1), math.radians(lat2) 
+
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
         dphi = math.radians(lat2 - lat1)
         dlambda = math.radians(lon2 - lon1)
-        
-        a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+
+        a = math.sin(dphi/2)**2 + math.cos(phi1) * math.cos(phi2)*math.sin(dlambda/2)**2
         return 2*R*math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
     def export_country_kml(self, country, path):
@@ -209,10 +209,10 @@ def run_on_photo(photo_id):
         from django.utils import timezone
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='L')
-        country_tag = get_or_create_tag(name=results['country']['name'], type='L', source='C')
+        country_tag = get_or_create_tag(library=photo.library, name=results['country']['name'], type='L', source='C')
         PhotoTag(photo=photo, tag=country_tag, source='C', confidence=1.0, significance=1.0).save()
         if results['city']:
-            city_tag = get_or_create_tag(name=results['city']['name'], type='L', source='C', parent=country_tag)
+            city_tag = get_or_create_tag(library=photo.library, name=results['city']['name'], type='L', source='C', parent=country_tag)
             PhotoTag(photo=photo, tag=city_tag, source='C', confidence=0.5, significance=0.5).save()
         photo.classifier_color_completed_at = timezone.now()
         photo.classifier_color_version = getattr(model, 'version', 0)

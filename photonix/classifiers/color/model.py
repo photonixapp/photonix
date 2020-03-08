@@ -92,7 +92,7 @@ def run_on_photo(photo_id):
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='C')
         for name, score in results:
-            tag = get_or_create_tag(name=name, type='C', source='C')
+            tag = get_or_create_tag(library=photo.library, name=name, type='C', source='C')
             PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
         photo.classifier_color_completed_at = timezone.now()
         photo.classifier_color_version = getattr(model, 'version', 0)

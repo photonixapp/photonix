@@ -1,10 +1,11 @@
 import os
 from pathlib import Path
 
-import pytest
-
 from django.conf import settings
 from django.test import Client
+import pytest
+
+from .factories import LibraryFactory
 from photonix.photos.utils.thumbnails import get_thumbnail, get_thumbnail_path
 
 
@@ -12,7 +13,8 @@ from photonix.photos.utils.thumbnails import get_thumbnail, get_thumbnail_path
 def photo_fixture_snow(db):
     from photonix.photos.utils.db import record_photo
     snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
-    return record_photo(snow_path)
+    library = LibraryFactory()
+    return record_photo(snow_path, library)
 
 
 def test_generate_thumbnail(photo_fixture_snow):

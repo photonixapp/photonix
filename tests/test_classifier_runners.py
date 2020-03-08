@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+from .factories import LibraryFactory
+
 
 # pytestmark = pytest.mark.django_db
 
@@ -10,14 +12,16 @@ import pytest
 def photo_fixture_snow(db):
     from photonix.photos.utils.db import record_photo
     snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
-    return record_photo(snow_path)
+    library = LibraryFactory()
+    return record_photo(snow_path, library)
 
 
 @pytest.fixture
 def photo_fixture_tree(db):
     from photonix.photos.utils.db import record_photo
     tree_path = str(Path(__file__).parent / 'photos' / 'tree.jpg')
-    return record_photo(tree_path)
+    library = LibraryFactory()
+    return record_photo(tree_path, library)
 
 
 def test_color_via_runner(photo_fixture_snow):

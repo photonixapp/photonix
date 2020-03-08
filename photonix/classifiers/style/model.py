@@ -94,13 +94,13 @@ class StyleModel(BaseModel):
 
         file_reader = tf.io.read_file(file_name, input_name)
         if file_name.endswith(".png"):
-            image_reader = tf.image.decode_png(file_reader, channels = 3, name='png_reader')
+            image_reader = tf.image.decode_png(file_reader, channels=3, name='png_reader')
         elif file_name.endswith(".gif"):
             image_reader = tf.squeeze(tf.image.decode_gif(file_reader, name='gif_reader'))
         elif file_name.endswith(".bmp"):
             image_reader = tf.image.decode_bmp(file_reader, name='bmp_reader')
         else:
-            image_reader = tf.image.decode_jpeg(file_reader, channels = 3, name='jpeg_reader')
+            image_reader = tf.image.decode_jpeg(file_reader, channels=3, name='jpeg_reader')
         float_caster = tf.cast(image_reader, tf.float32)
         dims_expander = tf.expand_dims(float_caster, 0)
         resized = tf.image.resize(dims_expander, [input_height, input_width], method=tf.image.ResizeMethod.BILINEAR, antialias=True)
@@ -120,7 +120,7 @@ def run_on_photo(photo_id):
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='S')
         for name, score in results:
-            tag = get_or_create_tag(name=name, type='S', source='C')
+            tag = get_or_create_tag(library=photo.library, name=name, type='S', source='C')
             PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
         photo.classifier_style_completed_at = timezone.now()
         photo.classifier_style_version = getattr(model, 'version', 0)
