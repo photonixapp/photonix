@@ -18,7 +18,7 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Library
 
-    name = factory.Sequence(lambda n: f'Test {n}')
+    name = factory.Sequence(lambda n: f'Test Library {n}')
     backend_type = 'Lo'
 
 
@@ -27,7 +27,7 @@ class LibraryUserFactory(factory.django.DjangoModelFactory):
         model = LibraryUser
 
     library = factory.SubFactory(LibraryFactory)
-    user = factory.SubFactory(User)
+    user = factory.SubFactory(UserFactory)
     owner = True
 
 

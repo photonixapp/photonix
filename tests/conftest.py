@@ -6,8 +6,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
+from graphql_jwt.shortcuts import get_token
 import mock
 import pytest
+
+from .factories import UserFactory
 
 
 API_PATH = reverse('api')
@@ -43,9 +46,7 @@ class ApiClient(Client):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")
-        self.user = user
-        if not user.is_anonymous:
-            self.token = get_token(user)
+        self.set_user(user)
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
@@ -53,6 +54,11 @@ class ApiClient(Client):
         if not self.user.is_anonymous:
             environ.update({"HTTP_AUTHORIZATION": "JWT %s" % self.token})
         return environ
+
+    def set_user(self, user):
+        self.user = user
+        if not user.is_anonymous:
+            self.token = get_token(user)
 
     def post(self, data=None, **kwargs):
         """Send a POST request.
