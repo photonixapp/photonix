@@ -41,6 +41,7 @@ services:
       - ./ui/public:/srv/ui/public
       - ./ui/src:/srv/ui/src
       - ./ui/static:/srv/ui/static
+      - ./ui/package.json:/srv/ui/package.json
       - ./ui/yarn.lock:/srv/ui/yarn.lock
       - ./data/photos:/data/photos
       - ./data/raw-photos-processed:/data/raw-photos-processed
