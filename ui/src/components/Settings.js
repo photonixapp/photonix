@@ -70,7 +70,7 @@ export default function Settings() {
       <span onClick={history.goBack}>
         <CloseIcon className="closeIcon" alt="Close" />
       </span>
-      <Heading>Settings</Heading>
+      <h2>Settings</h2>
       <Stack spacing={4}>
         {availableSettings.map((item, index) => {
           let field = null
