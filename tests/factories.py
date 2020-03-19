@@ -19,7 +19,6 @@ class LibraryFactory(factory.django.DjangoModelFactory):
         model = Library
 
     name = factory.Sequence(lambda n: f'Test Library {n}')
-    backend_type = 'Lo'
 
 
 class LibraryUserFactory(factory.django.DjangoModelFactory):
