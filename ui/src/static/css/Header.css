@@ -64,12 +64,33 @@ header .user img.arrowDown {
   color: #fff;
   text-decoration: none;
 }
-header .user .menu img {
+.menu li img {
   padding: 0;
   width: 24px;
   height: 24px;
   vertical-align: -6px;
   margin-right: 10px;
+}
+.menu li.profile img {
+  width: 32px;
+  height: 32px;
+  margin-left: -4px;
+  margin-right: 6px;
+  vertical-align: -4px;
+}
+.menu li.profile div {
+  display: inline-block;
+  width: 100px;
+}
+.menu li.profile div .username {
+  font-weight: 600;
+  line-height: 18px;
+  display: block;
+}
+.menu li.profile div .email {
+  font-size: 10px;
+  line-height: 12px;
+  display: block;
 }
 
 header .user:hover .menu {

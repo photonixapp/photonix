@@ -12,6 +12,15 @@ const GET_LIBRARIES = gql`
     }
   }
 `
+const GET_PROFILE = gql`
+  {
+    profile {
+      id
+      username
+      email
+    }
+  }
+`
 const GET_PHOTOS = gql`
   query Photos($filters: String) {
     allPhotos(multiFilter: $filters) {
@@ -38,6 +47,12 @@ const BrowseContainer = props => {
     error: librariesError,
     data: librariesData,
   } = useQuery(GET_LIBRARIES)
+
+  const {
+    loading: profileLoading,
+    error: profileError,
+    data: profileData,
+  } = useQuery(GET_PROFILE)
 
   let photoSections = []
   let photos = []
@@ -77,11 +92,12 @@ const BrowseContainer = props => {
 
   photoSections.push(section)
 
-  let anyLoading = librariesLoading || photosLoading
-  let anyError = librariesError ? librariesError : photosError
+  let anyLoading = profileLoading || librariesLoading || photosLoading
+  let anyError = profileError ? profileError : (librariesError ? librariesError : photosError)
 
   return (
     <Browse
+      profile={profileData ? profileData.profile : null }
       libraries={librariesData ? librariesData.allLibraries : null}
       selectedFilters={props.selectedFilters}
       mode={mode}

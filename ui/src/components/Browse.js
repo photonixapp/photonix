@@ -9,6 +9,7 @@ import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/Browse.css'
 
 const Browse = ({
+  profile,
   libraries,
   selectedFilters,
   mode,
@@ -34,7 +35,7 @@ const Browse = ({
 
   return (
     <div className="Browse flex-container-column">
-      <Header libraries={libraries} />
+      <Header profile={profile} libraries={libraries} />
       <div className={expanded ? ` searchBar expanded` : `searchBar collapsed`}>
         <SearchContainer
           selectedFilters={selectedFilters}

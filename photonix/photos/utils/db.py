@@ -5,8 +5,7 @@ from decimal import Decimal
 
 from django.utils.timezone import utc
 from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task
-from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime,
-                                            parse_gps_location)
+from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime, parse_gps_location)
 
 
 def record_photo(path, library):
@@ -90,10 +89,8 @@ def record_photo(path, library):
             aperture=aperture,
             exposure=metadata.get('Exposure Time') or None,
             iso_speed=metadata.get('ISO') and int(metadata.get('ISO')) or None,
-            focal_length=metadata.get('Focal Length') and metadata.get(
-                'Focal Length').split(' ', 1)[0] or None,
-            flash=metadata.get('Flash') and 'on' in metadata.get(
-                'Flash').lower() or False,
+            focal_length=metadata.get('Focal Length') and metadata.get('Focal Length').split(' ', 1)[0] or None,
+            flash=metadata.get('Flash') and 'on' in metadata.get('Flash').lower() or False,
             metering_mode=metadata.get('Metering Mode') or None,
             drive_mode=metadata.get('Drive Mode') or None,
             shooting_mode=metadata.get('Shooting Mode') or None,
@@ -101,8 +98,7 @@ def record_photo(path, library):
             lens=lens,
             latitude=latitude,
             longitude=longitude,
-            altitude=metadata.get('GPS Altitude') and metadata.get(
-                'GPS Altitude').split(' ')[0]
+            altitude=metadata.get('GPS Altitude') and metadata.get('GPS Altitude').split(' ')[0]
         )
         photo.save()
 

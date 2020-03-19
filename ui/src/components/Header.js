@@ -9,7 +9,7 @@ import settings from '../static/images/settings.svg'
 import logout from '../static/images/logout.svg'
 import '../static/css/Header.css'
 
-const Header = ({ libraries }) => (
+const Header = ({ profile, libraries }) => (
   <>
     <header className="flex-container-row">
       <div className="logo">Photonix</div>
@@ -21,6 +21,15 @@ const Header = ({ libraries }) => (
         <img src={accountCircle} alt="User account" />
         <img src={arrowDown} className="arrowDown" alt="" />
         <ul className="menu">
+          {profile ? (
+            <li className="profile">
+              <img src={accountCircle} alt="Settings" />{' '}
+              <div>
+                <span className="username">{profile.username}</span>
+                <span className="email">{profile.email}</span>
+              </div>
+            </li>
+          ) : null}
           {libraries
             ? libraries.map(({ id, name }) => (
                 <li>

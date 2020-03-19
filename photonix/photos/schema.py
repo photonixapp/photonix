@@ -173,8 +173,7 @@ class StyleTagType(DjangoObjectType):
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
 
-    camera = graphene.Field(CameraType, id=graphene.UUID(
-    ), make=graphene.String(), model=graphene.String())
+    camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
     all_cameras = graphene.List(CameraType)
 
     lens = graphene.Field(LensType, id=graphene.UUID(), name=graphene.String())
@@ -189,8 +188,7 @@ class Query(graphene.ObjectType):
     all_shooting_modes = graphene.List(graphene.String)
 
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
-    all_photos = DjangoFilterConnectionField(
-        PhotoNode, filterset_class=PhotoFilter)
+    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
     all_location_tags = graphene.List(LocationTagType)
     all_object_tags = graphene.List(ObjectTagType)

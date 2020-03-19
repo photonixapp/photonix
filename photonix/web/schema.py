@@ -1,10 +1,11 @@
 import graphene
 
-from photonix.photos.schema import Query as PhotosQuery
 from photonix.accounts.schema import Mutation as AccountsMutation
+from photonix.accounts.schema import Query as AccountsQuery
+from photonix.photos.schema import Query as PhotosQuery
 
 
-class Query(PhotosQuery, graphene.ObjectType):
+class Query(AccountsQuery, PhotosQuery, graphene.ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     pass
