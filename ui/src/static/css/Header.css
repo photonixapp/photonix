@@ -28,7 +28,7 @@ header .logo img {
   padding: 10px 0 10px 10px;
 }
 header .notifications img,
-header .user img {
+header .user > img {
   filter: invert(0.9);
   padding: 10px 0 10px 10px;
   width: 50px;
@@ -54,15 +54,20 @@ header .user img.arrowDown {
   box-shadow: -3px 8px 17px rgba(0, 0, 0, 0.15);
 }
 .menu li {
-  cursor: pointer;
-  padding: 15px 20px 15px 15px;
+  padding: 12px 20px 12px 15px;
+  cursor: default;
 }
 .menu li:hover {
   background: rgba(255, 255, 255, 0.1);
 }
-.menu a {
-  color: #fff;
+.menu a,
+.menu a li {
+  cursor: pointer;
+  color: #ddd;
   text-decoration: none;
+}
+.menu a:hover li {
+  color: #fff;
 }
 .menu li img {
   padding: 0;
@@ -70,6 +75,7 @@ header .user img.arrowDown {
   height: 24px;
   vertical-align: -6px;
   margin-right: 10px;
+  filter: invert(0.9);
 }
 .menu li.profile img {
   width: 32px;
