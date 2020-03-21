@@ -13,13 +13,14 @@ import history from '../history'
 import 'normalize.css'
 import 'react-router-modal/css/react-router-modal.css'
 // import { ThemeProvider, CSSReset } from '@chakra-ui/core'
-import { ThemeProvider } from '@chakra-ui/core'
+import { ThemeProvider, ColorModeProvider, useColorMode } from '@chakra-ui/core'
 
 import BrowseContainer from '../containers/BrowseContainer'
 import ComponentsBrowser from '../components/ComponentsBrowser'
 import Login from '../components/Login'
 import Logout from '../components/Logout'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
+import Onboarding from '../components/Onboarding'
 import Settings from '../components/Settings'
 import customTheme from '../theme'
 import '../static/css/App.css'
@@ -49,39 +50,55 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
-const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => (
-  <ApolloProvider client={client}>
-    <Router history={history}>
-      <ThemeProvider theme={customTheme}>
-        {/* <CSSReset /> */}
-        <Switch>
-          <Route path="/login" render={() => <Login />} />
-          <Route path="/logout" render={() => <Logout />} />
-          <Route path="/components" render={ComponentsBrowser} />
-          <Route
-            path="/"
-            render={() => (
-              <BrowseContainer
-                selectedFilters={selectedFilters}
-                search=""
-                onFilterToggle={onFilterToggle}
-                onClearFilters={onClearFilters}
+const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
+  const { colorMode, toggleColorMode } = useColorMode()
+
+  return (
+    <ApolloProvider client={client}>
+      <Router history={history}>
+        <ThemeProvider theme={customTheme}>
+          <ColorModeProvider value="dark">
+            {/* <CSSReset /> */}
+            <Switch>
+              <Route path="/login" render={() => <Login />} />
+              <Route path="/logout" render={() => <Logout />} />
+              <Route path="/components" render={ComponentsBrowser} />
+              <Route
+                path="/"
+                render={() => (
+                  <BrowseContainer
+                    selectedFilters={selectedFilters}
+                    search=""
+                    onFilterToggle={onFilterToggle}
+                    onClearFilters={onClearFilters}
+                  />
+                )}
               />
-            )}
-          />
-        </Switch>
-        <Switch>
-          <ModalRoute
-            path="/photo/:photoId"
-            parentPath="/"
-            component={PhotoDetailContainer}
-          />
-          <ModalRoute path="/settings" parentPath="/" component={Settings} />
-        </Switch>
-        <ModalContainer />
-      </ThemeProvider>
-    </Router>
-  </ApolloProvider>
-)
+            </Switch>
+            <Switch>
+              <ModalRoute
+                path="/onboarding"
+                parentPath="/"
+                component={Onboarding}
+                onBackdropClick={() => {}}
+              />
+              <ModalRoute
+                path="/settings"
+                parentPath="/"
+                component={Settings}
+              />
+              <ModalRoute
+                path="/photo/:photoId"
+                parentPath="/"
+                component={PhotoDetailContainer}
+              />
+            </Switch>
+            <ModalContainer />
+          </ColorModeProvider>
+        </ThemeProvider>
+      </Router>
+    </ApolloProvider>
+  )
+}
 
 export default App

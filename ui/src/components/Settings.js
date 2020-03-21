@@ -22,32 +22,32 @@ export default function Settings() {
     {
       key: 'sourceDirs',
       type: 'path',
-      name: 'Source folder',
+      label: 'Source folder',
     },
     {
       key: 'watchPhotos',
       type: 'boolean',
-      name: 'Watch folder for new photos',
+      label: 'Watch folder for new photos',
     },
     {
       key: 'classificationColor',
       type: 'boolean',
-      name: 'Run color analysis on photos?',
+      label: 'Run color analysis on photos?',
     },
     {
       key: 'classificationLocation',
       type: 'boolean',
-      name: 'Run location detection on photos?',
+      label: 'Run location detection on photos?',
     },
     {
       key: 'classificationStyle',
       type: 'boolean',
-      name: 'Run style classification on photos?',
+      label: 'Run style classification on photos?',
     },
     {
       key: 'classificationObject',
       type: 'boolean',
-      name: 'Run object detection on photos?',
+      label: 'Run object detection on photos?',
     },
   ]
 
@@ -96,6 +96,7 @@ export default function Settings() {
                   id={item.key + 'New'}
                   isChecked={settings[item.key]}
                   onChange={() => toggleBooleanSetting(item.key)}
+                  variantColor="cyan"
                 />
               )
             }
@@ -103,7 +104,7 @@ export default function Settings() {
 
           return (
             <Flex justify="space-between" key={item.key + item.type}>
-              <FormLabel htmlFor={item.key}>{item.name}</FormLabel>
+              <FormLabel htmlFor={item.key}>{item.label}</FormLabel>
               {field}
             </Flex>
           )

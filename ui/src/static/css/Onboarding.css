@@ -1,0 +1,40 @@
+.Onboarding {
+  width: 600px;
+  height: 600px;
+  background: #1d1d1d;
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  position: relative;
+  cursor: auto;
+  overflow: auto;
+}
+.Onboarding h2 {
+  margin: 0 0 40px;
+}
+.Onboarding ul {
+  padding: 0;
+  list-style: none;
+}
+.Onboarding .message {
+  margin-bottom: 40px;
+}
+.Onboarding li {
+  margin-bottom: 20px;
+  display: flex;
+}
+.Onboarding li div {
+  flex: 50%;
+}
+.Onboarding input {
+  border: 0;
+  padding: 10px;
+  width: 100%;
+}
+
+@media all and (max-width: 700px) {
+  .Onboarding {
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+  }
+}

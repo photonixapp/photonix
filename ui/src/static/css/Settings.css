@@ -3,7 +3,7 @@
   height: 500px;
   background: #1d1d1d;
   padding: 40px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   position: relative;
   cursor: auto;
 }
@@ -42,4 +42,12 @@
   cursor: pointer;
   margin: 5px 0 0 20px;
   vertical-align: middle;
+}
+
+@media all and (max-width: 700px) {
+  .Settings {
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+  }
 }
