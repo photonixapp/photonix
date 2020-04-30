@@ -10,7 +10,7 @@ before_install:
   - wget http://gb.archive.ubuntu.com/ubuntu/pool/main/g/glibc/locales_2.31-0ubuntu9_all.deb
   - wget http://gb.archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.31-0ubuntu9_amd64.deb
   - wget http://gb.archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.31-0ubuntu9_amd64.deb
-  - sudo dpkg -i locales_2.31-0ubuntu9_all.deb libc6_2.31-0ubuntu9_amd64.deb libc-bin_2.31-0ubuntu9_amd64.deb
+  - sudo apt --fix-broken install locales_2.31-0ubuntu9_all.deb libc6_2.31-0ubuntu9_amd64.deb libc-bin_2.31-0ubuntu9_amd64.deb
 install:
   - pip install -r requirements.txt
 script:
