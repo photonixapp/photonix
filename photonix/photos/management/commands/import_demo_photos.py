@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
 
-from photonix.photos.models import Library, LibraryUser
+from photonix.photos.models import Library, LibraryPath, LibraryUser
 from photonix.photos.utils.db import record_photo
 from photonix.photos.utils.fs import determine_destination, download_file
 
@@ -41,11 +41,15 @@ class Command(BaseCommand):
         # Create Library
         library, _ = Library.objects.get_or_create(
             name='Demo Library',
+            # base_thumbnail_path='/data/cache/thumbnails/',
+            # base_thumbnail_url='/thumbnails/'
+        )
+        library_path, _ = LibraryPath.objects.get_or_create(
+            library=library,
+            type='St',
             backend_type='Lo',
-            base_path='/data/photos/',
-            base_url='/photos/',
-            base_thumbnail_path='/data/cache/thumbnails/',
-            base_thumbnail_url='/thumbnails/'
+            path='/data/photos/',
+            url='/photos/',
         )
         library_user, _ = LibraryUser.objects.get_or_create(
             library=library,

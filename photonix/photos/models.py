@@ -80,7 +80,6 @@ class Camera(UUIDModel, VersionedModel):
     class Meta:
         unique_together = [['library', 'make', 'model']]
         ordering = ['make', 'model']
-        app_label = 'photos'
 
     def __str__(self):
         return '{} {}'.format(self.make, self.model)
