@@ -7,10 +7,10 @@ services:
 before_install:
   - sudo apt-get install -y libimage-exiftool-perl dcraw wget
   # We use Debian Buster for our Docker image but the closest distro we can get in Travis is Ubuntu Bionic. This upgrades the version of GLIBC so that our custom Tensorflow build works.
-  - wget http://cz.archive.ubuntu.com/ubuntu/pool/main/g/glibc/locales_2.29-0ubuntu2_all.deb
-  - wget http://gb.archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.29-0ubuntu2_amd64.deb
-  - wget http://gb.archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.29-0ubuntu2_amd64.deb
-  - sudo dpkg -i locales_2.29-0ubuntu2_all.deb libc-bin_2.29-0ubuntu2_amd64.deb libc6_2.29-0ubuntu2_amd64.deb
+  - wget http://gb.archive.ubuntu.com/ubuntu/pool/main/g/glibc/locales_2.31-0ubuntu9_all.deb
+  - wget http://gb.archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.31-0ubuntu9_amd64.deb
+  - wget http://gb.archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc-bin_2.31-0ubuntu9_amd64.deb
+  - sudo dpkg -i locales_2.31-0ubuntu9_all.deb libc6_2.31-0ubuntu9_amd64.deb libc-bin_2.31-0ubuntu9_amd64.deb
 install:
   - pip install -r requirements.txt
 script:
