@@ -86,7 +86,14 @@ footer {
 .react-router-modal__backdrop {
   background: rgba(0, 0, 0, 0.8);
 }
-
+input,
+select {
+  color: #fff !important;
+}
+select option {
+  background: #1d1d1d;
+  color: #fff;
+}
 button {
   border: 0;
 }

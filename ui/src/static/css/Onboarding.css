@@ -1,12 +1,14 @@
 .Onboarding {
   width: 600px;
-  height: 600px;
+  height: 700px;
   background: #1d1d1d;
   padding: 40px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   position: relative;
   cursor: auto;
-  overflow: auto;
+}
+.Onboarding > div {
+  height: 100%;
 }
 .Onboarding h2 {
   margin: 0 0 40px;
@@ -24,6 +26,19 @@
 }
 .Onboarding li div {
   flex: 50%;
+}
+.Onboarding .field {
+  width: 66.6%;
+  padding-right: 1px;
+}
+.Onboarding .formContainer {
+  overflow: auto;
+}
+.Onboarding .buttonBar {
+  margin-top: 20px;
+}
+.Onboarding label {
+  width: 50px;
 }
 .Onboarding input {
   border: 0;
