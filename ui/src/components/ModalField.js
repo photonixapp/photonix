@@ -1,4 +1,5 @@
 import React from 'react'
+import { ErrorMessage } from 'react-hook-form'
 import {
   Switch,
   Flex,
@@ -14,7 +15,7 @@ import PasswordInput from './fields/PasswordInput'
 
 const ModalField = ({
   register,
-  error,
+  errors,
   type,
   name,
   label,
@@ -23,39 +24,43 @@ const ModalField = ({
   minLength,
   maxLength,
   selectOptions,
+  defaultValue,
   ...rest
 }) => {
   let field = null
 
   let registerOptions = {}
   if (required) {
-    registerOptions.required = required
+    registerOptions.required = `${label} is required`
   }
   if (minLength) {
-    registerOptions.minLength = minLength
-  }
-  if (maxLength) {
-    registerOptions.maxLength = maxLength
-  }
-
-  let errorMessage = null
-  if (error) {
-    if (error.type == 'required') {
-      errorMessage = <FormErrorMessage>{label} is required</FormErrorMessage>
-    } else if (error.type == 'minLength') {
-      errorMessage = (
-        <FormErrorMessage>{label} has a minimum length</FormErrorMessage>
-      )
-    } else if (error.message) {
-      errorMessage = <FormErrorMessage>{error.message}</FormErrorMessage>
+    registerOptions.minLength = {
+      value: minLength,
+      message: `${label} must be at least ${minLength} characters long`,
     }
   }
+  if (maxLength) {
+    registerOptions.minLength = {
+      value: minLength,
+      message: `${label} must be no more than ${minLength} characters long`,
+    }
+  }
+
+  let errorMessage = (
+    <FormErrorMessage>
+      <ErrorMessage errors={errors} name={name} />
+    </FormErrorMessage>
+  )
 
   if (type === 'text') {
     field = (
       <>
         <InputGroup size="md">
-          <Input name={name} ref={register(registerOptions)} />
+          <Input
+            name={name}
+            ref={register(registerOptions)}
+            defaultValue={defaultValue}
+          />
         </InputGroup>
         {errorMessage}
       </>
@@ -67,24 +72,33 @@ const ModalField = ({
           name={name}
           register={register}
           registerOptions={registerOptions}
+          defaultValue={defaultValue}
         />
         {errorMessage}
       </>
     )
   } else if (type === 'select') {
     field = (
-      <Select placeholder="Select option">
-        {selectOptions.map((optionItem, optionIndex) => (
-          <option value={optionItem.value}>{optionItem.label}</option>
-        ))}
-      </Select>
+      <>
+        <Select
+          name={name}
+          ref={register(registerOptions)}
+          placeholder="Select option"
+          defaultValue={defaultValue}
+        >
+          {selectOptions.map((optionItem, optionIndex) => (
+            <option value={optionItem.value}>{optionItem.label}</option>
+          ))}
+        </Select>
+        {errorMessage}
+      </>
     )
   } else if (type === 'boolean') {
     field = <Switch id={name} />
   }
 
   return (
-    <FormControl isInvalid={error && true} isRequired={false} {...rest}>
+    <FormControl isInvalid={errors[name] && true} isRequired={false} {...rest}>
       <Flex justify="space-between" key={name + type}>
         <FormLabel htmlFor={name}>{label}:</FormLabel>
         <div className="field">{field}</div>

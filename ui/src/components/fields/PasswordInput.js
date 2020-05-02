@@ -6,7 +6,7 @@ import {
   InputGroup,
 } from '@chakra-ui/core'
 
-const PasswordInput = ({ name, register, registerOptions }) => {
+const PasswordInput = ({ name, register, registerOptions, ...rest }) => {
   const [show, setShow] = React.useState(false)
   const handleClick = () => setShow(!show)
 
@@ -15,8 +15,8 @@ const PasswordInput = ({ name, register, registerOptions }) => {
       <Input
         name={name}
         type={show ? 'text' : 'password'}
-        placeholder="Enter password"
         ref={register(registerOptions)}
+        {...rest}
       />
       <InputRightElement width="2.75rem">
         <IconButton

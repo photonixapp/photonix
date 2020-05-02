@@ -2,8 +2,10 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
+import { useStateMachine } from 'little-state-machine'
 import { Stack } from '@chakra-ui/core'
 
+import updateAction from './updateAction'
 import ModalForm from '../ModalForm'
 import ModalField from '../ModalField'
 import Spinner from '../Spinner'
@@ -17,20 +19,21 @@ const GET_LIBRARIES = gql`
   }
 `
 
-const Step1AdminUser = ({ hasPrevious }) => {
+const Step1AdminUser = ({ history }) => {
   const { loading, error, data } = useQuery(GET_LIBRARIES)
   const { register, handleSubmit, errors, formState } = useForm()
+  const { action, state } = useStateMachine(updateAction)
 
   if (loading) return <Spinner />
   if (error) return <p>Error :(</p>
 
-  const onSubmit = (data) => console.log(data)
-
   return (
     <ModalForm
       formState={formState}
-      onSubmit={handleSubmit(onSubmit)}
-      hasPrevious={hasPrevious}
+      history={history}
+      handleSubmit={handleSubmit}
+      previousStep=""
+      nextStep="/onboarding/step2"
     >
       <h2>Welcome to Photonix</h2>
       <div className="message">
@@ -58,7 +61,8 @@ const Step1AdminUser = ({ hasPrevious }) => {
           required={true}
           minLength={3}
           register={register}
-          error={errors.username}
+          errors={errors}
+          defaultValue={state.data.username}
         />
         <ModalField
           name="password"
@@ -67,8 +71,18 @@ const Step1AdminUser = ({ hasPrevious }) => {
           required={true}
           minLength={3}
           register={register}
-          error={errors.password}
+          errors={errors}
+          defaultValue={state.data.password}
         />
+        {/* <ModalField
+          name="password2"
+          type="password"
+          label="Password (again)"
+          required={true}
+          minLength={3}
+          register={register}
+          error={errors.password2}
+        /> */}
       </Stack>
     </ModalForm>
   )

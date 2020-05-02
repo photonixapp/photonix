@@ -1,24 +1,28 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
+import { StateMachineProvider, createStore } from 'little-state-machine'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
 
 import '../static/css/Onboarding.css'
 import Step1AdminUser from './onboarding/Step1AdminUser'
+import Step2AdminCreated from './onboarding/Step2AdminCreated'
+import Step3CrateLibrary from './onboarding/Step3CrateLibrary'
+import Result from './onboarding/Result'
+
+createStore({
+  data: {},
+})
 
 export default function Onboarding() {
-  const [stepIndex, setStep] = useState(0)
-
-  let steps = [Step1AdminUser]
-  const [stepCompleted, setStepComplete] = useState(-1)
-
-  let step = steps[stepIndex]
-  const onPrevious = () => {}
-
   return (
-    <div className="Onboarding">
-      {React.createElement(
-        steps[stepCompleted + 1],
-        { hasPrevious: stepIndex > 0, onPrevious: onPrevious },
-        null
-      )}
-    </div>
+    <StateMachineProvider>
+      <div className="Onboarding">
+        <Router>
+          <Route exact path="/onboarding" component={Step1AdminUser} />
+          <Route path="/onboarding/step2" component={Step2AdminCreated} />
+          <Route path="/onboarding/step3" component={Step3CrateLibrary} />
+          <Route path="/onboarding/result" component={Result} />
+        </Router>
+      </div>
+    </StateMachineProvider>
   )
 }
