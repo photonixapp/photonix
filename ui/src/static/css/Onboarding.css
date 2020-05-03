@@ -2,7 +2,6 @@
   width: 600px;
   height: 700px;
   background: #1d1d1d;
-  padding: 40px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   position: relative;
   cursor: auto;
@@ -33,12 +32,14 @@
 }
 .Onboarding .formContainer {
   overflow: auto;
+  padding: 40px;
 }
 .Onboarding .buttonBar {
   margin-top: 20px;
+  margin-bottom: 40px;
 }
 .Onboarding label {
-  width: 50px;
+  width: 33%;
 }
 .Onboarding input {
   border: 0;

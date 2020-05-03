@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   IconButton,
   Input,
@@ -7,7 +7,7 @@ import {
 } from '@chakra-ui/core'
 
 const PasswordInput = ({ name, register, registerOptions, ...rest }) => {
-  const [show, setShow] = React.useState(false)
+  const [show, setShow] = useState(false)
   const handleClick = () => setShow(!show)
 
   return (

@@ -6,10 +6,10 @@ const Result = (props) => {
   const { state } = useStateMachine(updateAction)
 
   return (
-    <>
-      <h2>Result:</h2>
+    <div className="formContainer">
+      <h2>Result</h2>
       <pre>{JSON.stringify(state, null, 2)}</pre>
-    </>
+    </div>
   )
 }
 

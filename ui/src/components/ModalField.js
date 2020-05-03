@@ -94,7 +94,16 @@ const ModalField = ({
       </>
     )
   } else if (type === 'boolean') {
-    field = <Switch id={name} />
+    field = (
+      <>
+        <Switch
+          name={name}
+          ref={register(registerOptions)}
+          defaultIsChecked={defaultValue}
+        />
+        {errorMessage}
+      </>
+    )
   }
 
   return (

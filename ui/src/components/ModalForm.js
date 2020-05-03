@@ -27,9 +27,9 @@ const ModalForm = ({
   }
 
   return (
-    <Flex direction="column" justify="space-between">
-      <div className="formContainer">
-        <form onSubmit={handleSubmit(onSubmit)}>
+    <div className="formContainer">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Flex direction="column" justify="space-between">
           {children}
 
           <Flex justify="space-between" className="buttonBar">
@@ -56,9 +56,9 @@ const ModalForm = ({
               Next
             </Button>
           </Flex>
-        </form>
-      </div>
-    </Flex>
+        </Flex>
+      </form>
+    </div>
   )
 }
 
