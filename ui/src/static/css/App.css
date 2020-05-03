@@ -96,6 +96,7 @@ select option {
 }
 button {
   border: 0;
+  cursor: pointer;
 }
 
 @media all and (max-width: 700px) {

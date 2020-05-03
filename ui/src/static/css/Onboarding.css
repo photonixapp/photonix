@@ -65,6 +65,9 @@
   border: 0;
   padding-left: 8px;
 }
+.Onboarding .error p {
+  margin: 0;
+}
 .storageS3Preview {
   font-style: italic;
   margin: 0 0 0 33.3%;
@@ -74,6 +77,12 @@
   .Onboarding {
     width: 100vw;
     height: 100vh;
-    padding: 20px;
+    padding: 0;
+  }
+  .Onboarding .formContainer {
+    padding: 20px 20px 0 20px;
+  }
+  .Onboarding .buttonBar {
+    margin: 40px 0 20px;
   }
 }

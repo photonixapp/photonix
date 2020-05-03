@@ -51,7 +51,7 @@ const ModalField = ({
   }
 
   let errorMessage = (
-    <FormErrorMessage>
+    <FormErrorMessage className="error">
       <ErrorMessage errors={errors} name={name} />
     </FormErrorMessage>
   )

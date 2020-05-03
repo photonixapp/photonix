@@ -156,6 +156,7 @@ const Step3CreateLibrary = ({ history }) => {
               required={true}
               register={register}
               errors={errors}
+              minLength={20}
               defaultValue={state.data.storageS3AccessKey}
             />
             <ModalField
@@ -165,6 +166,7 @@ const Step3CreateLibrary = ({ history }) => {
               required={true}
               register={register}
               errors={errors}
+              minLength={40}
               defaultValue={state.data.storageS3SecretKey}
             />
           </Stack>
