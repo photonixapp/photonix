@@ -11,8 +11,8 @@ const Step3CreateLibrary = ({ history }) => {
   const { register, handleSubmit, errors, formState } = useForm()
   const { action, state } = useStateMachine(updateAction)
 
-  const onStorageChange = (e) => {
-    action({ storageBackend: e.target.value })
+  const onFieldChange = (e, name) => {
+    action({ [name]: e.target.value })
   }
 
   return (
@@ -73,7 +73,7 @@ const Step3CreateLibrary = ({ history }) => {
               label: 'S3-compatible',
             },
           ]}
-          onChange={onStorageChange}
+          onChange={(e) => onFieldChange(e, 'storageBackend')}
         />
       </Stack>
 
@@ -102,6 +102,7 @@ const Step3CreateLibrary = ({ history }) => {
               register={register}
               errors={errors}
               defaultValue={state.data.storageS3Server}
+              onChange={(e) => onFieldChange(e, 'storageS3Server')}
             />
             <ModalField
               name="storageS3Bucket"
@@ -111,6 +112,7 @@ const Step3CreateLibrary = ({ history }) => {
               register={register}
               errors={errors}
               defaultValue={state.data.storageS3Bucket}
+              onChange={(e) => onFieldChange(e, 'storageS3Bucket')}
             />
             <ModalField
               name="storageS3Path"
@@ -120,8 +122,14 @@ const Step3CreateLibrary = ({ history }) => {
               register={register}
               errors={errors}
               defaultValue={state.data.storageS3Path}
+              onChange={(e) => onFieldChange(e, 'storageS3Path')}
             />
-            <p>Preview: ___</p>
+            {state.data.storageS3Server && (
+              <p className="storageS3Preview">
+                {state.data.storageS3Server}/{state.data.storageS3Bucket}/
+                {state.data.storageS3Path}
+              </p>
+            )}
             <p>
               If your bucket has public read permissions, entering the base HTTP
               URL here will speed up display of images as the client will be

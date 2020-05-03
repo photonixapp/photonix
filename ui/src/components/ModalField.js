@@ -25,6 +25,7 @@ const ModalField = ({
   maxLength,
   selectOptions,
   defaultValue,
+  validate,
   ...rest
 }) => {
   let field = null
@@ -45,6 +46,9 @@ const ModalField = ({
       message: `${label} must be no more than ${minLength} characters long`,
     }
   }
+  if (validate) {
+    registerOptions.validate = validate
+  }
 
   let errorMessage = (
     <FormErrorMessage>
@@ -60,6 +64,7 @@ const ModalField = ({
             name={name}
             ref={register(registerOptions)}
             defaultValue={defaultValue}
+            focusBorderColor="teal.500"
           />
         </InputGroup>
         {errorMessage}
@@ -73,6 +78,7 @@ const ModalField = ({
           register={register}
           registerOptions={registerOptions}
           defaultValue={defaultValue}
+          focusBorderColor="teal.500"
         />
         {errorMessage}
       </>
@@ -85,6 +91,7 @@ const ModalField = ({
           ref={register(registerOptions)}
           placeholder="Select option"
           defaultValue={defaultValue}
+          focusBorderColor="teal.500"
         >
           {selectOptions.map((optionItem, optionIndex) => (
             <option value={optionItem.value}>{optionItem.label}</option>
@@ -100,6 +107,7 @@ const ModalField = ({
           name={name}
           ref={register(registerOptions)}
           defaultIsChecked={defaultValue}
+          color="teal"
         />
         {errorMessage}
       </>
@@ -109,8 +117,10 @@ const ModalField = ({
   return (
     <FormControl isInvalid={errors[name] && true} isRequired={false} {...rest}>
       <Flex justify="space-between" key={name + type}>
-        <FormLabel htmlFor={name}>{label}:</FormLabel>
-        <div className="field">{field}</div>
+        <FormLabel htmlFor={name} className={`label label-${type}`}>
+          {label}:
+        </FormLabel>
+        <div className={`field field-${type}`}>{field}</div>
       </Flex>
     </FormControl>
   )

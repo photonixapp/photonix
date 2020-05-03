@@ -30,13 +30,13 @@ const ModalForm = ({
     <div className="formContainer">
       <form onSubmit={handleSubmit(onSubmit)}>
         <Flex direction="column" justify="space-between">
-          {children}
+          <div>{children}</div>
 
           <Flex justify="space-between" className="buttonBar">
             {previousStep ? (
               <Button
                 leftIcon="arrow-back"
-                variantColor="cyan"
+                variantColor="teal"
                 variant="outline"
                 onClick={onPrevious}
                 isLoading={formState.isSubmitting}
@@ -49,7 +49,7 @@ const ModalForm = ({
             <Button
               type="submit"
               rightIcon="arrow-forward"
-              variantColor="cyan"
+              variantColor="teal"
               variant="solid"
               isLoading={formState.isSubmitting}
             >

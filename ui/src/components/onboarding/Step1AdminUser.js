@@ -27,6 +27,17 @@ const Step1AdminUser = ({ history }) => {
   if (loading) return <Spinner />
   if (error) return <p>Error :(</p>
 
+  const onPasswordChange = (e) => {
+    action({ password: e.target.value })
+  }
+
+  const validatePassword = (value) => {
+    if (state.data.password == value) {
+      return true
+    }
+    return 'Password fields do not match'
+  }
+
   return (
     <ModalForm
       formState={formState}
@@ -59,7 +70,6 @@ const Step1AdminUser = ({ history }) => {
           type="text"
           label="Username"
           required={true}
-          minLength={3}
           register={register}
           errors={errors}
           defaultValue={state.data.username}
@@ -69,20 +79,23 @@ const Step1AdminUser = ({ history }) => {
           type="password"
           label="Password"
           required={true}
-          minLength={3}
+          minLength={8}
           register={register}
           errors={errors}
           defaultValue={state.data.password}
+          onChange={onPasswordChange}
         />
-        {/* <ModalField
+        <ModalField
           name="password2"
           type="password"
           label="Password (again)"
           required={true}
-          minLength={3}
+          minLength={8}
           register={register}
-          error={errors.password2}
-        /> */}
+          errors={errors}
+          defaultValue={state.data.password2}
+          validate={validatePassword}
+        />
       </Stack>
     </ModalForm>
   )

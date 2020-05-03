@@ -26,25 +26,48 @@
 .Onboarding li div {
   flex: 50%;
 }
+.Onboarding .label {
+  width: 33%;
+  padding-top: 9px;
+}
+.Onboarding .label-boolean {
+  width: 66.6%;
+  padding-top: 0;
+}
 .Onboarding .field {
   width: 66.6%;
   padding-right: 1px;
 }
+.Onboarding .field-boolean {
+  width: 33.3%;
+  text-align: right;
+}
 .Onboarding .formContainer {
   overflow: auto;
-  padding: 40px;
+  padding: 40px 40px 0 40px;
+  min-height: 100%;
+}
+.Onboarding .formContainer form {
+  height: 100%;
+}
+.Onboarding .formContainer form > div {
+  min-height: 100%;
 }
 .Onboarding .buttonBar {
-  margin-top: 20px;
-  margin-bottom: 40px;
-}
-.Onboarding label {
-  width: 33%;
+  margin: 40px 0;
 }
 .Onboarding input {
   border: 0;
-  padding: 10px;
+  padding: 10px 12px;
   width: 100%;
+}
+.Onboarding select {
+  border: 0;
+  padding-left: 8px;
+}
+.storageS3Preview {
+  font-style: italic;
+  margin: 0 0 0 33.3%;
 }
 
 @media all and (max-width: 700px) {

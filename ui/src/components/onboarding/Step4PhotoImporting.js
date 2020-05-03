@@ -21,7 +21,7 @@ const Step4PhotoImporting = ({ history }) => {
       history={history}
       handleSubmit={handleSubmit}
       previousStep="/onboarding/step3"
-      nextStep="/onboarding/result"
+      nextStep="/onboarding/step5"
     >
       <h2>Photo importing</h2>
 

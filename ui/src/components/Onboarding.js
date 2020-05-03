@@ -7,6 +7,7 @@ import Step1AdminUser from './onboarding/Step1AdminUser'
 import Step2AdminCreated from './onboarding/Step2AdminCreated'
 import Step3CreateLibrary from './onboarding/Step3CreateLibrary'
 import Step4PhotoImporting from './onboarding/Step4PhotoImporting'
+import Step5Search from './onboarding/Step5Search'
 import Result from './onboarding/Result'
 
 createStore({
@@ -22,6 +23,7 @@ export default function Onboarding() {
           <Route path="/onboarding/step2" component={Step2AdminCreated} />
           <Route path="/onboarding/step3" component={Step3CreateLibrary} />
           <Route path="/onboarding/step4" component={Step4PhotoImporting} />
+          <Route path="/onboarding/step5" component={Step5Search} />
           <Route path="/onboarding/result" component={Result} />
         </Router>
       </div>

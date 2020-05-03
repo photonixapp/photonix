@@ -25,7 +25,7 @@ const PasswordInput = ({ name, register, registerOptions, ...rest }) => {
           h="1.75rem"
           size="sm"
           onClick={handleClick}
-          color="brand.700"
+          color="gray.100"
         />
       </InputRightElement>
     </InputGroup>
