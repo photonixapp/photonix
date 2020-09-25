@@ -62,7 +62,7 @@ singledispatch==3.4.0.3
 six==1.14.0
 sqlparse==0.3.0
 tensorboard==2.1.0
-tensorflow==2.1.0
+tensorflow==2.1.2
 tensorflow-estimator==2.1.0
 termcolor==1.1.0
 text-unidecode==1.3
