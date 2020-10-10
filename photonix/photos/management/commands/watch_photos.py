@@ -23,7 +23,7 @@ class Command(BaseCommand):
                     (header, type_names, watch_path, filename) = event
                     # if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_FROM', 'IN_MOVED_TO']):  # TODO: Make moving photos really efficient by using the 'from' path
                     if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_TO']):
-                        photo_path = '{}/{}'.format(watch_path.decode('utf-8'), filename.decode('utf-8'))
+                        photo_path = '{}/{}'.format(watch_path, filename)
                         record_photo(photo_path)
 
     def handle(self, *args, **options):
