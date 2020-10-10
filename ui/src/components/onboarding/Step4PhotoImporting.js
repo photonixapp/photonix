@@ -26,7 +26,7 @@ const Step4PhotoImporting = ({ history }) => {
       <h2>Photo importing</h2>
 
       <div className="message">
-        {state.data.storageBackend == 'Lo' &&
+        {state.data.storageBackend === 'Lo' &&
           state.data.storageContainsFiles && (
             <p>
               We see there are photos already in the location you selected as
@@ -35,16 +35,16 @@ const Step4PhotoImporting = ({ history }) => {
               another path to import new photos from.
             </p>
           )}
-        {state.data.storageBackend == 'Lo' &&
+        {state.data.storageBackend === 'Lo' &&
           !state.data.storageContainsFiles && (
             <p>
-              We don't currently see any photos in the base path you selected.
-              Should we continuously monitor this folder to detect you adding
-              new files here in future? If not, we can set up another path to
-              import new photos from.
+              We don’t see any photos in the base path you selected yet. Should
+              we continuously monitor this folder to detect you adding new files
+              here in future? If not, we can set up another path to import new
+              photos from.
             </p>
           )}
-        {state.data.storageBackend == 'S3' &&
+        {state.data.storageBackend === 'S3' &&
           state.data.storageContainsFiles && (
             <p>
               We managed to connect to your S3-compatible storage and can see
@@ -54,10 +54,10 @@ const Step4PhotoImporting = ({ history }) => {
               path to import new photos from.
             </p>
           )}
-        {state.data.storageBackend == 'S3' &&
+        {state.data.storageBackend === 'S3' &&
           !state.data.storageContainsFiles && (
             <p>
-              We managed to connect to your S3-compatible storage but can't see
+              We managed to connect to your S3-compatible storage but can’t see
               any existing photos there yet. Should we continuously monitor this
               folder to detect you adding new files here in future? If not, we
               can set up another path to import new photos from.
@@ -75,13 +75,13 @@ const Step4PhotoImporting = ({ history }) => {
           defaultValue={state.data.watchForChanges}
         />
         <p>
-          Is there another folder on this server that you intend to drop photos
-          into and would like us to watch and import from?
+          Is there another folder on this server that you like us to watch and
+          import new photos from?
         </p>
         <ModalField
           name="importFromAnotherPath"
           type="boolean"
-          label="import from another path?"
+          label="Import from another path?"
           register={register}
           errors={errors}
           defaultValue={state.data.importFromAnotherPath}
@@ -101,9 +101,9 @@ const Step4PhotoImporting = ({ history }) => {
             defaultValue={state.data.importPath}
           />
           <p>
-            If you intend this import path's only job is to be a "drop zone" to
-            get files into Photonix then we can keep it tidy by deleting the
-            files that are here once we've sucessfully imported them.
+            If you intend this path to only be a “drop zone” to get files into
+            Photonix then we can keep it tidy by deleting the files from here
+            once we’ve successfully imported them.
           </p>
           <ModalField
             name="deleteAfterImport"

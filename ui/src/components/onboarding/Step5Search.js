@@ -23,20 +23,20 @@ const Step5Search = ({ history }) => {
 
       <div className="message">
         <p>
-          We're very proud of our search features. You may have seen that we can
-          do things like use AI to detect objects, locations, styles, colours
-          and so on. All of this processing happens on the current server so
-          your photos won't be sent to the cloud but it will use system resouces
-          like CPU, RAM and disk.
+          We’re very proud of our search features. You may have seen that we can
+          do things like use AI to detect and tag objects, locations, styles,
+          colours and so on. All of this processing happens on the current
+          server so your photos won’t be sent to the cloud but it will use a
+          fair amount of system resources like CPU, RAM and disk.
         </p>
         <p>
           If you are starting off your library with a lot of photos or if you
-          upload a load of photos in one go, it will take a while for the
-          machine to do it's analysis before they are fully searchable. We try
-          to make sure this processing doesn't affect the performance of other
-          applications that are running but in some cases it may be that the
-          hardware is just too underpowered. You will always be able to turn
-          different types of analysis on or off later on.
+          upload a load of photos in one go, it will take a while to complete
+          the analysis before everything is fully searchable. We try to make
+          sure this processing doesn’t affect the performance of the rest of the
+          system but in some cases it may be that the hardware is just too
+          underpowered. You will always be able to turn different types of
+          analysis on or off later on.
         </p>
       </div>
 
@@ -44,7 +44,7 @@ const Step5Search = ({ history }) => {
         <ModalField
           name="classificationColorEnabled"
           type="boolean"
-          label="Color analysis (low)"
+          label="Color analysis (fast)"
           register={register}
           errors={errors}
           defaultValue={state.data.classificationColorEnabled}
@@ -52,7 +52,7 @@ const Step5Search = ({ history }) => {
         <ModalField
           name="classificationLocationEnabled"
           type="boolean"
-          label="Location identification (low)"
+          label="Location identification (fast)"
           register={register}
           errors={errors}
           defaultValue={state.data.classificationLocationEnabled}
@@ -68,7 +68,7 @@ const Step5Search = ({ history }) => {
         <ModalField
           name="classificationObjectEnabled"
           type="boolean"
-          label="Object detection (high)"
+          label="Object detection (slow)"
           register={register}
           errors={errors}
           defaultValue={state.data.classificationObjectEnabled}

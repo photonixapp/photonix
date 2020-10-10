@@ -6,9 +6,6 @@
   position: relative;
   cursor: auto;
 }
-.Onboarding > div {
-  height: 100%;
-}
 .Onboarding h2 {
   margin: 0 0 40px;
 }
@@ -46,12 +43,22 @@
   overflow: auto;
   padding: 40px 40px 0 40px;
   min-height: 100%;
+  height: 100%;
 }
 .Onboarding .formContainer form {
   height: 100%;
 }
 .Onboarding .formContainer form > div {
   min-height: 100%;
+}
+.Onboarding .stripesHr {
+  height: 3px;
+  display: flex;
+  flex-direction: row;
+}
+.Onboarding .stripesHr div {
+  height: 100%;
+  flex: 1;
 }
 .Onboarding .buttonBar {
   margin: 40px 0;

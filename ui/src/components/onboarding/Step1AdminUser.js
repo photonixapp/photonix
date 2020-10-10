@@ -49,14 +49,14 @@ const Step1AdminUser = ({ history }) => {
       <h2>Welcome to Photonix</h2>
       <div className="message">
         <p>
-          It looks like you've just freshly installed as there are no users
-          configured yet.
+          Thank you for running Photonix. We’ll have you up and running very
+          shortly.
         </p>
         <p>
-          It'll just take a minute to create an admin account. This can be the
-          same account that you will use day-to-day but also has priviledges
-          like creating libraries on the local file system and creating
-          additional user accounts.
+          Firstly we need to create your user account so that access is secure.
+          As this is the first account on the system it will have extra admin
+          permissions for doing things like creating libraries on the local file
+          system and adding additional users.
         </p>
         <p>
           You should generate a secure password and keep it stored somewhere

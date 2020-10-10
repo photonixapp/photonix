@@ -18,7 +18,7 @@ const Step2AdminCreated = ({ hasPrevious, history }) => {
       <div className="message">
         <p>
           Great, you are the admin of this installation and no one else can
-          create an account (from this web interface anyway). You're also logged
+          create an account (from this web interface anyway). You’re also logged
           in now so we can finish off the installation and get some photos in
           here.
         </p>

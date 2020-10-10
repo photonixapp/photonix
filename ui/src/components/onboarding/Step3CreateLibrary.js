@@ -26,13 +26,14 @@ const Step3CreateLibrary = ({ history }) => {
       <h2>Create a library</h2>
       <div className="message">
         <p>
-          For Photonix to be of any use to you, you need a Library to store your
-          photos in. You'll be able to share this library with others later on,
-          be they family members or colleagues.
+          Next we need to create a Library to store your photos in. Later on
+          you’ll be able to collaborate on this library with others such as
+          family members or colleagues.
         </p>
         <p>
-          A key thing that defines a library is where all those lovely photos
-          are going to be stored.
+          A key thing that defines a library is where all the photo files are
+          going to be stored – whether that be on a hard drive in the current
+          machine, in the cloud or somewhere in-between.
         </p>
         <p>
           You may only ever need to create one library if you are going to be
@@ -41,7 +42,6 @@ const Step3CreateLibrary = ({ history }) => {
           you collaborate with other people on, you can add a second library
           later.
         </p>
-        <p>So, go on, create your first library.</p>
       </div>
 
       <Stack spacing={4} mb={4}>
@@ -79,6 +79,12 @@ const Step3CreateLibrary = ({ history }) => {
 
       {state.data.storageBackend == 'Lo' && (
         <Stack spacing={4}>
+          <p>
+            The base path will need to be writeable so that we can put new files
+            here, and also needs to be large enough to store your whole
+            collection. If you’re running in a container, feel free to restart
+            it with new mounted volumes if you need to.
+          </p>
           <ModalField
             name="basePath"
             type="text"
@@ -132,10 +138,10 @@ const Step3CreateLibrary = ({ history }) => {
             )}
             <p>
               If your bucket has public read permissions, entering the base HTTP
-              URL here will speed up display of images as the client will be
-              able to access the images directly (bypassing the server). You are
-              responsible for permissions of your bucket so don't make it public
-              unless you are sure that's what you want.
+              URL here will speed up display of images as the client browser
+              will be able to access the images directly (bypassing the server).
+              You are responsible for permissions of your bucket so don’t make
+              it public unless you are sure that’s what you want.
             </p>
             <ModalField
               name="storagePublicBaseUrl"
@@ -146,7 +152,7 @@ const Step3CreateLibrary = ({ history }) => {
               defaultValue={state.data.storagePublicBaseUrl}
             />
             <p>
-              In a minute we'll check your bucket is accessible and writable so
+              In a minute we’ll check your bucket is accessible and writeable so
               we'll need these keys please.
             </p>
             <ModalField
