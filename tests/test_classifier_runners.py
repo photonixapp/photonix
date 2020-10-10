@@ -105,7 +105,7 @@ def test_style_via_runner(photo_fixture_snow):
     assert photo is None
     assert len(result) == 1
     assert result[0][0] == 'serene'
-    assert '{0:.3f}'.format(result[0][1]) == '0.915'
+    assert '{0:.3f}'.format(result[0][1]) == '0.962'
 
     # Passing in a Photo object should tag the object
     assert photo_fixture_snow.photo_tags.count() == 0
@@ -113,4 +113,4 @@ def test_style_via_runner(photo_fixture_snow):
     assert photo_fixture_snow.photo_tags.count() == 1
     assert photo_fixture_snow.photo_tags.all()[0].tag.name == 'serene'
     assert photo_fixture_snow.photo_tags.all()[0].tag.type == 'S'
-    assert '{0:.3f}'.format(photo_fixture_snow.photo_tags.all()[0].significance) == '0.915'
+    assert '{0:.3f}'.format(photo_fixture_snow.photo_tags.all()[0].significance) == '0.962'
