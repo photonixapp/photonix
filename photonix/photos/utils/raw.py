@@ -51,6 +51,10 @@ def process_raw_task(photo_file_id, task):
     photo_file = PhotoFile.objects.get(id=photo_file_id)
     output_path, version, process_params, external_version = generate_jpeg(photo_file.path)
 
+    if not output_path:
+        task.failed()
+        return
+
     if not os.path.isdir(settings.PHOTO_RAW_PROCESSED_DIR):
         os.mkdir(settings.PHOTO_RAW_PROCESSED_DIR)
     destination_path = Path(settings.PHOTO_RAW_PROCESSED_DIR) / str('{}.jpg'.format(photo_file.id))
