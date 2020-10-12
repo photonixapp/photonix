@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+  postgres:
+    container_name: photonix-postgres
+    image: postgres:11.1-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: photonix
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ../data/db:/var/lib/postgresql/data
+
+  redis:
+    container_name: photonix-redis
+    image: redis:3.2.8
+    ports:
+      - '6379:6379'
+
+  photonix:
+    container_name: photonix
+    # image: damianmoore/photonix:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.prd
+    ports:
+      - '8888:80'
+    environment:
+      ENV: prd
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: photonix
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      REDIS_HOST: redis
+      ALLOWED_HOSTS: '*'
+    volumes:
+      - ../data/photos:/data/photos
+      - ../data/raw-photos-processed:/data/raw-photos-processed
+      - ../data/cache:/data/cache
+      - ../data/models:/data/models
+    links:
+      - postgres
+      - redis
