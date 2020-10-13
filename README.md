@@ -17,12 +17,11 @@ Create a new directory to run inside and download the example Docker Compose fil
 
     mkdir photonix
     cd photonix
-    curl https://raw.githubusercontent.com/damianmoore/photonix/master/docker-compose.example.yml > docker-compose.yml
+    curl https://raw.githubusercontent.com/damianmoore/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
 
 Make volume directories for data stored outside the container.
 
-    mkdir data
-    mkdir data/photos
+    mkdir -p  data/photos
 
 Bring up Docker Compose which will pull and run the required Docker images.
 

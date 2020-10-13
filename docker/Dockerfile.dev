@@ -1,4 +1,4 @@
-FROM python:3.8.1-slim-buster
+FROM python:3.8.6-slim-buster
 
 RUN apt-get update && \
     apt-get install -y \
@@ -41,7 +41,7 @@ RUN yarn install
 # Install Python dependencies
 WORKDIR /srv
 COPY requirements.txt /srv/requirements.txt
-RUN sed -i "s|tensorflow==2.1.0|https://github.com/damianmoore/tensorflow-builder/releases/download/v2.1.0/tensorflow-2.1.0-cp38-cp38-linux_x86_64.whl|g" /srv/requirements.txt
+RUN sed -i "s|tensorflow==2.3.1|https://github.com/damianmoore/tensorflow-builder/releases/download/v2.3.1/tensorflow-2.3.1-cp38-cp38-linux_x86_64.whl|g" /srv/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy over the code
