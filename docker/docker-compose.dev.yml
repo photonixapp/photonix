@@ -21,8 +21,10 @@ services:
   photonix:
     container_name: photonix
     # image: damianmoore/photonix:latest
+    image: photonix-dev
     build:
       context: ..
+      dockerfile: docker/Dockerfile.dev
     ports:
       - '8888:80'
       - '8889:8000'
