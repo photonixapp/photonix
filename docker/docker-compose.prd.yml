@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: photonix
       POSTGRES_PASSWORD: password
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ../data/db:/var/lib/postgresql/data
 
   redis:
     container_name: photonix-redis
@@ -22,12 +22,12 @@ services:
     container_name: photonix
     # image: damianmoore/photonix:latest
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile.prd
     ports:
       - '8888:80'
-      - '8889:8000'
     environment:
-      ENV: dev
+      ENV: prd
       POSTGRES_HOST: postgres
       POSTGRES_DB: photonix
       POSTGRES_USER: postgres
@@ -35,19 +35,10 @@ services:
       REDIS_HOST: redis
       ALLOWED_HOSTS: '*'
     volumes:
-      - ./photonix:/srv/photonix
-      - ./tests:/srv/tests
-      - ./test.py:/srv/test.py
-      - ./ui/public:/srv/ui/public
-      - ./ui/src:/srv/ui/src
-      - ./ui/static:/srv/ui/static
-      - ./ui/package.json:/srv/ui/package.json
-      - ./ui/yarn.lock:/srv/ui/yarn.lock
-      - ./data/photos:/data/photos
-      - ./data/raw-photos-processed:/data/raw-photos-processed
-      - ./data/cache:/data/cache
-      - ./data/models:/data/models
-      - ./system/supervisord.conf:/etc/supervisord.conf
+      - ../data/photos:/data/photos
+      - ../data/raw-photos-processed:/data/raw-photos-processed
+      - ../data/cache:/data/cache
+      - ../data/models:/data/models
     links:
       - postgres
       - redis
