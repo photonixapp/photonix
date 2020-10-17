@@ -1,14 +1,14 @@
 start:
-	docker-compose -f docker/docker-compose.prd.yml up
-
-build:
-	docker-compose -f docker/docker-compose.prd.yml build
-
-start-dev:
 	docker-compose -f docker/docker-compose.dev.yml up
 
-build-dev:
+build:
 	docker-compose -f docker/docker-compose.dev.yml build
+
+start-prd:
+	docker-compose -f docker/docker-compose.prd.yml up
+
+build-prd:
+	docker-compose -f docker/docker-compose.prd.yml build
 
 restart:
 	docker-compose -f docker/docker-compose.dev.yml restart photonix
