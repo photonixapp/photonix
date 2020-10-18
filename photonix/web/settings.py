@@ -128,8 +128,8 @@ else:
 CACHE_DIR = str(Path(DATA_DIR) / 'cache')
 MODEL_DIR = str(Path(DATA_DIR) / 'models')
 
-STATIC_DIR = str(Path(BASE_DIR) / 'static')
-STATIC_URL = '/static/'
+STATIC_ROOT = '/srv/static-collected'
+STATIC_URL = '/static-collected/'
 
 MEDIA_ROOT = str(Path(BASE_DIR).parent / 'data')
 
