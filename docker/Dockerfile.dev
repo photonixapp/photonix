@@ -53,10 +53,6 @@ COPY ui/src /srv/ui/src
 COPY system /srv/system
 COPY system/supervisord.conf /etc/supervisord.conf
 
-# Build frontend app
-RUN yarn build
-
-WORKDIR /srv
 ENV PYTHONPATH /srv
 
 RUN python photonix/manage.py collectstatic --noinput --link
