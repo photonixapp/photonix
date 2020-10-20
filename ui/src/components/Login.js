@@ -1,9 +1,19 @@
 import React from 'react'
-import { useMutation } from '@apollo/react-hooks'
+import { useMutation, useQuery } from '@apollo/react-hooks'
 import { Redirect } from 'react-router-dom'
 import gql from 'graphql-tag'
-import { logIn, scheduleTokenRefresh } from '../auth'
 
+import { logIn, scheduleTokenRefresh } from '../auth'
+import '../static/css/Login.css'
+
+const ENVIRONMENT = gql`
+  {
+    environment {
+      demo
+      firstRun
+    }
+  }
+`
 const AUTH_USER = gql`
   mutation TokenAuth($username: String!, $password: String!) {
     tokenAuth(username: $username, password: $password) {
@@ -12,12 +22,18 @@ const AUTH_USER = gql`
     }
   }
 `
+
 const Login = props => {
   let inputUsername, inputPassword
-  const [authUser, { data, loading, error }] = useMutation(AUTH_USER)
+  const { data: envData } = useQuery(ENVIRONMENT)
+  const [authUser, { data: authData, loading: authLoading, error: authError }] = useMutation(AUTH_USER)
 
-  if (data && data.tokenAuth) {
-    logIn(data.tokenAuth.refreshToken)
+  if (envData && envData.environment.firstRun) {
+    return <Redirect to="/onboarding" />
+  }
+
+  if (authData && authData.tokenAuth) {
+    logIn(authData.tokenAuth.refreshToken)
     scheduleTokenRefresh() // We don't have the token expiry from the tokenAuth mutation but this will start the refresh cycle off in a few seconds
     return <Redirect to="/" />
   }
@@ -25,9 +41,9 @@ const Login = props => {
   return (
     <>
       <div className="LoginForm">
-        {loading && <p>Loading...</p>}
-        {error && <p>{error.message}</p>}
-        {data && data.errors && <p>{data.errors}</p>}
+        {authLoading && <p>Loading...</p>}
+        {authError && <p>{authError.message}</p>}
+        {authData && authData.errors && <p>{authData.errors}</p>}
         <form
           onSubmit={e => {
             e.preventDefault()
@@ -47,6 +63,7 @@ const Login = props => {
             ref={node => {
               inputUsername = node
             }}
+            defaultValue={envData && envData.environment.demo ? 'demo' : '' }
           />
           <label>Password: </label>
           <input
@@ -54,42 +71,13 @@ const Login = props => {
             ref={node => {
               inputPassword = node
             }}
+            defaultValue={envData && envData.environment.demo ? 'demo' : '' }
           />
           <button type="submit" style={{ cursor: 'pointer' }}>
             Login
           </button>
         </form>
       </div>
-      <style jsx>{`
-        .LoginForm {
-          background: #292929;
-          width: 400px;
-          margin: 80px auto;
-          padding: 40px;
-        }
-        .LoginForm label {
-          width: 120px;
-          display: inline-block;
-        }
-        .LoginForm input {
-          width: 200px;
-          background: #484848;
-          color: #fff;
-          border: 0;
-          padding: 11px 13px 9px 13px;
-          margin-bottom: 10px;
-        }
-        .LoginForm button {
-          background: #484848;
-          color: #fff;
-          border: 0;
-          padding: 11px 13px 9px 13px;
-          display: block;
-          width: 100%;
-          font-weight: 300;
-          margin-top: 20px;
-        }
-      `}</style>
     </>
   )
 }

@@ -1,6 +1,8 @@
 import React from 'react'
+
 import history from '../history'
 import { logOut } from '../auth'
+import '../static/css/Logout.css'
 
 const Logout = props => {
   logOut()
@@ -14,18 +16,6 @@ const Logout = props => {
       <div className="LoggedOut">
         <h1>Logged out</h1>
       </div>
-      <style jsx>{`
-        .LoggedOut {
-          background: #292929;
-          width: 400px;
-          margin: 80px auto;
-          padding: 40px;
-        }
-        .LoggedOut h1 {
-          text-align: center;
-          margin: 0;
-        }
-      `}</style>
     </>
   )
 }

@@ -1,0 +1,10 @@
+.LoggedOut {
+  background: #292929;
+  width: 400px;
+  margin: 80px auto;
+  padding: 40px;
+}
+.LoggedOut h1 {
+  text-align: center;
+  margin: 0;
+}

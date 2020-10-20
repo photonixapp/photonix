@@ -11,6 +11,11 @@ done
 >&2 echo "Running migrations"
 python /srv/photonix/manage.py migrate
 
+if [ "${DEMO}" = "1" ]; then
+  echo "Ensuring demo user and photos are created as we're running with DEMO=1"
+  python /srv/photonix/manage.py import_demo_photos
+fi
+
 >&2 echo "Resetting Redis lock"
 python /srv/photonix/manage.py reset_redis_locks
 

@@ -77,7 +77,7 @@ const Step3CreateLibrary = ({ history }) => {
         />
       </Stack>
 
-      {state.data.storageBackend == 'Lo' && (
+      {state.data.storageBackend === 'Lo' && (
         <Stack spacing={4}>
           <p>
             The base path will need to be writeable so that we can put new files
@@ -97,7 +97,7 @@ const Step3CreateLibrary = ({ history }) => {
         </Stack>
       )}
 
-      {state.data.storageBackend == 'S3' && (
+      {state.data.storageBackend === 'S3' && (
         <>
           <Stack spacing={4}>
             <ModalField

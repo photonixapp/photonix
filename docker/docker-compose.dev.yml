@@ -30,6 +30,7 @@ services:
       - '8889:8000'
     environment:
       ENV: dev
+      DEMO: 1
       POSTGRES_HOST: postgres
       POSTGRES_DB: photonix
       POSTGRES_USER: postgres
@@ -38,6 +39,7 @@ services:
       ALLOWED_HOSTS: '*'
     volumes:
       - ../photonix:/srv/photonix
+      - ../system:/srv/system
       - ../tests:/srv/tests
       - ../test.py:/srv/test.py
       - ../ui/public:/srv/ui/public

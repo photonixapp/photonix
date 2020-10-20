@@ -32,7 +32,7 @@ const Step1AdminUser = ({ history }) => {
   }
 
   const validatePassword = (value) => {
-    if (state.data.password == value) {
+    if (state.data.password === value) {
       return true
     }
     return 'Password fields do not match'

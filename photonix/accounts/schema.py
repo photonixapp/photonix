@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth import get_user_model
 
 import graphene
@@ -19,12 +21,22 @@ class UserType(DjangoObjectType):
     class Meta:
         model = User
 
+class Environment(graphene.ObjectType):
+    demo = graphene.Boolean()
+    first_run = graphene.Boolean()
 
 class Query(graphene.ObjectType):
     profile = graphene.Field(UserType)
+    environment = graphene.Field(Environment)
 
     def resolve_profile(self, info):
         user = info.context.user
         if user.is_anonymous:
             raise Exception('Not logged in')
         return user
+
+    def resolve_environment(self, info):
+        return {
+            'demo': os.environ.get('DEMO', False),
+            'first_run': False,
+        }

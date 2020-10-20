@@ -32,7 +32,7 @@ const Header = ({ profile, libraries }) => (
           ) : null}
           {libraries
             ? libraries.map(({ id, name }) => (
-                <li>
+                <li key={id}>
                   <img src={library} alt="Settings" /> {name}
                 </li>
               ))
