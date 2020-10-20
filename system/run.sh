@@ -9,6 +9,7 @@ done
 
 
 >&2 echo "Running migrations"
+python /srv/photonix/manage.py migrate accounts
 python /srv/photonix/manage.py migrate
 
 if [ "${DEMO}" = "1" ]; then
