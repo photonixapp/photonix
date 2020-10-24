@@ -1,4 +1,5 @@
 import history from './history'
+import Cookies from 'js-cookie'
 
 const TOKEN_EXPIRY_PREEMPT = 2 * 60 * 1000 // Refresh token this many milliseconds before expiry time
 const DEFAULT_REFRESH_INTERVAL = 60 * 1000 // Only used on first login, when we don't get given an expiry time (ms)
@@ -8,8 +9,7 @@ let timeout = null
 export let loggedIn = false
 
 export const refreshToken = () => {
-  console.log('refreshToken')
-  let oldRefreshToken = localStorage.getItem('refreshToken')
+  let oldRefreshToken = Cookies.get('refreshToken')
 
   if (!oldRefreshToken) {
     history.push('/login')
@@ -46,10 +46,7 @@ export const refreshToken = () => {
       console.log(response.data)
       if (response.data && response.data.refreshToken) {
         // We got token and refreshToken
-        localStorage.setItem(
-          'refreshToken',
-          response.data.refreshToken.refreshToken
-        )
+        Cookies.set('refreshToken', response.data.refreshToken.refreshToken, { expires: 365 })
 
         // Schedule next token refresh
         let expiry = response.data.refreshToken.payload.exp
@@ -128,17 +125,17 @@ export const revokeRefreshToken = refreshToken => {
 
 export const logIn = refreshToken => {
   if (refreshToken) {
-    localStorage.setItem('refreshToken', refreshToken)
+    Cookies.set('refreshToken', refreshToken, { expires: 365 })
   }
   loggedIn = true
 }
 
 export const logOut = () => {
   loggedIn = false
-  let oldToken = localStorage.getItem('refreshToken')
+  let oldToken = Cookies.get('refreshToken')
   if (oldToken) {
     revokeRefreshToken(oldToken)
-    localStorage.removeItem('refreshToken')
+    Cookies.remove('refreshToken')
   }
   if (timeout) {
     clearTimeout(timeout)

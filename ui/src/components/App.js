@@ -1,9 +1,10 @@
 import React from 'react'
+import Cookies from 'js-cookie'
 import { Router, Route, Switch } from 'react-router-dom'
 import { ModalContainer, ModalRoute } from 'react-router-modal'
 import { ApolloClient } from 'apollo-client'
 import { InMemoryCache } from 'apollo-cache-inmemory'
-import { HttpLink } from 'apollo-link-http'
+import { createHttpLink } from 'apollo-link-http'
 import { RetryLink } from 'apollo-link-retry'
 import { onError } from 'apollo-link-error'
 import { ApolloLink } from 'apollo-link'
@@ -26,7 +27,7 @@ import customTheme from '../theme'
 import '../static/css/App.css'
 import '../static/css/typography.css'
 
-if (localStorage.getItem('refreshToken')) {
+if (Cookies.get('refreshToken')) {
   logIn()
   refreshToken()
 } else {
@@ -45,7 +46,9 @@ const client = new ApolloClient({
       if (networkError) console.log(`[Network error]: ${networkError}`)
     }),
     new RetryLink(),
-    new HttpLink(),
+    createHttpLink({
+      credentials: 'same-origin', // Required for older versions of Chromium (~v58)
+    })
   ]),
   cache: new InMemoryCache(),
 })

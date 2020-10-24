@@ -13,7 +13,7 @@ python /srv/photonix/manage.py migrate accounts
 python /srv/photonix/manage.py migrate
 
 if [ "${DEMO}" = "1" ]; then
-  echo "Ensuring demo user and photos are created as we're running with DEMO=1"
+  echo "Ensuring demo user, library and photos are created as we're running with DEMO=1 environment variable"
   python /srv/photonix/manage.py import_demo_photos
 fi
 
