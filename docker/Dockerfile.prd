@@ -25,24 +25,24 @@ RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - && \
                    /tmp/* \
                    /var/tmp/*
 
-# Install NPM dependencies
-COPY ui/package.json /srv/ui/package.json
-COPY ui/yarn.lock /srv/ui/yarn.lock
-WORKDIR /srv/ui
-RUN yarn install --production --no-cache
-
 # Install Python dependencies
 WORKDIR /srv
 COPY requirements.txt /srv/requirements.txt
 RUN sed -i "s|tensorflow==2.3.1|https://github.com/damianmoore/tensorflow-builder/releases/download/v2.3.1/tensorflow-2.3.1-cp38-cp38-linux_x86_64.whl|g" /srv/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install NPM dependencies
+COPY ui/package.json /srv/ui/package.json
+COPY ui/yarn.lock /srv/ui/yarn.lock
+WORKDIR /srv/ui
+RUN yarn install --production --no-cache
+
 # Copy over the code
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
 
 # Build frontend app
-RUN cd ui && yarn build
+RUN yarn build
 
 # Remove large unused files in Python site-packages
 RUN find /usr/local/lib/python3.8 -type d -name  "__pycache__" -exec rm -r {} + && \

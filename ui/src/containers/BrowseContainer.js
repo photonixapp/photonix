@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import gql from 'graphql-tag'
+import 'url-search-params-polyfill';
 
 import Browse from '../components/Browse'
 
