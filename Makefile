@@ -18,3 +18,6 @@ shell:
 
 manage:
 	docker-compose -f docker/docker-compose.dev.yml exec photonix python photonix/manage.py ${}
+
+test:
+	docker-compose -f docker/docker-compose.dev.yml exec photonix python test.py

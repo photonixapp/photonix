@@ -60,6 +60,4 @@ If you want to access the Bash or Python shells for development, you can use the
 
 PyTest is used as a test runner and for creating fixtures. The easiest way to run the tests is within the Docker container like this:
 
-    ./docker_shell.sh
-    cd photonix
-    python test.py
+    make test
