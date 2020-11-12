@@ -28,6 +28,11 @@ Bring up Docker Compose which will pull and run the required Docker images.
 
 A few seconds after starting you should be able to go to [http://localhost:8888/](http://localhost:8888/) in your browser.
 
+You'll need to create a username, password and library. Right now this needs to be done on the command-line so run this in a new terminal window. Replace `USERNAME` with your own username.
+
+    docker-compose run photonix python photonix/manage.py createsuperuser --username USERNAME --email example@example.com
+    docker-compose run photonix python photonix/manage.py create_library USERNAME "My Library"
+
 You can move some photos into the folder `data/photos` and they should get detected and imported immediately. Once you have finished trying out the system you can edit the volume in the `docker-compose.yml` file where it says `./data/photos` to mount wherever you usually keep photos. System database, thumbnails and other cache data is stored separately from the photos so shouldn't pollute the area. You are responsible for keeping your own backups in case of error.
 
 ## Upgrading
@@ -40,17 +45,16 @@ If you are using the pre-built Docker image you can use kill, pull and bring bac
 
 ## Developing
 
-There is a separate Docker Compose file `docker-compose.dev.yml` that you should run if you want to work on the project. Check out the repo and this setup will build the image, mount the code as volumes, hot-reload JS changes to the browser and reload the Python server for most changes.
+There is a [`Makefile`](./Makefile) and separate Docker Compose file `docker-compose.dev.yml` that you should use if you want to work on the project. Check out the repo and this setup will build the image, mount the code as volumes, hot-reload JS changes to the browser and reload the Python server for most changes.
 
     git clone git@github.com:damianmoore/photonix.git
     cd photonix
-    docker-compose -f docker-compose.dev.yml build
-    docker-compose -f docker-compose.dev.yml up
+    make build
+    make start
 
-If you want to access the Bash or Python shells for development, you can use the following helper scripts:
+If you want to access the Bash or Python shells for development, you can use the following command.
 
-    ./docker_shell.sh  # Gets you into the running container
-    ./docker_manage.sh  # Gets you into the Django/Python shell
+    make shell
 
 ## Testing
 
