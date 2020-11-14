@@ -45,7 +45,10 @@ def get_thumbnail_path(photo, width=256, height=256, crop='cover', quality=75):
 
     directory = os.path.join(settings.THUMBNAIL_ROOT, '{}x{}_{}_q{}'.format(width, height, crop, quality))
     if not os.path.exists(directory):
-        os.makedirs(directory)
+        try:
+            os.makedirs(directory)
+        except FileExistsError:  # Could have been created by parallel thread which is OK
+            pass
 
     return os.path.join(directory, '{}.jpg'.format(photo.id))
 

@@ -49,6 +49,7 @@ There is a [`Makefile`](./Makefile) and separate Docker Compose file `docker-com
 
     git clone git@github.com:damianmoore/photonix.git
     cd photonix
+    mkdir -p  data/photos
     make build
     make start
 
