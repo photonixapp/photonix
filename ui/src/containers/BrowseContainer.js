@@ -82,7 +82,7 @@ const BrowseContainer = props => {
 
   let section = {
     id: 12345,
-    title: 'March 2017',
+    title: null,
     segments: [
       {
         numPhotos: photos.length,
