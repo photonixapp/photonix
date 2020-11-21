@@ -40,12 +40,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
 COPY ui/yarn.lock /srv/ui/yarn.lock
+ENV NODE_ENV=development
 RUN cd /srv/ui && yarn install
-
-#It will serve the contents of storybook
-FROM python:latest
-COPY ./storybook-static / 
-EXPOSE 8080 
 
 # Copy over the code
 COPY photonix /srv/photonix
