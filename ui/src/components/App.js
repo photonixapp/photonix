@@ -23,7 +23,7 @@ import Logout from '../components/Logout'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 import Onboarding from '../components/Onboarding'
 import Settings from '../components/Settings'
-import customTheme from '../theme'
+// import customTheme from '../theme'
 import '../static/css/App.css'
 import '../static/css/typography.css'
 
@@ -59,7 +59,8 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
   return (
     <ApolloProvider client={client}>
       <Router history={history}>
-        <ThemeProvider theme={customTheme}>
+        {/* <ThemeProvider theme={customTheme}> */}
+        <ThemeProvider>
           <ColorModeProvider value="dark">
             {/* <CSSReset /> */}
             <Switch>
