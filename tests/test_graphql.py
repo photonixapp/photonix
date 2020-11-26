@@ -44,6 +44,23 @@ class TestGraphQL:
         assert response.status_code == 200
         data = get_graphql_content(response)
         assert data['data']['photo']['url'].startswith('/thumbnails')
+        
+    def test_get_settings(self, defaults, api_client):
+        api_client.set_user(defaults['user'])
+        query = """
+            {
+                allSettings(bool: UUID){
+                    color
+                    location
+                    style
+                    object
+                }
+            }
+        """
+        response = api_client.post_graphql( query, {'allsettings': bool(defaults[''].all_settings)})
+        assert response.status_code == 200
+        data get_graphql_content(response)
+        assert data['color']['location']['style']['object'].startswith(/settings)
 
     def test_get_photos(self, defaults, api_client):
         api_client.set_user(defaults['user'])
