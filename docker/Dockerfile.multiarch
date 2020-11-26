@@ -1,0 +1,121 @@
+ARG ARCH=
+FROM ${ARCH}python:3.8.6-slim-buster as builder
+
+RUN apt-get update && \
+    apt-get install -y \
+        curl \
+        build-essential \
+        gnupg \
+        libjpeg-dev \
+        libpq-dev \
+        libtiff5-dev \
+        libblas3 \
+        liblapack3 \
+        liblapack-dev \
+        libblas-dev \
+        gfortran \
+        && \
+        apt-get clean && \
+            rm -rf /var/lib/apt/lists/* \
+                   /tmp/* \
+                   /var/tmp/*
+
+# Install Node & Yarn
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && \
+    apt-get install -y nodejs yarn && \
+         apt-get clean && \
+            rm -rf /var/lib/apt/lists/* \
+                   /tmp/* \
+                   /var/tmp/*
+
+# Install Python dependencies
+WORKDIR /srv
+COPY requirements.txt /srv/requirements.txt
+
+COPY docker/pip.conf /etc/pip.conf
+COPY docker/.pypirc /root/.pypirc
+RUN pip install --no-cache-dir pypi-uploader
+
+COPY docker/install_and_upload_python_packages.py /root/install_and_upload_python_packages.py
+RUN python /root/install_and_upload_python_packages.py
+
+# Install NPM dependencies
+COPY ui/package.json /srv/ui/package.json
+COPY ui/yarn.lock /srv/ui/yarn.lock
+WORKDIR /srv/ui
+ENV NODE_ENV=production
+RUN yarn install --no-cache
+
+# Copy over the code
+COPY ui/public /srv/ui/public
+COPY ui/src /srv/ui/src
+
+# Build frontend app
+RUN yarn build
+
+# Remove large unused files in Python site-packages
+RUN find /usr/local/lib/python3.8 -type d -name  "__pycache__" -exec rm -r {} + && \
+    find /usr/local/lib/python3.8/site-packages -type d -name  "tests" -exec rm -r {} +
+RUN rm -rf \
+    /usr/local/lib/python3.8/site-packages/tensorflow/include \
+    /usr/local/lib/python3.8/site-packages/scipy \
+    /usr/local/lib/python3.8/site-packages/django/contrib/gis \
+    /usr/local/lib/python3.8/site-packages/django/contrib/humanize \
+    /usr/local/lib/python3.8/site-packages/django/contrib/admindocs \
+    /usr/local/lib/python3.8/site-packages/django/contrib/redirects \
+    /usr/local/lib/python3.8/site-packages/django/contrib/flatpages \
+    /usr/local/lib/python3.8/site-packages/django/contrib/sitemaps \
+    /usr/local/lib/python3.8/site-packages/django/contrib/syndication \
+    /usr/local/lib/python3.8/site-packages/matplotlib/backends \
+    /usr/local/lib/python3.8/site-packages/matplotlib/tests \
+    /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/fonts \
+    /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/sample_data \
+    /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/images \
+    /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/stylelib \
+    /usr/local/lib/python3.8/site-packages/h5py \
+    /usr/local/lib/python3.8/site-packages/tensorboard \
+    /usr/local/lib/python3.8/site-packages/tensorboard_plugin_wit
+
+
+FROM ${ARCH}python:3.8.6-slim-buster
+
+RUN apt-get update && \
+    apt-get install -y \
+        dcraw \
+        libimage-exiftool-perl \
+        netcat \
+        nginx-light \
+        supervisor \
+        && \
+        apt-get clean && \
+            rm -rf /var/lib/apt/lists/* \
+                   /tmp/* \
+                   /var/tmp/*
+
+# Copy over installed Python packages and built JS bundle
+COPY --from=builder /usr/local/lib/python3.8/site-packages /usr/local/lib/python3.8/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /srv/ui/build /srv/ui/build
+
+WORKDIR /srv
+
+# Copy over the code
+COPY photonix /srv/photonix
+COPY test.py /srv/test.py
+COPY tests /srv/tests
+COPY ui/public /srv/ui/public
+
+# Copy system config and init scripts
+COPY system /srv/system
+COPY system/supervisord.conf /etc/supervisord.conf
+
+ENV PYTHONPATH /srv
+
+RUN python photonix/manage.py collectstatic --noinput --link
+
+CMD ./system/run.sh
+
+EXPOSE 80

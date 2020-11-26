@@ -73,3 +73,7 @@ If you want to access the Bash or Python shells for development, you can use the
 PyTest is used as a test runner and for creating fixtures. The easiest way to run the tests is within the Docker container like this:
 
     make test
+
+## Building for multiple architectures
+
+    docker buildx build --platform linux/arm/v7,linux/amd64 --tag damianmoore/photonix-multiarch --push -f docker/Dockerfile.multiarch .
