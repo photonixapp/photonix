@@ -97,15 +97,7 @@ class TagAdmin(VersionedAdmin):
             'fields': ('library', 'name', 'parent', 'type', 'source'),
         }),
     ) + VersionedAdmin.fieldsets
-    
-    
-class ModelAdmin(admin.ModelAdmin):
 
-    ....
-    def save_model( 'id', 'name', 'library__id', 'parent', 'type', 'source'): 
-        instance = form.save(commit=False)
-        instance.save(request=request)
-        return instance
 
 admin.site.register(Library, LibraryAdmin)
 admin.site.register(Camera, CameraAdmin)

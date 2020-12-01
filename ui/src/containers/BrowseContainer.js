@@ -35,16 +35,6 @@ const GET_PHOTOS = gql`
   }
 `
 
-const GET_SETTINGS = gql`
-query {
-  Library{
-    color
-    location
-    style
-  }
-}
-`
-
 
 const BrowseContainer = props => {
   const [expanded, setExpanded] = useState(true)
