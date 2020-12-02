@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import Thumbnail from './index.js';
 
 export default {
-  title: 'Photonix/Thumbnail',
+  title: 'Photonix/Photo List/Thumbnail',
   component: Thumbnail,
 };
 
