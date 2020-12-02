@@ -292,9 +292,3 @@ class Query(graphene.ObjectType):
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
         return Tag.objects.filter(library__users__user=user, type='S')
-    
-    def save(self, new_image=False, *args, **kwargs):
-    if new_image:
-        image=(self.image,model.photo)
-        self.image_small=image(name,image)
-    super(Model, self).save(*args, **kwargs)

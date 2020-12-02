@@ -47,6 +47,7 @@ services:
       - ../ui/src:/srv/ui/src
       - ../ui/.storybook:/srv/ui/.storybook
       - ../ui/static:/srv/ui/static
+      - ../ui/stories:/srv/ui/stories
       - ../ui/package.json:/srv/ui/package.json
       - ../ui/yarn.lock:/srv/ui/yarn.lock
       - ../ui/config:/srv/ui/config
