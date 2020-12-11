@@ -5,7 +5,6 @@ import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
-
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag
 
 
@@ -170,9 +169,14 @@ class StyleTagType(DjangoObjectType):
         model = Tag
 
 
+class LibrarySetting(graphene.ObjectType):
+    """To pass fields for library settingg query api."""
+
+    library = graphene.Field(LibraryType)
+    source_folder = graphene.String()
+
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
-
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
     all_cameras = graphene.List(CameraType)
 
@@ -195,6 +199,7 @@ class Query(graphene.ObjectType):
     all_person_tags = graphene.List(PersonTagType)
     all_color_tags = graphene.List(ColorTagType)
     all_style_tags = graphene.List(StyleTagType)
+    library_setting = graphene.Field(LibrarySetting)
 
     def resolve_all_libraries(self, info, **kwargs):
         user = info.context.user
@@ -292,3 +297,60 @@ class Query(graphene.ObjectType):
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
         return Tag.objects.filter(library__users__user=user, type='S')
+
+    def resolve_library_setting(self, info, **kwargs):
+        """Api for library setting query."""
+        # always pass a dictionary for `library_setting`
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        library_path = libraries[0].paths.all()[0]
+        return {"library": libraries[0], "source_folder": library_path.path}
+
+
+class LibraryInput(graphene.InputObjectType):
+    """LibraryInput to take input of library fields from frontend."""
+
+    classification_color_enabled = graphene.Boolean()
+    classification_location_enabled = graphene.Boolean()
+    classification_style_enabled = graphene.Boolean()
+    classification_object_enabled = graphene.Boolean()
+    source_folder = graphene.String()
+
+
+class UpdateLibrary(graphene.Mutation):
+    """To update data in database that will be passed from frontend."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=True)
+
+    ok = graphene.Boolean()
+    library = graphene.Field(LibraryType)
+    source_folder = graphene.String()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        if libraries:
+            libraries[0].classification_color_enabled = input.classification_color_enabled
+            libraries[0].classification_location_enabled = input.classification_location_enabled
+            libraries[0].classification_style_enabled = input.classification_style_enabled
+            libraries[0].classification_object_enabled = input.classification_object_enabled
+            libraries[0].save()
+            library_path = libraries[0].paths.all()[0]
+            library_path.path = input.source_folder
+            library_path.save()
+            ok = True
+            return UpdateLibrary(
+                ok=ok, library=libraries[0], source_folder=library_path.path)
+        return UpdateLibrary(ok=ok, library=None)
+
+
+class Mutation(graphene.ObjectType):
+    """Mutaion."""
+
+    update_library = UpdateLibrary.Field()
