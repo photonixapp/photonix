@@ -303,8 +303,10 @@ class Query(graphene.ObjectType):
         # always pass a dictionary for `library_setting`
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True)
-        library_path = libraries[0].paths.all()[0]
-        return {"library": libraries[0], "source_folder": library_path.path}
+        if libraries:
+            library_path = libraries[0].paths.all()[0]
+            return {"library": libraries[0], "source_folder": library_path.path}
+        raise Exception('User is not the owner of library!')
 
 
 class LibraryInput(graphene.InputObjectType):
@@ -317,40 +319,161 @@ class LibraryInput(graphene.InputObjectType):
     source_folder = graphene.String()
 
 
-class UpdateLibrary(graphene.Mutation):
-    """To update data in database that will be passed from frontend."""
+class UpdateLibraryColorEnabled(graphene.Mutation):
+    """To update data in database that will be passed from frontend ColorEnabled api."""
 
     class Arguments:
         """To set arguments in for mute method."""
 
-        input = LibraryInput(required=True)
+        input = LibraryInput(required=False)
 
     ok = graphene.Boolean()
-    library = graphene.Field(LibraryType)
+    classification_color_enabled = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data for ColorEnabled api."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        if libraries and str(input.get('classification_color_enabled')) != 'None':
+            libraries[0].classification_color_enabled = input.classification_color_enabled
+            libraries[0].save()
+            ok = True
+            return UpdateLibraryColorEnabled(
+                ok=ok,
+                classification_color_enabled=libraries[0].classification_color_enabled)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibraryColorEnabled(ok=ok, classification_color_enabled=None)
+
+
+class UpdateLibraryLocationEnabled(graphene.Mutation):
+    """To update data in database that will be passed from frontend LocationEnabled api."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=False)
+
+    ok = graphene.Boolean()
+    classification_location_enabled = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data for LocationEnabled api."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        if libraries and str(input.get('classification_location_enabled')) != 'None':
+            libraries[0].classification_location_enabled = input.classification_location_enabled
+            libraries[0].save()
+            ok = True
+            return UpdateLibraryLocationEnabled(
+                ok=ok,
+                classification_location_enabled=libraries[0].classification_location_enabled)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibraryLocationEnabled(ok=ok, classification_location_enabled=None)
+
+
+class UpdateLibraryStyleEnabled(graphene.Mutation):
+    """To update data in database that will be passed from frontend StyleEnabled api."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=False)
+
+    ok = graphene.Boolean()
+    classification_style_enabled = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data for StyleEnabled api."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        if libraries and str(input.get('classification_style_enabled')) != 'None':
+            libraries[0].classification_style_enabled = input.classification_style_enabled
+            libraries[0].save()
+            ok = True
+            return UpdateLibraryStyleEnabled(
+                ok=ok,
+                classification_style_enabled=libraries[0].classification_style_enabled)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibraryStyleEnabled(ok=ok, classification_style_enabled=None)
+
+
+class UpdateLibraryObjectEnabled(graphene.Mutation):
+    """To update data in database that will be passed from frontend ObjectEnabled api."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=False)
+
+    ok = graphene.Boolean()
+    classification_object_enabled = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data for ObjectEnabled api."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        if libraries and str(input.get('classification_object_enabled')) != 'None':
+            libraries[0].classification_object_enabled = input.classification_object_enabled
+            libraries[0].save()
+            ok = True
+            return UpdateLibraryObjectEnabled(
+                ok=ok,
+                classification_object_enabled=libraries[0].classification_object_enabled)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibraryObjectEnabled(ok=ok, classification_object_enabled=None)
+
+
+class UpdateLibrarySourceFolder(graphene.Mutation):
+    """To update data in database that will be passed from frontend SourceFolder api."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=False)
+
+    ok = graphene.Boolean()
     source_folder = graphene.String()
 
     @staticmethod
     def mutate(root, info, input=None):
-        """Method to save the updated data."""
+        """Method to save the updated data for SourceFolder api."""
         ok = False
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True)
-        if libraries:
-            libraries[0].classification_color_enabled = input.classification_color_enabled
-            libraries[0].classification_location_enabled = input.classification_location_enabled
-            libraries[0].classification_style_enabled = input.classification_style_enabled
-            libraries[0].classification_object_enabled = input.classification_object_enabled
-            libraries[0].save()
+        if libraries and input.get('source_folder'):
             library_path = libraries[0].paths.all()[0]
             library_path.path = input.source_folder
             library_path.save()
-            ok = True
-            return UpdateLibrary(
-                ok=ok, library=libraries[0], source_folder=library_path.path)
-        return UpdateLibrary(ok=ok, library=None)
+            return UpdateLibrarySourceFolder(
+                ok=ok,
+                source_folder=library_path.path)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibrarySourceFolder(ok=ok, source_folder=None)
 
 
 class Mutation(graphene.ObjectType):
     """Mutaion."""
 
-    update_library = UpdateLibrary.Field()
+    update_color_enabled = UpdateLibraryColorEnabled.Field()
+    update_location_enabled = UpdateLibraryLocationEnabled.Field()
+    update_style_enabled = UpdateLibraryStyleEnabled.Field()
+    update_object_enabled = UpdateLibraryObjectEnabled.Field()
+    update_source_folder = UpdateLibrarySourceFolder.Field()
