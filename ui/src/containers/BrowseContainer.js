@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery } from '@apollo/react-hooks'
+import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import 'url-search-params-polyfill';
 
@@ -36,6 +37,7 @@ const GET_PHOTOS = gql`
 `
 
 const BrowseContainer = props => {
+  const user = useSelector(state => state.user)  // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const [expanded, setExpanded] = useState(true)
 
   const params = new URLSearchParams(window.location.search)
@@ -47,13 +49,13 @@ const BrowseContainer = props => {
     loading: librariesLoading,
     error: librariesError,
     data: librariesData,
-  } = useQuery(GET_LIBRARIES)
+  } = useQuery(GET_LIBRARIES, {skip: !user})
 
   const {
     loading: profileLoading,
     error: profileError,
     data: profileData,
-  } = useQuery(GET_PROFILE)
+  } = useQuery(GET_PROFILE, {skip: !user})
 
   let photoSections = []
   let photos = []
@@ -67,6 +69,7 @@ const BrowseContainer = props => {
   } = useQuery(GET_PHOTOS, {
     variables: {
       filters: filtersStr,
+      skip: !user,
     },
   })
 
