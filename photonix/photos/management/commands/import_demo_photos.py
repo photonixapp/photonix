@@ -44,6 +44,7 @@ class Command(BaseCommand):
             # base_thumbnail_path='/data/cache/thumbnails/',
             # base_thumbnail_url='/thumbnails/'
         )
+        # LibraryPath as locally mounted volume
         library_path, _ = LibraryPath.objects.get_or_create(
             library=library,
             type='St',
@@ -51,9 +52,15 @@ class Command(BaseCommand):
             path='/data/photos/',
             url='/photos/',
         )
+
+        # Link User to Library
+        # In dev environment user needs to be owner to access all functionality
+        # but demo.photonix.org this could lead to the system being messed up
+        owner = os.environ.get('ENV') == 'dev'
         library_user, _ = LibraryUser.objects.get_or_create(
             library=library,
-            user=user
+            user=user,
+            owner=owner
         )
 
         # Add photos
