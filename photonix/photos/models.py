@@ -33,6 +33,10 @@ class Library(UUIDModel, VersionedModel):
     def __str__(self):
         return self.name
 
+    def rescan(self):
+        for library_path in self.paths:
+            library_path.rescan()
+
 
 LIBRARY_PATH_TYPE_CHOICES = (
     ('St', 'Store'),
@@ -56,6 +60,12 @@ class LibraryPath(UUIDModel, VersionedModel):
     watch_for_changes = models.BooleanField(default=False, help_text='Watch import_path for local filesystem changes?')
     s3_access_key_id = models.CharField(max_length=20, blank=True, null=True, help_text='AWS S3 (or compatible) access key ID')
     s3_secret_key = models.CharField(max_length=40, blank=True, null=True, help_text='AWS S3 (or compatible) secret key')
+
+    def rescan(self):
+        from photonix.photos.utils.organise import import_photos_in_place
+
+        if self.type == 'St' and self.backend_type == 'Lo':
+            import_photos_in_place(self)
 
 
 class LibraryUser(UUIDModel, VersionedModel):
@@ -142,6 +152,8 @@ class Photo(UUIDModel, VersionedModel):
         if not preferred_files:
             preferred_files = self.files.filter(
                 mimetype='image/jpeg').order_by('-created_at')
+        if not preferred_files:
+            preferred_files = self.files.all().order_by('-created_at')
         if preferred_files:
             return preferred_files[0]
         return None
