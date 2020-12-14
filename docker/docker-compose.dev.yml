@@ -28,6 +28,7 @@ services:
     ports:
       - '8888:80'
       - '8889:8000'
+      - '8880:8001'
     environment:
       ENV: dev
       DEMO: 1

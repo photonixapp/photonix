@@ -46,7 +46,7 @@ export const refreshToken = () => {
       console.log(response.data)
       if (response.data && response.data.refreshToken) {
         // We got token and refreshToken
-        Cookies.set('refreshToken', response.data.refreshToken.refreshToken, { expires: 365 })
+        Cookies.set('refreshToken', response.data.refreshToken.refreshToken, { expires: 365, sameSite: 'strict' })
 
         // Schedule next token refresh
         let expiry = response.data.refreshToken.payload.exp
@@ -125,7 +125,7 @@ export const revokeRefreshToken = refreshToken => {
 
 export const logIn = refreshToken => {
   if (refreshToken) {
-    Cookies.set('refreshToken', refreshToken, { expires: 365 })
+    Cookies.set('refreshToken', refreshToken, { expires: 365, sameSite: 'strict' })
   }
   loggedIn = true
 }
