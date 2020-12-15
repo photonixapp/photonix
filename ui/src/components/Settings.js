@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect,useRef } from 'react'
 import history from '../history'
+import { useQuery,useMutation} from '@apollo/react-hooks';
+
 import {
   Switch,
   Flex,
@@ -13,11 +15,11 @@ import {
 
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import '../static/css/Settings.css'
+import {SETTINGS_STYLE,SETTINGS_COLOR,SETTINGS_LOCATION,SETTINGS_OBJECT,SETTINGS_SOURCE_FOLDER,GET_SETTINGS} from '../graphql/setting'
 // import folder from '../static/images/folder.svg'
 
 export default function Settings() {
   const [settings, setSettings] = useSettings()
-
   const availableSettings = [
     {
       key: 'sourceDirs',
@@ -30,22 +32,22 @@ export default function Settings() {
       label: 'Watch folder for new photos',
     },
     {
-      key: 'classificationColor',
+      key: 'classificationColorEnabled',
       type: 'boolean',
       label: 'Run color analysis on photos?',
     },
     {
-      key: 'classificationLocation',
+      key: 'classificationLocationEnabled',
       type: 'boolean',
       label: 'Run location detection on photos?',
     },
     {
-      key: 'classificationStyle',
+      key: 'classificationStyleEnabled',
       type: 'boolean',
       label: 'Run style classification on photos?',
     },
     {
-      key: 'classificationObject',
+      key: 'classificationObjectEnabled',
       type: 'boolean',
       label: 'Run object detection on photos?',
     },
@@ -53,10 +55,36 @@ export default function Settings() {
 
   function toggleBooleanSetting(key) {
     console.log(key)
-    let newSettings = {}
+    let newSettings = {...settings}
     newSettings[key] = !settings[key]
     setSettings(newSettings)
-  }
+    switch(key) {
+      case "classificationStyleEnabled":
+          settingUpdateStyle({
+            variables: {
+              classificationStyleEnabled: newSettings.classificationStyleEnabled,
+            },
+          }).catch(e => {})
+    case  "classificationLocationEnabled":
+        settingUpdateLocation({
+          variables: {
+            classificationLocationEnabled: newSettings.classificationLocationEnabled,
+          },
+        }).catch(e => {})
+    case  "classificationObjectEnabled":
+        settingUpdateObject({
+          variables: {
+            classificationObjectEnabled: newSettings.classificationObjectEnabled,
+          },
+        }).catch(e => {})
+      case "classificationColorEnabled":
+          settingUpdateColor({
+            variables: {
+              classificationColorEnabled: newSettings.classificationColorEnabled,
+            },
+          }).catch(e => {})
+      }
+    }
 
   function onSelectSourceDir() {
     if (window.sendSyncToElectron) {
@@ -64,6 +92,23 @@ export default function Settings() {
       setSettings({ sourceDirs: dirs })
     }
   }
+
+  function onChangeSourceDir (e) {
+    let newSettings = {...settings}
+    newSettings.sourceDirs = e.currentTarget.value 
+    setSettings(newSettings)
+    settingUpdateSourceFolder({
+      variables: {
+        sourceFolder: newSettings.sourceDirs,
+      },
+    }).catch(e => {})
+  }
+  const [settingUpdateStyle] = useMutation(SETTINGS_STYLE)
+  const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
+  const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
+  const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
+  const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
+
 
   return (
     <div className="Settings">
@@ -82,6 +127,7 @@ export default function Settings() {
                   <Input
                     rounded="0"
                     value={settings ? settings[item.key] : 'empty'}
+                    onChange={ onChangeSourceDir}
                   />
                   <IconButton
                     aria-label="Select source folder"
@@ -116,8 +162,32 @@ export default function Settings() {
 
 const useSettings = () => {
   const [existingSettings, setSettings] = useState({})
+  const  { loading, error, data,refetch }= useQuery(GET_SETTINGS)
+  console.log(error)
+
+  const isInitialMount = useRef(true);
+
+  useEffect (() => {
+    refetch()
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+   } else{
+    if(!loading) {
+      let setting = data.librarySetting.library
+      setting.sourceDirs = data.librarySetting.sourceFolder
+      setSettings(setting)
+    }
+   } 
+  },[data])
+
 
   useEffect(() => {
+    refetch()
+    if(!loading) {
+      let setting = data.librarySetting.library
+      setting.sourceDirs = data.librarySetting.sourceFolder
+      setSettings(setting)
+    }
     if (window.sendSyncToElectron) {
       let result = window.sendSyncToElectron('get-settings')
       setSettings(result)
@@ -133,3 +203,5 @@ const useSettings = () => {
 
   return [existingSettings, setAndSaveSettings]
 }
+
+  

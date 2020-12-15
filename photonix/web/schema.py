@@ -3,7 +3,7 @@ import graphene
 from photonix.accounts.schema import Mutation as AccountsMutation
 from photonix.accounts.schema import Query as AccountsQuery
 from photonix.photos.schema import Query as PhotosQuery
-
+from photonix.photos.schema import Mutation as LibraryMutation
 
 class Query(AccountsQuery, PhotosQuery, graphene.ObjectType):
     # This class will inherit from multiple Queries
@@ -11,7 +11,7 @@ class Query(AccountsQuery, PhotosQuery, graphene.ObjectType):
     pass
 
 
-class Mutation(AccountsMutation, graphene.ObjectType):
+class Mutation(AccountsMutation,LibraryMutation,graphene.ObjectType):
     pass
 
 
