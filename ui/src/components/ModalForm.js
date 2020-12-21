@@ -1,8 +1,10 @@
 import React from 'react'
 import { useStateMachine } from 'little-state-machine'
 import { Flex, Button } from '@chakra-ui/core'
-
+import { useMutation, useQuery} from '@apollo/react-hooks';
+import {ENVIRONMENT,STEP_ONE,STEP_THREES3,STEP_THREELO,STEP_FOUR_AP,STEP_FOUR,STEP_FIVE} from '../graphql/onboarding'
 import updateAction from './onboarding/updateAction'
+
 
 const ModalForm = ({
   children,
@@ -13,8 +15,86 @@ const ModalForm = ({
   nextStep,
 }) => {
   const { action, state } = useStateMachine(updateAction)
-
+  const [stepOneRegistration] = useMutation(STEP_ONE)
+  const [stepThreeRegistrationS3] = useMutation(STEP_THREES3)
+  const [stepThreeRegistrationLo] = useMutation(STEP_THREELO)
+  const [stepFourRegistrationAp] = useMutation(STEP_FOUR_AP)
+  const [stepFourRegistration] = useMutation(STEP_FOUR)
+  const [stepFiveRegistration] = useMutation(STEP_FIVE)
+  const { data: envData } = useQuery(ENVIRONMENT)
   const onSubmit = (data) => {
+    if (nextStep === "/onboarding/step2") {
+      stepOneRegistration({
+        variables: {
+          username:data.username,
+          password:data.password,
+          password1:data.password1
+        },
+      }).catch(e => {})
+    }
+    if (nextStep === "/onboarding/step4") {
+      if(data.backendType === "S3") {
+        stepThreeRegistrationS3({
+          variables: {
+            name:data.name,
+            backendType:data.backendType,
+            path:`${data.storageS3Server}/${data.storageS3Bucket}/${data.storageS3Path}`,
+            url:data.url,
+            s3SecretKey:data.s3SecretKey,
+            s3AccessKeyId:data.s3AccessKeyId,
+            userId:envData.environment.userId
+
+          },
+        }).catch(e => {})
+      }
+      else {
+        stepThreeRegistrationLo({
+          variables: {
+            name:data.name,
+            backendType:data.backendType,
+            path:data.basePath,
+            userId:envData.environment.userId
+          },
+        }).catch(e => {})
+      }
+    }
+    if(nextStep === "/onboarding/step5") {
+      if(!data.addAnotherPath) {
+        stepFourRegistration({
+          variables: {
+            addAnotherPath:data.addAnotherPath,
+            watchForChanges:data.watchForChanges,
+            userId:envData.environment.userId,
+            libraryId:envData.environment.libraryId,
+            libraryPathId:envData.environment.libraryPathId
+          },
+        }).catch(e => {})
+      } else {
+        stepFourRegistrationAp({
+          variables: {
+            watchForChanges:data.watchForChanges,
+            addAnotherPath:data.addAnotherPath,
+            importPath:data.importPath,
+            deleteAfterImport:data.deleteAfterImport,
+            userId:envData.environment.userId,
+            libraryId:envData.environment.libraryId,
+            libraryPathId:envData.environment.libraryPathId
+          },
+        }).catch(e => {})
+      }
+    }
+    if(nextStep === "/onboarding/result") {
+      stepFiveRegistration({
+        variables: {
+          classificationColorEnabled:data.classificationColorEnabled,
+          classificationStyleEnabled:data.classificationStyleEnabled,
+          classificationObjectEnabled:data.classificationObjectEnabled,
+          classificationLocationEnabled:data.classificationLocationEnabled,
+          userId:envData.environment.userId,
+          libraryId:envData.environment.libraryId,
+        },
+      }).catch(e => {})
+    }
     action(data)
     if (nextStep) {
       history.push(nextStep)

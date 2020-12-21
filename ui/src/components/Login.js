@@ -11,6 +11,10 @@ const ENVIRONMENT = gql`
     environment {
       demo
       firstRun
+      form 
+      userId
+      libraryId
+      libraryPathId
     }
   }
 `
@@ -27,10 +31,21 @@ const Login = props => {
   let inputUsername, inputPassword
   const { data: envData } = useQuery(ENVIRONMENT)
   const [authUser, { data: authData, loading: authLoading, error: authError }] = useMutation(AUTH_USER)
-
-  if (envData && envData.environment.firstRun) {
+  if (envData && envData.environment.form === "has_config_persional_info") {
     return <Redirect to="/onboarding" />
   }
+  if (envData && envData.environment.form === "has_created_library") {
+    return <Redirect to="/onboarding/step3" />
+  }
+  if (envData && envData.environment.form === "has_configured_importing") {
+    return <Redirect to="/onboarding/step4" />
+  }
+  if (envData && envData.environment.form === "has_configured_image_analysis") {
+    return <Redirect to="/onboarding/step5" />
+  }
+
+
+
 
   if (authData && authData.tokenAuth) {
     logIn(authData.tokenAuth.refreshToken)
