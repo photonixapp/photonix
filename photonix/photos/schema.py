@@ -7,6 +7,7 @@ from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.contrib.auth import get_user_model
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser
+from django.contrib.auth import load_backend, login
 
 User = get_user_model()
 
@@ -588,6 +589,15 @@ class ImageAnalysis(graphene.Mutation):
         )
         user, created = User.objects.update_or_create(pk=input.user_id, defaults={
             "has_configured_image_analysis": True})
+        # For make user login automatically from backend.
+        if not hasattr(user, 'backend'):
+            for backend in settings.AUTHENTICATION_BACKENDS:
+                if user == load_backend(backend).get_user(user.pk):
+                    user.backend = backend
+                    break
+        if hasattr(user, 'backend'):
+            login(info.context, user)
+        # Finish user login
         return ImageAnalysis(
             has_configured_image_analysis=user.has_configured_image_analysis,
             ok=True, user_id=input.user_id)

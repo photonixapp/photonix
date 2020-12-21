@@ -94,6 +94,7 @@ class Query(graphene.ObjectType):
         if user and user.has_config_persional_info and \
             user.has_created_library and user.has_configured_importing and \
                 user.has_configured_image_analysis:
+            # raise Exception(info.context.user.is_anonymous)
             return {
                 'demo': os.environ.get('DEMO', False),
                 'first_run': False,
