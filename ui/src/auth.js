@@ -1,6 +1,8 @@
 import history from './history'
 import Cookies from 'js-cookie'
 
+import { store } from './index'
+
 const TOKEN_EXPIRY_PREEMPT = 2 * 60 * 1000 // Refresh token this many milliseconds before expiry time
 const DEFAULT_REFRESH_INTERVAL = 60 * 1000 // Only used on first login, when we don't get given an expiry time (ms)
 const ERROR_REFRESH_INTERVAL = 15 * 1000 // Used as fixed retry interval when we can't refresh token (ms)
@@ -46,7 +48,8 @@ export const refreshToken = () => {
       console.log(response.data)
       if (response.data && response.data.refreshToken) {
         // We got token and refreshToken
-        Cookies.set('refreshToken', response.data.refreshToken.refreshToken, { expires: 365 })
+        Cookies.set('refreshToken', response.data.refreshToken.refreshToken, { expires: 365, sameSite: 'strict' })
+        store.dispatch({type: 'USER_CHANGED', user: {username: response.data.refreshToken.payload.username}})
 
         // Schedule next token refresh
         let expiry = response.data.refreshToken.payload.exp
@@ -125,7 +128,7 @@ export const revokeRefreshToken = refreshToken => {
 
 export const logIn = refreshToken => {
   if (refreshToken) {
-    Cookies.set('refreshToken', refreshToken, { expires: 365 })
+    Cookies.set('refreshToken', refreshToken, { expires: 365, sameSite: 'strict' })
   }
   loggedIn = true
 }

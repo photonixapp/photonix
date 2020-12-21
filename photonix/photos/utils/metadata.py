@@ -13,8 +13,11 @@ class PhotoMetadata(object):
         result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
         for line in str(result).split('\n'):
             if line:
-                k, v = line.split(':', 1)
-                self.data[k.strip()] = v.strip()
+                try:
+                    k, v = line.split(':', 1)
+                    self.data[k.strip()] = v.strip()
+                except ValueError:
+                    pass
 
     def get(self, attribute):
         return self.data.get(attribute)

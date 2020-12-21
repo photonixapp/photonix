@@ -29,6 +29,7 @@ services:
       - '8888:80'
       - '8889:8000'
       - '6006:6006'
+      - '8880:8001'
     environment:
       ENV: dev
       DEMO: 1

@@ -21,9 +21,11 @@ class UserType(DjangoObjectType):
     class Meta:
         model = User
 
+
 class Environment(graphene.ObjectType):
     demo = graphene.Boolean()
     first_run = graphene.Boolean()
+
 
 class Query(graphene.ObjectType):
     profile = graphene.Field(UserType)

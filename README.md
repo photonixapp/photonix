@@ -8,6 +8,17 @@ This is a photo management application based on web technologies. Run it on your
 
 This project is currently in development and not feature complete for a version 1.0 yet. If you don't mind putting up with broken parts or want to help out, run the Docker image and give it a go. I'd love for other contributors to get involved.
 
+## Community and Social
+
+Please join in the discussion and help us gain visibility by following us on social media. Much appreciated :)
+
+- [Gitter live chat](https://gitter.im/photonixapp/community)
+- [Docker Hub](https://hub.docker.com/r/damianmoore/photonix/)
+- [Twitter](https://twitter.com/photonixapp)
+- [Instagram](https://www.instagram.com/photonixapp/)
+- [LinkedIn](https://www.linkedin.com/company/photonixapp/)
+- [Indie Hackers](https://www.indiehackers.com/product/photonix-photo-organizer-app)
+
 ## Installing & Running
 
 The easiest way to run it is with [Docker Compose](https://docs.docker.com/compose/install/#install-compose) using the pre-built image following these steps.
@@ -52,6 +63,8 @@ There is a [`Makefile`](./Makefile) and separate Docker Compose file `docker-com
     mkdir -p  data/photos
     make build
     make start
+
+If you get errors such as `Error starting userland proxy: listen tcp 0.0.0.0:5432: bind: address alerady in use` then you probably have an existing server such as Postgres listening on the standard port. You can change Photonix's services to use alternative port numbers by editing `docker/docker-compose.dev.yml` and setting `'5432:5432'` to be `'5433:5432'` for example. This is for Postgres but is it a similar solution for Redis or the webserver ports.
 
 If you want to access the Bash or Python shells for development, you can use the following command.
 
