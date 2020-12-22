@@ -5,13 +5,24 @@ import BoundingBoxes from './BoundingBoxes'
 import MapViewContainer from '../containers/MapViewContainer'
 import ColorTags from './ColorTags'
 import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
+import StarRating from './StarRating'
 
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import '../static/css/PhotoDetail.css'
+import { setStarRating } from '../utils/photos'
 
 
 const PhotoDetail = ({ photoId, photo }) => {
+  const onStarClick = (num, e) => {
+    if (photo.starRating === num) {
+      setStarRating(photoId, 0)
+    }
+    else {
+      setStarRating(photoId, num)
+    }
+  }
+
   let boxes = photo.objectTags.map((objectTag) => {
     return {
       name: objectTag.tag.name,
@@ -29,16 +40,19 @@ const PhotoDetail = ({ photoId, photo }) => {
     location[1] = parseFloat(photo.location.split(',')[1])
   }
 
-if (photo.takenAt) {
-  var date = new Date(photo.takenAt)
-  date = new Intl.DateTimeFormat().format(date) 
-}
+  if (photo.takenAt) {
+    var date = new Date(photo.takenAt)
+    date = new Intl.DateTimeFormat().format(date)
+  }
 
   return (
     <div className="PhotoDetail" style={{backgroundImage: `url('/thumbnails/3840x3840_contain_q75/${photoId}/')`}}>
       <div className="content">
         <div className="metadata">
           <div className="boxes">
+            <div className="box">
+              <StarRating starRating={photo.starRating} onStarClick={onStarClick} large={true} alwaysShow={true} />
+            </div>
             <div className="box">
               <h2>Camera</h2>
               <ul>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router'
 
-import Thumbnails from './index.js';
+import Thumbnails from './Thumbnails';
 
 export default {
   title: 'Photonix/Photo List/Thumbnails',
