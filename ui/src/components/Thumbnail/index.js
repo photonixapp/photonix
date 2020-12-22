@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
+
+import star from '../../static/images/star.svg'
+import starOutline from '../../static/images/star_outline.svg'
 
 const Container = styled('li')`
   width: 128px;
@@ -30,13 +33,47 @@ const Image = styled('div')`
   background-size: cover;
   background-position: center;
 `
+const Stars = styled('span')`
+  position: relative;
+  top: -18px;
+  left: 1px;
+  img {
+    width: 16px;
+    height: 16px;
+    filter: invert(1);
+  }
+`
 
-const Thumbnail = ({id, imageUrl}) => (
-  <Link to={`/photo/${id}`} key={id}>
-    <Container>
-      <Image style={{backgroundImage: 'url(' + imageUrl + ')'}} />
-    </Container>
-  </Link>
-)
+const Thumbnail = ({id, imageUrl, starRating, onStarRatingChange}) => {
+  const [displayStars, setDisplayStars] = useState(starRating > 0)
+  const [starHovering, setStarHovering] = useState(starRating)
+
+  const onStarEnter = (num) => { setStarHovering(num); setDisplayStars(true) }
+  const onStarLeave = () => { setStarHovering(starRating); setDisplayStars(starRating > 0) }
+  const onStarClick = (num, e) => {
+    e.preventDefault()
+    if (starRating == num) {
+      onStarRatingChange(0)
+    }
+    else {
+      onStarRatingChange(num)
+    }
+  }
+
+  return (
+    <Link to={`/photo/${id}`} key={id}>
+      <Container>
+        <Image style={{backgroundImage: 'url(' + imageUrl + ')'}} />
+        <Stars style={{opacity: displayStars ? 1 : 0}}>
+          <img src={starHovering >= 1 ? star : starOutline} onMouseEnter={() => onStarEnter(1)} onMouseLeave={() => onStarLeave()} onClick={(e) => onStarClick(1, e)} key="1" />
+          <img src={starHovering >= 2 ? star : starOutline} onMouseEnter={() => onStarEnter(2)} onMouseLeave={() => onStarLeave()} onClick={(e) => onStarClick(2, e)} key="2" />
+          <img src={starHovering >= 3 ? star : starOutline} onMouseEnter={() => onStarEnter(3)} onMouseLeave={() => onStarLeave()} onClick={(e) => onStarClick(3, e)} key="3" />
+          <img src={starHovering >= 4 ? star : starOutline} onMouseEnter={() => onStarEnter(4)} onMouseLeave={() => onStarLeave()} onClick={(e) => onStarClick(4, e)} key="4" />
+          <img src={starHovering >= 5 ? star : starOutline} onMouseEnter={() => onStarEnter(5)} onMouseLeave={() => onStarLeave()} onClick={(e) => onStarClick(5, e)} key="5" />
+        </Stars>
+      </Container>
+    </Link>
+  )
+}
 
 export default Thumbnail

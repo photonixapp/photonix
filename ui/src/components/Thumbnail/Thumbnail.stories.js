@@ -6,6 +6,7 @@ import Thumbnail from './index.js';
 export default {
   title: 'Photonix/Photo List/Thumbnail',
   component: Thumbnail,
+  argTypes: { onStarRatingChange: { action: 'onStarRatingChange' } },
 };
 
 const Template = (args) => (
@@ -18,4 +19,5 @@ export const DefaultThumbnail = Template.bind({});
 DefaultThumbnail.args = {
   id: 1,
   imageUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12NgWlYGAAHMAR/qx7d1AAAAAElFTkSuQmCC',
+  starRating: 3,
 };
