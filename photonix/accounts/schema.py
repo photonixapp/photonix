@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 import graphene
 from graphene_django.types import DjangoObjectType
+from graphql_jwt.shortcuts import create_refresh_token, get_token
 import graphql_jwt
 from photonix.photos.models import Library, LibraryPath, LibraryUser
 
@@ -68,9 +69,16 @@ class Environment(graphene.ObjectType):
     library_path_id = graphene.ID()
 
 
+class AfterSignup(graphene.ObjectType):
+    """Pass token for login, after signup."""
+
+    token = graphene.String()
+    refresh_token = graphene.String()
+
 class Query(graphene.ObjectType):
     profile = graphene.Field(UserType)
     environment = graphene.Field(Environment)
+    after_signup = graphene.Field(AfterSignup)
 
     def resolve_profile(self, info):
         user = info.context.user
@@ -81,7 +89,6 @@ class Query(graphene.ObjectType):
     def resolve_environment(self, info):
         user = User.objects.first()
 
-
         # User.objects.all().delete()
         # user.has_config_persional_info = True
         # user.has_created_library = False
@@ -89,7 +96,6 @@ class Query(graphene.ObjectType):
         # user.has_configured_image_analysis = False
         # user.save()
         # Library.objects.all().delete()
-
 
         if user and user.has_config_persional_info and \
             user.has_created_library and user.has_configured_importing and \
@@ -121,3 +127,10 @@ class Query(graphene.ObjectType):
                     'form': 'has_configured_image_analysis', 'user_id': user.id,
                     'library_id': Library.objects.filter(users__user=user)[0].id,
                 }
+
+    def resolve_after_signup(self, info):
+        """To login user from frontend after finish sigunp process."""
+        user = info.context.user
+        if user.has_configured_image_analysis:
+            return {'token': get_token(user), 'refresh_token': create_refresh_token(user)}
+        return {'token': None, 'refresh_token': None}

@@ -4,7 +4,6 @@ from django_filters import CharFilter
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
-from graphql_jwt.shortcuts import create_refresh_token, get_token
 from graphql_jwt.decorators import login_required
 from django.contrib.auth import get_user_model
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser
@@ -578,8 +577,7 @@ class ImageAnalysis(graphene.Mutation):
     has_configured_image_analysis = graphene.Boolean()
     ok = graphene.Boolean()
     user_id = graphene.ID()
-    token = graphene.String()
-    refresh_token = graphene.String()
+    
 
     @staticmethod
     def mutate(self, info, input=None):
@@ -603,9 +601,7 @@ class ImageAnalysis(graphene.Mutation):
         # Finish user login
         return ImageAnalysis(
             has_configured_image_analysis=user.has_configured_image_analysis,
-            ok=True, user_id=input.user_id,
-            token=get_token(user),
-            refresh_token=create_refresh_token(user))
+            ok=True, user_id=input.user_id)
 
 
 class Mutation(graphene.ObjectType):
