@@ -14,6 +14,7 @@ django-filter==2.2.0
 django-graphql-jwt==0.3.0
 factory-boy==2.12.0
 Faker==4.0.0
+#gast==0.2.2
 gast==0.3.3
 google-auth==1.10.2
 google-auth-oauthlib==0.4.1
