@@ -79,7 +79,7 @@ const Step4PhotoImporting = ({ history }) => {
           import new photos from?
         </p>
         <ModalField
-          name="importFromAnotherPath"
+          name="addAnotherPath"
           type="boolean"
           label="Import from another path?"
           register={register}

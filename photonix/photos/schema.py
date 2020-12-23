@@ -5,8 +5,11 @@ import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
-from .models import Library, Camera, Lens, Photo, Tag, PhotoTag
+from django.contrib.auth import get_user_model
+from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser
+from django.contrib.auth import load_backend, login
 
+User = get_user_model()
 
 class LibraryType(DjangoObjectType):
     class Meta:
@@ -316,7 +319,9 @@ class LibraryInput(graphene.InputObjectType):
     classification_location_enabled = graphene.Boolean()
     classification_style_enabled = graphene.Boolean()
     classification_object_enabled = graphene.Boolean()
-    source_folder = graphene.String()
+    source_folder = graphene.String(required=False)
+    user_id = graphene.ID()
+    library_id = graphene.ID()
 
 
 class UpdateLibraryColorEnabled(graphene.Mutation):
@@ -469,6 +474,136 @@ class UpdateLibrarySourceFolder(graphene.Mutation):
             return UpdateLibrarySourceFolder(ok=ok, source_folder=None)
 
 
+class CreateLibraryInput(graphene.InputObjectType):
+    """CreateLibraryInput to take input of create library form fields from frontend."""
+
+    name = graphene.String(required=True)
+    backend_type = graphene.String(required=True)
+    path = graphene.String(required=True)
+    url = graphene.String(required=False)
+    s3_access_key_id = graphene.String(required=False)
+    s3_secret_key = graphene.String(required=False)
+    user_id = graphene.ID(required=True)
+
+
+class CreateLibrary(graphene.Mutation):
+    """Docstring for CreateLibrary."""
+
+    class Arguments:
+        """Docstring for Arguments."""
+
+        input = CreateLibraryInput()
+
+    has_created_library = graphene.Boolean()
+    ok = graphene.Boolean()
+    user_id = graphene.ID()
+    library_id = graphene.ID()
+    library_path_id = graphene.ID()
+
+    @staticmethod
+    def mutate(self, info, input=None):
+        """Mutate method."""
+        library_obj = Library.objects.create(name=input.name)
+        if input.backend_type == 'Lo':
+            library_path_obj = LibraryPath.objects.create(
+                library=library_obj, type="St",
+                backend_type=input.backend_type, path=input.path)
+        else:
+            library_path_obj = LibraryPath.objects.create(
+                library=library_obj, backend_type="S3",
+                type="St", path=input.path, url=input.get('url'),
+                s3_access_key_id=input.s3_access_key_id,
+                s3_secret_key=input.s3_secret_key)
+        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
+            "has_created_library": True})
+        LibraryUser.objects.create(
+            library=library_obj, user=user, owner=True)
+        return CreateLibrary(
+            has_created_library=user.has_created_library, ok=True,
+            user_id=user.id, library_id=library_obj.id,
+            library_path_id=library_path_obj.id)
+
+
+class PhotoImportingInput(graphene.InputObjectType):
+    """PhotoImportingInput to take input of PhotoImporting fields from frontend."""
+
+    watch_for_changes = graphene.Boolean(required=True)
+    add_another_path = graphene.Boolean(required=True)
+    import_path = graphene.String(required=False)
+    delete_after_import = graphene.Boolean(required=False)
+    user_id = graphene.ID(required=True)
+    library_id = graphene.ID(required=True)
+    library_path_id = graphene.ID(required=True)
+
+
+class PhotoImporting(graphene.Mutation):
+    """Docstring for PhotoImporting."""
+
+    class Arguments:
+        """Docstring for Arguments."""
+
+        input = PhotoImportingInput()
+
+    has_configured_importing = graphene.Boolean()
+    ok = graphene.Boolean()
+    user_id = graphene.ID()
+    library_id = graphene.ID()
+
+    @staticmethod
+    def mutate(self, info, input=None):
+        """Mutate method."""
+        LibraryPath.objects.filter(pk=input.library_path_id).update(
+            watch_for_changes=input.watch_for_changes)
+        if input.add_another_path:
+            LibraryPath.objects.create(
+                library=Library.objects.get(pk=input.library_id),
+                type="Im", backend_type="Lo",
+                path=input.import_path, delete_after_import=input.delete_after_import)
+        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
+            "has_configured_importing": True})
+        return PhotoImporting(
+            has_configured_importing=user.has_configured_importing,
+            ok=True, user_id=user.id, library_id=input.library_id)
+
+
+class ImageAnalysis(graphene.Mutation):
+    """Docstring for ImageAnalysis."""
+
+    class Arguments:
+        """Docstring for Arguments."""
+
+        input = LibraryInput()
+
+    has_configured_image_analysis = graphene.Boolean()
+    ok = graphene.Boolean()
+    user_id = graphene.ID()
+    
+
+    @staticmethod
+    def mutate(self, info, input=None):
+        """Mutate method."""
+        Library.objects.filter(pk=input.library_id).update(
+            classification_color_enabled=input.classification_color_enabled,
+            classification_location_enabled=input.classification_location_enabled,
+            classification_style_enabled=input.classification_style_enabled,
+            classification_object_enabled=input.classification_object_enabled
+        )
+        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
+            "has_configured_image_analysis": True})
+        # For make user login automatically from backend.
+        if not hasattr(user, 'backend'):
+            for backend in settings.AUTHENTICATION_BACKENDS:
+                if user == load_backend(backend).get_user(user.pk):
+                    user.backend = backend
+                    break
+        if hasattr(user, 'backend'):
+            login(info.context, user)
+        # Finish user login
+        return ImageAnalysis(
+            has_configured_image_analysis=user.has_configured_image_analysis,
+            ok=True, user_id=input.user_id)
+
+
 class Mutation(graphene.ObjectType):
     """Mutaion."""
 
@@ -477,3 +612,6 @@ class Mutation(graphene.ObjectType):
     update_style_enabled = UpdateLibraryStyleEnabled.Field()
     update_object_enabled = UpdateLibraryObjectEnabled.Field()
     update_source_folder = UpdateLibrarySourceFolder.Field()
+    create_library = CreateLibrary.Field()
+    Photo_importing = PhotoImporting.Field()
+    image_analysis = ImageAnalysis.Field()

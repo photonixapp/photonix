@@ -46,7 +46,7 @@ const Step3CreateLibrary = ({ history }) => {
 
       <Stack spacing={4} mb={4}>
         <ModalField
-          name="libraryName"
+          name="name"
           type="text"
           label="Library name"
           required={true}
@@ -56,7 +56,7 @@ const Step3CreateLibrary = ({ history }) => {
           defaultValue={state.data.libraryName}
         />
         <ModalField
-          name="storageBackend"
+          name="backendType"
           type="select"
           label="Storage backend"
           required={true}
@@ -144,7 +144,7 @@ const Step3CreateLibrary = ({ history }) => {
               it public unless you are sure that’s what you want.
             </p>
             <ModalField
-              name="storagePublicBaseUrl"
+              name="url"
               type="text"
               label="Publicly accessible URL base path"
               register={register}
@@ -156,7 +156,7 @@ const Step3CreateLibrary = ({ history }) => {
               we'll need these keys please.
             </p>
             <ModalField
-              name="storageS3AccessKey"
+              name="s3AccessKeyId"
               type="text"
               label="Access key"
               required={true}
@@ -166,7 +166,7 @@ const Step3CreateLibrary = ({ history }) => {
               defaultValue={state.data.storageS3AccessKey}
             />
             <ModalField
-              name="storageS3SecretKey"
+              name="s3SecretKey"
               type="text"
               label="Secret key"
               required={true}
