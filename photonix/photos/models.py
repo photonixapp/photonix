@@ -127,6 +127,7 @@ class Photo(UUIDModel, VersionedModel):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     altitude = models.DecimalField(max_digits=6, decimal_places=1, null=True)
+    star_rating = models.PositiveIntegerField(default=0, help_text='assign rating to photo', verbose_name="Rating") 
 
     class Meta:
         ordering = ['-taken_at']

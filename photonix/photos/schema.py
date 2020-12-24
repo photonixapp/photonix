@@ -1,3 +1,4 @@
+
 from django.conf import settings
 import django_filters
 from django_filters import CharFilter
@@ -5,6 +6,7 @@ import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
+from graphql import GraphQLError
 from django.contrib.auth import get_user_model
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser
 from django.contrib.auth import load_backend, login
@@ -604,6 +606,31 @@ class ImageAnalysis(graphene.Mutation):
             ok=True, user_id=input.user_id)
 
 
+class PhotoRating(graphene.Mutation):
+    """Mutation to save start rating for photo."""
+
+    class Arguments:
+        """Docstring for Arguments."""
+
+        photo_id = graphene.ID()
+        star_rating = graphene.Int()
+
+    ok = graphene.Boolean()
+    photo = graphene.Field(PhotoNode)
+
+    @staticmethod
+    def mutate(self, info, photo_id=None, star_rating=None):
+        """Mutate method."""
+        try:
+            if 0 <= star_rating <= 5:
+                photo_obj, created = Photo.objects.update_or_create(pk=photo_id, defaults={
+                    "star_rating": star_rating})
+                return PhotoRating(ok=True, photo=photo_obj)
+        except:
+            raise GraphQLError("starRating is required!")
+        return PhotoRating(ok=False, photo=None)
+
+
 class Mutation(graphene.ObjectType):
     """Mutaion."""
 
@@ -615,3 +642,4 @@ class Mutation(graphene.ObjectType):
     create_library = CreateLibrary.Field()
     Photo_importing = PhotoImporting.Field()
     image_analysis = ImageAnalysis.Field()
+    photo_rating = PhotoRating.Field()
