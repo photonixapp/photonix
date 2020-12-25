@@ -81,7 +81,7 @@ mutation (
     $libraryId: ID!,
     $libraryPathId: ID!
     ) {
-        createLibrary(input:{
+        PhotoImporting(input:{
             watchForChanges:$watchForChanges,
             addAnotherPath:$addAnotherPath,
             userId:$userId,
@@ -142,4 +142,12 @@ mutation (
             userId
         }
     }   
+`
+export const SIGN_IN = gql`
+  {
+  afterSignup {
+    token
+    refreshToken
+  }
+}
 `

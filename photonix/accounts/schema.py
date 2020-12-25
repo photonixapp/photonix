@@ -88,15 +88,6 @@ class Query(graphene.ObjectType):
 
     def resolve_environment(self, info):
         user = User.objects.first()
-
-        # User.objects.all().delete()
-        # user.has_config_persional_info = True
-        # user.has_created_library = False
-        # user.has_configured_importing = False
-        # user.has_configured_image_analysis = False
-        # user.save()
-        # Library.objects.all().delete()
-
         if user and user.has_config_persional_info and \
             user.has_created_library and user.has_configured_importing and \
                 user.has_configured_image_analysis:
