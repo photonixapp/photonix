@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState,useEffect } from 'react'
 
 import history from '../history'
 import BoundingBoxes from './BoundingBoxes'
@@ -6,6 +6,8 @@ import MapViewContainer from '../containers/MapViewContainer'
 import ColorTags from './ColorTags'
 import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
 import StarRating from './StarRating'
+import {PHOTO_UPDATE} from '../graphql/photo'
+import { useMutation} from '@apollo/react-hooks';
 
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
@@ -14,12 +16,32 @@ import { setStarRating } from '../utils/photos'
 
 
 const PhotoDetail = ({ photoId, photo }) => {
+  const [starRating,updateStarRating] = useState(photo.starRating)
+  const [updatePhoto] = useMutation(PHOTO_UPDATE)
+  useEffect (() => {
+    updateStarRating(photo.starRating)
+  },[photo.starRating])
   const onStarClick = (num, e) => {
     if (photo.starRating === num) {
+      updateStarRating(0)
       setStarRating(photoId, 0)
+      updatePhoto({
+        variables: {
+          photoId:photoId,
+          starRating:0
+        }
+      }).catch(e => {})
     }
     else {
+      updateStarRating(num)
       setStarRating(photoId, num)
+      updatePhoto({
+        variables: {
+          photoId:photoId,
+          starRating:num
+        }
+      }).catch(e => {})
+      
     }
   }
 
@@ -44,14 +66,13 @@ const PhotoDetail = ({ photoId, photo }) => {
     var date = new Date(photo.takenAt)
     date = new Intl.DateTimeFormat().format(date)
   }
-
   return (
     <div className="PhotoDetail" style={{backgroundImage: `url('/thumbnails/3840x3840_contain_q75/${photoId}/')`}}>
       <div className="content">
         <div className="metadata">
           <div className="boxes">
             <div className="box">
-              <StarRating starRating={photo.starRating} onStarClick={onStarClick} large={true} alwaysShow={true} />
+              <StarRating starRating={starRating} onStarClick={onStarClick} large={true} alwaysShow={true} />
             </div>
             <div className="box">
               <h2>Camera</h2>

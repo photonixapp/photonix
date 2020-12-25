@@ -1,10 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
-
 import StarRating from '../StarRating'
 import { setStarRating } from '../../utils/photos'
-
+import {PHOTO_UPDATE} from '../../graphql/photo'
+import { useMutation} from '@apollo/react-hooks';
 const Container = styled('li')`
   width: 128px;
   height: 128px;
@@ -40,14 +40,26 @@ const StarRatingStyled = styled('span')`
 `
 
 const Thumbnail = ({id, imageUrl, starRating}) => {
-
+  const [updatePhoto] = useMutation(PHOTO_UPDATE)
   const onStarClick = (num, e) => {
     e.preventDefault()
     if (starRating === num) {
       setStarRating(id, 0)
+      updatePhoto({
+        variables: {
+          photoId:id,
+          starRating:0
+        }
+      }).catch(e => {})
     }
     else {
       setStarRating(id, num)
+      updatePhoto({
+        variables: {
+          photoId:id,
+          starRating:num
+        }
+      }).catch(e => {})
     }
   }
 

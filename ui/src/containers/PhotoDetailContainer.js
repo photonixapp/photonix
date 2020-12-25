@@ -1,5 +1,5 @@
-import React, { useEffect }  from 'react'
-import { useQuery } from '@apollo/react-hooks';
+import React, { useEffect,useState,useCallback }  from 'react'
+import { useQuery,refetch } from '@apollo/react-hooks';
 import gql from "graphql-tag"
 
 import history from '../history'
@@ -24,6 +24,7 @@ const GET_PHOTO = gql`
       meteringMode
       driveMode
       shootingMode
+      starRating
       camera {
         id
         make
@@ -74,7 +75,16 @@ const GET_PHOTO = gql`
   }
 `
 
-const PhotoDetailContainer = props => {
+const PhotoDetailContainer = (props) => {
+  const [photo, setPhoto] = useState()
+
+  const { loading, error, data,refetch } = useQuery(GET_PHOTO, {
+    variables: {
+      id: props.match.params.photoId,
+    }
+  })
+
+
   useEffect(() => {
     const handleKeyDown = event => {
       switch (event.keyCode) {
@@ -94,16 +104,17 @@ const PhotoDetailContainer = props => {
     }
   }, [])
 
-  const { loading, error, data } = useQuery(GET_PHOTO, {
-    variables: {
-      id: props.match.params.photoId,
+  useEffect (() => {
+    refetch()
+    if(!loading && data) {
+      setPhoto(data)
     }
-  })
+  },[data])
 
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
-  if (data.photo) {
+  if (photo && photo.photo) {
     return <PhotoDetail photoId={props.match.params.photoId} photo={data.photo} />
   }
   return null
