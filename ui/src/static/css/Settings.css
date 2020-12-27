@@ -7,6 +7,9 @@
   position: relative;
   cursor: auto;
 }
+.isMobileApp .Settings {
+  padding-top: 40px;
+}
 .Settings h2 {
   margin: 0 0 40px;
 }
@@ -30,6 +33,9 @@
   top: 10px;
   right: 10px;
   cursor: pointer;
+}
+.isMobileApp .Settings .closeIcon {
+  top: 40px;
 }
 .Settings input {
   background: #484848;
