@@ -55,48 +55,51 @@ const client = new ApolloClient({
 
 const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
   const { colorMode, toggleColorMode } = useColorMode()
+  const isMobileApp = navigator.userAgent.indexOf('PhotonixMobileApp') > -1
 
   return (
     <ApolloProvider client={client}>
       <Router history={history}>
         <ThemeProvider theme={customTheme}>
           <ColorModeProvider value="dark">
-            {/* <CSSReset /> */}
-            <Switch>
-              <Route path="/login" render={() => <Login />} />
-              <Route path="/logout" render={() => <Logout />} />
-              <Route path="/components" render={ComponentsBrowser} />
-              <Route
-                path="/"
-                render={() => (
-                  <BrowseContainer
+            <div className={isMobileApp && 'isMobileApp'}>
+              {/* <CSSReset /> */}
+              <Switch>
+                <Route path="/login" render={() => <Login />} />
+                <Route path="/logout" render={() => <Logout />} />
+                <Route path="/components" render={ComponentsBrowser} />
+                <Route
+                  path="/"
+                  render={() => (
+                    <BrowseContainer
                     selectedFilters={selectedFilters}
                     search=""
                     onFilterToggle={onFilterToggle}
                     onClearFilters={onClearFilters}
+                    />
+                    )}
+                    />
+              </Switch>
+              <Switch>
+                <ModalRoute
+                  path="/onboarding"
+                  parentPath="/"
+                  component={Onboarding}
+                  onBackdropClick={() => {}}
                   />
-                )}
-              />
-            </Switch>
-            <Switch>
-              <ModalRoute
-                path="/onboarding"
-                parentPath="/"
-                component={Onboarding}
-                onBackdropClick={() => {}}
-              />
-              <ModalRoute
-                path="/settings"
-                parentPath="/"
-                component={Settings}
-              />
-              <ModalRoute
-                path="/photo/:photoId"
-                parentPath="/"
-                component={PhotoDetailContainer}
-              />
-            </Switch>
-            <ModalContainer />
+                <ModalRoute
+                  path="/settings"
+                  parentPath="/"
+                  component={Settings}
+                  />
+                <ModalRoute
+                  path="/photo/:photoId"
+                  parentPath="/"
+                  component={PhotoDetailContainer}
+                  />
+              </Switch>
+              <ModalContainer />
+            </div>
           </ColorModeProvider>
         </ThemeProvider>
       </Router>
