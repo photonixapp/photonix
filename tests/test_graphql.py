@@ -44,7 +44,7 @@ class TestGraphQL:
         assert response.status_code == 200
         data = get_graphql_content(response)
         assert data['data']['photo']['url'].startswith('/thumbnails')
-        
+
     def test_get_photos(self, defaults, api_client):
         api_client.set_user(defaults['user'])
         query = """
