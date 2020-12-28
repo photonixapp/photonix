@@ -16,6 +16,15 @@ body {
   height: 100%;
   font-size: 14px;
   line-height: 1.4;
+  /* Prevent selecting text - more app like experience */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Disable overscroll bounce */
+  overscroll-behavior-y: none;
 }
 
 a {
