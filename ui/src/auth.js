@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import { store } from './index'
 
 const TOKEN_EXPIRY_PREEMPT = 2 * 60 * 1000 // Refresh token this many milliseconds before expiry time
-const DEFAULT_REFRESH_INTERVAL = 60 * 1000 // Only used on first login, when we don't get given an expiry time (ms)
+const DEFAULT_REFRESH_INTERVAL = 3 * 1000 // Only used on first login, when we don't get given an expiry time (ms)
 const ERROR_REFRESH_INTERVAL = 15 * 1000 // Used as fixed retry interval when we can't refresh token (ms)
 
 let timeout = null
