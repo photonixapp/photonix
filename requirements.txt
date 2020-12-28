@@ -47,6 +47,7 @@ psycopg2-binary==2.8.4
 py==1.8.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+PyJWT==1.7.1
 pyparsing==2.4.6
 pyshp==2.1.0
 pytest==5.3.4
