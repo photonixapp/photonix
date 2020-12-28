@@ -40,6 +40,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
 COPY ui/yarn.lock /srv/ui/yarn.lock
+ENV NODE_ENV=development
 RUN cd /srv/ui && yarn install
 
 # Copy over the code

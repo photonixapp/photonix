@@ -36,6 +36,7 @@ const GET_PHOTOS = gql`
   }
 `
 
+
 const BrowseContainer = props => {
   const user = useSelector(state => state.user)  // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const [expanded, setExpanded] = useState(true)

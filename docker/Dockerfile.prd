@@ -35,7 +35,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ui/package.json /srv/ui/package.json
 COPY ui/yarn.lock /srv/ui/yarn.lock
 WORKDIR /srv/ui
-RUN yarn install --production --no-cache
+ENV NODE_ENV=production
+RUN yarn install --no-cache
 
 # Copy over the code
 COPY ui/public /srv/ui/public

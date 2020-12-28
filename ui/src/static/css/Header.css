@@ -5,6 +5,10 @@ header {
   background: #484848;
   z-index: 20;
 }
+.isMobileApp header {
+  height: 80px;
+  padding-top: 30px;
+}
 
 header .logo {
   flex: none;
@@ -23,9 +27,11 @@ header .user {
   width: 84px;
 }
 header .logo img {
-  width: 50px;
-  height: 50px;
-  padding: 10px 0 10px 10px;
+  filter: invert(0.9);
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  vertical-align: top;
 }
 header .notifications img,
 header .user > img {
@@ -52,6 +58,9 @@ header .user img.arrowDown {
   list-style: none;
   padding: 0;
   box-shadow: -3px 8px 17px rgba(0, 0, 0, 0.15);
+}
+.isMobileApp header .menu {
+  top: 80px;
 }
 .menu li {
   padding: 12px 20px 12px 15px;

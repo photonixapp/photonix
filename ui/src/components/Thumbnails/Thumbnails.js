@@ -1,25 +1,32 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import styled from '@emotion/styled'
 
-import '../static/css/Thumbnails.css'
+import Thumbnail from '../Thumbnail'
 
+
+const Container = styled('ul')`
+  margin: 0;
+  padding: 0;
+  & > h2 {
+    display: block;
+  }
+`
+const SectionHeading = styled('h2')`
+  display: block;
+`
 
 const Thumbnails = ({ photoSections }) => (
-  <ul className="Thumbnails">
+  <Container>
     {
       photoSections ?
       photoSections.map((section) => {
         return (
           <div className="section" id={section.id} key={section.id}>
-            { section.title ? <h2>{section.title}</h2> : null }
+            { section.title ? <SectionHeading>{section.title}</SectionHeading> : null }
             {
               section.segments.map((segment) => (
                 segment.photos.map((photo) => (
-                  <Link to={`/photo/${photo.id}`} key={photo.id}>
-                    <li className="thumbnail">
-                      <div className="image" style={{backgroundImage: 'url(' + photo.thumbnail + ')'}} />
-                    </li>
-                  </Link>
+                  <Thumbnail id={photo.id} imageUrl={photo.thumbnail} />
                 ))
               ))
             }
@@ -28,7 +35,7 @@ const Thumbnails = ({ photoSections }) => (
       })
       : null
     }
-  </ul>
+  </Container>
 )
 
 export default Thumbnails

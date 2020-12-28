@@ -28,6 +28,7 @@ services:
     ports:
       - '8888:80'
       - '8889:8000'
+      - '6006:6006'
       - '8880:8001'
     environment:
       ENV: dev
@@ -45,7 +46,9 @@ services:
       - ../test.py:/srv/test.py
       - ../ui/public:/srv/ui/public
       - ../ui/src:/srv/ui/src
+      - ../ui/.storybook:/srv/ui/.storybook
       - ../ui/static:/srv/ui/static
+      - ../ui/stories:/srv/ui/stories
       - ../ui/package.json:/srv/ui/package.json
       - ../ui/yarn.lock:/srv/ui/yarn.lock
       - ../ui/config:/srv/ui/config

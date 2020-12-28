@@ -1,6 +1,6 @@
 import React from 'react'
 
-import Thumbnails from './Thumbnails'
+import Thumbnails from './Thumbnails/index.js'
 import Histogram from './Histogram'
 import '../static/css/PhotoList.css'
 
