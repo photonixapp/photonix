@@ -5,6 +5,10 @@ header {
   background: #484848;
   z-index: 20;
 }
+.isMobileApp header {
+  height: 80px;
+  padding-top: 30px;
+}
 
 header .logo {
   flex: none;
@@ -54,6 +58,9 @@ header .user img.arrowDown {
   list-style: none;
   padding: 0;
   box-shadow: -3px 8px 17px rgba(0, 0, 0, 0.15);
+}
+.isMobileApp header .menu {
+  top: 80px;
 }
 .menu li {
   padding: 12px 20px 12px 15px;
