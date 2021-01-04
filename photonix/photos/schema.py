@@ -309,8 +309,9 @@ class Query(graphene.ObjectType):
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True)
         if libraries:
-            library_path = libraries[0].paths.all()[0]
-            return {"library": libraries[0], "source_folder": library_path.path}
+            library_obj = libraries[0]
+            library_path = library_obj.paths.all()[0]
+            return {"library": library_obj, "source_folder": library_path.path}
         raise Exception('User is not the owner of library!')
 
 
@@ -344,12 +345,13 @@ class UpdateLibraryColorEnabled(graphene.Mutation):
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True)
         if libraries and str(input.get('classification_color_enabled')) != 'None':
-            libraries[0].classification_color_enabled = input.classification_color_enabled
-            libraries[0].save()
+            library_obj = libraries[0]
+            library_obj.classification_color_enabled = input.classification_color_enabled
+            library_obj.save()
             ok = True
             return UpdateLibraryColorEnabled(
                 ok=ok,
-                classification_color_enabled=libraries[0].classification_color_enabled)
+                classification_color_enabled=library_obj.classification_color_enabled)
         if not libraries:
             raise Exception('User is not the owner of library!')
         else:
@@ -374,12 +376,13 @@ class UpdateLibraryLocationEnabled(graphene.Mutation):
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True)
         if libraries and str(input.get('classification_location_enabled')) != 'None':
-            libraries[0].classification_location_enabled = input.classification_location_enabled
-            libraries[0].save()
+            library_obj = libraries[0]
+            library_obj.classification_location_enabled = input.classification_location_enabled
+            library_obj.save()
             ok = True
             return UpdateLibraryLocationEnabled(
                 ok=ok,
-                classification_location_enabled=libraries[0].classification_location_enabled)
+                classification_location_enabled=library_obj.classification_location_enabled)
         if not libraries:
             raise Exception('User is not the owner of library!')
         else:
@@ -404,12 +407,13 @@ class UpdateLibraryStyleEnabled(graphene.Mutation):
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True)
         if libraries and str(input.get('classification_style_enabled')) != 'None':
-            libraries[0].classification_style_enabled = input.classification_style_enabled
-            libraries[0].save()
+            library_obj = libraries[0]
+            library_obj.classification_style_enabled = input.classification_style_enabled
+            library_obj.save()
             ok = True
             return UpdateLibraryStyleEnabled(
                 ok=ok,
-                classification_style_enabled=libraries[0].classification_style_enabled)
+                classification_style_enabled=library_obj.classification_style_enabled)
         if not libraries:
             raise Exception('User is not the owner of library!')
         else:
@@ -434,12 +438,13 @@ class UpdateLibraryObjectEnabled(graphene.Mutation):
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True)
         if libraries and str(input.get('classification_object_enabled')) != 'None':
-            libraries[0].classification_object_enabled = input.classification_object_enabled
-            libraries[0].save()
+            library_obj = libraries[0]
+            library_obj.classification_object_enabled = input.classification_object_enabled
+            library_obj.save()
             ok = True
             return UpdateLibraryObjectEnabled(
                 ok=ok,
-                classification_object_enabled=libraries[0].classification_object_enabled)
+                classification_object_enabled=library_obj.classification_object_enabled)
         if not libraries:
             raise Exception('User is not the owner of library!')
         else:
