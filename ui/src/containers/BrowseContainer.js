@@ -3,6 +3,7 @@ import { useQuery } from '@apollo/react-hooks'
 import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import 'url-search-params-polyfill';
+import { ENVIRONMENT } from '../graphql/onboarding' 
 
 import Browse from '../components/Browse'
 
@@ -48,11 +49,13 @@ const BrowseContainer = props => {
     ? params.get('mode').toUpperCase()
     : 'TIMELINE'
 
+  const { data: envData } = useQuery(ENVIRONMENT)
   const {
     loading: librariesLoading,
     error: librariesError,
     data: librariesData,
   } = useQuery(GET_LIBRARIES, {skip: !user})
+
 
   const {
     loading: profileLoading,
@@ -69,6 +72,7 @@ const BrowseContainer = props => {
     loading: photosLoading,
     error: photosError,
     data: photosData,
+    refetch,
   } = useQuery(GET_PHOTOS, {
     variables: {
       filters: filtersStr,
@@ -80,11 +84,14 @@ const BrowseContainer = props => {
   }
 
   useEffect (() => {
+    if(envData && !envData.environment.firstRun) {
+      refetch()
+    }
     if(photosData)
     setPhotoData(photosData)
   })
-  if (photosData) {
-    photos = photosData.allPhotos.edges.map(photo => ({
+  if (photoData) {
+    photos = photoData.allPhotos.edges.map(photo => ({
       id: photo.node.id,
       thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location

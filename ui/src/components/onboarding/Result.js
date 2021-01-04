@@ -7,12 +7,9 @@ import {ENVIRONMENT} from '../../graphql/onboarding'
 const Result = (props) => {
   localStorage.setItem("isSignin", true);
   const { state } = useStateMachine(updateAction)
-  const { data: envData } = useQuery(ENVIRONMENT)
-  if (envData && envData.environment.form === "has_configured_image_analysis") {
     setTimeout(() => {
       window.location.reload();
     }, 2000)
-  }
   
   return (
     <div className="formContainer">
