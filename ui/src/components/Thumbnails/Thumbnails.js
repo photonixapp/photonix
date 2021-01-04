@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from '@emotion/styled'
-
 import Thumbnail from '../Thumbnail'
 
 
@@ -26,7 +25,7 @@ const Thumbnails = ({ photoSections }) => (
             {
               section.segments.map((segment) => (
                 segment.photos.map((photo) => (
-                  <Thumbnail id={photo.id} imageUrl={photo.thumbnail} />
+                  <Thumbnail id={photo.id} imageUrl={photo.thumbnail} starRating={photo.starRating}/>
                 ))
               ))
             }

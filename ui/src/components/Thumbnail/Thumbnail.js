@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState,useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
 import StarRating from '../StarRating'
@@ -40,10 +40,15 @@ const StarRatingStyled = styled('span')`
 `
 
 const Thumbnail = ({id, imageUrl, starRating}) => {
-  const [updatePhoto] = useMutation(PHOTO_UPDATE)
+  const [newStarRating,updateStarRating] = useState(starRating)
+  useEffect (() => {
+    updateStarRating(starRating)
+  },[starRating])
+  const [updatePhoto,{data}] = useMutation(PHOTO_UPDATE)
   const onStarClick = (num, e) => {
     e.preventDefault()
     if (starRating === num) {
+      updateStarRating(0)
       setStarRating(id, 0)
       updatePhoto({
         variables: {
@@ -53,6 +58,7 @@ const Thumbnail = ({id, imageUrl, starRating}) => {
       }).catch(e => {})
     }
     else {
+      updateStarRating(num)
       setStarRating(id, num)
       updatePhoto({
         variables: {
@@ -68,7 +74,7 @@ const Thumbnail = ({id, imageUrl, starRating}) => {
       <Container>
         <Image style={{backgroundImage: 'url(' + imageUrl + ')'}} />
         <StarRatingStyled>
-          <StarRating starRating={starRating} onStarClick={onStarClick} />
+          <StarRating starRating={newStarRating} onStarClick={onStarClick} />
         </StarRatingStyled>
       </Container>
     </Link>

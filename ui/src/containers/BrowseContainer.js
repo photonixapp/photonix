@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
@@ -30,6 +30,7 @@ const GET_PHOTOS = gql`
         node {
           id
           location
+          starRating
         }
       }
     }
@@ -40,6 +41,7 @@ const GET_PHOTOS = gql`
 const BrowseContainer = props => {
   const user = useSelector(state => state.user)  // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const [expanded, setExpanded] = useState(true)
+  const [photoData,setPhotoData] = useState()
 
   const params = new URLSearchParams(window.location.search)
   const mode = params.get('mode')
@@ -67,6 +69,7 @@ const BrowseContainer = props => {
     loading: photosLoading,
     error: photosError,
     data: photosData,
+    refetch,
   } = useQuery(GET_PHOTOS, {
     variables: {
       filters: filtersStr,
@@ -74,13 +77,18 @@ const BrowseContainer = props => {
     },
   })
 
-  if (photosData) {
-    photos = photosData.allPhotos.edges.map(photo => ({
+  useEffect (() => {
+    refetch()
+    setPhotoData(photosData)
+  })
+  if (photoData) {
+    photos = photoData.allPhotos.edges.map(photo => ({
       id: photo.node.id,
       thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location
         ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
         : null,
+      starRating:photo.node.starRating
     }))
   }
 

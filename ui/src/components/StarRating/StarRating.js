@@ -26,11 +26,12 @@ const StarRating = ({starRating, onStarClick, large=false, alwaysShow=false}) =>
   const onStarEnter = (num) => { setStarHovering(num); !alwaysShow && setDisplayStars(true) }
   const onStarLeave = () => { setStarHovering(starRating); !alwaysShow && setDisplayStars(starRating > 0) }
 useEffect (() => {
+  setDisplayStars(true)
   onStarLeave()
 },[starRating])
   const Stars = large ? StarsLarge : StarsSmall
   return (
-    <Stars style={{opacity: displayStars ? 1 : 0}}>
+    <Stars style={{opacity: 1}}>
       {[...Array(5).keys()].map(i =>
         <img src={starHovering >= i+1 ? star : starOutline}
           onMouseEnter={() => onStarEnter(i+1)}
