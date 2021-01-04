@@ -1,19 +1,17 @@
 import React from 'react'
 import { useStateMachine } from 'little-state-machine'
 import { useQuery } from '@apollo/react-hooks'
-import { Redirect } from 'react-router-dom'
 import updateAction from './updateAction'
-import {SIGN_IN,ENVIRONMENT} from '../../graphql/onboarding'
-import history from '../../history'
+import {ENVIRONMENT} from '../../graphql/onboarding'
 
 const Result = (props) => {
   localStorage.setItem("isSignin", true);
   const { state } = useStateMachine(updateAction)
   const { data: envData } = useQuery(ENVIRONMENT)
-  if (envData.environment.form === "has_configured_image_analysis") {
+  if (envData && envData.environment.form === "has_configured_image_analysis") {
     setTimeout(() => {
       window.location.reload();
-    }, 1000)
+    }, 2000)
   }
   
   return (

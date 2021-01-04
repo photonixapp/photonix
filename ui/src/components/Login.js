@@ -30,7 +30,10 @@ const AUTH_USER = gql`
 const Login = props => {
   let inputUsername, inputPassword
   const { data: envData } = useQuery(ENVIRONMENT)
-  const { data: signInData } = useQuery(SIGN_IN)
+  const { data: signInData,error:signInError } = useQuery(SIGN_IN)
+  if(signInError) {
+    console.log("signInError")
+  }
   const [authUser, { data: authData, loading: authLoading, error: authError }] = useMutation(AUTH_USER)
   if (envData && envData.environment.form === "has_config_persional_info") {
     return <Redirect to="/onboarding" />
@@ -52,7 +55,7 @@ const Login = props => {
   }
   if(localStorage.getItem("isSignin") === "true" && signInData && signInData.afterSignup.token ) {
     localStorage.setItem("isSignin", true);
-    logIn(signInData.afterSignup.token.refreshToken)
+    logIn(signInData.afterSignup.refreshToken)
     scheduleTokenRefresh() // We don't have the token expiry from the tokenAuth mutation but this will start the refresh cycle off in a few seconds
     return <Redirect to="/" />
   }

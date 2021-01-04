@@ -69,20 +69,22 @@ const BrowseContainer = props => {
     loading: photosLoading,
     error: photosError,
     data: photosData,
-    refetch,
   } = useQuery(GET_PHOTOS, {
     variables: {
       filters: filtersStr,
       skip: !user,
     },
   })
+  if(photosError) {
+    console.log("photosError",photosError)
+  }
 
   useEffect (() => {
-    refetch()
+    if(photosData)
     setPhotoData(photosData)
   })
-  if (photoData) {
-    photos = photoData.allPhotos.edges.map(photo => ({
+  if (photosData) {
+    photos = photosData.allPhotos.edges.map(photo => ({
       id: photo.node.id,
       thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location
