@@ -128,13 +128,22 @@ class PhotoFilter(django_filters.FilterSet):
                 elif key == 'lens':
                     queryset = queryset.filter(lens__id=val)
                 elif key == 'aperture':
-                    queryset = queryset.filter(aperture=val)
+                    if '-' in val:
+                        queryset = queryset.filter(aperture__gte=float(val.split('-')[0]), aperture__lte=float(val.split('-')[1]))
+                    else:
+                        queryset = queryset.filter(aperture__gte=float(val), aperture__lte=float(val))
                 elif key == 'exposure':
-                    queryset = queryset.filter(exposure=val)
+                    queryset = queryset.filter(exposure__gte=val, exposure__lte=val)
                 elif key == 'isoSpeed':
-                    queryset = queryset.filter(iso_speed=val)
+                    if '-' in val:
+                        queryset = queryset.filter(iso_speed__gte=int(val.split('-')[0]), iso_speed__lte=int(val.split('-')[1]))
+                    else:
+                        queryset = queryset.filter(iso_speed__gte=int(val), iso_speed__lte=int(val))
                 elif key == 'focalLength':
-                    queryset = queryset.filter(focal_length=val)
+                    if '-' in val:
+                        queryset = queryset.filter(focal_length__gte=float(val.split('-')[0]), focal_length__lte=float(val.split('-')[1]))
+                    else:
+                        queryset = queryset.filter(focal_length__gte=float(val), focal_length__lte=float(val))
                 elif key == 'flash':
                     queryset = queryset.filter(
                         flash=val == 'on' and True or False)
@@ -250,7 +259,8 @@ class Query(graphene.ObjectType):
 
     def resolve_all_exposures(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
+        photo_list = Photo.objects.filter(library__users__user=user).exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
+        return sorted(photo_list, key=lambda i: int(i.split('/')[0]) / int(i.split('/')[1] if '/' in i else i))
 
     def resolve_all_iso_speeds(self, info, **kwargs):
         user = info.context.user
