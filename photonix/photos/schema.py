@@ -133,7 +133,10 @@ class PhotoFilter(django_filters.FilterSet):
                     else:
                         queryset = queryset.filter(aperture__gte=float(val), aperture__lte=float(val))
                 elif key == 'exposure':
-                    queryset = queryset.filter(exposure__gte=val, exposure__lte=val)
+                    if '-' in val:
+                        queryset = queryset.filter(exposure__in=val.split('-'))
+                    else:
+                        queryset = queryset.filter(exposure__gte=val, exposure__lte=val)
                 elif key == 'isoSpeed':
                     if '-' in val:
                         queryset = queryset.filter(iso_speed__gte=int(val.split('-')[0]), iso_speed__lte=int(val.split('-')[1]))
