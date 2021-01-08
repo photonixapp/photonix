@@ -4,8 +4,11 @@ export class Handle extends Component {
     showTooltip: false
   };
 
+  floatToVal = (available, selected) => {
+    const pos = selected * 10;
+    return available[pos];
+  }
   
-
   render() {
     const {
       domain: [min, max],
@@ -15,7 +18,7 @@ export class Handle extends Component {
       listedItems
     } = this.props;
     const { showTooltip } = this.state;
-
+    const values = this.floatToVal(listedItems,value)
     return (
       <React.Fragment>
         {showTooltip ? (
@@ -24,11 +27,11 @@ export class Handle extends Component {
               left: `${percent}%`,
               position: "absolute",
               marginLeft: "-11px",
-              marginTop: "-30px"
+              marginTop: "-40px"
             }}
           >
             <div className="tooltip">
-              <span className="tooltiptext">Value: {value}</span>
+              <span className="tooltiptext">Value: {values}</span>
             </div>
           </div>
         ) : null}
@@ -36,7 +39,7 @@ export class Handle extends Component {
           role="slider"
           aria-valuemin={min}
           aria-valuemax={max}
-          aria-valuenow={value}
+          aria-valuenow={values}
           style={{
             left: `${percent}%`,
             position: "absolute",
@@ -86,4 +89,3 @@ export function Track({ source, target, getTrackProps }) {
       />
     );
   }
-  

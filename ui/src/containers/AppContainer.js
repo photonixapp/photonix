@@ -25,21 +25,20 @@ export default class AppContainer extends React.Component {
     let focalLengthIndex = filters.findIndex(item => item.group === "Focal Length")
     let apertureIndex = filters.findIndex(item => item.group === "Aperture")
     let exposureIndex = filters.findIndex(item => item.group === "Exposure")
-
       if (index === -1) {
-        if(flashIndex !== -1 ) {
+        if(flashIndex !== -1 && group === "Flash" ) {
           filterIds[flashIndex] = id
           filters[flashIndex] = {id:id,name:name,group:group}
-        } else if(isoIndex !== -1) {
+        } else if(isoIndex !== -1 && group === "ISO Speed") {
           filterIds[isoIndex] = id
           filters[isoIndex] = {id:id,name:name,group:group}
-        } else if(focalLengthIndex !== -1) {
+        } else if(focalLengthIndex !== -1 && group === "Focal Length") {
           filterIds[focalLengthIndex] = id
           filters[focalLengthIndex] = {id:id,name:name,group:group}
-        } else if(apertureIndex !== -1) {
+        } else if(apertureIndex !== -1 && group === "Aperture") {
           filterIds[apertureIndex] = id
           filters[apertureIndex] = {id:id,name:name,group:group}
-        } else if(exposureIndex !== -1) {
+        } else if(exposureIndex !== -1 && group === "Exposure") {
           filterIds[exposureIndex] = id
           filters[exposureIndex] = {id:id,name:name,group:group}
         }

@@ -9,8 +9,8 @@ import '../static/css/Filters.css'
 
 const sliderStyle = {
   position: "relative",
-  width: "100%",
-  marginTop: 100
+  width: "90%",
+  marginLeft: '12px'
 };
 
 const railStyle = {
@@ -22,10 +22,11 @@ const railStyle = {
   backgroundColor: "rgb(100,100,100)"
 };
 const Filters = ({ data, onToggle }) => {
-
   function floatToVal(available, selected) {
-    return available[Math.round(selected / (1 / (available.length -1)))]
+    const pos = selected * 10
+    return available[pos]
   }
+
   function setValue (e,group,listedItems) {
     let id = group.items[0].id.slice(0, group.items[0].id.indexOf(":"))
     let groupName = group.name
@@ -33,12 +34,13 @@ const Filters = ({ data, onToggle }) => {
     let maxValue = floatToVal(listedItems,e[1].toFixed(1))
     let number = `${minValue}-${maxValue}`
     if(group.name === "Exposure") {
-      let selectedexposure = listedItems.slice(e[0],e[1]*10)
+      const max = (e[1]*10) + 1
+      let selectedexposure = listedItems.slice(e[0],max)
       const exposureList = selectedexposure.join("-");
       let exposureId = `${id}:${exposureList}`
       onToggle(exposureId, groupName,number)
     } else {
-      let mainId = `${id}:${minValue},${maxValue}`
+      let mainId = `${id}:${minValue}-${maxValue}`
       onToggle(mainId, groupName,number)
     }
    
@@ -68,9 +70,9 @@ const Filters = ({ data, onToggle }) => {
               const listedItems = group.items.map(item => {
                 return item.name
               })
-              const domain = [0.0, (listedItems.length-1)/10];
+              const domain = [0, (listedItems.length-1)/10];
               const defaultValues = [0,0.1];
-              items =<div style={{ margin: "10%", height: 120, width: "80%", "margin-top": "-51px" }}>
+              items =<div>
               <Slider
                 mode={2}
                 step={0.1}
