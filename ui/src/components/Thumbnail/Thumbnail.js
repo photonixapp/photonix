@@ -40,11 +40,11 @@ const StarRatingStyled = styled('span')`
 `
 
 const Thumbnail = ({id, imageUrl, starRating}) => {
-  const [newStarRating,updateStarRating] = useState(starRating)
+  const [newStarRating, updateStarRating] = useState(starRating)
   useEffect (() => {
     updateStarRating(starRating)
-  },[starRating])
-  const [updatePhoto,{data}] = useMutation(PHOTO_UPDATE)
+  }, [starRating])
+  const [updatePhoto, {data}] = useMutation(PHOTO_UPDATE)
   const onStarClick = (num, e) => {
     e.preventDefault()
     if (starRating === num) {

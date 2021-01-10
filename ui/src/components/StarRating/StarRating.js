@@ -31,7 +31,7 @@ useEffect (() => {
 },[starRating])
   const Stars = large ? StarsLarge : StarsSmall
   return (
-    <Stars style={{opacity: 1}}>
+    <Stars style={{opacity: displayStars ? 1 : 0}}>
       {[...Array(5).keys()].map(i =>
         <img src={starHovering >= i+1 ? star : starOutline}
           onMouseEnter={() => onStarEnter(i+1)}

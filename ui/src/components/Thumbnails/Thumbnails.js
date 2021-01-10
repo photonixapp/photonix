@@ -18,20 +18,18 @@ const Thumbnails = ({ photoSections }) => (
   <Container>
     {
       photoSections ?
-      photoSections.map((section) => {
-        return (
-          <div className="section" id={section.id} key={section.id}>
-            { section.title ? <SectionHeading>{section.title}</SectionHeading> : null }
-            {
-              section.segments.map((segment) => (
-                segment.photos.map((photo) => (
-                  <Thumbnail id={photo.id} imageUrl={photo.thumbnail} starRating={photo.starRating}/>
-                ))
+      photoSections.map((section) => (
+        <div className="section" id={section.id} key={section.id}>
+          { section.title ? <SectionHeading>{section.title}</SectionHeading> : null }
+          {
+            section.segments.map((segment) => (
+              segment.photos.map((photo) => (
+                <Thumbnail id={photo.id} imageUrl={photo.thumbnail} starRating={photo.starRating}/>
               ))
-            }
-          </div>
-        )
-      })
+            ))
+          }
+        </div>
+      ))
       : null
     }
   </Container>
