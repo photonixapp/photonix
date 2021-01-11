@@ -115,13 +115,15 @@ class PhotoFilter(django_filters.FilterSet):
         filters = value.split(',')
         filters = self.sanitize(filters)
         filters = map(self.customize, filters)
-
         has_tags = False
         for filter_val in filters:
             if ':' in filter_val:
                 key, val = filter_val.split(':')
                 if key == 'tag':
-                    queryset = queryset.filter(photo_tags__tag__id=val)
+                    if "custom" in val:
+                        queryset = queryset.filter(photo_tags__tag__name__icontains=val.split('-')[1])
+                    else:
+                        queryset = queryset.filter(photo_tags__tag__id=val)
                     has_tags = True
                 elif key == 'camera':
                     queryset = queryset.filter(camera__id=val)
