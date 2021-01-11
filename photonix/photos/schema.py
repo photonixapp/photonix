@@ -128,25 +128,19 @@ class PhotoFilter(django_filters.FilterSet):
                 elif key == 'lens':
                     queryset = queryset.filter(lens__id=val)
                 elif key == 'aperture':
-                    if '-' in val:
-                        queryset = queryset.filter(aperture__gte=float(val.split('-')[0]), aperture__lte=float(val.split('-')[1]))
-                    else:
-                        queryset = queryset.filter(aperture__gte=float(val), aperture__lte=float(val))
+                    queryset = queryset.filter(
+                        aperture__gte=float(val.split('-')[0]),
+                        aperture__lte=float(val.split('-')[1]))
                 elif key == 'exposure':
-                    if '-' in val:
-                        queryset = queryset.filter(exposure__in=val.split('-'))
-                    else:
-                        queryset = queryset.filter(exposure__gte=val, exposure__lte=val)
+                    queryset = queryset.filter(exposure__in=val.split('-'))
                 elif key == 'isoSpeed':
-                    if '-' in val:
-                        queryset = queryset.filter(iso_speed__gte=int(val.split('-')[0]), iso_speed__lte=int(val.split('-')[1]))
-                    else:
-                        queryset = queryset.filter(iso_speed__gte=int(val), iso_speed__lte=int(val))
+                    queryset = queryset.filter(
+                        iso_speed__gte=int(val.split('-')[0]),
+                        iso_speed__lte=int(val.split('-')[1]))
                 elif key == 'focalLength':
-                    if '-' in val:
-                        queryset = queryset.filter(focal_length__gte=float(val.split('-')[0]), focal_length__lte=float(val.split('-')[1]))
-                    else:
-                        queryset = queryset.filter(focal_length__gte=float(val), focal_length__lte=float(val))
+                    queryset = queryset.filter(
+                        focal_length__gte=float(val.split('-')[0]),
+                        focal_length__lte=float(val.split('-')[1]))
                 elif key == 'flash':
                     queryset = queryset.filter(
                         flash=val == 'on' and True or False)
@@ -597,7 +591,6 @@ class ImageAnalysis(graphene.Mutation):
     has_configured_image_analysis = graphene.Boolean()
     ok = graphene.Boolean()
     user_id = graphene.ID()
-    
 
     @staticmethod
     def mutate(self, info, input=None):
