@@ -112,10 +112,9 @@ class PhotoFilter(django_filters.FilterSet):
         return value
 
     def multi_filter_filter(self, queryset, name, value):
-        filters = value.split(',')
+        filters = value.split(' ')
         filters = self.sanitize(filters)
         filters = map(self.customize, filters)
-
         has_tags = False
         for filter_val in filters:
             if ':' in filter_val:
@@ -150,6 +149,8 @@ class PhotoFilter(django_filters.FilterSet):
                     queryset = queryset.filter(drive_mode=val)
                 elif key == 'shootingMode':
                     queryset = queryset.filter(shooting_mode=val)
+            else:
+                queryset = queryset.filter(photo_tags__tag__name__icontains=filter_val)
         if has_tags:
             queryset.order_by('-photo_tags__significance')
         return queryset.distinct()
