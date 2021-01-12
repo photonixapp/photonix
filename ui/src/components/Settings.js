@@ -54,35 +54,38 @@ export default function Settings() {
   ]
 
   function toggleBooleanSetting(key) {
-    console.log(key)
     let newSettings = {...settings}
     newSettings[key] = !settings[key]
     setSettings(newSettings)
     switch(key) {
       case "classificationStyleEnabled":
-          settingUpdateStyle({
-            variables: {
-              classificationStyleEnabled: newSettings.classificationStyleEnabled,
-            },
-          }).catch(e => {})
-    case  "classificationLocationEnabled":
+        settingUpdateStyle({
+          variables: {
+            classificationStyleEnabled: newSettings.classificationStyleEnabled,
+          },
+        }).catch(e => {})
+        return key
+      case "classificationLocationEnabled":
         settingUpdateLocation({
           variables: {
             classificationLocationEnabled: newSettings.classificationLocationEnabled,
           },
         }).catch(e => {})
-    case  "classificationObjectEnabled":
+        return key
+      case "classificationObjectEnabled":
         settingUpdateObject({
           variables: {
             classificationObjectEnabled: newSettings.classificationObjectEnabled,
           },
         }).catch(e => {})
+        return key
       case "classificationColorEnabled":
-          settingUpdateColor({
-            variables: {
-              classificationColorEnabled: newSettings.classificationColorEnabled,
-            },
-          }).catch(e => {})
+        settingUpdateColor({
+          variables: {
+            classificationColorEnabled: newSettings.classificationColorEnabled,
+          },
+        }).catch(e => {})
+        return key
       }
     }
 
@@ -108,7 +111,6 @@ export default function Settings() {
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
   const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
-
 
   return (
     <div className="Settings">
@@ -139,6 +141,7 @@ export default function Settings() {
             } else if (item.type === 'boolean') {
               field = (
                 <Switch
+                  key={index}
                   id={item.key + 'New'}
                   isChecked={settings[item.key]}
                   onChange={() => toggleBooleanSetting(item.key)}

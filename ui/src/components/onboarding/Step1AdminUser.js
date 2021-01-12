@@ -20,12 +20,12 @@ const GET_LIBRARIES = gql`
 `
 
 const Step1AdminUser = ({ history }) => {
-  const { loading, error, data } = useQuery(GET_LIBRARIES)
+  //const { loading, error, data } = useQuery(GET_LIBRARIES)
   const { register, handleSubmit, errors, formState } = useForm()
   const { action, state } = useStateMachine(updateAction)
 
-  if (loading) return <Spinner />
-  if (error) return <p>Error :(</p>
+  // if (loading) return <Spinner />
+  // if (error) return <p>Error :(</p>
 
   const onPasswordChange = (e) => {
     action({ password: e.target.value })
@@ -86,7 +86,7 @@ const Step1AdminUser = ({ history }) => {
           onChange={onPasswordChange}
         />
         <ModalField
-          name="password2"
+          name="password1"
           type="password"
           label="Password (again)"
           required={true}

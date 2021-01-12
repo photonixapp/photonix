@@ -35,6 +35,11 @@ class Command(BaseCommand):
         try:
             user = User.objects.create_user(
                 username='demo', email='demo@photonix.org', password='demo')
+            user.has_config_persional_info = True
+            user.has_created_library = True
+            user.has_configured_importing = True
+            user.has_configured_image_analysis = True
+            user.save()
         except IntegrityError:
             user = User.objects.get(username='demo')
 
