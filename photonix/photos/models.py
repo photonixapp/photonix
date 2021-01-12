@@ -213,6 +213,7 @@ TAG_TYPE_CHOICES = (
     ('F', 'Face'),
     ('C', 'Color'),
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
+    ('G', 'Generic'),  # Tags created by user
 )
 
 

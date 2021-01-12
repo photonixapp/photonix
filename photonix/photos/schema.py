@@ -42,6 +42,9 @@ class CustomNode(graphene.Node):
     def to_global_id(type, id):
         return id
 
+class GenricTagType(DjangoObjectType):
+    class Meta:
+        model = Tag
 
 class PhotoInterface(graphene.Interface):
     photo_tags__tag__id = graphene.String()
@@ -57,6 +60,7 @@ class PhotoNode(DjangoObjectType):
     style_tags = graphene.List(PhotoTagType)
     width = graphene.Int()
     height = graphene.Int()
+    all_genric_tags = graphene.List(GenricTagType)
 
     class Meta:
         model = Photo
@@ -89,6 +93,8 @@ class PhotoNode(DjangoObjectType):
     def resolve_height(self, info):
         return self.dimensions[1]
 
+    def resolve_all_genric_tags():
+        return Tag.objects.filter(type='G')
 
 class PhotoFilter(django_filters.FilterSet):
     multi_filter = CharFilter(method='multi_filter_filter')
@@ -643,6 +649,30 @@ class PhotoRating(graphene.Mutation):
         return PhotoRating(ok=False, photo=None)
 
 
+class CreateGenricTag(graphene.Mutation):
+    """Mutation to save create genric tag."""
+
+    class Arguments:
+        """Docstring for Arguments."""
+
+        name = graphene.String()
+
+    ok = graphene.Boolean()
+    id = graphene.ID()
+    name = graphene.String()
+
+    @staticmethod
+    def mutate(self, info, name=None):
+        """Mutate method."""
+        tag_obj = Tag.objects.create(
+            library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
+            name=name,
+            type='G',
+            source='H',
+        )
+        return CreateGenricTag(ok=True, id=tag_obj.id, name=tag_obj.name)
+
+
 class Mutation(graphene.ObjectType):
     """Mutaion."""
 
@@ -655,3 +685,4 @@ class Mutation(graphene.ObjectType):
     Photo_importing = PhotoImporting.Field()
     image_analysis = ImageAnalysis.Field()
     photo_rating = PhotoRating.Field()
+    create_genric_tag = CreateGenricTag.Field()
