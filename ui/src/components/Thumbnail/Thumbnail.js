@@ -47,7 +47,7 @@ const Thumbnail = ({id, imageUrl, starRating}) => {
   const [updatePhoto, {data}] = useMutation(PHOTO_UPDATE)
   const onStarClick = (num, e) => {
     e.preventDefault()
-    if (starRating === num) {
+    if (newStarRating === num) {
       updateStarRating(0)
       setStarRating(id, 0)
       updatePhoto({
