@@ -27,7 +27,7 @@ export class Handle extends Component {
               left: `${percent}%`,
               position: "absolute",
               marginLeft: "-11px",
-              marginTop: "-40px"
+              marginTop: "40px"
             }}
           >
             <div className="tooltip">

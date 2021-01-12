@@ -30,18 +30,21 @@ const Filters = ({ data, onToggle }) => {
   function setValue (e,group,listedItems) {
     let id = group.items[0].id.slice(0, group.items[0].id.indexOf(":"))
     let groupName = group.name
-    let minValue = floatToVal(listedItems,e[0])
+    let minValue = floatToVal(listedItems,e[0].toFixed(1))
     let maxValue = floatToVal(listedItems,e[1].toFixed(1))
     let number = `${minValue}-${maxValue}`
-    if(group.name === "Exposure") {
-      const max = (e[1]*10) + 1
-      let selectedexposure = listedItems.slice(e[0],max)
-      const exposureList = selectedexposure.join("-");
-      let exposureId = `${id}:${exposureList}`
-      onToggle(exposureId, groupName,number)
-    } else {
-      let mainId = `${id}:${minValue}-${maxValue}`
-      onToggle(mainId, groupName,number)
+    if(minValue !== undefined && maxValue !== undefined) {
+      if(group.name === "Exposure") {
+        const max = (e[1]*10) + 1
+        const min = (e[0]*10)
+        let selectedexposure = listedItems.slice(min,max)
+        const exposureList = selectedexposure.join("-");
+        let exposureId = `${id}:${exposureList}`
+        onToggle(exposureId, groupName,number)
+      } else {
+        let mainId = `${id}:${minValue}-${maxValue}`
+        onToggle(mainId, groupName,number)
+      }
     }
    
   }
