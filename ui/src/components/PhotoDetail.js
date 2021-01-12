@@ -22,7 +22,7 @@ const PhotoDetail = ({ photoId, photo }) => {
     updateStarRating(photo.starRating)
   },[photo.starRating])
   const onStarClick = (num, e) => {
-    if (photo.starRating === num) {
+    if (starRating === num) {
       updateStarRating(0)
       setStarRating(photoId, 0)
       updatePhoto({

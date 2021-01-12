@@ -25,3 +25,7 @@ LargeStarRating.args = {
   starRating: 3,
   large: true,
 };
+export const NullStarRating = Template.bind({});
+NullStarRating.args = {
+  starRating: null,
+};
