@@ -66,7 +66,7 @@ const BrowseContainer = props => {
   let photoSections = []
   let photos = []
 
-  const filtersStr = props.selectedFilters.map(filter => filter.id).join(',')
+  const filtersStr = props.selectedFilters.map(filter => filter.id).join(' ')
 
   const {
     loading: photosLoading,
