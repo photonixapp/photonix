@@ -15,7 +15,7 @@ class ColorModel:
 
     def __init__(self):
         self.colors = {
-            # Name: (red, green, blue)
+            # Name: ((red, green, blue), ordering)
 
             # 'Red':                  (255, 0, 0),
             # 'Yellow':               (255, 255, 0),
@@ -24,25 +24,25 @@ class ColorModel:
             # 'Blue':                 (0, 0, 255),
             # 'Magenta':              (255, 0, 255),
 
-            'Red':                  (225, 32, 0),
-            'Dark orange':          (162, 70, 21),
-            'Orange':               (255, 124, 0),
-            'Pale pink':            (255, 159, 156),
-            'Lemon yellow':         (255, 250, 0),
-            'School bus yellow':    (255, 207, 0),
-            'Green':                (144, 226, 0),
-            'Dark lime green':      (0, 171, 0),
-            'Cyan':                 (0, 178, 212),
-            'Blue':                 (0, 98, 198),
-            'Violet':               (140, 32, 186),
-            'Pink':                 (245, 35, 148),
+            'Red':                  ((225, 32, 0),      1),
+            'Dark orange':          ((162, 70, 21),     2),
+            'Orange':               ((255, 124, 0),     3),
+            'Pale pink':            ((255, 159, 156),   4),
+            'Lemon yellow':         ((255, 250, 0),     5),
+            'School bus yellow':    ((255, 207, 0),     6),
+            'Green':                ((144, 226, 0),     7),
+            'Dark lime green':      ((0, 171, 0),       8),
+            'Cyan':                 ((0, 178, 212),     9),
+            'Blue':                 ((0, 98, 198),      10),
+            'Violet':               ((140, 32, 186),    11),
+            'Pink':                 ((245, 35, 148),    12),
 
-            'White':                (255, 255, 255),
-            'Gray':                 (124, 124, 124),
-            'Black':                (0, 0, 0),
+            'White':                ((255, 255, 255),   13),
+            'Gray':                 ((124, 124, 124),   14),
+            'Black':                ((0, 0, 0),         15),
         }
 
-    def predict(self, image_file, image_size=32, min_score=0):
+    def predict(self, image_file, image_size=128, min_score=0):
         image = Image.open(image_file)
         image = image.resize((1000, 1000), Image.BICUBIC)  # Remove sensor noise/grain
         image = image.resize((image_size, image_size), Image.NEAREST)  # Get the interesting colors without muddying them
@@ -53,8 +53,10 @@ class ColorModel:
         for i, pixel in enumerate(pixels):
             best_color = None
             best_score = 0
-            for name, target in self.colors.items():
+            for name, (target, _) in self.colors.items():
                 score = self.color_distance(pixel, target)
+                if name in ['White', 'Gray', 'Black']:
+                    score = score * 20
                 if score > best_score:
                     best_color = name
                     best_score = score
@@ -92,8 +94,9 @@ def run_on_photo(photo_id):
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='C')
         for name, score in results:
-            tag = get_or_create_tag(library=photo.library, name=name, type='C', source='C')
-            PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
+            if score >= 0.0001:
+                tag = get_or_create_tag(library=photo.library, name=name, type='C', source='C', ordering=model.colors[name][1])
+                PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
         photo.classifier_color_completed_at = timezone.now()
         photo.classifier_color_version = getattr(model, 'version', 0)
         photo.save()
@@ -106,7 +109,7 @@ if __name__ == '__main__':
         print('Argument required: image file path')
         exit(1)
 
-    results = run_on_photo(sys.argv[1])
+    _, results = run_on_photo(sys.argv[1])
 
     for result in results:
         print('{} (score: {:0.10f})'.format(result[0], result[1]))

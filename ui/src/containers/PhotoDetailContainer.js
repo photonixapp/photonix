@@ -62,6 +62,7 @@ const GET_PHOTO = gql`
         tag {
           name
         }
+        significance
       }
       styleTags {
         id
