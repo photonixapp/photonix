@@ -42,10 +42,6 @@ class CustomNode(graphene.Node):
     def to_global_id(type, id):
         return id
 
-class GenricTagType(DjangoObjectType):
-    class Meta:
-        model = Tag
-
 class PhotoInterface(graphene.Interface):
     photo_tags__tag__id = graphene.String()
     multi_filter = graphene.String()
@@ -60,7 +56,7 @@ class PhotoNode(DjangoObjectType):
     style_tags = graphene.List(PhotoTagType)
     width = graphene.Int()
     height = graphene.Int()
-    all_genric_tags = graphene.List(GenricTagType)
+    genric_tags = graphene.List(PhotoTagType)
 
     class Meta:
         model = Photo
@@ -93,8 +89,8 @@ class PhotoNode(DjangoObjectType):
     def resolve_height(self, info):
         return self.dimensions[1]
 
-    def resolve_all_genric_tags():
-        return Tag.objects.filter(type='G')
+    def resolve_genric_tags(self, info):
+        return self.photo_tags.filter(tag__type='G')
 
 class PhotoFilter(django_filters.FilterSet):
     multi_filter = CharFilter(method='multi_filter_filter')
@@ -656,21 +652,41 @@ class CreateGenricTag(graphene.Mutation):
         """Docstring for Arguments."""
 
         name = graphene.String()
+        photo_id = graphene.ID()
 
     ok = graphene.Boolean()
-    id = graphene.ID()
+    tag_id = graphene.ID()
+    photo_tag_id = graphene.ID()
     name = graphene.String()
 
     @staticmethod
-    def mutate(self, info, name=None):
+    def mutate(self, info, name=None, photo_id=None):
         """Mutate method."""
-        tag_obj = Tag.objects.create(
-            library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
-            name=name,
-            type='G',
+        try:
+            Photo.objects.get(id=photo_id)
+        except Exception as e:
+            raise GraphQLError("Invalid photo id!")
+        try:
+            tag_obj = Tag.objects.create(
+                library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
+                name=name,
+                type='G',
+                source='H',
+            )
+        except:
+            return CreateGenricTag(
+                ok=False, tag_id=None,
+                photo_tag_id=None, name=None)
+        photo_tag_obj = PhotoTag.objects.create(
+            photo=Photo.objects.get(id=photo_id),
+            tag=tag_obj,
+            confidence=1.0,
+            verified=True,
             source='H',
         )
-        return CreateGenricTag(ok=True, id=tag_obj.id, name=tag_obj.name)
+        return CreateGenricTag(
+            ok=True, tag_id=tag_obj.id,
+            photo_tag_id=photo_tag_obj.id, name=tag_obj.name)
 
 
 class Mutation(graphene.ObjectType):
