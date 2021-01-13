@@ -66,8 +66,10 @@ const BrowseContainer = props => {
   let photoSections = []
   let photos = []
 
-  const filtersStr = props.selectedFilters.map(filter => filter.id).join(' ')
-
+  let filtersStr = props.selectedFilters.map(filter => filter.id).join(' ')
+  if (props.search.length >= 2) {
+    filtersStr = filtersStr.length ? `${filtersStr} ${props.search}` : props.search
+  }
   const {
     loading: photosLoading,
     error: photosError,
@@ -122,6 +124,8 @@ const BrowseContainer = props => {
       profile={profileData ? profileData.profile : null }
       libraries={librariesData ? librariesData.allLibraries : null}
       selectedFilters={props.selectedFilters}
+      search={props.search}
+      updateSearchText={props.updateSearchText}
       mode={mode}
       loading={anyLoading}
       error={anyError}

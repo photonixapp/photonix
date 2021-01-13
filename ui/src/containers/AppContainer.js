@@ -8,6 +8,7 @@ export default class AppContainer extends React.Component {
     this.state = {
       selectedFilterIds: [],
       selectedFilters: [],
+      search: '',
       detailPhoto: null,
     }
 
@@ -64,7 +65,12 @@ export default class AppContainer extends React.Component {
     this.setState({
       selectedFilterIds: [],
       selectedFilters: [],
+      search: ''
     })
+  }
+
+  updateSearchText = event => {
+    this.setState({search: event.target.value})
   }
 
   logout = () => {
@@ -77,6 +83,8 @@ export default class AppContainer extends React.Component {
         selectedFilters={this.state.selectedFilters}
         onFilterToggle={this.onFilterToggle}
         onClearFilters={this.onClearFilters}
+        search={this.state.search}
+        updateSearchText={this.updateSearchText}
       />
     )
   }

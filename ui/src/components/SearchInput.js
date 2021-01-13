@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import '../static/css/SearchInput.css'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ObjectsIcon } from '../static/images/label.svg'
@@ -24,7 +24,8 @@ const GROUP_ICONS = {
   'Shooting Mode':  CamerasIcon,
 }
 
-const SearchInput = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
+const SearchInput = ({ selectedFilters, onFilterToggle, onClearFilters, search, updateSearchText }) => {
+
   return (
     <div className="SearchInput">
       <ul>
@@ -46,7 +47,7 @@ const SearchInput = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
           })
         }
       </ul>
-      <input type="text" placeholder="Search" defaultValue="" />
+      <input type="text" placeholder="Search" value={search} onChange={updateSearchText} />
       <CloseIcon className="clearAll" onClick={onClearFilters} />
     </div>
   )

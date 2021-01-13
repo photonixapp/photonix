@@ -53,7 +53,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
-const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
+const App = ({ selectedFilters, onFilterToggle, onClearFilters, search, updateSearchText }) => {
   const { colorMode, toggleColorMode } = useColorMode()
   const isMobileApp = navigator.userAgent.indexOf('PhotonixMobileApp') > -1
 
@@ -62,7 +62,7 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
       <Router history={history}>
         <ThemeProvider theme={customTheme}>
           <ColorModeProvider value="dark">
-            <div className={isMobileApp && 'isMobileApp'}>
+            <div className={isMobileApp ? 'isMobileApp' : ''}>
               {/* <CSSReset /> */}
               <Switch>
                 <Route path="/login" render={() => <Login />} />
@@ -73,9 +73,10 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
                   render={() => (
                     <BrowseContainer
                     selectedFilters={selectedFilters}
-                    search=""
                     onFilterToggle={onFilterToggle}
                     onClearFilters={onClearFilters}
+                    search={search}
+                    updateSearchText={updateSearchText}
                     />
                     )}
                     />
