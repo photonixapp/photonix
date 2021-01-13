@@ -46,8 +46,8 @@ const SearchInput = ({ selectedFilters, onFilterToggle, onClearFilters, search, 
             )
           })
         }
+        <input type="text" placeholder="Search" value={search} onChange={updateSearchText} />
       </ul>
-      <input type="text" placeholder="Search" value={search} onChange={updateSearchText} />
       <CloseIcon className="clearAll" onClick={onClearFilters} />
     </div>
   )

@@ -86,7 +86,7 @@ const BrowseContainer = props => {
   }
 
   useEffect (() => {
-    if(envData && !envData.environment.firstRun) {
+    if(envData && envData.environment && !envData.environment.firstRun) {
       refetch()
     }
     if(photosData)

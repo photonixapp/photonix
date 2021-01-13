@@ -24,7 +24,7 @@ const Thumbnails = ({ photoSections }) => (
           {
             section.segments.map((segment) => (
               segment.photos.map((photo) => (
-                <Thumbnail id={photo.id} imageUrl={photo.thumbnail} starRating={photo.starRating}/>
+                <Thumbnail key={photo.id} id={photo.id} imageUrl={photo.thumbnail} starRating={photo.starRating}/>
               ))
             ))
           }
