@@ -689,6 +689,29 @@ class CreateGenricTag(graphene.Mutation):
             photo_tag_id=photo_tag_obj.id, name=tag_obj.name)
 
 
+class RemoveGenricTag(graphene.Mutation):
+    """docstring for remove or delete genric tag."""
+
+    class Arguments:
+        """docstring for Arguments."""
+
+        photo_id = graphene.ID()
+        tag_id = graphene.ID()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, photo_id=None, tag_id=None):
+        """Mutate method."""
+        if Photo.objects.filter(photo_tags__tag__id=tag_id).count() == 1:
+            Tag.objects.filter(id=tag_id).delete()
+            return RemoveGenricTag(ok=True)
+        Photo.objects.get(id=photo_id).photo_tags.remove(PhotoTag.objects.get(tag__id=tag_id))
+        if not Photo.objects.get(id=photo_id).photo_tags.filter(tag__id=tag_id):
+            return RemoveGenricTag(ok=True)
+        return RemoveGenricTag(ok=False)
+
+
 class Mutation(graphene.ObjectType):
     """Mutaion."""
 
@@ -702,3 +725,4 @@ class Mutation(graphene.ObjectType):
     image_analysis = ImageAnalysis.Field()
     photo_rating = PhotoRating.Field()
     create_genric_tag = CreateGenricTag.Field()
+    remove_genric_tag = RemoveGenricTag.Field()
