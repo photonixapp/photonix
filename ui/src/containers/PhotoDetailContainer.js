@@ -79,12 +79,11 @@ const GET_PHOTO = gql`
 const PhotoDetailContainer = (props) => {
   const [photo, setPhoto] = useState()
 
-  const { loading, error, data,refetch } = useQuery(GET_PHOTO, {
+  const { loading, error, data, refetch } = useQuery(GET_PHOTO, {
     variables: {
       id: props.match.params.photoId,
     }
   })
-
 
   useEffect(() => {
     const handleKeyDown = event => {
@@ -110,7 +109,7 @@ const PhotoDetailContainer = (props) => {
     if(!loading && data) {
       setPhoto(data)
     }
-  },[data])
+  }, [data])
 
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
