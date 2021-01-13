@@ -25,10 +25,10 @@ const StarRating = ({starRating, onStarClick, large=false, alwaysShow=false}) =>
 
   const onStarEnter = (num) => { setStarHovering(num); !alwaysShow && setDisplayStars(true) }
   const onStarLeave = () => { setStarHovering(starRating); !alwaysShow && setDisplayStars(starRating > 0) }
-useEffect (() => {
-  setDisplayStars(true)
-  onStarLeave()
-},[starRating])
+  useEffect (() => {
+    setDisplayStars(true)
+    onStarLeave()
+  }, [starRating])
   const Stars = large ? StarsLarge : StarsSmall
   return (
     <Stars style={{opacity: displayStars ? 1 : 0}}>
