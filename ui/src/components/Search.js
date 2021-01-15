@@ -7,7 +7,7 @@ const Search = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
   return (
     <div className="Search">
       <SearchInputContainer selectedFilters={selectedFilters} onFilterToggle={onFilterToggle} onClearFilters={onClearFilters} />
-      <FiltersContainer onFilterToggle={onFilterToggle} />
+      <FiltersContainer selectedFilters={selectedFilters} onFilterToggle={onFilterToggle} />
     </div>
   )
 }

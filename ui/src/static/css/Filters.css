@@ -55,9 +55,10 @@
   width: 250px;
   height: 227px;
   max-height: 300px;
-  overflow: auto;
+  /*overflow: auto;*/
   scrollbar-width: none;;
   margin: 0;
+  padding: 11px 0 70px 0;
   display: inline-block;
   vertical-align: top;
   margin-right: 20px;
@@ -79,7 +80,37 @@
 .FilterGroup>li:last-child, .FilterGroup>ul.HierarchicalTags:last-child {
   margin-bottom: 100px;
 }
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted #444;
+  margin-left: 22px;
+}
 
+.tooltip .tooltiptext {
+  width: 100px;
+  background-color: #444;
+  color: #f0f0f0;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -60px;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #444 transparent transparent transparent;
+}
 @media all and (max-width: 700px) {
   .Filters {
     margin: 0 -20px -20px;

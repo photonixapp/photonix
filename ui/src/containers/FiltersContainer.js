@@ -68,7 +68,7 @@ function createFilterSelection(sectionName, data, prefix='tag') {
   }
 }
 
-const FiltersContainer = ({ onFilterToggle }) => {
+const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const user = useSelector(state => state.user)  // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const { loading, error, data } = useQuery(GET_FILTERS, {skip: !user})
 
@@ -133,6 +133,7 @@ const FiltersContainer = ({ onFilterToggle }) => {
   return (
     <Filters
       data={filterData}
+      selectedFilters={selectedFilters}
       onToggle={onFilterToggle}
     />
   )
