@@ -96,7 +96,9 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
         onToggle(exposureId, groupName,number)
       } else {
         let mainId = `${id}:${minValue}-${maxValue}`
-        onToggle(mainId, groupName,number)
+        if (selectedFilters.filter((item) => item.id == mainId).length === 0) {
+          onToggle(mainId, groupName, number)
+        }
       }
     }
   }
