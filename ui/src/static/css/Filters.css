@@ -55,10 +55,10 @@
   width: 250px;
   height: 227px;
   max-height: 300px;
-  /*overflow: auto;*/
-  scrollbar-width: none;;
+  overflow-y: auto;
+  scrollbar-width: none;
   margin: 0;
-  padding: 11px 0 70px 0;
+  padding: 20px 0 70px 0;
   display: inline-block;
   vertical-align: top;
   margin-right: 20px;

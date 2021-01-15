@@ -113,6 +113,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
           {
             data.map((group) => {
               let items = ''
+              let filterGroupExtraStyles = {}
 
               if (group.name === 'Colors') {
                 items = <ColorTags tags={group.items.map((item) => {
@@ -133,7 +134,8 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
                   return item.name
                 })
                 const domain = [0, (listedItems.length-1)/10];
-                const defaultValues = values[group.name];
+                filterGroupExtraStyles = {overflow: 'unset'}  // Tooltips need this or they get cut off at the edges
+
                 items =<div>
                   <Slider
                     mode={2}
@@ -196,7 +198,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
               }
 
               return (
-                <div className="FilterGroup" key={group.name}>
+                <div className="FilterGroup" key={group.name} style={filterGroupExtraStyles}>
                   <h2>{group.name}</h2>
                   {items}
                 </div>
