@@ -20,14 +20,14 @@ export class Handle extends Component {
     const { showTooltip } = this.state;
     const values = this.floatToVal(listedItems,Number(value.toFixed(1)))
     return (
-      <React.Fragment>
+      <>
         {showTooltip ? (
           <div
             style={{
               left: `${percent}%`,
               position: "absolute",
-              marginLeft: "-11px",
-              marginTop: "-35px"
+              marginLeft: "-1px",
+              marginTop: "45px"
             }}
           >
             <div className="tooltip">
@@ -65,7 +65,7 @@ export class Handle extends Component {
             }
           })}
         />
-      </React.Fragment>
+      </>
     );
   }
 }

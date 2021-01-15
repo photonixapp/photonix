@@ -69,7 +69,7 @@
   padding: 0;
 }
 .FilterGroup li {
-  background: #383838;
+  background: #484848;
   display: inline-block;
   margin: 0 10px 10px 0;
   padding: 6px 10px 4px;
@@ -83,13 +83,13 @@
 .tooltip {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted #444;
-  margin-left: 22px;
+  border-bottom: 1px dotted #484848;
+  margin-left: 24px;
 }
 
 .tooltip .tooltiptext {
-  width: 100px;
-  background-color: #444;
+  width: 80px;
+  background-color: #484848;
   color: #f0f0f0;
   text-align: center;
   border-radius: 6px;
@@ -104,12 +104,12 @@
 .tooltip .tooltiptext::after {
   content: "";
   position: absolute;
-  top: 100%;
+  top: -10px;
   left: 50%;
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #444 transparent transparent transparent;
+  border-color: transparent transparent #484848 transparent;
 }
 @media all and (max-width: 700px) {
   .Filters {
