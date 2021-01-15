@@ -12,7 +12,7 @@
 .Browse .tabs li {
   display: inline-block;
   list-style: none;
-  padding: 10px 20px;
+  padding: 8px 20px;
   background: #1d1d1d;
   font-weight: 600;
 }

@@ -45,8 +45,8 @@ const SearchInput = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
             )
           })
         }
+        <input type="text" placeholder="Search" defaultValue="" />
       </ul>
-      <input type="text" placeholder="Search" defaultValue="" />
       <CloseIcon className="clearAll" onClick={onClearFilters} />
     </div>
   )

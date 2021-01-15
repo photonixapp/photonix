@@ -2,7 +2,6 @@ import React, { useState,useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
 import StarRating from '../StarRating'
-import { setStarRating } from '../../utils/photos'
 import {PHOTO_UPDATE} from '../../graphql/photo'
 import { useMutation} from '@apollo/react-hooks';
 const Container = styled('li')`
@@ -44,12 +43,11 @@ const Thumbnail = ({id, imageUrl, starRating}) => {
   useEffect (() => {
     updateStarRating(starRating)
   }, [starRating])
-  const [updatePhoto, {data}] = useMutation(PHOTO_UPDATE)
+  const [updatePhoto] = useMutation(PHOTO_UPDATE)
   const onStarClick = (num, e) => {
     e.preventDefault()
     if (newStarRating === num) {
       updateStarRating(0)
-      setStarRating(id, 0)
       updatePhoto({
         variables: {
           photoId:id,
@@ -59,7 +57,6 @@ const Thumbnail = ({id, imageUrl, starRating}) => {
     }
     else {
       updateStarRating(num)
-      setStarRating(id, num)
       updatePhoto({
         variables: {
           photoId:id,

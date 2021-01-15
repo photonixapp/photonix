@@ -62,7 +62,7 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
       <Router history={history}>
         <ThemeProvider theme={customTheme}>
           <ColorModeProvider value="dark">
-            <div className={isMobileApp && 'isMobileApp'}>
+            <div className={isMobileApp ? 'isMobileApp' : undefined}>
               {/* <CSSReset /> */}
               <Switch>
                 <Route path="/login" render={() => <Login />} />
