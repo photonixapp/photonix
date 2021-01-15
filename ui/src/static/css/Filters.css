@@ -55,9 +55,10 @@
   width: 250px;
   height: 227px;
   max-height: 300px;
-  overflow: auto;
-  scrollbar-width: none;;
+  overflow-y: auto;
+  scrollbar-width: none;
   margin: 0;
+  padding: 20px 0 70px 0;
   display: inline-block;
   vertical-align: top;
   margin-right: 20px;
@@ -68,7 +69,7 @@
   padding: 0;
 }
 .FilterGroup li {
-  background: #383838;
+  background: #484848;
   display: inline-block;
   margin: 0 10px 10px 0;
   padding: 6px 10px 4px;
@@ -79,7 +80,37 @@
 .FilterGroup>li:last-child, .FilterGroup>ul.HierarchicalTags:last-child {
   margin-bottom: 100px;
 }
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted #484848;
+  margin-left: 24px;
+}
 
+.tooltip .tooltiptext {
+  width: 80px;
+  background-color: #484848;
+  color: #f0f0f0;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -60px;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #484848 transparent;
+}
 @media all and (max-width: 700px) {
   .Filters {
     margin: 0 -20px -20px;

@@ -149,6 +149,10 @@ class PhotoFilter(django_filters.FilterSet):
                     queryset = queryset.filter(drive_mode=val)
                 elif key == 'shootingMode':
                     queryset = queryset.filter(shooting_mode=val)
+                elif key == 'starRating':
+                    queryset = queryset.filter(
+                        star_rating__gte=int(val.split('-')[0]),
+                        star_rating__lte=int(val.split('-')[1]))
             else:
                 queryset = queryset.filter(photo_tags__tag__name__icontains=filter_val)
         if has_tags:
