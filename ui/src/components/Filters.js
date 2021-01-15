@@ -1,4 +1,4 @@
-import React,{useState} from 'react'
+import React,{useState, useEffect} from 'react'
 
 import ColorTags from './ColorTags'
 import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
@@ -21,7 +21,56 @@ const railStyle = {
   cursor: "pointer",
   backgroundColor: "rgb(100,100,100)"
 };
-const Filters = ({ data, onToggle }) => {
+const Filters = ({ data, selectedFilters, onToggle }) => {
+  const [values, setValues] = useState({
+    'ISO Speed': [],
+    'Focal Length': [],
+    'Aperture': [],
+    'Exposure': []
+  })
+  const [isDomainAvail, setIsDomainAvail] = useState(false)
+  
+  useEffect(() => {
+    const vals = [];
+    data.map((group) => {
+      const domain = [0, (group.items.length-1)/10];
+      vals[group.name] = domain
+      return  group;
+    })
+    setValues(vals)
+    setIsDomainAvail(true)
+  }, [])
+
+  useEffect(() => {
+    if (isDomainAvail) {
+      const iso = selectedFilters.filter(g => g.group === 'ISO Speed')
+      const focalLength = selectedFilters.filter(g => g.group === 'Focal Length')
+      const aperture = selectedFilters.filter(g => g.group === 'Aperture')
+      const exposure = selectedFilters.filter(g => g.group === 'Exposure')
+      if (iso.length === 0) {
+        const group = data.filter(d => d.name === 'ISO Speed')[0]
+        const value = [0, (group?.items.length-1)/10];
+        values[group?.name] = value
+      }
+      if (focalLength.length === 0) {
+        const group = data.filter(d => d.name === 'Focal Length')[0]
+        const value = [0, (group?.items.length-1)/10];
+        values[group?.name] = value
+      }
+      if (aperture.length === 0) {
+        const group = data.filter(d => d.name === 'Aperture')[0]
+        const value = [0, (group?.items.length-1)/10];
+        values[group?.name] = value
+      }
+      if (exposure.length === 0) {
+        const group = data.filter(d => d.name === 'Exposure')[0]
+        const value = [0, (group?.items.length-1)/10];
+        values[group?.name] = value
+      }
+      setValues(values)
+    }
+  })
+
   function floatToVal(available, selected) {
     const pos = selected * 10
     return available[pos]
@@ -30,14 +79,18 @@ const Filters = ({ data, onToggle }) => {
   function setValue (e,group,listedItems) {
     let id = group.items[0].id.slice(0, group.items[0].id.indexOf(":"))
     let groupName = group.name
-    let minValue = floatToVal(listedItems,e[0].toFixed(1))
-    let maxValue = floatToVal(listedItems,e[1].toFixed(1))
+    const min = Number(e[0].toFixed(1));
+    const max = Number(e[1].toFixed(1));
+    values[groupName] = [min, max]
+    setValues(values)
+    let minValue = floatToVal(listedItems,min)
+    let maxValue = floatToVal(listedItems,max)
     let number = `${minValue}-${maxValue}`
     if(minValue !== undefined && maxValue !== undefined) {
       if(group.name === "Exposure") {
-        const max = (e[1]*10) + 1
-        const min = (e[0]*10)
-        let selectedexposure = listedItems.slice(min,max)
+        const end = (max*10) + 1
+        const start = (min*10)
+        let selectedexposure = listedItems.slice(start,end)
         const exposureList = selectedexposure.join("-");
         let exposureId = `${id}:${exposureList}`
         onToggle(exposureId, groupName,number)
@@ -46,104 +99,107 @@ const Filters = ({ data, onToggle }) => {
         onToggle(mainId, groupName,number)
       }
     }
-   
   }
   return (
     <ScrollArea>
-      <div className="FiltersContent">
-        {
-          data.map((group) => {
-            let items = ''
+      
+      {isDomainAvail &&
+        <div className="FiltersContent">
+          {
+            data.map((group) => {
+              let items = ''
 
-            if (group.name === 'Colors') {
-              items = <ColorTags tags={group.items.map((item) => {
-                item.onClick = () => onToggle(item.id, group.name, item.name)
-                return item
-              })} />
-            }
+              if (group.name === 'Colors') {
+                items = <ColorTags tags={group.items.map((item) => {
+                  item.onClick = () => onToggle(item.id, group.name, item.name)
+                  return item
+                })} />
+              }
 
-            else if (group.name === 'Locations') {
-              items = <HierarchicalTagsContainer tags={group.items.map((item) => {
-                item.onClick = () => onToggle(item.id, group.name, item.name)
-                return item
-              })} />
-            }
+              else if (group.name === 'Locations') {
+                items = <HierarchicalTagsContainer tags={group.items.map((item) => {
+                  item.onClick = () => onToggle(item.id, group.name, item.name)
+                  return item
+                })} />
+              }
 
-            else if(group.name === 'ISO Speed' || group.name === 'Focal Length' || group.name === "Aperture" || group.name === "Exposure") {
-              const listedItems = group.items.map(item => {
-                return item.name
-              })
-              const domain = [0, (listedItems.length-1)/10];
-              const defaultValues = [0,0.1];
-              items =<div>
-              <Slider
-                mode={2}
-                step={0.1}
-                domain={domain}
-                rootStyle={sliderStyle}
-                onChange={(e) =>setValue(e,group,listedItems)}
-                values={defaultValues}
-              >
-                <Rail>
-                  {({ getRailProps }) => (
-                    <div style={railStyle} {...getRailProps()} />
-                  )}
-                </Rail>
-                <Handles>
-                  {({ handles, getHandleProps }) => (
-                    <div className="slider-handles">
-                      {handles.map(handle => (
-                        <Handle
-                          key={handle.id}
-                          handle={handle}
-                          domain={domain}
-                          getHandleProps={getHandleProps}
-                          from={group}
-                          listedItems={listedItems}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </Handles>
-                <Tracks left={false} right={false}>
-                  {({ tracks, getTrackProps }) => (
-                    <div className="slider-tracks">
-                      {tracks.map(({ id, source, target }) => (
-                        <Track
-                          key={id}
-                          source={source}
-                          target={target}
-                          getTrackProps={getTrackProps}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </Tracks>
-              </Slider>
-            </div>
+              else if(group.name === 'ISO Speed' || group.name === 'Focal Length' || group.name === "Aperture" || group.name === "Exposure") {
+                const listedItems = group.items.map(item => {
+                  return item.name
+                })
+                const domain = [0, (listedItems.length-1)/10];
+                const defaultValues = values[group.name];
+                items =<div>
+                  <Slider
+                    mode={2}
+                    step={0.1}
+                    domain={domain}
+                    rootStyle={sliderStyle}
+                    onChange={(e) =>setValue(e,group,listedItems)}
+                    // onSlideStart={(e) =>setValue(e,group,listedItems)}
+                    values={values[group.name]}
+                  >
+                    <Rail>
+                      {({ getRailProps }) => (
+                        <div style={railStyle} {...getRailProps()} />
+                      )}
+                    </Rail>
+                    <Handles>
+                      {({ handles, getHandleProps }) => (
+                        <div className="slider-handles">
+                          {handles.map(handle => (
+                            <Handle
+                              key={handle.id}
+                              handle={handle}
+                              domain={domain}
+                              getHandleProps={getHandleProps}
+                              from={group}
+                              listedItems={listedItems}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </Handles>
+                    <Tracks left={false} right={false}>
+                      {({ tracks, getTrackProps }) => (
+                        <div className="slider-tracks">
+                          {tracks.map(({ id, source, target }) => (
+                            <Track
+                              key={id}
+                              source={source}
+                              target={target}
+                              getTrackProps={getTrackProps}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </Tracks>
+                  </Slider>
+                </div>
+              }
+
+              else {
+                items = group.items.map((item) => {
+                  if (item.id) {
+                    return <li key={item.id} onClick={() => onToggle(item.id, group.name, item.name)}>{item.name}</li>
+                  }
+                  else {
+                    return <li key={item} onClick={() => onToggle(item, group.name, item)}>{item}</li>
+                  }
+                })
+              }
+
+              return (
+                <div className="FilterGroup" key={group.name}>
+                  <h2>{group.name}</h2>
+                  {items}
+                </div>
+              )
+            })
           }
-
-            else {
-              items = group.items.map((item) => {
-                if (item.id) {
-                  return <li key={item.id} onClick={() => onToggle(item.id, group.name, item.name)}>{item.name}</li>
-                }
-                else {
-                  return <li key={item} onClick={() => onToggle(item, group.name, item)}>{item}</li>
-                }
-              })
-            }
-
-            return (
-              <div className="FilterGroup" key={group.name}>
-                <h2>{group.name}</h2>
-                {items}
-              </div>
-            )
-          })
-        }
-        <div className="filterGradient"></div>
-      </div>
+          <div className="filterGradient"></div>
+        </div>
+      }
     </ScrollArea>
   )
 }

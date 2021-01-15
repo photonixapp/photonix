@@ -18,7 +18,7 @@ export class Handle extends Component {
       listedItems
     } = this.props;
     const { showTooltip } = this.state;
-    const values = this.floatToVal(listedItems,value)
+    const values = this.floatToVal(listedItems,Number(value.toFixed(1)))
     return (
       <React.Fragment>
         {showTooltip ? (
@@ -27,11 +27,11 @@ export class Handle extends Component {
               left: `${percent}%`,
               position: "absolute",
               marginLeft: "-11px",
-              marginTop: "40px"
+              marginTop: "-35px"
             }}
           >
             <div className="tooltip">
-              <span className="tooltiptext">Value: {values}</span>
+              <span className="tooltiptext">{values}</span>
             </div>
           </div>
         ) : null}
@@ -89,3 +89,5 @@ export function Track({ source, target, getTrackProps }) {
       />
     );
   }
+
+  
