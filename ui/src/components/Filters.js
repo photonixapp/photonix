@@ -4,13 +4,13 @@ import ColorTags from './ColorTags'
 import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
 import ScrollArea from './ScrollArea'
 import { Slider, Rail, Handles, Tracks } from 'react-compound-slider'
-import { Handle, Track, Tick } from "./Slider"; 
+import { Handle, Track } from "./Slider";
 import '../static/css/Filters.css'
 
 const sliderStyle = {
   position: "relative",
-  width: "90%",
-  marginLeft: '12px'
+  width: "91.5%",
+  marginLeft: '6px'
 };
 
 const railStyle = {
@@ -19,8 +19,9 @@ const railStyle = {
   height: 8,
   borderRadius: 4,
   cursor: "pointer",
-  backgroundColor: "rgb(100,100,100)"
+  backgroundColor: "#484848",
 };
+
 const Filters = ({ data, selectedFilters, onToggle }) => {
   const [values, setValues] = useState({
     'ISO Speed': [],
@@ -93,7 +94,9 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
         let selectedexposure = listedItems.slice(start,end)
         const exposureList = selectedexposure.join("-");
         let exposureId = `${id}:${exposureList}`
-        onToggle(exposureId, groupName,number)
+        if (selectedFilters.filter((item) => item.id == exposureId).length === 0) {
+          onToggle(exposureId, groupName,number)
+        }
       } else {
         let mainId = `${id}:${minValue}-${maxValue}`
         if (selectedFilters.filter((item) => item.id == mainId).length === 0) {
@@ -157,6 +160,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
                               getHandleProps={getHandleProps}
                               from={group}
                               listedItems={listedItems}
+                              style={{height: 10}}
                             />
                           ))}
                         </div>

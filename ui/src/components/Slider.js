@@ -43,15 +43,14 @@ export class Handle extends Component {
           style={{
             left: `${percent}%`,
             position: "absolute",
-            marginLeft: "-11px",
-            marginTop: "-9px",
+            marginLeft: "-6px",
+            marginTop: "-6px",
             zIndex: 2,
-            width: 24,
-            height: 24,
-            cursor: "pointer",
+            width: 20,
+            height: 20,
+            cursor: "move",
             borderRadius: "50%",
-            boxShadow: "1px 1px 1px 1px rgba(0, 0, 0, 0.4)",
-            backgroundColor: "darkgray"
+            backgroundColor: "#ddd"
           }}
           {...getHandleProps(id, {
             onMouseLeave: () => {
@@ -79,7 +78,7 @@ export function Track({ source, target, getTrackProps }) {
           position: "absolute",
           height: 8,
           zIndex: 1,
-          backgroundColor: "darkgrey",
+          backgroundColor: "#aaa",
           borderRadius: 4,
           cursor: "pointer",
           left: `${source.percent}%`,
