@@ -48,7 +48,7 @@ export class Handle extends Component {
             zIndex: 2,
             width: 20,
             height: 20,
-            cursor: "move",
+            cursor: "col-resize",
             borderRadius: "50%",
             backgroundColor: "#ddd"
           }}

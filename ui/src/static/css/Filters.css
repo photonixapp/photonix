@@ -37,7 +37,7 @@
   border-radius: 5px;
   background: #484848;
   position: absolute;
-  cursor: move;
+  cursor: grabbing;
   bottom: 50px;
   left: 10px;
   opacity: 0;
