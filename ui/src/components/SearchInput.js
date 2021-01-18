@@ -6,6 +6,7 @@ import { ReactComponent as LocationsIcon} from '../static/images/location_on.svg
 import { ReactComponent as ColorsIcon } from '../static/images/color_lens.svg'
 import { ReactComponent as StylesIcon } from '../static/images/style.svg'
 import { ReactComponent as CamerasIcon } from '../static/images/photo_camera.svg'
+import { ReactComponent as StarIcon } from '../static/images/star_outline.svg'
 
 const GROUP_ICONS = {
   'Objects':        ObjectsIcon,
@@ -22,6 +23,7 @@ const GROUP_ICONS = {
   'Metering Mode':  CamerasIcon,
   'Drive Mode':     CamerasIcon,
   'Shooting Mode':  CamerasIcon,
+  'Rating':         StarIcon
 }
 
 const SearchInput = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
