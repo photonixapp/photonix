@@ -149,7 +149,7 @@ class PhotoFilter(django_filters.FilterSet):
                     queryset = queryset.filter(drive_mode=val)
                 elif key == 'shootingMode':
                     queryset = queryset.filter(shooting_mode=val)
-                elif key == 'starRating':
+                elif key == 'rating':
                     queryset = queryset.filter(
                         star_rating__gte=int(val.split('-')[0]),
                         star_rating__lte=int(val.split('-')[1]))
@@ -643,7 +643,7 @@ class PhotoRating(graphene.Mutation):
                     "star_rating": star_rating})
                 return PhotoRating(ok=True, photo=photo_obj)
         except:
-            raise GraphQLError("starRating is required!")
+            raise GraphQLError("rating is required!")
         return PhotoRating(ok=False, photo=None)
 
 
