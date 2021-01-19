@@ -26,6 +26,7 @@ export default class AppContainer extends React.Component {
     let focalLengthIndex = filters.findIndex(item => item.group === "Focal Length")
     let apertureIndex = filters.findIndex(item => item.group === "Aperture")
     let exposureIndex = filters.findIndex(item => item.group === "Exposure")
+    let ratingIndex = filters.findIndex(item => item.group === "Rating")
     if (index === -1) {
         if(flashIndex !== -1 && group === "Flash" ) {
           filterIds[flashIndex] = id
@@ -42,6 +43,9 @@ export default class AppContainer extends React.Component {
         } else if(exposureIndex !== -1 && group === "Exposure") {
           filterIds[exposureIndex] = id
           filters[exposureIndex] = {id:id,name:name,group:group}
+        } else if(ratingIndex !== -1 && group === "Rating") {
+          filterIds[ratingIndex] = id
+          filters[ratingIndex] = {id:id,name:name,group:group}
         }
         else {
           filterIds.push(id)

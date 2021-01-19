@@ -27,7 +27,8 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
     'ISO Speed': [],
     'Focal Length': [],
     'Aperture': [],
-    'Exposure': []
+    'Exposure': [],
+    'Rating': []
   })
   const [isDomainAvail, setIsDomainAvail] = useState(false)
   
@@ -44,30 +45,15 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
 
   useEffect(() => {
     if (isDomainAvail) {
-      const iso = selectedFilters.filter(g => g.group === 'ISO Speed')
-      const focalLength = selectedFilters.filter(g => g.group === 'Focal Length')
-      const aperture = selectedFilters.filter(g => g.group === 'Aperture')
-      const exposure = selectedFilters.filter(g => g.group === 'Exposure')
-      if (iso.length === 0) {
-        const group = data.filter(d => d.name === 'ISO Speed')[0]
-        const value = [0, (group?.items.length-1)/10];
-        values[group?.name] = value
-      }
-      if (focalLength.length === 0) {
-        const group = data.filter(d => d.name === 'Focal Length')[0]
-        const value = [0, (group?.items.length-1)/10];
-        values[group?.name] = value
-      }
-      if (aperture.length === 0) {
-        const group = data.filter(d => d.name === 'Aperture')[0]
-        const value = [0, (group?.items.length-1)/10];
-        values[group?.name] = value
-      }
-      if (exposure.length === 0) {
-        const group = data.filter(d => d.name === 'Exposure')[0]
-        const value = [0, (group?.items.length-1)/10];
-        values[group?.name] = value
-      }
+      const fields = ['ISO Speed', 'Focal Length', 'Aperture', 'Exposure', 'Rating'];
+      fields.map(f => {
+        const fieldPresent = selectedFilters.filter(g => g.group === f)
+        if (fieldPresent.length === 0) {
+          const group = data.filter(d => d.name === f)[0];
+          const value = [0, (group?.items.length-1)/10];
+          values[group?.name] = value  
+        }
+      })
       setValues(values)
     }
   })
@@ -129,13 +115,12 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
                 })} />
               }
 
-              else if(group.name === 'ISO Speed' || group.name === 'Focal Length' || group.name === "Aperture" || group.name === "Exposure") {
+              else if(group.name === 'ISO Speed' || group.name === 'Focal Length' || group.name === "Aperture" || group.name === "Exposure" || group.name === "Rating") {
                 const listedItems = group.items.map(item => {
                   return item.name
                 })
                 const domain = [0, (listedItems.length-1)/10];
                 filterGroupExtraStyles = {overflow: 'unset'}  // Tooltips need this or they get cut off at the edges
-
                 items =<div>
                   <Slider
                     mode={2}
@@ -143,7 +128,6 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
                     domain={domain}
                     rootStyle={sliderStyle}
                     onChange={(e) =>setValue(e,group,listedItems)}
-                    // onSlideStart={(e) =>setValue(e,group,listedItems)}
                     values={values[group.name]}
                   >
                     <Rail>

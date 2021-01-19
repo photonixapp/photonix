@@ -116,6 +116,16 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
       filterData.push(createFilterSelection('Focal Length', data.allFocalLengths, 'focalLength'))
     }
     filterData.push({
+      name: 'Rating',
+      items: [
+        {id: 'rating:1', name: 1},
+        {id: 'rating:2', name: 2},
+        {id: 'rating:3', name: 3},
+        {id: 'rating:4', name: 4},
+        {id: 'rating:5', name: 5}
+      ]
+    })
+    filterData.push({
       name: 'Flash',
       items: [{id: 'flash:on', name: 'On'}, {id: 'flash:off', name: 'Off'}]
     })
