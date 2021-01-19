@@ -1,7 +1,6 @@
 import os
 
-from django.contrib.auth import get_user_model
-
+from django.contrib.auth import get_user_model, authenticate, update_session_auth_hash
 import graphene
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.shortcuts import create_refresh_token, get_token
@@ -50,14 +49,6 @@ class CreateUser(graphene.Mutation):
         return CreateUser(
             has_config_persional_info=user.has_config_persional_info,
             ok=True, user_id=user.id)
-
-
-class Mutation(graphene.ObjectType):
-    create_user = CreateUser.Field()
-    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
-    verify_token = graphql_jwt.Verify.Field()
-    refresh_token = graphql_jwt.Refresh.Field()
-    revoke_token = graphql_jwt.Revoke.Field()
 
 
 class Environment(graphene.ObjectType):
@@ -125,3 +116,36 @@ class Query(graphene.ObjectType):
         if user.has_configured_image_analysis:
             return {'token': get_token(user), 'refresh_token': create_refresh_token(user)}
         return {'token': None, 'refresh_token': None}
+
+
+class ChangePassword(graphene.Mutation):
+    """docstring for ChangePassword."""
+
+    class Arguments:
+        """docstring for Arguments."""
+
+        old_password = graphene.String(required=True)
+        new_password = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, old_password, new_password):
+        """Mutate method for change password."""
+        if authenticate(username=info.context.user.username, password=old_password):
+            info.context.user.set_password(new_password)
+            info.context.user.save()
+            update_session_auth_hash(info.context, info.context.user)
+            return ChangePassword(ok=True)
+        return ChangePassword(ok=False)
+
+
+class Mutation(graphene.ObjectType):
+    """To create objects for all mutaions."""
+
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+    revoke_token = graphql_jwt.Revoke.Field()
+    create_user = CreateUser.Field()
+    change_password = ChangePassword.Field()
