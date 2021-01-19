@@ -69,6 +69,13 @@ const GET_PHOTO = gql`
           name
         }
       }
+      genricTags {
+        id
+        tag {
+          id
+          name
+        }
+      }
       width
       height
     }
@@ -115,7 +122,7 @@ const PhotoDetailContainer = (props) => {
   if (error) return `Error! ${error.message}`
 
   if (photo && photo.photo) {
-    return <PhotoDetail photoId={props.match.params.photoId} photo={data.photo} />
+    return <PhotoDetail photoId={props.match.params.photoId} photo={data.photo} refetch={refetch} />
   }
   return null
 }
