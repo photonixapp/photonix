@@ -3,15 +3,25 @@
   height: 100%;
 }
 .BoundingBoxes .FeatureBox {
-  border: 3px solid rgba(255,0,0,0.75);
+  border: 3px solid rgba(255, 0, 0, 0.75);
+  /* box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2); */
   position: absolute;
 }
 .BoundingBoxes .FeatureBox .FeatureLabel {
-  color: #FFF;
+  color: #fff;
   font-size: 14px;
-  background-color: rgba(255,0,0,0.75);
+  background-color: rgba(255, 0, 0, 0.75);
   display: inline-block;
   overflow: hidden;
   max-width: 100%;
   padding: 0 5px 2px 2px;
+}
+
+.BoundingBoxes .face {
+  border-color: rgba(255, 255, 0, 0.75);
+}
+
+.BoundingBoxes .face .FeatureLabel {
+  color: #000;
+  background-color: rgba(255, 255, 0, 0.75);
 }

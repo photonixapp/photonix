@@ -1,6 +1,7 @@
 import queue
 import threading
 from time import sleep
+import traceback
 
 from django.db import transaction
 from django.utils import timezone
@@ -12,6 +13,7 @@ CLASSIFIERS = [
     'location',
     'object',
     'style',
+    'face_detection',
 ]
 
 
@@ -60,7 +62,8 @@ class ThreadedQueueProcessor:
             task.start()
             self.runner(task.subject_id)
             task.complete()
-        except:
+        except Exception:
+            traceback.print_exc()
             task.failed()
 
     def __clean_up(self):

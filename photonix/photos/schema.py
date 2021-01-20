@@ -53,6 +53,7 @@ class PhotoNode(DjangoObjectType):
     location = graphene.String()
     location_tags = graphene.List(PhotoTagType)
     object_tags = graphene.List(PhotoTagType)
+    person_tags = graphene.List(PhotoTagType)
     color_tags = graphene.List(PhotoTagType)
     style_tags = graphene.List(PhotoTagType)
     width = graphene.Int()
@@ -76,6 +77,9 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_object_tags(self, info):
         return self.photo_tags.filter(tag__type='O')
+
+    def resolve_person_tags(self, info):
+        return self.photo_tags.filter(tag__type='F')
 
     def resolve_color_tags(self, info):
         return self.photo_tags.filter(tag__type='C')

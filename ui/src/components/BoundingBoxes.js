@@ -2,9 +2,9 @@ import React from 'react'
 
 import '../static/css/BoundingBoxes.css'
 
-const BoundingBoxes = ({ photoWidth, photoHeight, boxes }) => {
+const BoundingBoxes = ({ photoWidth, photoHeight, boxes, className }) => {
   let multiplier = window.innerWidth / photoWidth
-  if ((window.innerHeight / photoHeight) < multiplier) {
+  if (window.innerHeight / photoHeight < multiplier) {
     multiplier = window.innerHeight / photoHeight
   }
   let displayHeight = photoHeight * multiplier
@@ -14,19 +14,31 @@ const BoundingBoxes = ({ photoWidth, photoHeight, boxes }) => {
 
   return (
     <div className="BoundingBoxes">
-      {
-        boxes.map((box, index) => {
-          let width = (box.sizeX * displayWidth) + 'px'
-          let height = (box.sizeY * displayHeight) + 'px'
-          let left = offsetLeft + (box.positionX * displayWidth) - (box.sizeX * displayWidth / 2) + 'px'
-          let top = offsetTop + (box.positionY * displayHeight) - (box.sizeY * displayHeight / 2) + 'px'
-          return (
-            <div className="FeatureBox" key={index} style={{left: left, top: top, width: width, height: height}}>
-              <div className="FeatureLabel" key={index}>{box.name}</div>
+      {boxes.map((box, index) => {
+        let width = box.sizeX * displayWidth + 'px'
+        let height = box.sizeY * displayHeight + 'px'
+        let left =
+          offsetLeft +
+          box.positionX * displayWidth -
+          (box.sizeX * displayWidth) / 2 +
+          'px'
+        let top =
+          offsetTop +
+          box.positionY * displayHeight -
+          (box.sizeY * displayHeight) / 2 +
+          'px'
+        return (
+          <div
+            className={`FeatureBox ${className}`}
+            key={index}
+            style={{ left: left, top: top, width: width, height: height }}
+          >
+            <div className="FeatureLabel" key={index}>
+              {box.name}
             </div>
-          )
-        })
-      }
+          </div>
+        )
+      })}
     </div>
   )
 }

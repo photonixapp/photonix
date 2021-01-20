@@ -1,3 +1,4 @@
+import os
 import re
 from uuid import UUID
 
@@ -28,12 +29,20 @@ def results_for_model_on_photo(model, photo_id):
     elif hasattr(photo_id, 'id'):
         photo = photo_id
 
+    # import pdb; pdb.set_trace()
+
     # Is an individual filename so return the prediction
     if not is_photo_instance:
         return None, model.predict(photo_id)
 
     # Is a Photo model instance so needs saving
     if not photo:
+        # Handle running scripts from command line and Photo IDs
+        if not os.environ.get('DJANGO_SETTINGS_MODULE'):
+            os.environ.setdefault("DJANGO_SETTINGS_MODULE", "photonix.web.settings")
+            import django
+            django.setup()
+
         from photonix.photos.models import Photo
         photo = Photo.objects.get(id=photo_id)
 
