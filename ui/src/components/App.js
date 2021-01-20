@@ -23,6 +23,7 @@ import Logout from '../components/Logout'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 import Onboarding from '../components/Onboarding'
 import Settings from '../components/Settings'
+import Account from '../components/Account'
 import customTheme from '../theme'
 import '../static/css/App.css'
 import '../static/css/typography.css'
@@ -81,6 +82,11 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
                     />
               </Switch>
               <Switch>
+              <ModalRoute
+                  path="/account"
+                  parentPath="/"
+                  component={Account}
+                  />
                 <ModalRoute
                   path="/onboarding"
                   parentPath="/"
