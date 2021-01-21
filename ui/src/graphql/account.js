@@ -6,8 +6,7 @@ export const UPDATE_PASSWORD = gql`
     $newPassword: String!
   ) {
       changePassword(oldPassword:$oldPassword,newPassword:$newPassword) {
-        ok,
-      errors
+        ok
     }
   }
 `

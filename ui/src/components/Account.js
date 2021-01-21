@@ -1,30 +1,41 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Button, Stack } from '@chakra-ui/core'
-
+import { Alert, AlertIcon, Button, CloseButton } from '@chakra-ui/core'
+import { useMutation } from '@apollo/react-hooks'
 import '../static/css/Account.css'
 import history from '../history'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import ModalField from './ModalField'
 import '../static/css/Onboarding.css'
-import { useMutation } from '@apollo/react-hooks'
 import {UPDATE_PASSWORD} from '../graphql/account'
 
 export default function Account() {
   const [data, setData] = useState({oldPassword: '', newPassword: '', newPassword1: ''})
-  const [authUser] = useMutation(UPDATE_PASSWORD)
-  const { register, handleSubmit, errors, formState } = useForm()
+  const [showAlert, setShowAlert] = useState(false)
+  const [updatePassword] = useMutation(UPDATE_PASSWORD)
+  const { register, handleSubmit, errors, formState, setError } = useForm()
+
   const onSubmit = data => {
-    console.log(data);
+    updatePassword({
+      variables: {
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword
+      },
+    }).then(res =>{
+      if (!res.data.changePassword.ok) {
+        setError('oldPassword', 'manual', "Old password doesn't match!")
+      } else {
+        setShowAlert(true)
+      }
+    })
+    .catch(e => {})
   }
   const onPasswordChange = (e) => {
-    console.log(e.target.value)
     data[e.target.name] = e.target.value
     setData(data)
   }
 
   const validatePassword = (value) => {
-    console.log(data, value)
     if (data.newPassword === value) {
       return true
     }
@@ -38,7 +49,13 @@ export default function Account() {
       </span>
       <h1>Account</h1>
       <h2>Change password</h2>
-      
+      {showAlert &&
+        <Alert status="success" variant="solid" style={{marginTop: '10px'}}>
+          <AlertIcon />
+          Password uploaded successfully!
+          <CloseButton position="absolute" right="8px" top="8px" onClick={() => setShowAlert(false)} />
+        </Alert>
+      }
       <form onSubmit={handleSubmit(onSubmit)}>
         <ModalField
           name="oldPassword"
