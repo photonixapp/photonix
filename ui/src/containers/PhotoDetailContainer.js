@@ -69,7 +69,7 @@ const GET_PHOTO = gql`
           name
         }
       }
-      genricTags {
+      genericTags {
         id
         tag {
           id

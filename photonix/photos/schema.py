@@ -56,7 +56,7 @@ class PhotoNode(DjangoObjectType):
     style_tags = graphene.List(PhotoTagType)
     width = graphene.Int()
     height = graphene.Int()
-    genric_tags = graphene.List(PhotoTagType)
+    generic_tags = graphene.List(PhotoTagType)
 
     class Meta:
         model = Photo
@@ -89,7 +89,7 @@ class PhotoNode(DjangoObjectType):
     def resolve_height(self, info):
         return self.dimensions[1]
 
-    def resolve_genric_tags(self, info):
+    def resolve_generic_tags(self, info):
         return self.photo_tags.filter(tag__type='G')
 
 class PhotoFilter(django_filters.FilterSet):
@@ -646,7 +646,7 @@ class PhotoRating(graphene.Mutation):
 
 
 class CreateGenricTag(graphene.Mutation):
-    """Mutation to save create genric tag."""
+    """Mutation to save create generic tag."""
 
     class Arguments:
         """Docstring for Arguments."""
@@ -681,6 +681,7 @@ class CreateGenricTag(graphene.Mutation):
             photo=Photo.objects.get(id=photo_id),
             tag=tag_obj,
             confidence=1.0,
+            significance=1.0,
             verified=True,
             source='H',
         )
@@ -689,8 +690,8 @@ class CreateGenricTag(graphene.Mutation):
             photo_tag_id=photo_tag_obj.id, name=tag_obj.name)
 
 
-class RemoveGenricTag(graphene.Mutation):
-    """docstring for remove or delete genric tag."""
+class RemoveGenericTag(graphene.Mutation):
+    """docstring for remove or delete generic tag."""
 
     class Arguments:
         """docstring for Arguments."""
@@ -705,15 +706,15 @@ class RemoveGenricTag(graphene.Mutation):
         """Mutate method."""
         if Photo.objects.filter(photo_tags__tag__id=tag_id).count() == 1:
             Tag.objects.filter(id=tag_id).delete()
-            return RemoveGenricTag(ok=True)
+            return RemoveGenericTag(ok=True)
         Photo.objects.get(id=photo_id).photo_tags.remove(PhotoTag.objects.get(tag__id=tag_id))
         if not Photo.objects.get(id=photo_id).photo_tags.filter(tag__id=tag_id):
-            return RemoveGenricTag(ok=True)
-        return RemoveGenricTag(ok=False)
+            return RemoveGenericTag(ok=True)
+        return RemoveGenericTag(ok=False)
 
 
 class Mutation(graphene.ObjectType):
-    """Mutaion."""
+    """Mutation."""
 
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
@@ -724,5 +725,5 @@ class Mutation(graphene.ObjectType):
     Photo_importing = PhotoImporting.Field()
     image_analysis = ImageAnalysis.Field()
     photo_rating = PhotoRating.Field()
-    create_genric_tag = CreateGenricTag.Field()
-    remove_genric_tag = RemoveGenricTag.Field()
+    create_generic_tag = CreateGenricTag.Field()
+    remove_generic_tag = RemoveGenericTag.Field()

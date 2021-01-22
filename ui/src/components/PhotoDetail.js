@@ -166,7 +166,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
             }
               <div className="box">
                 <h2>Tags <EditIcon alt="Edit" onClick={() => setEditorMode(!editorMode)} /></h2>
-                <EditableTagContainer tags={photo.genricTags} editorMode={editorMode} photoId={photoId} refetch={refetch} />
+                <EditableTagContainer tags={photo.genericTags} editorMode={editorMode} photoId={photoId} refetch={refetch} />
               </div>
           </div>
         </div>

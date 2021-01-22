@@ -26,7 +26,7 @@ const EditableTag = ({tags, editorMode, photoId, refetch}) => {
         name:newTag
       }
     }).then((tag) => {
-      if (tag.data.createGenricTag.ok) {
+      if (tag.data.createGenericTag.ok) {
         setNewTag('')
         refetch()
       }
@@ -41,7 +41,7 @@ const EditableTag = ({tags, editorMode, photoId, refetch}) => {
         photoId
       }
     }).then((res) => {
-      if (res.data.removeGenricTag.ok)
+      if (res.data.removeGenericTag.ok)
         refetch()
     })
     .catch(e => {})

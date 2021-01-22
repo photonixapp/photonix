@@ -1,11 +1,11 @@
 import gql from "graphql-tag"
 
 export const CREATE_TAG = gql`
-  mutation createGenricTag(
+  mutation createGenericTag(
     $name: String!,
     $photoId: ID!
   ) {
-    createGenricTag(name: $name, photoId: $photoId) {
+    createGenericTag(name: $name, photoId: $photoId) {
       ok
       photoTagId
       tagId
@@ -14,11 +14,11 @@ export const CREATE_TAG = gql`
   }
 `
 export const REMOVE_TAG = gql`
-  mutation removeGenricTag(
+  mutation removeGenericTag(
     $tagId: ID!,
     $photoId: ID!
   ) {
-    removeGenricTag(tagId:$tagId, photoId:$photoId) {
+    removeGenericTag(tagId:$tagId, photoId:$photoId) {
       ok
     }
   }
