@@ -42,7 +42,6 @@ class FaceDetectionModel(BaseModel):
     def predict(self, image_file, min_score=0.99):
         image = Image.open(image_file)
         image = np.asarray(image)
-        # detector = MTCNN()
         results = self.graph.detect_faces(image)
         return list(filter(lambda f: f['confidence'] > min_score, results))
 

@@ -245,6 +245,8 @@ class PhotoTag(UUIDModel, VersionedModel):
     position_y = models.FloatField(null=True)
     size_x = models.FloatField(null=True)
     size_y = models.FloatField(null=True)
+    # A place to store extra JSON data such as face feature positions for eyes, nose and mouth
+    extra_data = models.TextField(null=True)
 
     class Meta:
         ordering = ['-significance']
