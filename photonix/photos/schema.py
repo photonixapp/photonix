@@ -262,7 +262,7 @@ class Query(graphene.ObjectType):
     def resolve_all_exposures(self, info, **kwargs):
         user = info.context.user
         photo_list = Photo.objects.filter(library__users__user=user).exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
-        return sorted(photo_list, key=lambda i:  float(i.split('/')[0]) /  float(i.split('/')[1] if '/' in i else i))
+        return sorted(photo_list, key=lambda i: float(i.split('/')[0]) / float(i.split('/')[1] if '/' in i else i))
 
     def resolve_all_iso_speeds(self, info, **kwargs):
         user = info.context.user
