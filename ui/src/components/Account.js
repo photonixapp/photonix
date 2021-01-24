@@ -1,34 +1,39 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Alert, AlertIcon, Button, CloseButton } from '@chakra-ui/core'
+import { Alert, AlertIcon, Button, CloseButton, Flex } from '@chakra-ui/core'
 import { useMutation } from '@apollo/react-hooks'
-import '../static/css/Account.css'
-import history from '../history'
-import { ReactComponent as CloseIcon } from '../static/images/close.svg'
+
 import ModalField from './ModalField'
+import Modal from './Modal'
+import { UPDATE_PASSWORD } from '../graphql/account'
+import '../static/css/Account.css'
 import '../static/css/Onboarding.css'
-import {UPDATE_PASSWORD} from '../graphql/account'
 
 export default function Account() {
-  const [data, setData] = useState({oldPassword: '', newPassword: '', newPassword1: ''})
+  const [data, setData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    newPassword1: '',
+  })
   const [showAlert, setShowAlert] = useState(false)
   const [updatePassword] = useMutation(UPDATE_PASSWORD)
   const { register, handleSubmit, errors, formState, setError } = useForm()
 
-  const onSubmit = data => {
+  const onSubmit = (data) => {
     updatePassword({
       variables: {
         oldPassword: data.oldPassword,
-        newPassword: data.newPassword
+        newPassword: data.newPassword,
       },
-    }).then(res =>{
-      if (!res.data.changePassword.ok) {
-        setError('oldPassword', 'manual', "Old password doesn't match!")
-      } else {
-        setShowAlert(true)
-      }
     })
-    .catch(e => {})
+      .then((res) => {
+        if (!res.data.changePassword.ok) {
+          setError('oldPassword', 'manual', "Old password doesn't match!")
+        } else {
+          setShowAlert(true)
+        }
+      })
+      .catch((e) => {})
   }
   const onPasswordChange = (e) => {
     data[e.target.name] = e.target.value
@@ -43,63 +48,70 @@ export default function Account() {
   }
 
   return (
-    <div className="Account">
-      <span onClick={history.goBack}>
-        <CloseIcon className="closeIcon" alt="Close" />
-      </span>
-      <h1>Account</h1>
-      <h2>Change password</h2>
-      {showAlert &&
-        <Alert status="success" variant="solid" style={{marginTop: '10px'}}>
-          <AlertIcon />
-          Password uploaded successfully!
-          <CloseButton position="absolute" right="8px" top="8px" onClick={() => setShowAlert(false)} />
-        </Alert>
-      }
+    <Modal className="Account" topAccent={true}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <ModalField
-          name="oldPassword"
-          type="password"
-          label="Old password"
-          required={true}
-          minLength={8}
-          register={register}
-          errors={errors}
-          defaultValue={data.oldPassword}
-          onChange={onPasswordChange}
-        />
-        <ModalField
-          name="newPassword"
-          type="password"
-          label="New password"
-          required={true}
-          minLength={8}
-          register={register}
-          errors={errors}
-          defaultValue={data.newPassword}
-          onChange={onPasswordChange}
-        />
-        <ModalField
-          name="newPassword1"
-          type="password"
-          label="New password (again)"
-          required={true}
-          minLength={8}
-          register={register}
-          errors={errors}
-          defaultValue={data.newPassword1}
-          onChange={onPasswordChange}
-          validate={validatePassword}
-        />
-        <Button
-          type="submit"
-          variantColor="teal"
-          variant="solid"
-          isLoading={formState.isSubmitting}
-        >
-          Save
-        </Button>
+        <Flex direction="column" justify="space-between">
+          <div>
+            <h1>Account</h1>
+            <h2>Change password</h2>
+            {showAlert && (
+              <Alert
+                status="success"
+                variant="solid"
+                style={{ margin: '20px 0' }}
+              >
+                <AlertIcon />
+                Password saved!
+              </Alert>
+            )}
+            <ModalField
+              name="oldPassword"
+              type="password"
+              label="Old password"
+              required={true}
+              minLength={1}
+              register={register}
+              errors={errors}
+              defaultValue={data.oldPassword}
+              onChange={onPasswordChange}
+            />
+            <ModalField
+              name="newPassword"
+              type="password"
+              label="New password"
+              required={true}
+              minLength={8}
+              register={register}
+              errors={errors}
+              defaultValue={data.newPassword}
+              onChange={onPasswordChange}
+            />
+            <ModalField
+              name="newPassword1"
+              type="password"
+              label="New password (again)"
+              required={true}
+              minLength={8}
+              register={register}
+              errors={errors}
+              defaultValue={data.newPassword1}
+              onChange={onPasswordChange}
+              validate={validatePassword}
+            />
+          </div>
+          <Flex justify="space-between" className="buttonBar">
+            <div />
+            <Button
+              type="submit"
+              variantColor="teal"
+              variant="solid"
+              isLoading={formState.isSubmitting}
+            >
+              Save
+            </Button>
+          </Flex>
+        </Flex>
       </form>
-    </div>
+    </Modal>
   )
 }

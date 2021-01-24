@@ -49,7 +49,7 @@ const client = new ApolloClient({
     new RetryLink(),
     createHttpLink({
       credentials: 'same-origin', // Required for older versions of Chromium (~v58)
-    })
+    }),
   ]),
   cache: new InMemoryCache(),
 })
@@ -73,36 +73,36 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters }) => {
                   path="/"
                   render={() => (
                     <BrowseContainer
-                    selectedFilters={selectedFilters}
-                    search=""
-                    onFilterToggle={onFilterToggle}
-                    onClearFilters={onClearFilters}
+                      selectedFilters={selectedFilters}
+                      search=""
+                      onFilterToggle={onFilterToggle}
+                      onClearFilters={onClearFilters}
                     />
-                    )}
-                    />
+                  )}
+                />
               </Switch>
               <Switch>
-              <ModalRoute
+                <ModalRoute
                   path="/account"
                   parentPath="/"
                   component={Account}
-                  />
+                />
                 <ModalRoute
                   path="/onboarding"
                   parentPath="/"
                   component={Onboarding}
                   onBackdropClick={() => {}}
-                  />
+                />
                 <ModalRoute
                   path="/settings"
                   parentPath="/"
                   component={Settings}
-                  />
+                />
                 <ModalRoute
                   path="/photo/:photoId"
                   parentPath="/"
                   component={PhotoDetailContainer}
-                  />
+                />
               </Switch>
               <ModalContainer />
             </div>

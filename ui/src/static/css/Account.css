@@ -1,28 +1,3 @@
-.Account {
-  width: 700px;
-  height: 550px;
-  background: #1d1d1d;
-  padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  position: relative;
-  cursor: auto;
-}
-.Account h1, h2{
-  margin: 0;
-}
-.Account h2 {
-  font-size: 24px;
-}
-.Account .closeIcon {
-  filter: invert(0.9);
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-}
-.Account form {
-  margin: 40px 0;
-}
 .Account .inputGroup {
   margin: 25px 0;
   display: flex;
@@ -30,8 +5,8 @@
   align-items: center;
 }
 .Account label {
-    width: 33%;
-    padding-top: 9px;
+  width: 33%;
+  padding-top: 9px;
 }
 .Account .field {
   width: 66.6%;
