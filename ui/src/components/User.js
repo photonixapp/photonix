@@ -14,6 +14,7 @@ const User = ({ profile, libraries }) => (
     <img src={arrowDown} className="arrowDown" alt="" />
     <ul className="menu">
       {profile ? (
+        <Link to="/account">
         <li className="profile">
           <img src={accountCircle} alt="Settings" />{' '}
           <div>
@@ -21,6 +22,7 @@ const User = ({ profile, libraries }) => (
             <span className="email">{profile.email}</span>
           </div>
         </li>
+        </Link>
       ) : null}
       {libraries
         ? libraries.map(({ id, name }) => (

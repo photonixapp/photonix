@@ -23,6 +23,7 @@ import Logout from '../components/Logout'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 import Onboarding from '../components/Onboarding'
 import Settings from '../components/Settings'
+import Account from '../components/Account'
 import customTheme from '../theme'
 import '../static/css/App.css'
 import '../static/css/typography.css'
@@ -48,12 +49,18 @@ const client = new ApolloClient({
     new RetryLink(),
     createHttpLink({
       credentials: 'same-origin', // Required for older versions of Chromium (~v58)
-    })
+    }),
   ]),
   cache: new InMemoryCache(),
 })
 
-const App = ({ selectedFilters, onFilterToggle, onClearFilters, search, updateSearchText }) => {
+const App = ({
+  selectedFilters,
+  onFilterToggle,
+  onClearFilters,
+  search,
+  updateSearchText,
+}) => {
   const { colorMode, toggleColorMode } = useColorMode()
   const isMobileApp = navigator.userAgent.indexOf('PhotonixMobileApp') > -1
 
@@ -72,32 +79,37 @@ const App = ({ selectedFilters, onFilterToggle, onClearFilters, search, updateSe
                   path="/"
                   render={() => (
                     <BrowseContainer
-                    selectedFilters={selectedFilters}
-                    onFilterToggle={onFilterToggle}
-                    onClearFilters={onClearFilters}
-                    search={search}
-                    updateSearchText={updateSearchText}
+                      selectedFilters={selectedFilters}
+                      onFilterToggle={onFilterToggle}
+                      onClearFilters={onClearFilters}
+                      search={search}
+                      updateSearchText={updateSearchText}
                     />
-                    )}
-                    />
+                  )}
+                />
               </Switch>
               <Switch>
+                <ModalRoute
+                  path="/account"
+                  parentPath="/"
+                  component={Account}
+                />
                 <ModalRoute
                   path="/onboarding"
                   parentPath="/"
                   component={Onboarding}
                   onBackdropClick={() => {}}
-                  />
+                />
                 <ModalRoute
                   path="/settings"
                   parentPath="/"
                   component={Settings}
-                  />
+                />
                 <ModalRoute
                   path="/photo/:photoId"
                   parentPath="/"
                   component={PhotoDetailContainer}
-                  />
+                />
               </Switch>
               <ModalContainer />
             </div>
