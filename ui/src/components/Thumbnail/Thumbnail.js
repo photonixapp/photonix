@@ -35,8 +35,8 @@ const Container = styled('li')`
     height: 96px;
 
     img {
-      width: 128px;
-      height: 128px;
+      width: 96px;
+      height: 96px;
     }
   }
 `
