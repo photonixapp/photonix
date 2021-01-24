@@ -132,6 +132,8 @@ class ChangePassword(graphene.Mutation):
     @staticmethod
     def mutate(self, info, old_password, new_password):
         """Mutate method for change password."""
+        if os.environ.get('DEMO', False):
+            raise Exception("Password cannot be changed in demo mode!")
         if authenticate(username=info.context.user.username, password=old_password):
             info.context.user.set_password(new_password)
             info.context.user.save()
