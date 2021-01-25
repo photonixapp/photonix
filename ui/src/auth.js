@@ -1,7 +1,7 @@
 import history from './history'
 import Cookies from 'js-cookie'
 
-import { store } from './index'
+import { store } from './components/Init'
 
 const TOKEN_EXPIRY_PREEMPT = 2 * 60 * 1000 // Refresh token this many milliseconds before expiry time
 const DEFAULT_REFRESH_INTERVAL = 3 * 1000 // Only used on first login, when we don't get given an expiry time (ms)
@@ -41,15 +41,21 @@ export const refreshToken = () => {
       },
     }),
   })
-    .then(response => {
+    .then((response) => {
       return response.json()
     })
-    .then(response => {
+    .then((response) => {
       console.log(response.data)
       if (response.data && response.data.refreshToken) {
         // We got token and refreshToken
-        Cookies.set('refreshToken', response.data.refreshToken.refreshToken, { expires: 365, sameSite: 'strict' })
-        store.dispatch({type: 'USER_CHANGED', user: {username: response.data.refreshToken.payload.username}})
+        Cookies.set('refreshToken', response.data.refreshToken.refreshToken, {
+          expires: 365,
+          sameSite: 'strict',
+        })
+        store.dispatch({
+          type: 'USER_CHANGED',
+          user: { username: response.data.refreshToken.payload.username },
+        })
 
         // Schedule next token refresh
         let expiry = response.data.refreshToken.payload.exp
@@ -79,14 +85,14 @@ export const refreshToken = () => {
         scheduleTokenRefresh(ERROR_REFRESH_INTERVAL)
       }
     })
-    .catch(function(error) {
+    .catch(function (error) {
       // All other errors, assume network issue and shedule a new refresh
       console.log('Network error while refreshing token')
       scheduleTokenRefresh(ERROR_REFRESH_INTERVAL)
     })
 }
 
-export const scheduleTokenRefresh = timeout => {
+export const scheduleTokenRefresh = (timeout) => {
   // timeout is ms until next refresh attempt
   // Note that old refresh token will be automatically revoked by Django signal (one time use)
   let nextRefresh = timeout ? timeout : DEFAULT_REFRESH_INTERVAL
@@ -94,7 +100,7 @@ export const scheduleTokenRefresh = timeout => {
   timeout = setTimeout(refreshToken, nextRefresh)
 }
 
-export const revokeRefreshToken = refreshToken => {
+export const revokeRefreshToken = (refreshToken) => {
   // This only needs to be called on logout as old refresh tokens get automatically revoked by Django signal (one time use)
   console.log('revokeRefreshToken ' + refreshToken)
 
@@ -115,10 +121,10 @@ export const revokeRefreshToken = refreshToken => {
       },
     }),
   })
-    .then(response => {
+    .then((response) => {
       return response.json()
     })
-    .then(response => {
+    .then((response) => {
       console.log(response.data)
       if (response.data.revokeToken) {
         return true
@@ -126,9 +132,12 @@ export const revokeRefreshToken = refreshToken => {
     })
 }
 
-export const logIn = refreshToken => {
+export const logIn = (refreshToken) => {
   if (refreshToken) {
-    Cookies.set('refreshToken', refreshToken, { expires: 365, sameSite: 'strict' })
+    Cookies.set('refreshToken', refreshToken, {
+      expires: 365,
+      sameSite: 'strict',
+    })
   }
   loggedIn = true
 }

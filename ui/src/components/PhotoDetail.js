@@ -14,7 +14,6 @@ import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import '../static/css/PhotoDetail.css'
-import { setStarRating } from '../utils/photos'
 
 
 const PhotoDetail = ({ photoId, photo, refetch }) => {
@@ -29,7 +28,6 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   const onStarClick = (num, e) => {
     if (starRating === num) {
       updateStarRating(0)
-      setStarRating(photoId, 0)
       updatePhoto({
         variables: {
           photoId:photoId,
@@ -39,7 +37,6 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     }
     else {
       updateStarRating(num)
-      setStarRating(photoId, num)
       updatePhoto({
         variables: {
           photoId:photoId,

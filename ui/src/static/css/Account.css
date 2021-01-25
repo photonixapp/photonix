@@ -1,0 +1,15 @@
+.Account .inputGroup {
+  margin: 25px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.Account label {
+  width: 33%;
+  padding-top: 9px;
+}
+.Account .field {
+  width: 66.6%;
+  padding-right: 1px;
+  margin-bottom: 15px;
+}
