@@ -675,17 +675,9 @@ class CreateGenricTag(graphene.Mutation):
             Photo.objects.get(id=photo_id)
         except Exception as e:
             raise GraphQLError("Invalid photo id!")
-        try:
-            tag_obj = Tag.objects.create(
-                library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
-                name=name,
-                type='G',
-                source='H',
-            )
-        except:
-            return CreateGenricTag(
-                ok=False, tag_id=None,
-                photo_tag_id=None, name=None)
+        tag_obj, created = Tag.objects.get_or_create(
+            library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
+            name=name, type='G', source='H', defaults={})
         photo_tag_obj = PhotoTag.objects.create(
             photo=Photo.objects.get(id=photo_id),
             tag=tag_obj,
