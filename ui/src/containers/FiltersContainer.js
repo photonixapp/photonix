@@ -1,4 +1,4 @@
-import React  from 'react'
+import React, { useEffect }  from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { useSelector } from 'react-redux'
 import gql from "graphql-tag"
@@ -40,6 +40,10 @@ const GET_FILTERS = gql`
       id
       name
     }
+    allGenericTags {
+      name
+      id
+    }
     allApertures
     allExposures
     allIsoSpeeds
@@ -70,8 +74,10 @@ function createFilterSelection(sectionName, data, prefix='tag') {
 
 const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const user = useSelector(state => state.user)  // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
-  const { loading, error, data } = useQuery(GET_FILTERS, {skip: !user})
-
+  const { loading, error, data, refetch } = useQuery(GET_FILTERS, {skip: !user})
+  useEffect(() => {
+    refetch()
+  })
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
@@ -79,6 +85,9 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   if (data) {
     if (data.allObjectTags.length) {
       filterData.push(createFilterSelection('Objects', data.allObjectTags))
+    }
+    if (data.allGenericTags.length) {
+      filterData.push(createFilterSelection('Generic Tags', data.allGenericTags))
     }
     if (data.allLocationTags.length) {
       filterData.push(createFilterSelection('Locations', data.allLocationTags))

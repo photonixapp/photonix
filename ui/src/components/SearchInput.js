@@ -10,6 +10,7 @@ import { ReactComponent as StarIcon } from '../static/images/star_outline.svg'
 
 const GROUP_ICONS = {
   'Objects':        ObjectsIcon,
+  'Generic Tags':   ObjectsIcon,
   'Locations':      LocationsIcon,
   'Colors':         ColorsIcon,
   'Styles':         StylesIcon,
