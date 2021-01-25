@@ -4,10 +4,18 @@ import styled from '@emotion/styled'
 import StarRating from '../StarRating'
 import { PHOTO_UPDATE } from '../../graphql/photo'
 import { useMutation } from '@apollo/react-hooks'
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/opacity.css';
 
 const Container = styled('li')`
   width: 128px;
   height: 128px;
+
+  img {
+    width: 128px;
+    height: 128px;
+  }
+
   border: 1px solid #888;
   list-style: none;
   margin: 0 20px 20px 0;
@@ -25,6 +33,11 @@ const Container = styled('li')`
   @media all and (max-width: 700px) {
     width: 96px;
     height: 96px;
+
+    img {
+      width: 96px;
+      height: 96px;
+    }
   }
 `
 const Image = styled('div')`
@@ -35,7 +48,7 @@ const Image = styled('div')`
 `
 const StarRatingStyled = styled('span')`
   position: relative;
-  top: -18px;
+  top: -25px;
   left: 1px;
 `
 
@@ -69,7 +82,7 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
   return (
     <Link to={`/photo/${id}`} key={id}>
       <Container>
-        <Image style={{ backgroundImage: 'url(' + imageUrl + ')' }} />
+        <LazyLoadImage effect="opacity" src={imageUrl} />
         <StarRatingStyled>
           <StarRating starRating={newStarRating} onStarClick={onStarClick} />
         </StarRatingStyled>
