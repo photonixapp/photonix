@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import history from '../../history'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'

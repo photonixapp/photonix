@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Alert, AlertIcon, Button, CloseButton, Flex } from '@chakra-ui/core'
+import { Alert, AlertIcon, Button, Flex } from '@chakra-ui/core'
 import { useMutation } from '@apollo/react-hooks'
 
 import ModalField from './ModalField'

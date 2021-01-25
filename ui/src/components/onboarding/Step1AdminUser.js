@@ -1,7 +1,5 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import gql from 'graphql-tag'
-import { useQuery } from '@apollo/react-hooks'
 import { useStateMachine } from 'little-state-machine'
 import { Stack } from '@chakra-ui/core'
 
@@ -9,24 +7,10 @@ import updateAction from './updateAction'
 import Modal from './../Modal'
 import ModalForm from '../ModalForm'
 import ModalField from '../ModalField'
-import Spinner from '../Spinner'
-
-const GET_LIBRARIES = gql`
-  {
-    allLibraries {
-      id
-      name
-    }
-  }
-`
 
 const Step1AdminUser = ({ history }) => {
-  //const { loading, error, data } = useQuery(GET_LIBRARIES)
   const { register, handleSubmit, errors, formState } = useForm()
   const { action, state } = useStateMachine(updateAction)
-
-  // if (loading) return <Spinner />
-  // if (error) return <p>Error :(</p>
 
   const onPasswordChange = (e) => {
     action({ password: e.target.value })

@@ -1,29 +1,26 @@
-import React from 'react';
-import { MemoryRouter } from 'react-router'
+import React from 'react'
 
-import Thumbnail from './Thumbnail';
+import Thumbnail from './Thumbnail'
 
 export default {
   title: 'Photonix/Photo List/Thumbnail',
   component: Thumbnail,
   argTypes: { onStarRatingChange: { action: 'onStarRatingChange' } },
-};
+}
 
-const Template = (args) => (
-  <MemoryRouter>
-    <Thumbnail {...args} />
-  </MemoryRouter>
-);
+const Template = (args) => <Thumbnail {...args} />
 
-export const DefaultThumbnail = Template.bind({});
+export const DefaultThumbnail = Template.bind({})
 DefaultThumbnail.args = {
   id: 1,
-  imageUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12NgWlYGAAHMAR/qx7d1AAAAAElFTkSuQmCC',
-};
+  imageUrl:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12NgWlYGAAHMAR/qx7d1AAAAAElFTkSuQmCC',
+}
 
-export const StarRatedThumbnail = Template.bind({});
+export const StarRatedThumbnail = Template.bind({})
 StarRatedThumbnail.args = {
   id: 1,
-  imageUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12NgWlYGAAHMAR/qx7d1AAAAAElFTkSuQmCC',
+  imageUrl:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12NgWlYGAAHMAR/qx7d1AAAAAElFTkSuQmCC',
   starRating: 3,
-};
+}
