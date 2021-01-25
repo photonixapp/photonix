@@ -213,6 +213,7 @@ class Query(graphene.ObjectType):
     all_person_tags = graphene.List(PersonTagType)
     all_color_tags = graphene.List(ColorTagType)
     all_style_tags = graphene.List(StyleTagType)
+    all_generic_tags = graphene.List(LocationTagType)
     library_setting = graphene.Field(LibrarySetting)
 
     def resolve_all_libraries(self, info, **kwargs):
@@ -312,6 +313,10 @@ class Query(graphene.ObjectType):
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
         return Tag.objects.filter(library__users__user=user, type='S')
+
+    def resolve_all_generic_tags(self, info, **kwargs):
+        user = info.context.user
+        return Tag.objects.filter(library__users__user=user, type='G')
 
     def resolve_library_setting(self, info, **kwargs):
         """Api for library setting query."""
