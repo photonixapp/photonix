@@ -12,6 +12,7 @@ export default class AppContainer extends React.Component {
       detailPhoto: null,
     }
 
+    // Functions added to the window so things like desktop and mobile apps can call them
     window.showSettings = () => {
       history.push('/settings')
     }
@@ -21,44 +22,45 @@ export default class AppContainer extends React.Component {
     let filterIds = this.state.selectedFilterIds
     let filters = this.state.selectedFilters
     let index = filterIds.indexOf(id)
-    let flashIndex = filters.findIndex(item => item.group === "Flash")
-    let isoIndex = filters.findIndex(item => item.group === "ISO Speed")
-    let focalLengthIndex = filters.findIndex(item => item.group === "Focal Length")
-    let apertureIndex = filters.findIndex(item => item.group === "Aperture")
-    let exposureIndex = filters.findIndex(item => item.group === "Exposure")
-    let ratingIndex = filters.findIndex(item => item.group === "Rating")
+    let flashIndex = filters.findIndex((item) => item.group === 'Flash')
+    let isoIndex = filters.findIndex((item) => item.group === 'ISO Speed')
+    let focalLengthIndex = filters.findIndex(
+      (item) => item.group === 'Focal Length'
+    )
+    let apertureIndex = filters.findIndex((item) => item.group === 'Aperture')
+    let exposureIndex = filters.findIndex((item) => item.group === 'Exposure')
+    let ratingIndex = filters.findIndex((item) => item.group === 'Rating')
     if (index === -1) {
-        if(flashIndex !== -1 && group === "Flash" ) {
-          filterIds[flashIndex] = id
-          filters[flashIndex] = {id:id,name:name,group:group}
-        } else if(isoIndex !== -1 && group === "ISO Speed") {
-          filterIds[isoIndex] = id
-          filters[isoIndex] = {id:id,name:name,group:group}
-        } else if(focalLengthIndex !== -1 && group === "Focal Length") {
-          filterIds[focalLengthIndex] = id
-          filters[focalLengthIndex] = {id:id,name:name,group:group}
-        } else if(apertureIndex !== -1 && group === "Aperture") {
-          filterIds[apertureIndex] = id
-          filters[apertureIndex] = {id:id,name:name,group:group}
-        } else if(exposureIndex !== -1 && group === "Exposure") {
-          filterIds[exposureIndex] = id
-          filters[exposureIndex] = {id:id,name:name,group:group}
-        } else if(ratingIndex !== -1 && group === "Rating") {
-          filterIds[ratingIndex] = id
-          filters[ratingIndex] = {id:id,name:name,group:group}
-        }
-        else {
-          filterIds.push(id)
-          filters.push({
-            id: id,
-            name: name,
-            group: group,
-          })
-        }
+      if (flashIndex !== -1 && group === 'Flash') {
+        filterIds[flashIndex] = id
+        filters[flashIndex] = { id: id, name: name, group: group }
+      } else if (isoIndex !== -1 && group === 'ISO Speed') {
+        filterIds[isoIndex] = id
+        filters[isoIndex] = { id: id, name: name, group: group }
+      } else if (focalLengthIndex !== -1 && group === 'Focal Length') {
+        filterIds[focalLengthIndex] = id
+        filters[focalLengthIndex] = { id: id, name: name, group: group }
+      } else if (apertureIndex !== -1 && group === 'Aperture') {
+        filterIds[apertureIndex] = id
+        filters[apertureIndex] = { id: id, name: name, group: group }
+      } else if (exposureIndex !== -1 && group === 'Exposure') {
+        filterIds[exposureIndex] = id
+        filters[exposureIndex] = { id: id, name: name, group: group }
+      } else if (ratingIndex !== -1 && group === 'Rating') {
+        filterIds[ratingIndex] = id
+        filters[ratingIndex] = { id: id, name: name, group: group }
       } else {
-        filterIds.splice(index, 1)
-        filters.splice(index, 1)
+        filterIds.push(id)
+        filters.push({
+          id: id,
+          name: name,
+          group: group,
+        })
       }
+    } else {
+      filterIds.splice(index, 1)
+      filters.splice(index, 1)
+    }
     this.setState({
       selectedFilterIds: filterIds,
       selectedFilters: filters,
@@ -69,16 +71,12 @@ export default class AppContainer extends React.Component {
     this.setState({
       selectedFilterIds: [],
       selectedFilters: [],
-      search: ''
+      search: '',
     })
   }
 
-  updateSearchText = event => {
-    this.setState({search: event.target.value})
-  }
-
-  logout = () => {
-    console.log('logged out')
+  updateSearchText = (event) => {
+    this.setState({ search: event.target.value })
   }
 
   render = () => {
