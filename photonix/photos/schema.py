@@ -672,14 +672,18 @@ class CreateGenricTag(graphene.Mutation):
     def mutate(self, info, name=None, photo_id=None):
         """Mutate method."""
         try:
-            Photo.objects.get(id=photo_id)
+            photo_obj = Photo.objects.get(id=photo_id)
         except Exception as e:
             raise GraphQLError("Invalid photo id!")
         tag_obj, created = Tag.objects.get_or_create(
             library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
             name=name, type='G', source='H', defaults={})
+        if (not created) and photo_obj.photo_tags.filter(tag=tag_obj).exists():
+            return CreateGenricTag(
+                ok=False, tag_id=None,
+                photo_tag_id=None, name=None)
         photo_tag_obj = PhotoTag.objects.create(
-            photo=Photo.objects.get(id=photo_id),
+            photo=photo_obj,
             tag=tag_obj,
             confidence=1.0,
             significance=1.0,
