@@ -1,7 +1,9 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Map, Marker, Popup, TileLayer } from 'react-leaflet'
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-markercluster'
 import '../static/css/Map.css'
+import 'react-leaflet-markercluster/dist/styles.min.css'; // sass
 
 
 const MapView = ({ photos, bounds, location, zoom, hideAttribution }) => {
@@ -25,13 +27,14 @@ const MapView = ({ photos, bounds, location, zoom, hideAttribution }) => {
       :
         null
     ))
-
     return (
       <div className="Map">
-        <Map bounds={bounds} boundsOptions={{padding: [100, 100], maxZoom: 15}}>
+        <MapContainer bounds={bounds} boundsOptions={{padding: [100, 100], maxZoom: 15}} zoom={4} center={[64.9631, 19.0208]}>
           {tileLayer}
+          <MarkerClusterGroup>
           {markers}
-        </Map>
+          </MarkerClusterGroup>
+        </MapContainer>
       </div>
     )
   }
@@ -46,10 +49,12 @@ const MapView = ({ photos, bounds, location, zoom, hideAttribution }) => {
 
     return (
       <div className="Map">
-        <Map center={location} zoom={zoom} zoomControl={true}>
+        <MapContainer center={location} zoom={zoom} zoomControl={true}>
           {tileLayer}
-          {markers}
-        </Map>
+          <MarkerClusterGroup>
+            {markers}
+          </MarkerClusterGroup>
+        </MapContainer>
       </div>
     )
   }
