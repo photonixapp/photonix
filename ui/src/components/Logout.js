@@ -6,7 +6,7 @@ import '../static/css/Logout.css'
 
 const Logout = props => {
   logOut()
-
+  localStorage.setItem("isSignin", false);
   setTimeout(() => {
     history.push('/login')
   }, 2000)

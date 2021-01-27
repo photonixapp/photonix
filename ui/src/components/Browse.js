@@ -20,6 +20,8 @@ const Browse = ({
   onClearFilters,
   onExpandCollapse,
   expanded,
+  search,
+  updateSearchText
 }) => {
   let content =
     mode === 'MAP' ? (
@@ -39,8 +41,10 @@ const Browse = ({
       <div className={expanded ? ` searchBar expanded` : `searchBar collapsed`}>
         <SearchContainer
           selectedFilters={selectedFilters}
+          search={search}
           onFilterToggle={onFilterToggle}
           onClearFilters={onClearFilters}
+          updateSearchText={updateSearchText}
         />
         <ul className="tabs">
           <Link to="?mode=timeline">

@@ -34,6 +34,11 @@ a {
   outline: none;
 }
 
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
 #root {
   height: 100%;
 }

@@ -68,7 +68,7 @@ function createFilterSelection(sectionName, data, prefix='tag') {
   }
 }
 
-const FiltersContainer = ({ onFilterToggle }) => {
+const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const user = useSelector(state => state.user)  // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const { loading, error, data } = useQuery(GET_FILTERS, {skip: !user})
 
@@ -116,6 +116,16 @@ const FiltersContainer = ({ onFilterToggle }) => {
       filterData.push(createFilterSelection('Focal Length', data.allFocalLengths, 'focalLength'))
     }
     filterData.push({
+      name: 'Rating',
+      items: [
+        {id: 'rating:1', name: 1},
+        {id: 'rating:2', name: 2},
+        {id: 'rating:3', name: 3},
+        {id: 'rating:4', name: 4},
+        {id: 'rating:5', name: 5}
+      ]
+    })
+    filterData.push({
       name: 'Flash',
       items: [{id: 'flash:on', name: 'On'}, {id: 'flash:off', name: 'Off'}]
     })
@@ -133,6 +143,7 @@ const FiltersContainer = ({ onFilterToggle }) => {
   return (
     <Filters
       data={filterData}
+      selectedFilters={selectedFilters}
       onToggle={onFilterToggle}
     />
   )

@@ -1,31 +1,36 @@
-import React, { useState, useEffect,useRef } from 'react'
-import history from '../history'
-import { useQuery,useMutation} from '@apollo/react-hooks';
+import React, { useState, useEffect, useRef } from 'react'
+import { useQuery, useMutation } from '@apollo/react-hooks'
 
 import {
   Switch,
   Flex,
   Stack,
-  Heading,
   FormLabel,
   Input,
   InputGroup,
   IconButton,
 } from '@chakra-ui/core'
 
-import { ReactComponent as CloseIcon } from '../static/images/close.svg'
-import '../static/css/Settings.css'
-import {SETTINGS_STYLE,SETTINGS_COLOR,SETTINGS_LOCATION,SETTINGS_OBJECT,SETTINGS_SOURCE_FOLDER,GET_SETTINGS} from '../graphql/setting'
+import Modal from './Modal'
+import {
+  SETTINGS_STYLE,
+  SETTINGS_COLOR,
+  SETTINGS_LOCATION,
+  SETTINGS_OBJECT,
+  SETTINGS_SOURCE_FOLDER,
+  GET_SETTINGS,
+} from '../graphql/setting'
 // import folder from '../static/images/folder.svg'
+import '../static/css/Settings.css'
 
 export default function Settings() {
   const [settings, setSettings] = useSettings()
   const availableSettings = [
-    {
-      key: 'sourceDirs',
-      type: 'path',
-      label: 'Source folder',
-    },
+    // {
+    //   key: 'sourceDirs',
+    //   type: 'path',
+    //   label: 'Source folder',
+    // },
     {
       key: 'watchPhotos',
       type: 'boolean',
@@ -54,37 +59,42 @@ export default function Settings() {
   ]
 
   function toggleBooleanSetting(key) {
-    console.log(key)
-    let newSettings = {...settings}
+    let newSettings = { ...settings }
     newSettings[key] = !settings[key]
     setSettings(newSettings)
-    switch(key) {
-      case "classificationStyleEnabled":
-          settingUpdateStyle({
-            variables: {
-              classificationStyleEnabled: newSettings.classificationStyleEnabled,
-            },
-          }).catch(e => {})
-    case  "classificationLocationEnabled":
+    switch (key) {
+      case 'classificationStyleEnabled':
+        settingUpdateStyle({
+          variables: {
+            classificationStyleEnabled: newSettings.classificationStyleEnabled,
+          },
+        }).catch((e) => {})
+        return key
+      case 'classificationLocationEnabled':
         settingUpdateLocation({
           variables: {
-            classificationLocationEnabled: newSettings.classificationLocationEnabled,
+            classificationLocationEnabled:
+              newSettings.classificationLocationEnabled,
           },
-        }).catch(e => {})
-    case  "classificationObjectEnabled":
+        }).catch((e) => {})
+        return key
+      case 'classificationObjectEnabled':
         settingUpdateObject({
           variables: {
-            classificationObjectEnabled: newSettings.classificationObjectEnabled,
+            classificationObjectEnabled:
+              newSettings.classificationObjectEnabled,
           },
-        }).catch(e => {})
-      case "classificationColorEnabled":
-          settingUpdateColor({
-            variables: {
-              classificationColorEnabled: newSettings.classificationColorEnabled,
-            },
-          }).catch(e => {})
-      }
+        }).catch((e) => {})
+        return key
+      case 'classificationColorEnabled':
+        settingUpdateColor({
+          variables: {
+            classificationColorEnabled: newSettings.classificationColorEnabled,
+          },
+        }).catch((e) => {})
+        return key
     }
+  }
 
   function onSelectSourceDir() {
     if (window.sendSyncToElectron) {
@@ -93,15 +103,15 @@ export default function Settings() {
     }
   }
 
-  function onChangeSourceDir (e) {
-    let newSettings = {...settings}
-    newSettings.sourceDirs = e.currentTarget.value 
+  function onChangeSourceDir(e) {
+    let newSettings = { ...settings }
+    newSettings.sourceDirs = e.currentTarget.value
     setSettings(newSettings)
     settingUpdateSourceFolder({
       variables: {
         sourceFolder: newSettings.sourceDirs,
       },
-    }).catch(e => {})
+    }).catch((e) => {})
   }
   const [settingUpdateStyle] = useMutation(SETTINGS_STYLE)
   const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
@@ -109,13 +119,9 @@ export default function Settings() {
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
   const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
 
-
   return (
-    <div className="Settings">
-      <span onClick={history.goBack}>
-        <CloseIcon className="closeIcon" alt="Close" />
-      </span>
-      <h2>Settings</h2>
+    <Modal className="Settings" topAccent={true}>
+      <h1>Settings</h1>
       <Stack spacing={4}>
         {availableSettings.map((item, index) => {
           let field = null
@@ -127,7 +133,7 @@ export default function Settings() {
                   <Input
                     rounded="0"
                     value={settings ? settings[item.key] : 'empty'}
-                    onChange={ onChangeSourceDir}
+                    onChange={onChangeSourceDir}
                   />
                   <IconButton
                     aria-label="Select source folder"
@@ -139,6 +145,7 @@ export default function Settings() {
             } else if (item.type === 'boolean') {
               field = (
                 <Switch
+                  key={index}
                   id={item.key + 'New'}
                   isChecked={settings[item.key]}
                   onChange={() => toggleBooleanSetting(item.key)}
@@ -156,34 +163,33 @@ export default function Settings() {
           )
         })}
       </Stack>
-    </div>
+    </Modal>
   )
 }
 
 const useSettings = () => {
   const [existingSettings, setSettings] = useState({})
-  const  { loading, error, data,refetch }= useQuery(GET_SETTINGS)
+  const { loading, error, data, refetch } = useQuery(GET_SETTINGS)
   console.log(error)
 
-  const isInitialMount = useRef(true);
-
-  useEffect (() => {
-    refetch()
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-   } else{
-    if(!loading) {
-      let setting = data.librarySetting.library
-      setting.sourceDirs = data.librarySetting.sourceFolder
-      setSettings(setting)
-    }
-   } 
-  },[data])
-
+  const isInitialMount = useRef(true)
 
   useEffect(() => {
     refetch()
-    if(!loading) {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+    } else {
+      if (!loading) {
+        let setting = data.librarySetting.library
+        setting.sourceDirs = data.librarySetting.sourceFolder
+        setSettings(setting)
+      }
+    }
+  }, [data])
+
+  useEffect(() => {
+    refetch()
+    if (!loading) {
       let setting = data.librarySetting.library
       setting.sourceDirs = data.librarySetting.sourceFolder
       setSettings(setting)
@@ -203,5 +209,3 @@ const useSettings = () => {
 
   return [existingSettings, setAndSaveSettings]
 }
-
-  
