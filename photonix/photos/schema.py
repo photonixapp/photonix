@@ -522,7 +522,7 @@ class CreateLibrary(graphene.Mutation):
     @staticmethod
     def mutate(self, info, input=None):
         """Mutate method."""
-        library_obj = Library.objects.create(name=input.name)
+        library_obj = Library.objects.create(name=input.name, is_active=True)
         if input.backend_type == 'Lo':
             library_path_obj = LibraryPath.objects.create(
                 library=library_obj, type="St",
