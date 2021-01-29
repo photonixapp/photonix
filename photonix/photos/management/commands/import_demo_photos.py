@@ -42,12 +42,9 @@ class Command(BaseCommand):
             user.save()
         except IntegrityError:
             user = User.objects.get(username='demo')
-        # Because only one library objects should be active true if multiple exists.
-        Library.objects.all().update(is_active=False) 
         # Create Library
         library, _ = Library.objects.get_or_create(
             name='Demo Library',
-            is_active=True,
             # base_thumbnail_path='/data/cache/thumbnails/',
             # base_thumbnail_url='/thumbnails/'
         )

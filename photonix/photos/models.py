@@ -26,7 +26,6 @@ class Library(UUIDModel, VersionedModel):
     classification_style_enabled = models.BooleanField(default=False, help_text='Run style classification on photos?')
     classification_object_enabled = models.BooleanField(default=False, help_text='Run object detection on photos?')
     setup_stage_completed = models.CharField(max_length=2, choices=LIBRARY_SETUP_STAGE_COMPLETED_CHOICES, blank=True, null=True, help_text='Where the user got to during onboarding setup')
-    is_active = models.BooleanField(default=False, help_text='To check is this users active library?', verbose_name="Active")
 
     class Meta:
         verbose_name_plural = 'Libraries'

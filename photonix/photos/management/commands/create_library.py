@@ -19,12 +19,9 @@ class Command(BaseCommand):
     def create_library(self, username, library_name):
         # Get user
         user = User.objects.get(username=username)
-        # Because only one library objects should be active true if multiple exists.
-        Library.objects.all().update(is_active=False)
         # Create Library
         library, _ = Library.objects.get_or_create(
             name=library_name,
-            is_active=True,
         )
         library_path, _ = LibraryPath.objects.get_or_create(
             library=library,
