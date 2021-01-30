@@ -1,11 +1,20 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
+
 import '../static/css/Map.css'
 import 'react-leaflet-markercluster/dist/styles.min.css' // sass
 
-const MapView = ({ photos, bounds, location, zoom, hideAttribution }) => {
+const MapView = ({
+  photos,
+  bounds,
+  location,
+  zoom,
+  maxZoom,
+  hideAttribution,
+}) => {
   let markers = []
   let tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
   let attribution = hideAttribution
@@ -36,9 +45,9 @@ const MapView = ({ photos, bounds, location, zoom, hideAttribution }) => {
       <div className="Map">
         <MapContainer
           bounds={bounds}
-          boundsOptions={{ padding: [200, 200], maxZoom: 15 }}
-          zoom={2}
-          center={[15, 0]}
+          boundsOptions={{ padding: [100, 100], maxZoom: maxZoom }}
+          zoom={zoom}
+          center={[30, 0]}
         >
           {tileLayer}
           <MarkerClusterGroup>{markers}</MarkerClusterGroup>
@@ -57,6 +66,20 @@ const MapView = ({ photos, bounds, location, zoom, hideAttribution }) => {
       </div>
     )
   }
+}
+
+MapView.propTypes = {
+  photos: PropTypes.string,
+  bounds: PropTypes.func,
+  location: PropTypes.array,
+  zoom: PropTypes.number,
+  maxZoom: PropTypes.number,
+  hideAttribution: PropTypes.bool,
+}
+
+MapView.defaultProps = {
+  zoom: 2,
+  maxZoom: 15,
 }
 
 export default MapView
