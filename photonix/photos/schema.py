@@ -265,7 +265,7 @@ class Query(graphene.ObjectType):
     def resolve_all_exposures(self, info, **kwargs):
         user = info.context.user
         photo_list = Photo.objects.filter(library__users__user=user).exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
-        return sorted(photo_list, key=lambda i: int(i.split('/')[0]) / int(i.split('/')[1] if '/' in i else i))
+        return sorted(photo_list, key=lambda i: float(i.split('/')[0]) / float(i.split('/')[1] if '/' in i else i))
 
     def resolve_all_iso_speeds(self, info, **kwargs):
         user = info.context.user
@@ -630,11 +630,9 @@ class ImageAnalysis(graphene.Mutation):
 
 
 class PhotoRating(graphene.Mutation):
-    """Mutation to save start rating for photo."""
+    """Mutation to save star rating for photo."""
 
     class Arguments:
-        """Docstring for Arguments."""
-
         photo_id = graphene.ID()
         star_rating = graphene.Int()
 
@@ -643,7 +641,6 @@ class PhotoRating(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, photo_id=None, star_rating=None):
-        """Mutate method."""
         try:
             if 0 <= star_rating <= 5:
                 photo_obj, created = Photo.objects.update_or_create(pk=photo_id, defaults={
@@ -655,11 +652,7 @@ class PhotoRating(graphene.Mutation):
 
 
 class CreateGenricTag(graphene.Mutation):
-    """Mutation to save create generic tag."""
-
     class Arguments:
-        """Docstring for Arguments."""
-
         name = graphene.String()
         photo_id = graphene.ID()
 
@@ -670,7 +663,6 @@ class CreateGenricTag(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, name=None, photo_id=None):
-        """Mutate method."""
         try:
             photo_obj = Photo.objects.get(id=photo_id)
         except Exception as e:
@@ -696,11 +688,7 @@ class CreateGenricTag(graphene.Mutation):
 
 
 class RemoveGenericTag(graphene.Mutation):
-    """docstring for remove or delete generic tag."""
-
     class Arguments:
-        """docstring for Arguments."""
-
         photo_id = graphene.ID()
         tag_id = graphene.ID()
 
@@ -708,19 +696,13 @@ class RemoveGenericTag(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, photo_id=None, tag_id=None):
-        """Mutate method."""
-        if Photo.objects.filter(photo_tags__tag__id=tag_id).count() == 1:
-            Tag.objects.filter(id=tag_id).delete()
-            return RemoveGenericTag(ok=True)
-        Photo.objects.get(id=photo_id).photo_tags.remove(PhotoTag.objects.get(tag__id=tag_id))
-        if not Photo.objects.get(id=photo_id).photo_tags.filter(tag__id=tag_id):
-            return RemoveGenericTag(ok=True)
-        return RemoveGenericTag(ok=False)
+        Photo.objects.get(id=photo_id).photo_tags.remove(PhotoTag.objects.get(photo_id=photo_id, tag__id=tag_id))
+        if Photo.objects.filter(photo_tags__tag__id=tag_id).count() == 0:
+            Tag.objects.get(id=tag_id).delete()
+        return RemoveGenericTag(ok=True)
 
 
 class Mutation(graphene.ObjectType):
-    """Mutation."""
-
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
     update_style_enabled = UpdateLibraryStyleEnabled.Field()

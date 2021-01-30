@@ -1,10 +1,9 @@
-import React, { useEffect }  from 'react'
+import React, { useEffect } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { useSelector } from 'react-redux'
-import gql from "graphql-tag"
+import gql from 'graphql-tag'
 import Filters from '../components/Filters'
 import Spinner from '../components/Spinner'
-
 
 const GET_FILTERS = gql`
   {
@@ -54,7 +53,7 @@ const GET_FILTERS = gql`
   }
 `
 
-function createFilterSelection(sectionName, data, prefix='tag') {
+function createFilterSelection(sectionName, data, prefix = 'tag') {
   return {
     name: sectionName,
     items: data.map((tag) => {
@@ -73,8 +72,10 @@ function createFilterSelection(sectionName, data, prefix='tag') {
 }
 
 const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
-  const user = useSelector(state => state.user)  // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
-  const { loading, error, data, refetch } = useQuery(GET_FILTERS, {skip: !user})
+  const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
+  const { loading, error, data, refetch } = useQuery(GET_FILTERS, {
+    skip: !user,
+  })
   useEffect(() => {
     refetch()
   })
@@ -83,11 +84,13 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
 
   let filterData = []
   if (data) {
+    if (data.allGenericTags.length) {
+      filterData.push(
+        createFilterSelection('Generic Tags', data.allGenericTags)
+      )
+    }
     if (data.allObjectTags.length) {
       filterData.push(createFilterSelection('Objects', data.allObjectTags))
-    }
-    if (data.allGenericTags.length) {
-      filterData.push(createFilterSelection('Generic Tags', data.allGenericTags))
     }
     if (data.allLocationTags.length) {
       filterData.push(createFilterSelection('Locations', data.allLocationTags))
@@ -104,48 +107,78 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
     if (data.allCameras.length) {
       filterData.push({
         name: 'Cameras',
-        items: data.allCameras.map((camera) => (
-          {id: 'camera:' + camera.id, name: `${camera.make} ${camera.model}`}
-        )),
+        items: data.allCameras.map((camera) => ({
+          id: 'camera:' + camera.id,
+          name: `${camera.make} ${camera.model}`,
+        })),
       })
     }
     if (data.allLenses.length) {
       filterData.push(createFilterSelection('Lenses', data.allLenses, 'lens'))
     }
     if (data.allApertures.length) {
-      filterData.push(createFilterSelection('Aperture', data.allApertures, 'aperture'))
+      filterData.push(
+        createFilterSelection('Aperture', data.allApertures, 'aperture')
+      )
     }
     if (data.allExposures.length) {
-      filterData.push(createFilterSelection('Exposure', data.allExposures, 'exposure'))
+      filterData.push(
+        createFilterSelection('Exposure', data.allExposures, 'exposure')
+      )
     }
     if (data.allIsoSpeeds.length) {
-      filterData.push(createFilterSelection('ISO Speed', data.allIsoSpeeds, 'isoSpeed'))
+      filterData.push(
+        createFilterSelection('ISO Speed', data.allIsoSpeeds, 'isoSpeed')
+      )
     }
     if (data.allFocalLengths.length) {
-      filterData.push(createFilterSelection('Focal Length', data.allFocalLengths, 'focalLength'))
+      filterData.push(
+        createFilterSelection(
+          'Focal Length',
+          data.allFocalLengths,
+          'focalLength'
+        )
+      )
     }
     filterData.push({
       name: 'Rating',
       items: [
-        {id: 'rating:1', name: 1},
-        {id: 'rating:2', name: 2},
-        {id: 'rating:3', name: 3},
-        {id: 'rating:4', name: 4},
-        {id: 'rating:5', name: 5}
-      ]
+        { id: 'rating:1', name: 1 },
+        { id: 'rating:2', name: 2 },
+        { id: 'rating:3', name: 3 },
+        { id: 'rating:4', name: 4 },
+        { id: 'rating:5', name: 5 },
+      ],
     })
     filterData.push({
       name: 'Flash',
-      items: [{id: 'flash:on', name: 'On'}, {id: 'flash:off', name: 'Off'}]
+      items: [
+        { id: 'flash:on', name: 'On' },
+        { id: 'flash:off', name: 'Off' },
+      ],
     })
     if (data.allMeteringModes.length) {
-      filterData.push(createFilterSelection('Metering Mode', data.allMeteringModes, 'meeteringMode'))
+      filterData.push(
+        createFilterSelection(
+          'Metering Mode',
+          data.allMeteringModes,
+          'meeteringMode'
+        )
+      )
     }
     if (data.allDriveModes.length) {
-      filterData.push(createFilterSelection('Drive Mode', data.allDriveModes, 'driveMode'))
+      filterData.push(
+        createFilterSelection('Drive Mode', data.allDriveModes, 'driveMode')
+      )
     }
     if (data.allShootingModes.length) {
-      filterData.push(createFilterSelection('Shooting Mode', data.allShootingModes, 'shootingMode'))
+      filterData.push(
+        createFilterSelection(
+          'Shooting Mode',
+          data.allShootingModes,
+          'shootingMode'
+        )
+      )
     }
   }
 
