@@ -16,7 +16,8 @@ const MapView = ({
   hideAttribution,
 }) => {
   let markers = []
-  let tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+  let tileUrl =
+    'https://{s}.basemaps.cartocdn.com/spotify_dark/{z}/{x}/{y}{r}.png'
   let attribution = hideAttribution
     ? ''
     : '&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors'
