@@ -42,7 +42,6 @@ class CustomNode(graphene.Node):
     def to_global_id(type, id):
         return id
 
-
 class PhotoInterface(graphene.Interface):
     photo_tags__tag__id = graphene.String()
     multi_filter = graphene.String()
@@ -57,6 +56,7 @@ class PhotoNode(DjangoObjectType):
     style_tags = graphene.List(PhotoTagType)
     width = graphene.Int()
     height = graphene.Int()
+    generic_tags = graphene.List(PhotoTagType)
 
     class Meta:
         model = Photo
@@ -89,6 +89,8 @@ class PhotoNode(DjangoObjectType):
     def resolve_height(self, info):
         return self.dimensions[1]
 
+    def resolve_generic_tags(self, info):
+        return self.photo_tags.filter(tag__type='G')
 
 class PhotoFilter(django_filters.FilterSet):
     multi_filter = CharFilter(method='multi_filter_filter')
@@ -215,6 +217,7 @@ class Query(graphene.ObjectType):
     all_person_tags = graphene.List(PersonTagType)
     all_color_tags = graphene.List(ColorTagType)
     all_style_tags = graphene.List(StyleTagType)
+    all_generic_tags = graphene.List(LocationTagType)
     library_setting = graphene.Field(LibrarySetting)
 
     def resolve_all_libraries(self, info, **kwargs):
@@ -314,6 +317,10 @@ class Query(graphene.ObjectType):
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
         return Tag.objects.filter(library__users__user=user, type='S')
+
+    def resolve_all_generic_tags(self, info, **kwargs):
+        user = info.context.user
+        return Tag.objects.filter(library__users__user=user, type='G')
 
     def resolve_library_setting(self, info, **kwargs):
         """Api for library setting query."""
@@ -623,11 +630,9 @@ class ImageAnalysis(graphene.Mutation):
 
 
 class PhotoRating(graphene.Mutation):
-    """Mutation to save start rating for photo."""
+    """Mutation to save star rating for photo."""
 
     class Arguments:
-        """Docstring for Arguments."""
-
         photo_id = graphene.ID()
         star_rating = graphene.Int()
 
@@ -636,7 +641,6 @@ class PhotoRating(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, photo_id=None, star_rating=None):
-        """Mutate method."""
         try:
             if 0 <= star_rating <= 5:
                 photo_obj, created = Photo.objects.update_or_create(pk=photo_id, defaults={
@@ -647,9 +651,58 @@ class PhotoRating(graphene.Mutation):
         return PhotoRating(ok=False, photo=None)
 
 
-class Mutation(graphene.ObjectType):
-    """Mutaion."""
+class CreateGenricTag(graphene.Mutation):
+    class Arguments:
+        name = graphene.String()
+        photo_id = graphene.ID()
 
+    ok = graphene.Boolean()
+    tag_id = graphene.ID()
+    photo_tag_id = graphene.ID()
+    name = graphene.String()
+
+    @staticmethod
+    def mutate(self, info, name=None, photo_id=None):
+        try:
+            photo_obj = Photo.objects.get(id=photo_id)
+        except Exception as e:
+            raise GraphQLError("Invalid photo id!")
+        tag_obj, created = Tag.objects.get_or_create(
+            library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
+            name=name, type='G', source='H', defaults={})
+        if (not created) and photo_obj.photo_tags.filter(tag=tag_obj).exists():
+            return CreateGenricTag(
+                ok=False, tag_id=None,
+                photo_tag_id=None, name=None)
+        photo_tag_obj = PhotoTag.objects.create(
+            photo=photo_obj,
+            tag=tag_obj,
+            confidence=1.0,
+            significance=1.0,
+            verified=True,
+            source='H',
+        )
+        return CreateGenricTag(
+            ok=True, tag_id=tag_obj.id,
+            photo_tag_id=photo_tag_obj.id, name=tag_obj.name)
+
+
+class RemoveGenericTag(graphene.Mutation):
+    class Arguments:
+        photo_id = graphene.ID()
+        tag_id = graphene.ID()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, photo_id=None, tag_id=None):
+        Photo.objects.get(id=photo_id).photo_tags.remove(PhotoTag.objects.get(photo_id=photo_id, tag__id=tag_id))
+        if Photo.objects.filter(photo_tags__tag__id=tag_id).count() == 0:
+            Tag.objects.get(id=tag_id).delete()
+        return RemoveGenericTag(ok=True)
+
+
+class Mutation(graphene.ObjectType):
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
     update_style_enabled = UpdateLibraryStyleEnabled.Field()
@@ -659,3 +712,5 @@ class Mutation(graphene.ObjectType):
     Photo_importing = PhotoImporting.Field()
     image_analysis = ImageAnalysis.Field()
     photo_rating = PhotoRating.Field()
+    create_generic_tag = CreateGenricTag.Field()
+    remove_generic_tag = RemoveGenericTag.Field()

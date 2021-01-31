@@ -5,20 +5,25 @@ import BoundingBoxes from './BoundingBoxes'
 import MapView from '../components/MapView'
 import ColorTags from './ColorTags'
 import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
+import EditableTagContainer from '../containers/EditableTagContainer'
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
 import { useMutation } from '@apollo/react-hooks'
 
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
+import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import '../static/css/PhotoDetail.css'
 
-const PhotoDetail = ({ photoId, photo }) => {
+const PhotoDetail = ({ photoId, photo, refetch }) => {
   const [starRating, updateStarRating] = useState(photo.starRating)
+  const [editorMode, setEditorMode] = useState(false)
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
+
   useEffect(() => {
     updateStarRating(photo.starRating)
   }, [photo.starRating])
+
   const onStarClick = (num, e) => {
     if (starRating === num) {
       updateStarRating(0)
@@ -165,6 +170,21 @@ const PhotoDetail = ({ photoId, photo }) => {
             ) : (
               ''
             )}
+            <div className="box">
+              <h2>
+                Tags{' '}
+                <EditIcon
+                  alt="Edit"
+                  onClick={() => setEditorMode(!editorMode)}
+                />
+              </h2>
+              <EditableTagContainer
+                tags={photo.genericTags}
+                editorMode={editorMode}
+                photoId={photoId}
+                refetch={refetch}
+              />
+            </div>
           </div>
         </div>
       </div>
