@@ -5,9 +5,9 @@ from graphql_jwt.refresh_token.signals import refresh_token_rotated
 
 
 class UsersConfig(AppConfig):
-    name = 'photonix.users'
-    label = 'users'
-    verbose_name = 'Photonix Users'
+    name = 'photonix.accounts'
+    label = 'accounts'
+    verbose_name = 'Photonix Accounts'
 
 
 # Automatically revoke refresh token on refresh (one time use)
