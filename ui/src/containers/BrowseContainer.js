@@ -1,11 +1,11 @@
 import React, { useState,useEffect } from 'react'
 import { useQuery } from '@apollo/react-hooks'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import 'url-search-params-polyfill';
 import { ENVIRONMENT } from '../graphql/onboarding' 
-
 import Browse from '../components/Browse'
+import { getActiveLibrary } from '../stores/library/selector'
 
 const GET_LIBRARIES = gql`
   {
@@ -40,7 +40,10 @@ const GET_PHOTOS = gql`
 
 
 const BrowseContainer = props => {
+  const dispatch = useDispatch()
+  const [isLibrarySet, setIsLibrarySet] = useState(true)
   const user = useSelector(state => state.user)  // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
+  const activeLibrary = useSelector(getActiveLibrary)
   const [expanded, setExpanded] = useState(true)
   const [photoData,setPhotoData] = useState()
 
@@ -55,7 +58,18 @@ const BrowseContainer = props => {
     error: librariesError,
     data: librariesData,
   } = useQuery(GET_LIBRARIES, {skip: !user})
-
+  
+  if (librariesData && librariesData.allLibraries.length && isLibrarySet) {
+    const libs = librariesData.allLibraries.map((lib, index) => {
+      lib['isActive'] = (index === 0) ? true : false
+      return lib
+    })
+    dispatch({
+      type: 'SET_LIBRARIES',
+      payload: libs
+    })
+    setIsLibrarySet(false)
+  }
 
   const {
     loading: profileLoading,
@@ -65,10 +79,12 @@ const BrowseContainer = props => {
 
   let photoSections = []
   let photos = []
-
-  let filtersStr = props.selectedFilters.map(filter => filter.id).join(' ')
-  if (props.search.length >= 2) {
-    filtersStr = filtersStr.length ? `${filtersStr} ${props.search}` : props.search
+  let filtersStr = ''
+  if (activeLibrary) {
+    filtersStr = `library_id:${activeLibrary.id} ${props.selectedFilters.map(filter => filter.id).join(' ')}`
+    if (props.search.length >= 2) {
+      filtersStr = filtersStr.length ? `${filtersStr} ${props.search}` : props.search
+    }
   }
   const {
     loading: photosLoading,
@@ -85,6 +101,7 @@ const BrowseContainer = props => {
     console.log("photosError",photosError)
   }
 
+
   useEffect (() => {
     if(envData && envData.environment && !envData.environment.firstRun) {
       refetch()
@@ -92,6 +109,7 @@ const BrowseContainer = props => {
     if(photosData)
     setPhotoData(photosData)
   })
+
   if (photoData) {
     photos = photoData.allPhotos.edges.map(photo => ({
       id: photo.node.id,
@@ -118,23 +136,27 @@ const BrowseContainer = props => {
 
   let anyLoading = profileLoading || librariesLoading || photosLoading
   let anyError = profileError ? profileError : (librariesError ? librariesError : photosError)
-
+  
   return (
-    <Browse
-      profile={profileData ? profileData.profile : null }
-      libraries={librariesData ? librariesData.allLibraries : null}
-      selectedFilters={props.selectedFilters}
-      search={props.search}
-      updateSearchText={props.updateSearchText}
-      mode={mode}
-      loading={anyLoading}
-      error={anyError}
-      photoSections={photoSections}
-      onFilterToggle={props.onFilterToggle}
-      onClearFilters={props.onClearFilters}
-      expanded={expanded}
-      onExpandCollapse={() => setExpanded(!expanded)}
-    />
+    <>
+    {!isLibrarySet &&
+      <Browse
+        profile={profileData ? profileData.profile : null }
+        libraries={librariesData ? librariesData.allLibraries : null}
+        selectedFilters={props.selectedFilters}
+        search={props.search}
+        updateSearchText={props.updateSearchText}
+        mode={mode}
+        loading={anyLoading}
+        error={anyError}
+        photoSections={photoSections}
+        onFilterToggle={props.onFilterToggle}
+        onClearFilters={props.onClearFilters}
+        expanded={expanded}
+        onExpandCollapse={() => setExpanded(!expanded)}
+      />
+    }
+    </>
   )
 }
 

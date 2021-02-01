@@ -26,9 +26,9 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
   const [values, setValues] = useState({
     'ISO Speed': [],
     'Focal Length': [],
-    Aperture: [],
-    Exposure: [],
-    Rating: [],
+    'Aperture': [],
+    'Exposure': [],
+    'Rating': [],
   })
   const [isDomainAvail, setIsDomainAvail] = useState(false)
 
@@ -70,6 +70,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
   }
 
   function setValue(e, group, listedItems) {
+    if (e.length === 0) return 
     let id = group.items[0].id.slice(0, group.items[0].id.indexOf(':'))
     let groupName = group.name
     const min = Number(e[0].toFixed(1))
@@ -134,6 +135,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
               group.name === 'Exposure' ||
               group.name === 'Rating'
             ) {
+              if(!values[group.name]) return
               const listedItems = group.items.map((item) => {
                 return item.name
               })

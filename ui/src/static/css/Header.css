@@ -111,3 +111,12 @@ header .user img.arrowDown {
 header .user:hover .menu {
   display: block;
 }
+.activeLibrary {
+  height: 10px;
+  width: 10px;
+  background-color: #18ca18;
+  border-radius: 100%;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
