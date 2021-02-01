@@ -14,14 +14,14 @@ const User = ({ profile, libraries }) => {
   const dispatch = useDispatch()
   const activeLibrary = useSelector(getActiveLibrary)
 
-  const isActiveLibrary = id => {
+  const isActiveLibrary = (id) => {
     return activeLibrary.id === id
   }
 
-  const updateActiveLib = lib => {
+  const updateActiveLib = (lib) => {
     dispatch({
       type: 'SET_ACTIVE_LIBRARY',
-      payload: lib
+      payload: lib,
     })
   }
   return (
@@ -31,33 +31,42 @@ const User = ({ profile, libraries }) => {
       <ul className="menu">
         {profile ? (
           <Link to="/account">
-          <li className="profile">
-            <img src={accountCircle} alt="Settings" />{' '}
-            <div>
-              <span className="username">{profile.username}</span>
-              <span className="email">{profile.email}</span>
-            </div>
-          </li>
+            <li className="profile">
+              <img src={accountCircle} alt="Settings" />{' '}
+              <div className="text">
+                <span className="username">{profile.username}</span>
+                <span className="email">{profile.email}</span>
+              </div>
+            </li>
           </Link>
         ) : null}
         {libraries
-          ? libraries.map(lib => (
-              <li key={lib.id} onClick={() => updateActiveLib(lib)}>
-                <img src={library} alt="Library" /> {lib.name}
-                {isActiveLibrary(lib.id) &&
-                  <span className='activeLibrary'></span>
-                }
+          ? libraries.map((lib) => (
+              <li
+                key={lib.id}
+                onClick={() => updateActiveLib(lib)}
+                className="library"
+              >
+                <img src={library} alt="Library" />
+                <div className="text">{lib.name}</div>
+                {isActiveLibrary(lib.id) ? (
+                  <span className="activeLibrary"></span>
+                ) : (
+                  <span className="inactiveLibrary"></span>
+                )}
               </li>
             ))
           : null}
         <Link to="/settings">
           <li>
-            <img src={settings} alt="Settings" /> Settings
+            <img src={settings} alt="Settings" />
+            <div className="text">Settings</div>
           </li>
         </Link>
         <Link to="/logout">
           <li>
-            <img src={logout} alt="Logout" /> Logout
+            <img src={logout} alt="Logout" />
+            <div className="text">Logout</div>
           </li>
         </Link>
       </ul>

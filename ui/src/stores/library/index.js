@@ -3,8 +3,8 @@ const SET_ACTIVE_LIBRARY = 'SET_ACTIVE_LIBRARY'
 
 const initialState = []
 const updateActiveLibrary = (state, payload) => {
-  const libs = state.map(lib => {
-    lib.isActive = (lib.id === payload.id) ? true : false
+  const libs = state.map((lib) => {
+    lib.isActive = lib.id === payload.id ? true : false
     return lib
   })
   return libs
@@ -17,7 +17,7 @@ const library = (state = initialState, action = {}) => {
     case SET_ACTIVE_LIBRARY:
       return updateActiveLibrary(state, action.payload)
     default:
-      return state;
+      return state
   }
 }
 

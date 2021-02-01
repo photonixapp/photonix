@@ -63,14 +63,16 @@ header .user img.arrowDown {
   top: 80px;
 }
 .menu li {
-  padding: 12px 20px 12px 15px;
+  padding: 12px 15px 12px 15px;
   cursor: default;
+  display: flex;
 }
 .menu li:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 .menu a,
-.menu a li {
+.menu a li,
+.menu li.library {
   cursor: pointer;
   color: #ddd;
   text-decoration: none;
@@ -85,6 +87,11 @@ header .user img.arrowDown {
   vertical-align: -6px;
   margin-right: 10px;
   filter: invert(0.9);
+}
+.menu li .text {
+  flex: 1;
+  align-self: center;
+  margin-top: 1px;
 }
 .menu li.profile img {
   width: 32px;
@@ -114,9 +121,11 @@ header .user:hover .menu {
 .activeLibrary {
   height: 10px;
   width: 10px;
-  background-color: #18ca18;
+  background-color: rgb(0, 168, 161);
   border-radius: 100%;
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 10px;
+  float: right;
+  margin: 8px 0 0 0;
+}
+.inactiveLibrary {
+  width: 10px;
 }
