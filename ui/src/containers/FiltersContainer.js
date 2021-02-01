@@ -4,52 +4,53 @@ import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import Filters from '../components/Filters'
 import Spinner from '../components/Spinner'
+import { getActiveLibrary } from '../stores/library/selector'
 
 const GET_FILTERS = gql`
-  {
-    allLocationTags {
+  query AllFilters($libraryId: UUID) {
+    allLocationTags(libraryId: $libraryId) {
       id
       name
       parent {
         id
       }
     }
-    allObjectTags {
+    allObjectTags(libraryId: $libraryId) {
       id
       name
     }
-    allPersonTags {
+    allPersonTags(libraryId: $libraryId) {
       id
       name
     }
-    allColorTags {
+    allColorTags(libraryId: $libraryId) {
       id
       name
     }
-    allStyleTags {
+    allStyleTags(libraryId: $libraryId) {
       id
       name
     }
-    allCameras {
+    allCameras(libraryId: $libraryId) {
       id
       make
       model
     }
-    allLenses {
+    allLenses(libraryId: $libraryId) {
       id
       name
     }
-    allGenericTags {
+    allGenericTags(libraryId: $libraryId) {
       name
       id
     }
-    allApertures
-    allExposures
-    allIsoSpeeds
-    allFocalLengths
-    allMeteringModes
-    allDriveModes
-    allShootingModes
+    allApertures(libraryId: $libraryId)
+    allExposures(libraryId: $libraryId)
+    allIsoSpeeds(libraryId: $libraryId)
+    allFocalLengths(libraryId: $libraryId)
+    allMeteringModes(libraryId: $libraryId)
+    allDriveModes(libraryId: $libraryId)
+    allShootingModes(libraryId: $libraryId)
   }
 `
 
@@ -73,12 +74,20 @@ function createFilterSelection(sectionName, data, prefix = 'tag') {
 
 const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
-  const { loading, error, data, refetch } = useQuery(GET_FILTERS, {
-    skip: !user,
-  })
+  const activeLibrary = useSelector(getActiveLibrary)
+  let variables = {}
+  variables = { libraryId: activeLibrary.id }
+  const { loading, error, data, refetch } = useQuery(
+    GET_FILTERS,
+    {
+      variables: variables,
+    },
+    { skip: !user }
+  )
   useEffect(() => {
     refetch()
-  })
+  }, [activeLibrary])
+
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 

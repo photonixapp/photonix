@@ -19,7 +19,6 @@ class Command(BaseCommand):
     def create_library(self, username, library_name):
         # Get user
         user = User.objects.get(username=username)
-
         # Create Library
         library, _ = Library.objects.get_or_create(
             name=library_name,
