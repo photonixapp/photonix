@@ -12,10 +12,19 @@ header {
 
 header .logo {
   flex: none;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 400;
-  margin: 10px 15px;
-  line-height: 1.1;
+  margin: 10px;
+  line-height: 1.2;
+  color: #fff;
+}
+header .logo img {
+  width: 30px;
+  height: 30px;
+  margin-right: 8px;
+  vertical-align: top;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255,255,255,0.5);
 }
 header .navigation {
   flex-grow: 1;
@@ -25,13 +34,6 @@ header .notifications {
 }
 header .user {
   width: 84px;
-}
-header .logo img {
-  filter: invert(0.9);
-  width: 30px;
-  height: 30px;
-  margin-right: 10px;
-  vertical-align: top;
 }
 header .notifications img,
 header .user > img {
