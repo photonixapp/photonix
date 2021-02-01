@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Header from './Header'
 import SearchContainer from '../containers/SearchContainer'
 import PhotoListContainer from '../containers/PhotoListContainer'
-import MapViewContainer from '../containers/MapViewContainer'
+import MapView from '../components/MapView'
 import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
 import '../static/css/Browse.css'
@@ -21,11 +21,11 @@ const Browse = ({
   onExpandCollapse,
   expanded,
   search,
-  updateSearchText
+  updateSearchText,
 }) => {
   let content =
     mode === 'MAP' ? (
-      <MapViewContainer photos={photoSections[0].segments[0].photos} />
+      <MapView photos={photoSections[0].segments[0].photos} />
     ) : (
       <PhotoListContainer
         selectedFilters={selectedFilters}

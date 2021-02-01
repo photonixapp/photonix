@@ -1,5 +1,6 @@
 import mimetypes
 import os
+import re
 from datetime import datetime
 from decimal import Decimal
 
@@ -75,6 +76,13 @@ def record_photo(path, library):
     if metadata.get('GPS Position'):
         latitude, longitude = parse_gps_location(metadata.get('GPS Position'))
 
+    iso_speed = None
+    if metadata.get('ISO'):
+        try:
+            iso_speed = int(re.search(r'[0-9]+', metadata.get('ISO')).group(0))
+        except AttributeError:
+            pass
+
     if not photo:
         # Save Photo
         aperture = None
@@ -93,7 +101,7 @@ def record_photo(path, library):
             taken_by=metadata.get('Artist') or None,
             aperture=aperture,
             exposure=metadata.get('Exposure Time') or None,
-            iso_speed=metadata.get('ISO') and int(metadata.get('ISO')) or None,
+            iso_speed=iso_speed,
             focal_length=metadata.get('Focal Length') and metadata.get('Focal Length').split(' ', 1)[0] or None,
             flash=metadata.get('Flash') and 'on' in metadata.get('Flash').lower() or False,
             metering_mode=metadata.get('Metering Mode') or None,
