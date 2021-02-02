@@ -2,8 +2,9 @@ import gql from "graphql-tag"
 export const SETTINGS_STYLE = gql`
 mutation updateStyleEnabled(
    $classificationStyleEnabled: Boolean!,
+   $libraryId: ID
    ) {
-    updateStyleEnabled(input:{classificationStyleEnabled: $classificationStyleEnabled}) {
+    updateStyleEnabled(input:{classificationStyleEnabled: $classificationStyleEnabled, libraryId: $libraryId}) {
       classificationStyleEnabled
     }
 }
@@ -11,8 +12,9 @@ mutation updateStyleEnabled(
 export const SETTINGS_COLOR = gql`
 mutation updateColorEnabled(
    $classificationColorEnabled: Boolean!,
+   $libraryId: ID
    ) {
-    updateColorEnabled(input:{classificationColorEnabled: $classificationColorEnabled}) {
+    updateColorEnabled(input:{classificationColorEnabled: $classificationColorEnabled, libraryId: $libraryId}) {
       classificationColorEnabled
     }
 }
@@ -20,8 +22,9 @@ mutation updateColorEnabled(
 export const SETTINGS_LOCATION = gql`
 mutation updateLocationEnabled(
    $classificationLocationEnabled: Boolean!,
+   $libraryId: ID
    ) {
-    updateLocationEnabled(input:{classificationLocationEnabled: $classificationLocationEnabled}) {
+    updateLocationEnabled(input:{classificationLocationEnabled: $classificationLocationEnabled, libraryId: $libraryId}) {
       classificationLocationEnabled
     }
 }
@@ -29,8 +32,9 @@ mutation updateLocationEnabled(
 export const SETTINGS_OBJECT = gql`
 mutation updateObjectEnabled(
    $classificationObjectEnabled: Boolean!,
+   $libraryId: ID
    ) {
-    updateObjectEnabled(input:{classificationObjectEnabled: $classificationObjectEnabled}) {
+    updateObjectEnabled(input:{classificationObjectEnabled: $classificationObjectEnabled, libraryId: $libraryId}) {
       classificationObjectEnabled
     }
 }
@@ -38,16 +42,17 @@ mutation updateObjectEnabled(
 export const SETTINGS_SOURCE_FOLDER = gql`
 mutation updateSourceFolder(
    $sourceFolder: String!,
+   $libraryId: ID
    ) {
-    updateSourceFolder(input:{sourceFolder: $sourceFolder}) {
+    updateSourceFolder(input:{sourceFolder: $sourceFolder, libraryId: $libraryId}) {
       sourceFolder
     }
 }
 `
 
 export const GET_SETTINGS = gql`
-{
-  librarySetting{
+query LibrarySetting($libraryId: UUID) {
+  librarySetting(libraryId: $libraryId) {
     library{
       name
       classificationColorEnabled
