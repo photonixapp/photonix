@@ -22,10 +22,12 @@ const Browse = ({
   expanded,
   search,
   updateSearchText,
+  setIsMapShowing,
+  mapPhotos
 }) => {
   let content =
     mode === 'MAP' ? (
-      <MapView photos={photoSections[0].segments[0].photos} />
+      <MapView photos={mapPhotos} />
     ) : (
       <PhotoListContainer
         selectedFilters={selectedFilters}
@@ -47,10 +49,10 @@ const Browse = ({
           updateSearchText={updateSearchText}
         />
         <ul className="tabs">
-          <Link to="?mode=timeline">
+          <Link to="?mode=timeline" onClick={() => setIsMapShowing(false)}>
             <li>Timeline</li>
           </Link>
-          <Link to="?mode=map">
+          <Link to="?mode=map" onClick={() => setIsMapShowing(true)}>
             <li>Map</li>
           </Link>
         </ul>
