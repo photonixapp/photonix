@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/react-hooks'
+import { useSelector } from 'react-redux'
+import { getActiveLibrary } from '../stores/library/selector'
 
 import {
   Switch,
@@ -19,12 +21,13 @@ import {
   SETTINGS_OBJECT,
   SETTINGS_SOURCE_FOLDER,
   GET_SETTINGS,
-} from '../graphql/setting'
+} from '../graphql/settings'
 // import folder from '../static/images/folder.svg'
 import '../static/css/Settings.css'
 
 export default function Settings() {
-  const [settings, setSettings] = useSettings()
+  const activeLibrary = useSelector(getActiveLibrary)
+  const [settings, setSettings] = useSettings(activeLibrary)
   const availableSettings = [
     // {
     //   key: 'sourceDirs',
@@ -67,6 +70,7 @@ export default function Settings() {
         settingUpdateStyle({
           variables: {
             classificationStyleEnabled: newSettings.classificationStyleEnabled,
+            libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
         return key
@@ -75,6 +79,7 @@ export default function Settings() {
           variables: {
             classificationLocationEnabled:
               newSettings.classificationLocationEnabled,
+            libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
         return key
@@ -83,6 +88,7 @@ export default function Settings() {
           variables: {
             classificationObjectEnabled:
               newSettings.classificationObjectEnabled,
+            libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
         return key
@@ -90,6 +96,7 @@ export default function Settings() {
         settingUpdateColor({
           variables: {
             classificationColorEnabled: newSettings.classificationColorEnabled,
+            libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
         return key
@@ -110,6 +117,7 @@ export default function Settings() {
     settingUpdateSourceFolder({
       variables: {
         sourceFolder: newSettings.sourceDirs,
+        libraryId: activeLibrary?.id,
       },
     }).catch((e) => {})
   }
@@ -121,7 +129,8 @@ export default function Settings() {
 
   return (
     <Modal className="Settings" topAccent={true}>
-      <h1>Settings</h1>
+      <h1 className="heading">Settings</h1>
+      <h2 className="subHeading">{activeLibrary?.name}</h2>
       <Stack spacing={4}>
         {availableSettings.map((item, index) => {
           let field = null
@@ -167,15 +176,18 @@ export default function Settings() {
   )
 }
 
-const useSettings = () => {
+const useSettings = (activeLibrary) => {
   const [existingSettings, setSettings] = useState({})
-  const { loading, error, data, refetch } = useQuery(GET_SETTINGS)
+  const { loading, error, data, refetch } = useQuery(GET_SETTINGS, {
+    variables: { libraryId: activeLibrary?.id },
+  })
   console.log(error)
-
   const isInitialMount = useRef(true)
 
   useEffect(() => {
-    refetch()
+    if (activeLibrary) {
+      refetch()
+    }
     if (isInitialMount.current) {
       isInitialMount.current = false
     } else {
@@ -185,10 +197,12 @@ const useSettings = () => {
         setSettings(setting)
       }
     }
-  }, [data])
+  }, [data, activeLibrary])
 
   useEffect(() => {
-    refetch()
+    if (activeLibrary) {
+      refetch()
+    }
     if (!loading) {
       let setting = data.librarySetting.library
       setting.sourceDirs = data.librarySetting.sourceFolder
@@ -198,7 +212,7 @@ const useSettings = () => {
       let result = window.sendSyncToElectron('get-settings')
       setSettings(result)
     }
-  }, [])
+  }, [activeLibrary])
 
   function setAndSaveSettings(newSettings) {
     if (window.sendSyncToElectron) {
