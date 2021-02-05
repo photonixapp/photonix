@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.utils.timezone import utc
-from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task
+from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task, Tag
 from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime, parse_gps_location)
 
 
@@ -149,4 +149,5 @@ def delete_photo_record(photo_file_obj):
     photo_file_obj.delete()
     if not photo_obj.files.all():
         photo_obj.delete()
+    Tag.objects.filter(photo_tags=None).delete()
     return False
