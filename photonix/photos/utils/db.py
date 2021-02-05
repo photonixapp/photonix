@@ -9,17 +9,17 @@ from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task
 from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime, parse_gps_location)
 
 
-def record_photo(path, library):
-    file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
-
+def record_photo(path, library, type_names=[]):
+    """To create photo record in database."""
     try:
         photo_file = PhotoFile.objects.get(path=path)
     except PhotoFile.DoesNotExist:
         photo_file = PhotoFile()
-
+    if 'IN_MOVED_FROM' in type_names:
+        return delete_photo_record(photo_file)
+    file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
     if photo_file and photo_file.file_modified_at == file_modified_at:
         return False
-
     metadata = PhotoMetadata(path)
     date_taken = None
     possible_date_keys = ['Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'Modify Date', 'File Modification Date/Time']
@@ -141,3 +141,12 @@ def record_photo(path, library):
     ).save()
 
     return photo
+
+
+def delete_photo_record(photo_file_obj):
+    """Delete photo record if photo not exixts on library path."""
+    photo_obj = photo_file_obj.photo
+    photo_file_obj.delete()
+    if not photo_obj.files.all():
+        photo_obj.delete()
+    return False
