@@ -40,7 +40,7 @@ const GET_PHOTOS = gql`
 
 const BrowseContainer = (props) => {
   const dispatch = useDispatch()
-  const [isLibrarySet, setIsLibrarySet] = useState(true)
+  const [isLibrarySet, setIsLibrarySet] = useState(false)
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
   const [expanded, setExpanded] = useState(true)
@@ -58,16 +58,22 @@ const BrowseContainer = (props) => {
     data: librariesData,
   } = useQuery(GET_LIBRARIES, { skip: !user })
 
-  if (librariesData && librariesData.allLibraries.length && isLibrarySet) {
+  if (librariesData && librariesData.allLibraries.length && !isLibrarySet) {
     const libs = librariesData.allLibraries.map((lib, index) => {
-      lib['isActive'] = index === 0 ? true : false
+      const lsActiveLibrary = localStorage.getItem('activeLibrary')
+      if (lsActiveLibrary) {
+        lib['isActive'] = lsActiveLibrary == lib.id ? true : false
+      } else {
+        lib['isActive'] = index === 0 ? true : false
+        index === 0 && localStorage.setItem('activeLibrary', lib.id)
+      }
       return lib
     })
     dispatch({
       type: 'SET_LIBRARIES',
       payload: libs,
     })
-    setIsLibrarySet(false)
+    setIsLibrarySet(true)
   }
 
   const {
@@ -94,12 +100,17 @@ const BrowseContainer = (props) => {
     error: photosError,
     data: photosData,
     refetch,
-  } = useQuery(GET_PHOTOS, {
-    variables: {
-      filters: filtersStr,
-      skip: !user,
+  } = useQuery(
+    GET_PHOTOS,
+    {
+      variables: {
+        filters: filtersStr,
+      },
     },
-  })
+    {
+      skip: !isLibrarySet,
+    }
+  )
   if (photosError) {
     console.log('photosError', photosError)
   }
@@ -144,7 +155,7 @@ const BrowseContainer = (props) => {
 
   return (
     <>
-      {!isLibrarySet && (
+      {isLibrarySet && (
         <Browse
           profile={profileData ? profileData.profile : null}
           libraries={librariesData ? librariesData.allLibraries : null}

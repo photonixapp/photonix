@@ -21,7 +21,7 @@ import {
   SETTINGS_OBJECT,
   SETTINGS_SOURCE_FOLDER,
   GET_SETTINGS,
-} from '../graphql/setting'
+} from '../graphql/settings'
 // import folder from '../static/images/folder.svg'
 import '../static/css/Settings.css'
 
@@ -70,7 +70,7 @@ export default function Settings() {
         settingUpdateStyle({
           variables: {
             classificationStyleEnabled: newSettings.classificationStyleEnabled,
-            libraryId: activeLibrary?.id
+            libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
         return key
@@ -79,7 +79,7 @@ export default function Settings() {
           variables: {
             classificationLocationEnabled:
               newSettings.classificationLocationEnabled,
-              libraryId: activeLibrary?.id
+            libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
         return key
@@ -88,7 +88,7 @@ export default function Settings() {
           variables: {
             classificationObjectEnabled:
               newSettings.classificationObjectEnabled,
-              libraryId: activeLibrary?.id
+            libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
         return key
@@ -96,7 +96,7 @@ export default function Settings() {
         settingUpdateColor({
           variables: {
             classificationColorEnabled: newSettings.classificationColorEnabled,
-            libraryId: activeLibrary?.id
+            libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
         return key
@@ -117,7 +117,7 @@ export default function Settings() {
     settingUpdateSourceFolder({
       variables: {
         sourceFolder: newSettings.sourceDirs,
-        libraryId: activeLibrary?.id
+        libraryId: activeLibrary?.id,
       },
     }).catch((e) => {})
   }
@@ -178,7 +178,9 @@ export default function Settings() {
 
 const useSettings = (activeLibrary) => {
   const [existingSettings, setSettings] = useState({})
-  const { loading, error, data, refetch } = useQuery(GET_SETTINGS, {variables: {libraryId: activeLibrary?.id}})
+  const { loading, error, data, refetch } = useQuery(GET_SETTINGS, {
+    variables: { libraryId: activeLibrary?.id },
+  })
   console.log(error)
   const isInitialMount = useRef(true)
 
