@@ -213,6 +213,7 @@ TAG_TYPE_CHOICES = (
     ('F', 'Face'),
     ('C', 'Color'),
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
+    ('G', 'Generic'),  # Tags created by user
 )
 
 
@@ -233,7 +234,7 @@ class Tag(UUIDModel, VersionedModel):
 
 
 class PhotoTag(UUIDModel, VersionedModel):
-    photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE)
+    photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE, null=True)
     tag = models.ForeignKey(Tag, related_name='photo_tags', on_delete=models.CASCADE)
     source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
     model_version = models.PositiveIntegerField(null=True)

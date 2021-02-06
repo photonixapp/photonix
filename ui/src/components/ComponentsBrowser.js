@@ -1,14 +1,11 @@
 import React from 'react'
 
 import FiltersContainer from '../containers/FiltersContainer'
-import MapViewContainer from '../containers/MapViewContainer'
+import MapView from '../components/MapView'
 import PhotoListContainer from '../containers/PhotoListContainer'
 import '../static/css/ComponentsBrowser.css'
 
-
-const generateId = () => (
-  Math.floor(Math.random() * 100000)
-)
+const generateId = () => Math.floor(Math.random() * 100000)
 
 const randomImage = () => {
   let images = [
@@ -23,28 +20,38 @@ const randomImage = () => {
 
 const randomLocation = () => {
   let locations = [
-    ["64.039132", "-16.173093"],
-    ["64.150117", "-21.933912"],
+    ['64.039132', '-16.173093'],
+    ['64.150117', '-21.933912'],
   ]
   return locations[Math.floor(Math.random() * locations.length)]
 }
 
-
 const ComponentsBrowser = () => {
   let photos = []
-  for (var i=0; i < 100; i++) {
-    photos.push(
-      {
-        id: generateId(),
-        location: randomLocation(),
-        thumbnail: randomImage()
-      },
-    )
+  for (var i = 0; i < 100; i++) {
+    photos.push({
+      id: generateId(),
+      location: randomLocation(),
+      thumbnail: randomImage(),
+    })
   }
 
   let photoSections = []
 
-  let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  let months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ]
   let years = ['2017', '2018']
   years.reverse()
   months.reverse()
@@ -58,7 +65,7 @@ const ComponentsBrowser = () => {
         let photo = {
           id: id,
           location: [null, null],
-          thumbnail: randomImage()
+          thumbnail: randomImage(),
         }
         monthPhotos.push(photo)
       }
@@ -68,9 +75,9 @@ const ComponentsBrowser = () => {
         segments: [
           {
             numPhotos: monthPhotos.length,
-            photos: monthPhotos
-          }
-        ]
+            photos: monthPhotos,
+          },
+        ],
       }
       photoSections.push(section)
     }
@@ -100,10 +107,10 @@ const ComponentsBrowser = () => {
         </div>
       </div>
 
-      <div className="preview MapViewContainerPreview">
-        <h2>MapViewContainer</h2>
+      <div className="preview MapViewPreview">
+        <h2>MapView</h2>
         <div>
-          <MapViewContainer photos={photos} />
+          <MapView photos={photos} />
         </div>
       </div>
     </div>

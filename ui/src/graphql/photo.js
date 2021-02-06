@@ -4,7 +4,7 @@ export const PHOTO_UPDATE = gql`
 mutation photoRating(
    $photoId: ID!,$starRating:Int!,
    ) {
-    photoRating(photoId: $photoId,starRating:$starRating,) {
+    photoRating(photoId: $photoId,starRating:$starRating) {
         photo {
           starRating
           aperture

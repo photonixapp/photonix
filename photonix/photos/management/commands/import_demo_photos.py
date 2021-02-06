@@ -42,7 +42,6 @@ class Command(BaseCommand):
             user.save()
         except IntegrityError:
             user = User.objects.get(username='demo')
-
         # Create Library
         library, _ = Library.objects.get_or_create(
             name='Demo Library',
