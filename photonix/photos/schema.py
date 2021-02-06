@@ -92,6 +92,7 @@ class PhotoNode(DjangoObjectType):
     def resolve_generic_tags(self, info):
         return self.photo_tags.filter(tag__type='G')
 
+
 class PhotoFilter(django_filters.FilterSet):
     multi_filter = CharFilter(method='multi_filter_filter')
 
@@ -194,6 +195,7 @@ class LibrarySetting(graphene.ObjectType):
 
     library = graphene.Field(LibraryType)
     source_folder = graphene.String()
+
 
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)

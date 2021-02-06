@@ -5,7 +5,7 @@ from photonix.photos.models import Task
 from photonix.photos.utils.classification import ThreadedQueueProcessor
 
 
-print('Loading style color model')
+print('Loading color model')
 model = ColorModel()
 
 

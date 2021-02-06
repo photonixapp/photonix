@@ -5,7 +5,7 @@ from photonix.photos.models import Task
 from photonix.photos.utils.classification import ThreadedQueueProcessor
 
 
-print('Loading object location model')
+print('Loading location model')
 model = LocationModel()
 
 

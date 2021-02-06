@@ -141,7 +141,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
             {photo.colorTags.length ? (
               <div className="box">
                 <h2>Colors</h2>
-                <ColorTags tags={photo.colorTags.map((item) => item.tag)} />
+                <ColorTags tags={photo.colorTags.map((item) => ({name: item.tag.name, significance: item.significance}))} />
               </div>
             ) : (
               ''
