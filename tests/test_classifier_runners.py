@@ -32,17 +32,17 @@ def test_color_via_runner(photo_fixture_snow):
     photo, result = run_on_photo(snow)
 
     assert photo is None
-    assert len(result) == 7
-    assert result[0][0] == 'Violet'
-    assert '{0:.3f}'.format(result[0][1]) == '0.094'
+    assert len(result) == 8
+    assert result[0][0] == 'Azure'
+    assert '{0:.3f}'.format(result[0][1]) == '0.891'
 
     # Passing in a Photo object should tag the object
     assert photo_fixture_snow.photo_tags.count() == 0
     photo, result = run_on_photo(photo_fixture_snow.id)
-    assert photo_fixture_snow.photo_tags.count() == 7
-    assert photo_fixture_snow.photo_tags.all()[0].tag.name == 'Violet'
+    assert photo_fixture_snow.photo_tags.count() == 8
+    assert photo_fixture_snow.photo_tags.all()[0].tag.name == 'Azure'
     assert photo_fixture_snow.photo_tags.all()[0].tag.type == 'C'
-    assert '{0:.3f}'.format(photo_fixture_snow.photo_tags.all()[0].significance) == '0.094'
+    assert '{0:.3f}'.format(photo_fixture_snow.photo_tags.all()[0].significance) == '0.891'
 
 
 def test_location_via_runner(photo_fixture_tree):
