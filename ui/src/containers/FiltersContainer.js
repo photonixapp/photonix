@@ -76,7 +76,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
   let variables = {}
-  variables = { libraryId: activeLibrary.id }
+  variables = { libraryId: activeLibrary?.id }
   const { loading, error, data, refetch } = useQuery(
     GET_FILTERS,
     {

@@ -15,7 +15,7 @@ const User = ({ profile, libraries }) => {
   const activeLibrary = useSelector(getActiveLibrary)
 
   const isActiveLibrary = (id) => {
-    return activeLibrary.id === id
+    return activeLibrary?.id === id
   }
 
   const updateActiveLib = (lib) => {
