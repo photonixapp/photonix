@@ -13,13 +13,25 @@ import { useMutation } from '@apollo/react-hooks'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
+import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
+import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
 import '../static/css/PhotoDetail.css'
-
+const key = 'photonix_showBoundingBox'
 const PhotoDetail = ({ photoId, photo, refetch }) => {
+
   const [starRating, updateStarRating] = useState(photo.starRating)
   const [editorMode, setEditorMode] = useState(false)
+  const [showBoundingBox, setShowBoundingBox] = useState(false)
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
 
+  useEffect(() => {
+    const lsVal = JSON.parse(localStorage.getItem(key))
+    if (!lsVal) {
+      localStorage.setItem(key, false)
+    } else {
+      setShowBoundingBox(lsVal)
+    }
+  }, [])
   useEffect(() => {
     updateStarRating(photo.starRating)
   }, [photo.starRating])
@@ -65,6 +77,11 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     var date = new Date(photo.takenAt)
     date = new Intl.DateTimeFormat().format(date)
   }
+  
+  const updateboundingBoxVisibility = val => {
+    localStorage.setItem(key, val)
+    setShowBoundingBox(val)
+  }
   return (
     <div
       className="PhotoDetail"
@@ -82,6 +99,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
                 large={true}
                 alwaysShow={true}
               />
+              <p className="boundingBoxes">Bounding boxes: {showBoundingBox ? <VisibilityOffIcon onClick={() => updateboundingBoxVisibility(false)}/> : <VisibilityIcon onClick={() => updateboundingBoxVisibility(true)} /> }</p>
             </div>
             <div className="box">
               <h2>Camera</h2>
@@ -188,13 +206,15 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           </div>
         </div>
       </div>
-      <div className="boundingBoxesContainer">
-        <BoundingBoxes
-          photoWidth={photo.width}
-          photoHeight={photo.height}
-          boxes={boxes}
-        />
-      </div>
+      {showBoundingBox &&
+        <div className="boundingBoxesContainer">
+          <BoundingBoxes
+            photoWidth={photo.width}
+            photoHeight={photo.height}
+            boxes={boxes}
+          />
+        </div>
+      }
       <div className="closeIcon" title="[Esc] or [Backspace]">
         <CloseIcon alt="Close" onClick={history.goBack} />
       </div>

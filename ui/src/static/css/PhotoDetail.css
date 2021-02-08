@@ -109,6 +109,15 @@
   animation-delay: 400ms;
 }
 
+.boundingBoxes svg {
+  filter: invert(0.9);
+  height: 24px;
+  width: 24px;
+  margin: 0px 0px -6px 0px;
+  vertical-align: -2px;
+  padding: 2px;
+  cursor: pointer;
+}
 /* When two boxes can no longer fit next to each other */
 @media all and (max-width: 500px) {
   .PhotoDetail .metadata .boxes .box {
