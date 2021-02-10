@@ -3,7 +3,11 @@ import { useStateMachine } from 'little-state-machine'
 import updateAction from './updateAction'
 
 const Result = (props) => {
+  localStorage.setItem('isSignin', true)
   const { state } = useStateMachine(updateAction)
+  setTimeout(() => {
+    window.location.reload()
+  }, 2000)
 
   return (
     <div className="formContainer">

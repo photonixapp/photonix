@@ -1,7 +1,7 @@
 .Map {
   width: 100%;
   height: 100%;
-  background: #181818;
+  background: #000;
 }
 
 .leaflet-container {
@@ -34,7 +34,7 @@
 }
 
 .leaflet-tile-container {
-  filter: contrast(1.05);
+  filter: contrast(1.03);
 }
 
 .leaflet-popup-content-wrapper {

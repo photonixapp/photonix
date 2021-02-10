@@ -35,6 +35,15 @@
   vertical-align: top;
   margin: 0 40px 40px 0;
 }
+.PhotoDetail .metadata .boxes .box h2 svg {
+  filter: invert(0.9);
+  height: 24px;
+  width: 24px;
+  margin: 0px 0px -6px 0px;
+  vertical-align: -2px;
+  padding: 2px;
+  cursor: pointer;
+}
 
 .PhotoDetail .metadata .boxes .box ul {
   padding: 0;
@@ -60,6 +69,9 @@
   right: 10px;
   cursor: pointer;
   z-index: 10;
+}
+.isMobileApp .PhotoDetail .closeIcon {
+  top: 40px;
 }
 .PhotoDetail .closeIcon svg {
   filter: invert(0.9);

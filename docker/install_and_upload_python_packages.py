@@ -18,7 +18,7 @@ def install_and_upload(username=None, password=None):
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
 
     for line in proc.stdout:
-        line = line.rstrip().decode("utf-8")
+        line = line.rstrip().decode('utf-8')
         print(line)
 
         if username and password and 'Created wheel' in line:
@@ -30,7 +30,7 @@ def install_and_upload(username=None, password=None):
                     folder = install_line.split('Stored in directory:')[1].strip()
                     child = Popen(['pypiupload', 'files', f'{folder}/{whl_name}', '-i', 'epix', '-u', username, '-p', password], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
                     for child_line in child.stdout:
-                        child_line = child_line.rstrip().decode("utf-8")
+                        child_line = child_line.rstrip().decode('utf-8')
                         print(child_line)
                     if child.wait() != 0:
                         exit(1)

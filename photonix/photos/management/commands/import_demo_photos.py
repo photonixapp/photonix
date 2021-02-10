@@ -35,15 +35,20 @@ class Command(BaseCommand):
         try:
             user = User.objects.create_user(
                 username='demo', email='demo@photonix.org', password='demo')
+            user.has_config_persional_info = True
+            user.has_created_library = True
+            user.has_configured_importing = True
+            user.has_configured_image_analysis = True
+            user.save()
         except IntegrityError:
             user = User.objects.get(username='demo')
-
         # Create Library
         library, _ = Library.objects.get_or_create(
             name='Demo Library',
             # base_thumbnail_path='/data/cache/thumbnails/',
             # base_thumbnail_url='/thumbnails/'
         )
+        # LibraryPath as locally mounted volume
         library_path, _ = LibraryPath.objects.get_or_create(
             library=library,
             type='St',
@@ -51,9 +56,15 @@ class Command(BaseCommand):
             path='/data/photos/',
             url='/photos/',
         )
+
+        # Link User to Library
+        # In dev environment user needs to be owner to access all functionality
+        # but demo.photonix.org this could lead to the system being messed up
+        owner = os.environ.get('ENV') == 'dev'
         library_user, _ = LibraryUser.objects.get_or_create(
             library=library,
-            user=user
+            user=user,
+            owner=owner
         )
 
         # Add photos

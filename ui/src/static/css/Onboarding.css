@@ -1,13 +1,5 @@
-.Onboarding {
-  width: 600px;
-  height: 700px;
-  background: #1d1d1d;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  position: relative;
-  cursor: auto;
-}
-.Onboarding h2 {
-  margin: 0 0 40px;
+.Onboarding div:last-child {
+  padding-bottom: 0;
 }
 .Onboarding ul {
   padding: 0;
@@ -40,8 +32,6 @@
   text-align: right;
 }
 .Onboarding .formContainer {
-  overflow: auto;
-  padding: 40px 40px 0 40px;
   min-height: 100%;
   height: 100%;
 }
@@ -50,18 +40,12 @@
 }
 .Onboarding .formContainer form > div {
   min-height: 100%;
+  padding-bottom: 40px;
 }
-.Onboarding .stripesHr {
-  height: 3px;
-  display: flex;
-  flex-direction: row;
-}
-.Onboarding .stripesHr div {
-  height: 100%;
-  flex: 1;
-}
-.Onboarding .buttonBar {
-  margin: 40px 0;
+@media all and (max-width: 700px) {
+  .Onboarding .formContainer form > div {
+    padding-bottom: 20px;
+  }
 }
 .Onboarding input {
   border: 0;
@@ -78,18 +62,4 @@
 .storageS3Preview {
   font-style: italic;
   margin: 0 0 0 33.3%;
-}
-
-@media all and (max-width: 700px) {
-  .Onboarding {
-    width: 100vw;
-    height: 100vh;
-    padding: 0;
-  }
-  .Onboarding .formContainer {
-    padding: 20px 20px 0 20px;
-  }
-  .Onboarding .buttonBar {
-    margin: 40px 0 20px;
-  }
 }

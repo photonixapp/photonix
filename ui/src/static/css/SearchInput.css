@@ -1,13 +1,16 @@
 .SearchInput {
   background: #484848;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   position: relative;
 }
 .SearchInput ul {
   margin: 0;
   padding: 0;
   list-style: none;
-  padding: 0 10px;
+  padding: 0 10px 10px;
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 .SearchInput li.filter {
   background: #383838;
@@ -34,12 +37,17 @@
   opacity: 0.6;
 }
 .SearchInput input[type="text"] {
-  width: 100%;
+  width: 150px;
+  height: 30px;
+  flex: 1;
+  min-width: 150px;
   font-size: 20px;
-  padding: 11px 40px 9px 13px;
+  margin: 14px 0 0 5px;
+  padding: 0 30px 2px 0;
   background: #484848;
   border: 0;
   color: #fff;
+  line-height: 1;
 }
 .SearchInput input[type="text"]::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
   color: rgba(255,255,255,0.6);
@@ -49,8 +57,8 @@
   filter: invert(0.6);
   cursor: pointer;
   position: absolute;
-  right: 9px;
-  bottom: 9px;
+  right: 14px;
+  bottom: 14px;
 }
 .SearchInput svg.clearAll:hover {
   opacity: 0.6;

@@ -1,23 +1,26 @@
+DOCKER_COMPOSE_DEV=docker-compose -f docker/docker-compose.dev.yml
+DOCKER_COMPOSE_PRD=docker-compose -f docker/docker-compose.prd.yml
+
 start:
-	docker-compose -f docker/docker-compose.dev.yml up
+	$(DOCKER_COMPOSE_DEV) up
 
 build:
-	docker-compose -f docker/docker-compose.dev.yml build
+	$(DOCKER_COMPOSE_DEV) build
 
 start-prd:
-	docker-compose -f docker/docker-compose.prd.yml up
+	$(DOCKER_COMPOSE_PRD) up
 
 build-prd:
-	docker-compose -f docker/docker-compose.prd.yml build
+	$(DOCKER_COMPOSE_PRD) build
 
 restart:
-	docker-compose -f docker/docker-compose.dev.yml restart photonix
+	$(DOCKER_COMPOSE_DEV) restart photonix
 
 shell:
-	docker-compose -f docker/docker-compose.dev.yml exec photonix bash
+	$(DOCKER_COMPOSE_DEV) exec photonix bash
 
 manage:
-	docker-compose -f docker/docker-compose.dev.yml exec photonix python photonix/manage.py ${}
+	$(DOCKER_COMPOSE_DEV) exec photonix python photonix/manage.py ${}
 
 test:
-	docker-compose -f docker/docker-compose.dev.yml exec photonix python test.py
+	$(DOCKER_COMPOSE_DEV) run -e PYTHONDONTWRITEBYTECODE=1 --rm photonix python test.py

@@ -19,7 +19,6 @@ class Command(BaseCommand):
     def create_library(self, username, library_name):
         # Get user
         user = User.objects.get(username=username)
-
         # Create Library
         library, _ = Library.objects.get_or_create(
             name=library_name,
@@ -33,7 +32,8 @@ class Command(BaseCommand):
         )
         library_user, _ = LibraryUser.objects.get_or_create(
             library=library,
-            user=user
+            user=user,
+            owner=True,
         )
 
         print(f'Library "{library_name}" created successfully for user "{username}"')

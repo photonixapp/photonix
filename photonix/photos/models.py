@@ -33,6 +33,10 @@ class Library(UUIDModel, VersionedModel):
     def __str__(self):
         return self.name
 
+    def rescan(self):
+        for library_path in self.paths:
+            library_path.rescan()
+
 
 LIBRARY_PATH_TYPE_CHOICES = (
     ('St', 'Store'),
@@ -56,6 +60,12 @@ class LibraryPath(UUIDModel, VersionedModel):
     watch_for_changes = models.BooleanField(default=False, help_text='Watch import_path for local filesystem changes?')
     s3_access_key_id = models.CharField(max_length=20, blank=True, null=True, help_text='AWS S3 (or compatible) access key ID')
     s3_secret_key = models.CharField(max_length=40, blank=True, null=True, help_text='AWS S3 (or compatible) secret key')
+
+    def rescan(self):
+        from photonix.photos.utils.organise import import_photos_in_place
+
+        if self.type == 'St' and self.backend_type == 'Lo':
+            import_photos_in_place(self)
 
 
 class LibraryUser(UUIDModel, VersionedModel):
@@ -117,6 +127,8 @@ class Photo(UUIDModel, VersionedModel):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     altitude = models.DecimalField(max_digits=6, decimal_places=1, null=True)
+    star_rating = models.PositiveIntegerField(
+        help_text='assign rating to photo', verbose_name="Rating", null=True, blank=True) 
 
     class Meta:
         ordering = ['-taken_at']
@@ -201,6 +213,7 @@ TAG_TYPE_CHOICES = (
     ('F', 'Face'),
     ('C', 'Color'),
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
+    ('G', 'Generic'),  # Tags created by user
 )
 
 
@@ -210,9 +223,10 @@ class Tag(UUIDModel, VersionedModel):
     parent = models.ForeignKey('Tag', related_name='+', null=True, on_delete=models.CASCADE)
     type = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True)
     source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
+    ordering = models.FloatField(null=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['ordering', 'name']
         unique_together = [['library', 'name', 'type', 'source']]
 
     def __str__(self):
@@ -220,7 +234,7 @@ class Tag(UUIDModel, VersionedModel):
 
 
 class PhotoTag(UUIDModel, VersionedModel):
-    photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE)
+    photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE, null=True)
     tag = models.ForeignKey(Tag, related_name='photo_tags', on_delete=models.CASCADE)
     source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
     model_version = models.PositiveIntegerField(null=True)

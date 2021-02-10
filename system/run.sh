@@ -12,10 +12,18 @@ done
 python /srv/photonix/manage.py migrate accounts
 python /srv/photonix/manage.py migrate
 
+if [ "${ADMIN_PASSWORD}" != "" ]; then
+  echo "Attempting to create admin user as ADMIN_PASSWORD as environment variable is set"
+  python /srv/photonix/manage.py create_admin_from_env
+fi
+
 if [ "${DEMO}" = "1" ]; then
   echo "Ensuring demo user, library and photos are created as we're running with DEMO=1 environment variable"
   python /srv/photonix/manage.py import_demo_photos
 fi
+
+>&2 echo "Scanning for new photos"
+python /srv/photonix/manage.py rescan_photos
 
 >&2 echo "Resetting Redis lock"
 python /srv/photonix/manage.py reset_redis_locks

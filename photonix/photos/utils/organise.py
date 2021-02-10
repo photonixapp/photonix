@@ -5,6 +5,7 @@ from io import StringIO
 
 from PIL import Image
 
+from photonix.photos.models import LibraryPath
 from photonix.photos.utils.db import record_photo
 from photonix.photos.utils.fs import (determine_destination,
                                       find_new_file_name, mkdir_p)
@@ -104,12 +105,6 @@ def import_photos_from_dir(orig, move=False):
             elif not dest:
                 # No filters match this file type
                 pass
-            elif os.path.getsize(filepath) < 102400:
-                print('FILE VERY SMALL (<100k - PROBABLY THUMBNAIL), NOT IMPORTING {}'.format(filepath))
-                were_bad += 1
-            elif os.path.getsize(filepath) > 1073741824:
-                print('FILE VERY LARGE (>1G - PROBABLY VIDEO), NOT IMPORTING {}'.format(filepath))
-                were_bad += 1
             else:
                 t = get_datetime(filepath)
                 if t:
@@ -155,7 +150,8 @@ def import_photos_from_dir(orig, move=False):
         print('\n{} PHOTOS IMPORTED\n{} WERE DUPLICATES\n{} WERE BAD'.format(imported, were_duplicates, were_bad))
 
 
-def import_photos_in_place(orig):
+def import_photos_in_place(library_path):
+    orig = library_path.path
     imported = 0
     were_bad = 0
 
@@ -165,17 +161,21 @@ def import_photos_in_place(orig):
             if blacklisted_type(fn):
                 # Blacklisted type
                 were_bad += 1
-            elif os.path.getsize(filepath) < 102400:
-                print('FILE VERY SMALL (<100k - PROBABLY THUMBNAIL), NOT IMPORTING {}'.format(filepath))
-                were_bad += 1
-            elif os.path.getsize(filepath) > 1073741824:
-                print('FILE VERY LARGE (>1G - PROBABLY VIDEO), NOT IMPORTING {}'.format(filepath))
-                were_bad += 1
             else:
-                modified = record_photo(filepath)
+                modified = record_photo(filepath, library_path.library)
                 if modified:
                     imported += 1
                     print('IMPORTED  {}'.format(filepath))
 
     if imported:
         print('\n{} PHOTOS IMPORTED\n{} WERE BAD'.format(imported, were_bad))
+
+
+def rescan_photo_libraries(paths=[]):
+    library_paths = LibraryPath.objects.filter(type='St', backend_type='Lo')
+    if paths:
+        library_paths = library_paths.filter(path__in=paths)
+
+    for library_path in library_paths:
+        print(f'Searching path for changes {library_path.path}')
+        library_path.rescan()

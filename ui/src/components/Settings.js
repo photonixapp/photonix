@@ -1,61 +1,106 @@
-import React, { useState, useEffect } from 'react'
-import history from '../history'
+import React, { useState, useEffect, useRef } from 'react'
+import { useQuery, useMutation } from '@apollo/react-hooks'
+import { useSelector } from 'react-redux'
+import { getActiveLibrary } from '../stores/library/selector'
+
 import {
   Switch,
   Flex,
   Stack,
-  Heading,
   FormLabel,
   Input,
   InputGroup,
   IconButton,
 } from '@chakra-ui/core'
 
-import { ReactComponent as CloseIcon } from '../static/images/close.svg'
-import '../static/css/Settings.css'
+import Modal from './Modal'
+import {
+  SETTINGS_STYLE,
+  SETTINGS_COLOR,
+  SETTINGS_LOCATION,
+  SETTINGS_OBJECT,
+  SETTINGS_SOURCE_FOLDER,
+  GET_SETTINGS,
+} from '../graphql/settings'
 // import folder from '../static/images/folder.svg'
+import '../static/css/Settings.css'
 
 export default function Settings() {
-  const [settings, setSettings] = useSettings()
-
+  const activeLibrary = useSelector(getActiveLibrary)
+  const [settings, setSettings] = useSettings(activeLibrary)
   const availableSettings = [
-    {
-      key: 'sourceDirs',
-      type: 'path',
-      label: 'Source folder',
-    },
+    // {
+    //   key: 'sourceDirs',
+    //   type: 'path',
+    //   label: 'Source folder',
+    // },
     {
       key: 'watchPhotos',
       type: 'boolean',
       label: 'Watch folder for new photos',
     },
     {
-      key: 'classificationColor',
+      key: 'classificationColorEnabled',
       type: 'boolean',
       label: 'Run color analysis on photos?',
     },
     {
-      key: 'classificationLocation',
+      key: 'classificationLocationEnabled',
       type: 'boolean',
       label: 'Run location detection on photos?',
     },
     {
-      key: 'classificationStyle',
+      key: 'classificationStyleEnabled',
       type: 'boolean',
       label: 'Run style classification on photos?',
     },
     {
-      key: 'classificationObject',
+      key: 'classificationObjectEnabled',
       type: 'boolean',
       label: 'Run object detection on photos?',
     },
   ]
 
   function toggleBooleanSetting(key) {
-    console.log(key)
-    let newSettings = {}
+    let newSettings = { ...settings }
     newSettings[key] = !settings[key]
     setSettings(newSettings)
+    switch (key) {
+      case 'classificationStyleEnabled':
+        settingUpdateStyle({
+          variables: {
+            classificationStyleEnabled: newSettings.classificationStyleEnabled,
+            libraryId: activeLibrary?.id,
+          },
+        }).catch((e) => {})
+        return key
+      case 'classificationLocationEnabled':
+        settingUpdateLocation({
+          variables: {
+            classificationLocationEnabled:
+              newSettings.classificationLocationEnabled,
+            libraryId: activeLibrary?.id,
+          },
+        }).catch((e) => {})
+        return key
+      case 'classificationObjectEnabled':
+        settingUpdateObject({
+          variables: {
+            classificationObjectEnabled:
+              newSettings.classificationObjectEnabled,
+            libraryId: activeLibrary?.id,
+          },
+        }).catch((e) => {})
+        return key
+      case 'classificationColorEnabled':
+        settingUpdateColor({
+          variables: {
+            classificationColorEnabled: newSettings.classificationColorEnabled,
+            libraryId: activeLibrary?.id,
+          },
+        }).catch((e) => {})
+        return key
+    }
   }
 
   function onSelectSourceDir() {
@@ -65,12 +110,27 @@ export default function Settings() {
     }
   }
 
+  function onChangeSourceDir(e) {
+    let newSettings = { ...settings }
+    newSettings.sourceDirs = e.currentTarget.value
+    setSettings(newSettings)
+    settingUpdateSourceFolder({
+      variables: {
+        sourceFolder: newSettings.sourceDirs,
+        libraryId: activeLibrary?.id,
+      },
+    }).catch((e) => {})
+  }
+  const [settingUpdateStyle] = useMutation(SETTINGS_STYLE)
+  const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
+  const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
+  const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
+  const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
+
   return (
-    <div className="Settings">
-      <span onClick={history.goBack}>
-        <CloseIcon className="closeIcon" alt="Close" />
-      </span>
-      <h2>Settings</h2>
+    <Modal className="Settings" topAccent={true}>
+      <h1 className="heading">Settings</h1>
+      <h2 className="subHeading">{activeLibrary?.name}</h2>
       <Stack spacing={4}>
         {availableSettings.map((item, index) => {
           let field = null
@@ -82,6 +142,7 @@ export default function Settings() {
                   <Input
                     rounded="0"
                     value={settings ? settings[item.key] : 'empty'}
+                    onChange={onChangeSourceDir}
                   />
                   <IconButton
                     aria-label="Select source folder"
@@ -93,6 +154,7 @@ export default function Settings() {
             } else if (item.type === 'boolean') {
               field = (
                 <Switch
+                  key={index}
                   id={item.key + 'New'}
                   isChecked={settings[item.key]}
                   onChange={() => toggleBooleanSetting(item.key)}
@@ -110,19 +172,47 @@ export default function Settings() {
           )
         })}
       </Stack>
-    </div>
+    </Modal>
   )
 }
 
-const useSettings = () => {
+const useSettings = (activeLibrary) => {
   const [existingSettings, setSettings] = useState({})
+  const { loading, error, data, refetch } = useQuery(GET_SETTINGS, {
+    variables: { libraryId: activeLibrary?.id },
+  })
+  console.log(error)
+  const isInitialMount = useRef(true)
 
   useEffect(() => {
+    if (activeLibrary) {
+      refetch()
+    }
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+    } else {
+      if (!loading) {
+        let setting = data.librarySetting.library
+        setting.sourceDirs = data.librarySetting.sourceFolder
+        setSettings(setting)
+      }
+    }
+  }, [data, activeLibrary])
+
+  useEffect(() => {
+    if (activeLibrary) {
+      refetch()
+    }
+    if (!loading) {
+      let setting = data.librarySetting.library
+      setting.sourceDirs = data.librarySetting.sourceFolder
+      setSettings(setting)
+    }
     if (window.sendSyncToElectron) {
       let result = window.sendSyncToElectron('get-settings')
       setSettings(result)
     }
-  }, [])
+  }, [activeLibrary])
 
   function setAndSaveSettings(newSettings) {
     if (window.sendSyncToElectron) {
