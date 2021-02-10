@@ -49,7 +49,6 @@ header .user img.arrowDown {
 }
 
 .menu {
-  display: none;
   position: absolute;
   width: 200px;
   right: 0px;
@@ -117,9 +116,6 @@ header .user img.arrowDown {
   display: block;
 }
 
-header .user:hover .menu {
-  display: block;
-}
 .activeLibrary {
   height: 10px;
   width: 10px;
