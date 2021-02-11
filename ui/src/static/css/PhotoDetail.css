@@ -26,7 +26,7 @@
   margin: 0 0 20px 0;
 }
 .PhotoDetail .metadata .boxes {
-  background: rgba(0,0,0,0.75);
+  background: rgba(0, 0, 0, 0.75);
   padding: 40px 0 0 40px;
 }
 .PhotoDetail .metadata .boxes .box {
@@ -39,8 +39,8 @@
   filter: invert(0.9);
   height: 24px;
   width: 24px;
-  margin: 0px 0px -6px 0px;
-  vertical-align: -2px;
+  margin: 0px 0px -6px 10px;
+  vertical-align: 0;
   padding: 2px;
   cursor: pointer;
 }
@@ -83,10 +83,18 @@
   bottom: 20px;
 }
 @keyframes example {
-  0%   {opacity: 0;}
-  25%  {opacity: 1;}
-  50%  {opacity: 0;}
-  100% {opacity: 0;}
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 .PhotoDetail .scrollHint svg {
   filter: invert(0.9);
@@ -109,15 +117,6 @@
   animation-delay: 400ms;
 }
 
-.boundingBoxes svg {
-  filter: invert(0.9);
-  height: 24px;
-  width: 24px;
-  margin: 0px 0px -6px 0px;
-  vertical-align: -2px;
-  padding: 2px;
-  cursor: pointer;
-}
 /* When two boxes can no longer fit next to each other */
 @media all and (max-width: 500px) {
   .PhotoDetail .metadata .boxes .box {
