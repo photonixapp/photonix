@@ -45,7 +45,6 @@ export const refreshToken = () => {
       return response.json()
     })
     .then((response) => {
-      console.log(response.data)
       if (response.data && response.data.refreshToken) {
         // We got token and refreshToken
         Cookies.set('refreshToken', response.data.refreshToken.refreshToken, {

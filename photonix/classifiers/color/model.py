@@ -9,57 +9,51 @@ from PIL import Image
 
 
 class ColorModel:
-    version = 20181130
+    version = 20210206
     approx_ram_mb = 120
     max_num_workers = 2
 
     def __init__(self):
         self.colors = {
-            # Name: (red, green, blue)
+            # Name: ((red, green, blue), ordering)
 
-            # 'Red':                  (255, 0, 0),
-            # 'Yellow':               (255, 255, 0),
-            # 'Green':                (0, 255, 0),
-            # 'Cyan':                 (0, 255, 255),
-            # 'Blue':                 (0, 0, 255),
-            # 'Magenta':              (255, 0, 255),
+            'Red':                  ((120, 4, 20),     1),
+            'Orange':               ((245, 133, 0),     2),
+            'Amber':                ((234, 166, 30),    3),
+            'Yellow':               ((240, 240, 39),    4),
+            'Lime':                 ((168, 228, 26),    5),
+            'Green':                ((7, 215, 7),       6),
+            'Teal':                 ((16, 202, 155),    7),
+            'Turquoise':            ((25, 225, 225),    8),
+            'Aqua':                 ((10, 188, 245),    9),
+            'Azure':                ((30, 83, 249),     10),
+            'Blue':                 ((0, 0, 255),       11),
+            'Purple':               ((127, 0, 255),     12),
+            'Orchid':               ((190, 0, 255),     13),
+            'Magenta':              ((233, 8, 200),     14),
 
-            'Red':                  (225, 32, 0),
-            'Dark orange':          (162, 70, 21),
-            'Orange':               (255, 124, 0),
-            'Pale pink':            (255, 159, 156),
-            'Lemon yellow':         (255, 250, 0),
-            'School bus yellow':    (255, 207, 0),
-            'Green':                (144, 226, 0),
-            'Dark lime green':      (0, 171, 0),
-            'Cyan':                 (0, 178, 212),
-            'Blue':                 (0, 98, 198),
-            'Violet':               (140, 32, 186),
-            'Pink':                 (245, 35, 148),
-
-            'White':                (255, 255, 255),
-            'Gray':                 (124, 124, 124),
-            'Black':                (0, 0, 0),
+            'White':                ((255, 255, 255),   15),
+            'Gray':                 ((124, 124, 124),   16),
+            'Black':                ((0, 0, 0),         17),
         }
 
-    def predict(self, image_file, image_size=32, min_score=0):
+    def predict(self, image_file, image_size=32, min_score=0.005):
         image = Image.open(image_file)
-        image = image.resize((1000, 1000), Image.BICUBIC)  # Remove sensor noise/grain
-        image = image.resize((image_size, image_size), Image.NEAREST)  # Get the interesting colors without muddying them
+        image = image.resize((image_size, image_size), Image.BICUBIC)
         pixels = np.asarray(image)
         pixels = [j for i in pixels for j in i]
 
-        summed_results = defaultdict(float)
+        summed_results = defaultdict(int)
         for i, pixel in enumerate(pixels):
             best_color = None
             best_score = 0
-            for name, target in self.colors.items():
+            for name, (target, _) in self.colors.items():
                 score = self.color_distance(pixel, target)
                 if score > best_score:
                     best_color = name
                     best_score = score
             if best_color:
-                summed_results[best_color] += score
+                summed_results[best_color] += 1
 
         averaged_results = {}
         for key, val in summed_results.items():
@@ -74,9 +68,9 @@ class ColorModel:
         # Colors are list of 3 floats (RGB) from 0.0 to 1.0
         a_h, a_s, a_v = rgb_to_hsv(a[0] / 255, a[1] / 255, a[2] / 255)
         b_h, b_s, b_v = rgb_to_hsv(b[0] / 255, b[1] / 255, b[2] / 255)
-        diff_h = 1 - abs(a_h - b_h)
-        diff_s = 1 - abs(a_s - b_s)
-        diff_v = 1 - abs(a_v - b_v)
+        diff_h = 1 - abs(a_h - b_h)  # Hue is more highly weighted than saturation and value
+        diff_s = 1 - abs(a_s - b_s) * 0.5
+        diff_v = 1 - abs(a_v - b_v) * 0.25
         score = diff_h * diff_s * diff_v
         return score
 
@@ -92,7 +86,7 @@ def run_on_photo(photo_id):
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='C')
         for name, score in results:
-            tag = get_or_create_tag(library=photo.library, name=name, type='C', source='C')
+            tag = get_or_create_tag(library=photo.library, name=name, type='C', source='C', ordering=model.colors[name][1])
             PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
         photo.classifier_color_completed_at = timezone.now()
         photo.classifier_color_version = getattr(model, 'version', 0)
@@ -106,7 +100,7 @@ if __name__ == '__main__':
         print('Argument required: image file path')
         exit(1)
 
-    results = run_on_photo(sys.argv[1])
+    _, results = run_on_photo(sys.argv[1])
 
     for result in results:
         print('{} (score: {:0.10f})'.format(result[0], result[1]))

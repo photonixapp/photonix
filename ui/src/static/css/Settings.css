@@ -24,3 +24,9 @@
   margin: 5px 0 0 20px;
   vertical-align: middle;
 }
+.heading {
+  margin-bottom: 15px !important;
+}
+.subHeading {
+  margin: 0 0 40px 0 !important;
+}
