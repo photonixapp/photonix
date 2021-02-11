@@ -13,12 +13,26 @@ import { useMutation } from '@apollo/react-hooks'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
+import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
+import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
 import '../static/css/PhotoDetail.css'
+
+const LS_KEY = 'showObjectBoxes'
 
 const PhotoDetail = ({ photoId, photo, refetch }) => {
   const [starRating, updateStarRating] = useState(photo.starRating)
   const [editorMode, setEditorMode] = useState(false)
+  const [showBoundingBox, setShowBoundingBox] = useState(false)
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
+
+  useEffect(() => {
+    const lsVal = JSON.parse(localStorage.getItem(LS_KEY))
+    if (lsVal === null) {
+      setShowBoundingBox(true)
+    } else {
+      setShowBoundingBox(lsVal)
+    }
+  }, [])
 
   useEffect(() => {
     updateStarRating(photo.starRating)
@@ -44,6 +58,11 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     }
   }
 
+  const updateboundingBoxVisibility = (val) => {
+    localStorage.setItem(LS_KEY, val)
+    setShowBoundingBox(val)
+  }
+
   let boxes = photo.objectTags.map((objectTag) => {
     return {
       name: objectTag.tag.name,
@@ -65,6 +84,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     var date = new Date(photo.takenAt)
     date = new Intl.DateTimeFormat().format(date)
   }
+
   return (
     <div
       className="PhotoDetail"
@@ -148,7 +168,18 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
             )}
             {photo.objectTags.length ? (
               <div className="box">
-                <h2>Objects</h2>
+                <h2>
+                  Objects
+                  {showBoundingBox ? (
+                    <VisibilityIcon
+                      onClick={() => updateboundingBoxVisibility(false)}
+                    />
+                  ) : (
+                    <VisibilityOffIcon
+                      onClick={() => updateboundingBoxVisibility(true)}
+                    />
+                  )}
+                </h2>
                 <ul>
                   {photo.objectTags.map((photoTag, index) => (
                     <li key={index}>{photoTag.tag.name}</li>
@@ -172,7 +203,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
             )}
             <div className="box">
               <h2>
-                Tags{' '}
+                Tags
                 <EditIcon
                   alt="Edit"
                   onClick={() => setEditorMode(!editorMode)}
@@ -188,13 +219,15 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           </div>
         </div>
       </div>
-      <div className="boundingBoxesContainer">
-        <BoundingBoxes
-          photoWidth={photo.width}
-          photoHeight={photo.height}
-          boxes={boxes}
-        />
-      </div>
+      {showBoundingBox && (
+        <div className="boundingBoxesContainer">
+          <BoundingBoxes
+            photoWidth={photo.width}
+            photoHeight={photo.height}
+            boxes={boxes}
+          />
+        </div>
+      )}
       <div className="closeIcon" title="[Esc] or [Backspace]">
         <CloseIcon alt="Close" onClick={history.goBack} />
       </div>
