@@ -15,7 +15,7 @@ def record_photo(path, library, type_names=[]):
         photo_file = PhotoFile.objects.get(path=path)
     except PhotoFile.DoesNotExist:
         photo_file = PhotoFile()
-    if 'IN_MOVED_FROM' in type_names:
+    if 'IN_MOVED_FROM' in type_names or 'IN_DELETE' in type_names:
         return delete_photo_record(photo_file)
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
     if photo_file and photo_file.file_modified_at == file_modified_at:

@@ -24,11 +24,13 @@ class Command(BaseCommand):
                 if event is not None:
                     (header, type_names, watch_path, filename) = event
                     # if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_FROM', 'IN_MOVED_TO']):  # TODO: Make moving photos really efficient by using the 'from' path
-                    if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_TO', 'IN_MOVED_FROM']):
+                    if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_MOVED_TO', 'IN_DELETE', 'IN_MOVED_FROM']):
                         photo_path = Path(watch_path, filename)
-                        print(f'Recording photo "{photo_path}" to library "{library_path.library}"')
-                        # record_photo(photo_path, library_path.library)
-                        record_photo(photo_path, library_path.library, type_names) if 'IN_MOVED_FROM' in type_names else record_photo(photo_path, library_path.library)
+                        if 'IN_DELETE' in type_names or 'IN_MOVED_FROM':
+                            print(f'Removing photo "{photo_path}" from library "{library_path.library}"')
+                        else:
+                            print(f'Adding photo "{photo_path}" to library "{library_path.library}"')
+                        record_photo(photo_path, library_path.library, type_names)
 
     def handle(self, *args, **options):
         try:
