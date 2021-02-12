@@ -120,7 +120,8 @@ class PhotoFilter(django_filters.FilterSet):
         filters = value.split(' ')
         filters = self.sanitize(filters)
         filters = map(self.customize, filters)
-        return filter_photos_queryset(filters, queryset, False)
+        queryset_used_tag_list, photos_list = filter_photos_queryset(filters, queryset, False) 
+        return queryset_used_tag_list
 
 
 class LocationTagType(DjangoObjectType):
