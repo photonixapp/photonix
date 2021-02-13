@@ -65,7 +65,6 @@ scipy==1.4.1
 singledispatch==3.4.0.3
 six==1.14.0
 sqlparse==0.3.0
-tensorboard==2.3.0
 tensorflow==2.3.1
 tensorflow-estimator==2.3.0
 termcolor==1.1.0
