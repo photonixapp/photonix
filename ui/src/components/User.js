@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import PropTypes from 'prop-types'
 
 import { getActiveLibrary } from '../stores/library/selector'
 import accountCircle from '../static/images/account_circle.svg'
@@ -24,6 +25,7 @@ const User = ({ profile, libraries }) => {
       payload: lib,
     })
   }
+
   return (
     <div className="user">
       <img src={accountCircle} alt="User account" />
@@ -72,6 +74,19 @@ const User = ({ profile, libraries }) => {
       </ul>
     </div>
   )
+}
+
+User.propTypes = {
+  profile: PropTypes.shape({
+    username: PropTypes.string,
+    email: PropTypes.string,
+  }),
+  libraries: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+    })
+  ),
 }
 
 export default User

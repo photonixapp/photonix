@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import HierarchicalTags from '../components/HierarchicalTags'
 
 export default {
-  title: 'Photonix/Filters/Heirarchical Tags',
+  title: 'Photonix/Search/Heirarchical Tags',
   component: HierarchicalTags,
   argTypes: { onStarRatingChange: { action: 'onStarRatingChange' } },
 }
