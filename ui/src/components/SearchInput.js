@@ -1,4 +1,6 @@
 import React from 'react'
+import PropTypes from 'prop-types'
+
 import '../static/css/SearchInput.css'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ObjectsIcon } from '../static/images/label.svg'
@@ -29,10 +31,10 @@ const GROUP_ICONS = {
 
 const SearchInput = ({
   selectedFilters,
+  search,
   onFilterToggle,
   onClearFilters,
-  search,
-  updateSearchText,
+  onSearchTextChange,
 }) => {
   return (
     <div className="SearchInput">
@@ -56,12 +58,26 @@ const SearchInput = ({
           type="text"
           placeholder="Search"
           value={search}
-          onChange={updateSearchText}
+          onChange={onSearchTextChange}
         />
       </ul>
       <CloseIcon className="clearAll" onClick={onClearFilters} />
     </div>
   )
+}
+
+SearchInput.propTypes = {
+  selectedFilters: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+      group: PropTypes.string,
+    })
+  ),
+  search: PropTypes.string,
+  onFilterToggle: PropTypes.func,
+  onClearFilters: PropTypes.func,
+  onSearchTextChange: PropTypes.func,
 }
 
 export default SearchInput

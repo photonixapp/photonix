@@ -3,7 +3,7 @@ import React from 'react'
 import Modal from '../components/Modal'
 
 export default {
-  title: 'Photonix/Modal',
+  title: 'Photonix/Misc/Modal',
   component: Modal,
   argTypes: { onStarClick: { action: 'onStarClick' } },
 }
