@@ -214,13 +214,7 @@ const useSettings = (activeLibrary) => {
       let result = window.sendSyncToElectron('get-settings')
       setSettings(result)
     }
-  }, [
-    activeLibrary,
-    loading,
-    refetch,
-    data.librarySetting.library,
-    data.librarySetting.sourceFolder,
-  ])
+  }, [activeLibrary, loading, refetch, data])
 
   function setAndSaveSettings(newSettings) {
     if (window.sendSyncToElectron) {
