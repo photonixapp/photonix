@@ -62,7 +62,7 @@ const BrowseContainer = (props) => {
     const libs = librariesData.allLibraries.map((lib, index) => {
       const lsActiveLibrary = localStorage.getItem('activeLibrary')
       if (lsActiveLibrary) {
-        lib['isActive'] = lsActiveLibrary == lib.id ? true : false
+        lib['isActive'] = lsActiveLibrary === lib.id ? true : false
       } else {
         lib['isActive'] = index === 0 ? true : false
         index === 0 && localStorage.setItem('activeLibrary', lib.id)
