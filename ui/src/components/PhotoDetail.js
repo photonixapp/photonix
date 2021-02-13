@@ -10,7 +10,7 @@ import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
 import { useMutation } from '@apollo/react-hooks'
 
-import { ReactComponent as CloseIcon } from '../static/images/close.svg'
+import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
@@ -233,8 +233,8 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           />
         </div>
       )}
-      <div className="closeIcon" title="[Esc] or [Backspace]">
-        <CloseIcon alt="Close" onClick={history.goBack} />
+      <div className="backIcon" title="[Esc] key to go back to photo list">
+        <ArrowBackIcon alt="Close" onClick={history.goBack} />
       </div>
       <div className="scrollHint">
         <ArrowDownIcon className="img1" alt="" />
