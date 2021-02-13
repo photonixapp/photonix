@@ -14,13 +14,28 @@ DefaultSearchInput.args = {
   selectedFilters: [
     {
       id: 'tag:1',
-      name: 'Snowy',
-      group: 'Generic Tags',
+      name: 'Iceland',
+      group: 'Locations',
     },
     {
       id: 'tag:2',
       name: 'White',
       group: 'Colors',
+    },
+    {
+      id: 'tag:3',
+      name: 'Snowy',
+      group: 'Generic Tags',
+    },
+    {
+      id: 'tag:5',
+      name: 'Bright',
+      group: 'Styles',
+    },
+    {
+      id: 'tag:6',
+      name: '5',
+      group: 'Rating',
     },
   ],
 }
