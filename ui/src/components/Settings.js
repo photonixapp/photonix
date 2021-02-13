@@ -100,6 +100,8 @@ export default function Settings() {
           },
         }).catch((e) => {})
         return key
+      default:
+        return null
     }
   }
 
@@ -197,7 +199,7 @@ const useSettings = (activeLibrary) => {
         setSettings(setting)
       }
     }
-  }, [data, activeLibrary])
+  }, [data, activeLibrary, loading, refetch])
 
   useEffect(() => {
     if (activeLibrary) {
@@ -212,7 +214,13 @@ const useSettings = (activeLibrary) => {
       let result = window.sendSyncToElectron('get-settings')
       setSettings(result)
     }
-  }, [activeLibrary])
+  }, [
+    activeLibrary,
+    loading,
+    refetch,
+    data.librarySetting.library,
+    data.librarySetting.sourceFolder,
+  ])
 
   function setAndSaveSettings(newSettings) {
     if (window.sendSyncToElectron) {

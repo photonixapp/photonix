@@ -120,7 +120,7 @@ const BrowseContainer = (props) => {
       refetch()
     }
     if (photosData) setPhotoData(photosData)
-  })
+  }, [envData, photosData, refetch])
 
   if (photoData) {
     photos = photoData.allPhotos.edges.map((photo) => ({

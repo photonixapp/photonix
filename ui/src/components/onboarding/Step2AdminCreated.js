@@ -5,7 +5,7 @@ import Modal from './../Modal'
 import ModalForm from '../ModalForm'
 
 const Step2AdminCreated = ({ hasPrevious, history }) => {
-  const { register, handleSubmit, errors, formState } = useForm()
+  const { handleSubmit, formState } = useForm()
 
   return (
     <Modal

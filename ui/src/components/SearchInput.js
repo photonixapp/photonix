@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import '../static/css/SearchInput.css'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ObjectsIcon } from '../static/images/label.svg'

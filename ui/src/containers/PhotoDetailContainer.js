@@ -1,11 +1,10 @@
-import React, { useEffect,useState,useCallback }  from 'react'
-import { useQuery,refetch } from '@apollo/react-hooks';
-import gql from "graphql-tag"
+import React, { useEffect, useState } from 'react'
+import { useQuery } from '@apollo/react-hooks'
+import gql from 'graphql-tag'
 
 import history from '../history'
 import PhotoDetail from '../components/PhotoDetail'
 import Spinner from '../components/Spinner'
-
 
 const ESCAPE_KEY = 27
 const BACKSPACE_KEY = 8
@@ -89,11 +88,11 @@ const PhotoDetailContainer = (props) => {
   const { loading, error, data, refetch } = useQuery(GET_PHOTO, {
     variables: {
       id: props.match.params.photoId,
-    }
+    },
   })
 
   useEffect(() => {
-    const handleKeyDown = event => {
+    const handleKeyDown = (event) => {
       switch (event.keyCode) {
         case ESCAPE_KEY:
         case BACKSPACE_KEY:
@@ -111,18 +110,24 @@ const PhotoDetailContainer = (props) => {
     }
   }, [])
 
-  useEffect (() => {
+  useEffect(() => {
     refetch()
-    if(!loading && data) {
+    if (!loading && data) {
       setPhoto(data)
     }
-  }, [data])
+  }, [data, loading, refetch])
 
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
   if (photo && photo.photo) {
-    return <PhotoDetail photoId={props.match.params.photoId} photo={data.photo} refetch={refetch} />
+    return (
+      <PhotoDetail
+        photoId={props.match.params.photoId}
+        photo={data.photo}
+        refetch={refetch}
+      />
+    )
   }
   return null
 }

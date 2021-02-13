@@ -86,7 +86,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   )
   useEffect(() => {
     refetch()
-  }, [activeLibrary])
+  }, [activeLibrary, refetch])
 
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
