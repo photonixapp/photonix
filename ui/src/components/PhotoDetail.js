@@ -5,7 +5,7 @@ import BoundingBoxes from './BoundingBoxes'
 import MapView from '../components/MapView'
 import ColorTags from './ColorTags'
 import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
-import EditableTagContainer from '../containers/EditableTagContainer'
+import EditableTags from '../components/EditableTags'
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
 import { useMutation } from '@apollo/react-hooks'
@@ -161,7 +161,12 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
             {photo.colorTags.length ? (
               <div className="box">
                 <h2>Colors</h2>
-                <ColorTags tags={photo.colorTags.map((item) => ({name: item.tag.name, significance: item.significance}))} />
+                <ColorTags
+                  tags={photo.colorTags.map((item) => ({
+                    name: item.tag.name,
+                    significance: item.significance,
+                  }))}
+                />
               </div>
             ) : (
               ''
@@ -209,7 +214,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
                   onClick={() => setEditorMode(!editorMode)}
                 />
               </h2>
-              <EditableTagContainer
+              <EditableTags
                 tags={photo.genericTags}
                 editorMode={editorMode}
                 photoId={photoId}

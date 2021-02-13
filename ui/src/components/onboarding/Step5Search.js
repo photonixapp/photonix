@@ -10,7 +10,7 @@ import ModalField from '../ModalField'
 
 const Step5Search = ({ history }) => {
   const { register, handleSubmit, errors, formState } = useForm()
-  const { action, state } = useStateMachine(updateAction)
+  const { state } = useStateMachine(updateAction)
 
   return (
     <Modal

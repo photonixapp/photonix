@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react'
-import history from '../../history'
+import history from '../history'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 
-import { ReactComponent as CloseIcon } from '../../static/images/close.svg'
+import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
 const ESCAPE_KEY = 27
 
@@ -84,7 +84,7 @@ const Modal = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
+  }, [onClose])
 
   return (
     <Container
