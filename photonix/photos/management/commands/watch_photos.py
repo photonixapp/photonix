@@ -23,8 +23,7 @@ class Command(BaseCommand):
             for event in i.event_gen():
                 if event is not None:
                     (header, type_names, watch_path, filename) = event
-                    # if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_FROM', 'IN_MOVED_TO']):  # TODO: Make moving photos really efficient by using the 'from' path
-                    if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_MOVED_TO', 'IN_DELETE', 'IN_MOVED_FROM']):
+                    if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_MOVED_TO', 'IN_DELETE', 'IN_MOVED_FROM']):  # TODO: Make moving photos really efficient by using the 'from' path
                         photo_path = Path(watch_path, filename)
                         if 'IN_DELETE' in type_names or 'IN_MOVED_FROM':
                             print(f'Removing photo "{photo_path}" from library "{library_path.library}"')
