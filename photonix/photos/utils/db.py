@@ -28,6 +28,7 @@ def record_photo(path, library, inotify_event_type=None):
 
     if photo_file and photo_file.file_modified_at == file_modified_at:
         return False
+
     metadata = PhotoMetadata(path)
     date_taken = None
     possible_date_keys = ['Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'Modify Date', 'File Modification Date/Time']
@@ -158,4 +159,5 @@ def delete_photo_record(photo_file_obj):
     if not photo_obj.files.all():
         photo_obj.delete()
     Tag.objects.filter(photo_tags=None).delete()
+    Camera.objects.filter(photos=None).delete()
     return False
