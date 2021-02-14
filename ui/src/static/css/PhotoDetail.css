@@ -52,9 +52,10 @@
 }
 
 .PhotoDetail .metadata .boxes .map {
-  width: 100%;
+  width: auto;
   height: 150px;
   border: 1px solid #888;
+  margin-right: 40px;
 }
 
 .PhotoDetail .BoundingBoxesContainer {

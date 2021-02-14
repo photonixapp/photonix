@@ -33,17 +33,16 @@ class Command(BaseCommand):
 
                     current_libraries = await get_libraries()
 
-                    if inotify:
-                        for path, id in current_libraries.items():
-                            if path not in watching_libraries:
-                                print('Watching new path:', path)
-                                watch = inotify.add_watch(path, Mask.MODIFY | Mask.CREATE | Mask.DELETE | Mask.CLOSE | Mask.MOVE)
-                                watching_libraries[path] = (id, watch)
+                    for path, id in current_libraries.items():
+                        if path not in watching_libraries:
+                            print('Watching new path:', path)
+                            watch = inotify.add_watch(path, Mask.MODIFY | Mask.CREATE | Mask.DELETE | Mask.CLOSE | Mask.MOVE)
+                            watching_libraries[path] = (id, watch)
 
-                        for path, (id, watch) in watching_libraries.items():
-                            if path not in current_libraries:
-                                print('Removing old path:', path)
-                                inotify.rm_watch(watch)
+                    for path, (id, watch) in watching_libraries.items():
+                        if path not in current_libraries:
+                            print('Removing old path:', path)
+                            inotify.rm_watch(watch)
 
                     await asyncio.sleep(4)
 
