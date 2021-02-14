@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import PropTypes from 'prop-types'
 
-import { getActiveLibrary } from '../stores/library/selector'
+import { getActiveLibrary } from '../stores/libraries/selector'
 import accountCircle from '../static/images/account_circle.svg'
 import arrowDown from '../static/images/arrow_down.svg'
 import library from '../static/images/library.svg'

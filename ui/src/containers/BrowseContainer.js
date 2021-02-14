@@ -5,7 +5,7 @@ import gql from 'graphql-tag'
 import 'url-search-params-polyfill'
 import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
-import { getActiveLibrary } from '../stores/library/selector'
+import { getActiveLibrary } from '../stores/libraries/selector'
 
 const GET_LIBRARIES = gql`
   {
