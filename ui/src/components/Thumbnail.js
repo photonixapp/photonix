@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
-import StarRating from '../StarRating'
-import { PHOTO_UPDATE } from '../../graphql/photo'
+import StarRating from './StarRating'
+import { PHOTO_UPDATE } from '../graphql/photo'
 import { useMutation } from '@apollo/react-hooks'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
 import 'react-lazy-load-image-component/src/effects/opacity.css'
@@ -19,7 +19,7 @@ const Container = styled('li')`
   overflow: hidden;
   cursor: pointer;
 
-  img {
+  img.thumbnail {
     width: 100%;
     height: 100%;
   }
@@ -44,10 +44,13 @@ const StarRatingStyled = styled('span')`
 
 const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
   const [newStarRating, updateStarRating] = useState(starRating)
+
   useEffect(() => {
     updateStarRating(starRating)
   }, [starRating])
+
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
+
   const onStarClick = (num, e) => {
     e.preventDefault()
     if (newStarRating === num) {
@@ -72,7 +75,13 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
   return (
     <Link to={`/photo/${id}`} key={id}>
       <Container>
-        <LazyLoadImage effect="opacity" src={imageUrl} />
+        <LazyLoadImage
+          effect="opacity"
+          src={imageUrl}
+          className="thumbnail"
+          width="100%"
+          height="100%"
+        />
         <StarRatingStyled>
           <StarRating starRating={newStarRating} onStarClick={onStarClick} />
         </StarRatingStyled>

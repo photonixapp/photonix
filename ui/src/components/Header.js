@@ -9,7 +9,10 @@ const Header = ({ profile, libraries }) => {
   return (
     <>
       <header className="flex-container-row">
-        <div className="logo"><img src={logo} />Photonix</div>
+        <div className="logo">
+          <img src={logo} alt="Photonix Logo" />
+          Photonix
+        </div>
         <div className="navigation"></div>
         <div className="notifications">
           <img src={notifications} alt="Notifications" />
