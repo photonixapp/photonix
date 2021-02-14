@@ -53,7 +53,7 @@ class Command(BaseCommand):
                         photo_path = event.path
 
                         library_id = None
-                        for potential_library_path, potential_library_id in watching_libraries.items():
+                        for potential_library_path, (potential_library_id, _) in watching_libraries.items():
                             if str(photo_path).startswith(potential_library_path):
                                 library_id = potential_library_id
 

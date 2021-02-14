@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/react-hooks'
 import { useSelector } from 'react-redux'
-import { getActiveLibrary } from '../stores/library/selector'
+import { getActiveLibrary } from '../stores/libraries/selector'
 
 import {
   Switch,

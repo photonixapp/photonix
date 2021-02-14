@@ -12,7 +12,7 @@ const updateActiveLibrary = (state, payload) => {
   return libs
 }
 
-const library = (state = initialState, action = {}) => {
+const libraries = (state = initialState, action = {}) => {
   switch (action.type) {
     case SET_LIBRARIES:
       return action.payload
@@ -23,4 +23,4 @@ const library = (state = initialState, action = {}) => {
   }
 }
 
-export default library
+export default libraries
