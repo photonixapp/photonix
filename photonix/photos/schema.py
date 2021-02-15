@@ -266,8 +266,9 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            filters = [v for v in filters if v != '']
-            queryset_used_tag_list, photos_list = filter_photos_queryset(filters, Photo.objects.filter(library__users__user=user), False)
+            queryset_used_tag_list, photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L').exclude(id__not_in=queryset_used_tag_list)
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L')
 
@@ -275,8 +276,9 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            filters = [v for v in filters if v != '']
-            queryset_used_tag_list, photos_list = filter_photos_queryset(filters, Photo.objects.filter(library__users__user=user), False)
+            queryset_used_tag_list, photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O').exclude(id__not_in=queryset_used_tag_list)
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O')
 
@@ -284,8 +286,9 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            filters = [v for v in filters if v != '']
-            queryset_used_tag_list, photos_list = filter_photos_queryset(filters, Photo.objects.filter(library__users__user=user), False)
+            queryset_used_tag_list, photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P').exclude(id__not_in=queryset_used_tag_list)
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P')
 
@@ -293,8 +296,9 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            filters = [v for v in filters if v != '']
-            queryset_used_tag_list, photos_list = filter_photos_queryset(filters, Photo.objects.filter(library__users__user=user), False)
+            queryset_used_tag_list, photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C').exclude(id__not_in=queryset_used_tag_list)
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C')
 
@@ -302,8 +306,9 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            filters = [v for v in filters if v != '']
-            queryset_used_tag_list, photos_list = filter_photos_queryset(filters, Photo.objects.filter(library__users__user=user), False)
+            queryset_used_tag_list, photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S').exclude(id__not_in=queryset_used_tag_list)
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S')
 
@@ -311,8 +316,9 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            filters = [v for v in filters if v != '']
-            queryset_used_tag_list, photos_list = filter_photos_queryset(filters, Photo.objects.filter(library__users__user=user), False)
+            queryset_used_tag_list, photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G').exclude(id__not_in=queryset_used_tag_list)
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G')
 

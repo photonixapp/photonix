@@ -1,6 +1,9 @@
 
-def filter_photos_queryset(filters, queryset, has_tags):
+def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
     """Method returns photos list."""
+    if library_id:
+        filters = [v for v in filters if v != '']
+        queryset = queryset.filter(library__id=library_id)
     for filter_val in filters:
         if ':' in filter_val:
             key, val = filter_val.split(':')
