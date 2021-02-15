@@ -77,7 +77,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const activeLibrary = useSelector(getActiveLibrary)
   let filtersStr = ''
   if (activeLibrary) {
-    filtersStr = `library_id:${activeLibrary.id} ${selectedFilters
+    filtersStr = `${selectedFilters
       .map((filter) => filter.id)
       .join(' ')}`
   }
@@ -95,6 +95,11 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
     refetch()
   })
 
+  const getFilterdData = (type, array) => {
+    const filterArr = selectedFilters.filter(s => s.group === type)
+    return array.filter(c => !filterArr.find(rm => (rm.name === c.name)))
+  }
+
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
@@ -106,28 +111,23 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
       )
     }
     if (data.allObjectTags.length) {
-      const objects = selectedFilters.filter(s => s.group === 'Objects')
-      const objectsTags = data.allObjectTags.filter(c => !objects.find(rm => (rm.name === c.name)))
+      const objectsTags = getFilterdData('Objects', data.allObjectTags)
       filterData.push(createFilterSelection('Objects', objectsTags))
     }
     if (data.allLocationTags.length) {
-      const locations = selectedFilters.filter(s => s.group === 'Locations')
-      const locationsTags = data.allLocationTags.filter(c => !locations.find(rm => (rm.name === c.name)))
+      const locationsTags = getFilterdData('Locations', data.allLocationTags)
       filterData.push(createFilterSelection('Locations', locationsTags))
     }
     if (data.allPersonTags.length) {
-      const people = selectedFilters.filter(s => s.group === 'People')
-      const peopleTags = data.allPersonTags.filter(c => !people.find(rm => (rm.name === c.name)))
+      const peopleTags = getFilterdData('People', data.allPersonTags)
       filterData.push(createFilterSelection('People', peopleTags))
     }
     if (data.allColorTags.length) {
-      const colors = selectedFilters.filter(s => s.group === 'Colors')
-      const colorsTags = data.allColorTags.filter(c => !colors.find(rm => (rm.name === c.name)))
+      const colorsTags = getFilterdData('Colors', data.allColorTags)
       filterData.push(createFilterSelection('Colors', colorsTags))
     }
     if (data.allStyleTags.length) {
-      const styles = selectedFilters.filter(s => s.group === 'Styles')
-      const stylesTags = data.allStyleTags.filter(c => !styles.find(rm => (rm.name === c.name)))
+      const stylesTags = getFilterdData('Styles', data.allStyleTags)
       filterData.push(createFilterSelection('Styles', stylesTags))
     }
     if (data.allCameras.length) {
