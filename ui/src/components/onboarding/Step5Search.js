@@ -10,7 +10,7 @@ import ModalField from '../ModalField'
 
 const Step5Search = ({ history }) => {
   const { register, handleSubmit, errors, formState } = useForm()
-  const { action, state } = useStateMachine(updateAction)
+  const { state } = useStateMachine(updateAction)
 
   return (
     <Modal
@@ -54,7 +54,11 @@ const Step5Search = ({ history }) => {
             label="Color analysis (fast)"
             register={register}
             errors={errors}
-            defaultValue={state.data.classificationColorEnabled}
+            defaultValue={
+              state?.data?.classificationColorEnabled
+                ? state.data.classificationColorEnabled
+                : true
+            }
           />
           <ModalField
             name="classificationLocationEnabled"
@@ -62,7 +66,11 @@ const Step5Search = ({ history }) => {
             label="Location identification (fast)"
             register={register}
             errors={errors}
-            defaultValue={state.data.classificationLocationEnabled}
+            defaultValue={
+              state?.data?.classificationLocationEnabled
+                ? state.data.classificationLocationEnabled
+                : true
+            }
           />
           <ModalField
             name="classificationStyleEnabled"
@@ -70,7 +78,11 @@ const Step5Search = ({ history }) => {
             label="Style recognition (medium)"
             register={register}
             errors={errors}
-            defaultValue={state.data.classificationStyleEnabled}
+            defaultValue={
+              state?.data?.classificationStyleEnabled
+                ? state.data.classificationStyleEnabled
+                : true
+            }
           />
           <ModalField
             name="classificationObjectEnabled"
@@ -78,7 +90,11 @@ const Step5Search = ({ history }) => {
             label="Object detection (slow)"
             register={register}
             errors={errors}
-            defaultValue={state.data.classificationObjectEnabled}
+            defaultValue={
+              state?.data?.classificationObjectEnabled
+                ? state.data.classificationObjectEnabled
+                : true
+            }
           />
         </Stack>
       </ModalForm>

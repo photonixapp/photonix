@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation } from '@apollo/react-hooks'
 import { useSelector } from 'react-redux'
-import { getActiveLibrary } from '../stores/library/selector'
+import { getActiveLibrary } from '../stores/libraries/selector'
 
 import {
   Switch,
@@ -100,6 +100,8 @@ export default function Settings() {
           },
         }).catch((e) => {})
         return key
+      default:
+        return null
     }
   }
 
@@ -197,7 +199,7 @@ const useSettings = (activeLibrary) => {
         setSettings(setting)
       }
     }
-  }, [data, activeLibrary])
+  }, [data, activeLibrary, loading, refetch])
 
   useEffect(() => {
     if (activeLibrary) {
@@ -212,7 +214,7 @@ const useSettings = (activeLibrary) => {
       let result = window.sendSyncToElectron('get-settings')
       setSettings(result)
     }
-  }, [activeLibrary])
+  }, [activeLibrary, loading, refetch, data])
 
   function setAndSaveSettings(newSettings) {
     if (window.sendSyncToElectron) {

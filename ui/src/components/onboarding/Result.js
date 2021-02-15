@@ -11,8 +11,10 @@ const Result = (props) => {
 
   return (
     <div className="formContainer">
-      <h2>Result</h2>
-      <pre>{JSON.stringify(state, null, 2)}</pre>
+      <h1>We’re all set</h1>
+      <div className="message">
+        <p>Please wait…</p>
+      </div>
     </div>
   )
 }
