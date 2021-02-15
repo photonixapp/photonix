@@ -4,7 +4,6 @@ import '../static/css/ColorTags.css'
 
 
 const ColorTags = ({ tags }) => {
-  console.log('ColorTags', tags)
   return (
     <ul className="ColorTags">
       {

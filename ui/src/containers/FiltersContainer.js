@@ -7,27 +7,27 @@ import Spinner from '../components/Spinner'
 import { getActiveLibrary } from '../stores/library/selector'
 
 const GET_FILTERS = gql`
-  query AllFilters($libraryId: UUID) {
-    allLocationTags(libraryId: $libraryId) {
+  query AllFilters($libraryId: UUID, $filters: String) {
+    allLocationTags(libraryId: $libraryId, multiFilter: $filters) {
       id
       name
       parent {
         id
       }
     }
-    allObjectTags(libraryId: $libraryId) {
+    allObjectTags(libraryId: $libraryId, multiFilter: $filters) {
       id
       name
     }
-    allPersonTags(libraryId: $libraryId) {
+    allPersonTags(libraryId: $libraryId, multiFilter: $filters) {
       id
       name
     }
-    allColorTags(libraryId: $libraryId) {
+    allColorTags(libraryId: $libraryId, multiFilter: $filters) {
       id
       name
     }
-    allStyleTags(libraryId: $libraryId) {
+    allStyleTags(libraryId: $libraryId, multiFilter: $filters) {
       id
       name
     }
@@ -75,8 +75,15 @@ function createFilterSelection(sectionName, data, prefix = 'tag') {
 const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
+  let filtersStr = ''
+  if (activeLibrary) {
+    filtersStr = `library_id:${activeLibrary.id} ${selectedFilters
+      .map((filter) => filter.id)
+      .join(' ')}`
+  }
+  
   let variables = {}
-  variables = { libraryId: activeLibrary?.id }
+  variables = { libraryId: activeLibrary?.id, multiFilter: filtersStr }
   const { loading, error, data, refetch } = useQuery(
     GET_FILTERS,
     {
@@ -86,7 +93,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   )
   useEffect(() => {
     refetch()
-  }, [activeLibrary])
+  })
 
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
@@ -99,19 +106,29 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
       )
     }
     if (data.allObjectTags.length) {
-      filterData.push(createFilterSelection('Objects', data.allObjectTags))
+      const objects = selectedFilters.filter(s => s.group === 'Objects')
+      const objectsTags = data.allObjectTags.filter(c => !objects.find(rm => (rm.name === c.name)))
+      filterData.push(createFilterSelection('Objects', objectsTags))
     }
     if (data.allLocationTags.length) {
-      filterData.push(createFilterSelection('Locations', data.allLocationTags))
+      const locations = selectedFilters.filter(s => s.group === 'Locations')
+      const locationsTags = data.allLocationTags.filter(c => !locations.find(rm => (rm.name === c.name)))
+      filterData.push(createFilterSelection('Locations', locationsTags))
     }
     if (data.allPersonTags.length) {
-      filterData.push(createFilterSelection('People', data.allPersonTags))
+      const people = selectedFilters.filter(s => s.group === 'People')
+      const peopleTags = data.allPersonTags.filter(c => !people.find(rm => (rm.name === c.name)))
+      filterData.push(createFilterSelection('People', peopleTags))
     }
     if (data.allColorTags.length) {
-      filterData.push(createFilterSelection('Colors', data.allColorTags))
+      const colors = selectedFilters.filter(s => s.group === 'Colors')
+      const colorsTags = data.allColorTags.filter(c => !colors.find(rm => (rm.name === c.name)))
+      filterData.push(createFilterSelection('Colors', colorsTags))
     }
     if (data.allStyleTags.length) {
-      filterData.push(createFilterSelection('Styles', data.allStyleTags))
+      const styles = selectedFilters.filter(s => s.group === 'Styles')
+      const stylesTags = data.allStyleTags.filter(c => !styles.find(rm => (rm.name === c.name)))
+      filterData.push(createFilterSelection('Styles', stylesTags))
     }
     if (data.allCameras.length) {
       filterData.push({
@@ -190,7 +207,6 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
       )
     }
   }
-
   return (
     <Filters
       data={filterData}
