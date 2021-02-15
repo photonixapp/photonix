@@ -89,17 +89,17 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
         <div className="metadata">
           <div className="boxes">
             <div className="box">
-              <div style={{ marginBottom: 20 }}>
-                <StarRating
-                  starRating={starRating}
-                  onStarClick={onStarClick}
-                  large={true}
-                  alwaysShow={true}
+              <StarRating
+                starRating={starRating}
+                onStarClick={onStarClick}
+                large={true}
+                alwaysShow={true}
+              />
+              <div className="histogram">
+                <ImageHistogram
+                  imageUrl={`/thumbnails/3840x3840_contain_q75/${photoId}/`}
                 />
               </div>
-              <ImageHistogram
-                imageUrl={`/thumbnails/3840x3840_contain_q75/${photoId}/`}
-              />
             </div>
             <div className="box">
               <h2>Camera</h2>

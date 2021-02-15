@@ -5,7 +5,7 @@ import useLocalStorageState from 'use-local-storage-state'
 const Chart = styled('div')`
   position: relative;
   width: 100%;
-  height: 128px;
+  height: 150px;
   cursor: pointer;
   border: 1px solid #888;
   background: #1b1b1b;
@@ -137,23 +137,26 @@ const ImageHistogram = ({ imageUrl }) => {
           {mode === 'MULTI' ? (
             <>
               <Bars className="red">
-                {rVals.map((val) => (
+                {rVals.map((val, index) => (
                   <span
                     style={{ height: (100 / multiChannelMax) * val + '%' }}
+                    key={index}
                   />
                 ))}
               </Bars>
               <Bars className="green">
-                {gVals.map((val) => (
+                {gVals.map((val, index) => (
                   <span
                     style={{ height: (100 / multiChannelMax) * val + '%' }}
+                    key={index}
                   />
                 ))}
               </Bars>
               <Bars className="blue">
-                {bVals.map((val) => (
+                {bVals.map((val, index) => (
                   <span
                     style={{ height: (100 / multiChannelMax) * val + '%' }}
+                    key={index}
                   />
                 ))}
               </Bars>
@@ -167,6 +170,7 @@ const ImageHistogram = ({ imageUrl }) => {
                     style={{
                       height: (100 / singleChannelMax) * totalVal + '%',
                     }}
+                    key={index}
                   />
                 )
               })}

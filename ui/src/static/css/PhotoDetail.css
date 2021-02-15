@@ -51,11 +51,13 @@
   margin: 0;
 }
 
+.PhotoDetail .metadata .boxes .histogram {
+  margin-top: 16px;
+}
 .PhotoDetail .metadata .boxes .map {
   width: auto;
   height: 150px;
   border: 1px solid #888;
-  margin-right: 40px;
 }
 
 .PhotoDetail .BoundingBoxesContainer {
@@ -122,5 +124,11 @@
 @media all and (max-width: 500px) {
   .PhotoDetail .metadata .boxes .box {
     width: 100%;
+  }
+  .PhotoDetail .metadata .boxes .histogram {
+    margin-right: 40px;
+  }
+  .PhotoDetail .metadata .boxes .map {
+    margin-right: 40px;
   }
 }
