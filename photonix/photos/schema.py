@@ -121,8 +121,8 @@ class PhotoFilter(django_filters.FilterSet):
         filters = value.split(' ')
         filters = self.sanitize(filters)
         filters = map(self.customize, filters)
-        queryset_used_tag_list, photos_list = filter_photos_queryset(filters, queryset, False) 
-        return queryset_used_tag_list
+        photos_list = filter_photos_queryset(filters, queryset, False) 
+        return photos_list
 
 
 class LocationTagType(DjangoObjectType):
@@ -267,60 +267,60 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            queryset_used_tag_list, photos_list = filter_photos_queryset(
+            photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 False, kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L').exclude(~Q(id__in=queryset_used_tag_list))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L')
 
     def resolve_all_object_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            queryset_used_tag_list, photos_list = filter_photos_queryset(
+            photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 False, kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O').exclude(~Q(id__in=queryset_used_tag_list))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O')
 
     def resolve_all_person_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            queryset_used_tag_list, photos_list = filter_photos_queryset(
+            photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 False, kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P').exclude(~Q(id__in=queryset_used_tag_list))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P')
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            queryset_used_tag_list, photos_list = filter_photos_queryset(
+            photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 False, kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C').exclude(~Q(id__in=queryset_used_tag_list))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C')
 
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            queryset_used_tag_list, photos_list = filter_photos_queryset(
+            photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 False, kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S').exclude(~Q(id__in=queryset_used_tag_list))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S')
 
     def resolve_all_generic_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
             filters = kwargs.get('multi_filter').split(' ')
-            queryset_used_tag_list, photos_list = filter_photos_queryset(
+            photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 False, kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G').exclude(~Q(id__in=queryset_used_tag_list))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G')
 
     def resolve_library_setting(self, info, **kwargs):

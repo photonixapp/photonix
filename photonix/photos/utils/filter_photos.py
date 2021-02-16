@@ -1,4 +1,5 @@
 
+
 def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
     """Method returns photos list."""
     if library_id:
@@ -48,5 +49,5 @@ def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
                 photo_tags__tag__name__icontains=filter_val)
     if has_tags:
         queryset.order_by('-photo_tags__significance')
-    return queryset.distinct(), queryset.values_list('photo_tags__tag__id', flat=True).distinct()
+    return queryset.distinct()
 
