@@ -7,27 +7,27 @@ import Spinner from '../components/Spinner'
 import { getActiveLibrary } from '../stores/library/selector'
 
 const GET_FILTERS = gql`
-  query AllFilters($libraryId: UUID, $filters: String) {
-    allLocationTags(libraryId: $libraryId, multiFilter: $filters) {
+  query AllFilters($libraryId: UUID, $multiFilter: String) {
+    allLocationTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
       parent {
         id
       }
     }
-    allObjectTags(libraryId: $libraryId, multiFilter: $filters) {
+    allObjectTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
-    allPersonTags(libraryId: $libraryId, multiFilter: $filters) {
+    allPersonTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
-    allColorTags(libraryId: $libraryId, multiFilter: $filters) {
+    allColorTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
-    allStyleTags(libraryId: $libraryId, multiFilter: $filters) {
+    allStyleTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
@@ -40,7 +40,7 @@ const GET_FILTERS = gql`
       id
       name
     }
-    allGenericTags(libraryId: $libraryId) {
+    allGenericTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       name
       id
     }
