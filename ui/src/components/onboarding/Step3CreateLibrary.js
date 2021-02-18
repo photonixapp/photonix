@@ -99,7 +99,9 @@ const Step3CreateLibrary = ({ history }) => {
               required={true}
               register={register}
               errors={errors}
-              defaultValue={state.data.basePath}
+              defaultValue={
+                state?.data?.basePath ? state.data.basePath : '/data/photos/'
+              }
             />
           </Stack>
         )}

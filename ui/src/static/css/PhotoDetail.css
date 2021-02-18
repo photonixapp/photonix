@@ -51,8 +51,11 @@
   margin: 0;
 }
 
+.PhotoDetail .metadata .boxes .histogram {
+  margin-top: 16px;
+}
 .PhotoDetail .metadata .boxes .map {
-  width: 100%;
+  width: auto;
   height: 150px;
   border: 1px solid #888;
 }
@@ -63,17 +66,17 @@
   position: fixed;
 }
 
-.PhotoDetail .closeIcon {
+.PhotoDetail .backIcon {
   position: absolute;
   top: 10px;
-  right: 10px;
+  left: 10px;
   cursor: pointer;
   z-index: 10;
 }
-.isMobileApp .PhotoDetail .closeIcon {
+.isMobileApp .PhotoDetail .backIcon {
   top: 40px;
 }
-.PhotoDetail .closeIcon svg {
+.PhotoDetail .backIcon svg {
   filter: invert(0.9);
 }
 
@@ -121,5 +124,11 @@
 @media all and (max-width: 500px) {
   .PhotoDetail .metadata .boxes .box {
     width: 100%;
+  }
+  .PhotoDetail .metadata .boxes .histogram {
+    margin-right: 40px;
+  }
+  .PhotoDetail .metadata .boxes .map {
+    margin-right: 40px;
   }
 }

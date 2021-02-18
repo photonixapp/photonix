@@ -5,7 +5,7 @@ import gql from 'graphql-tag'
 import 'url-search-params-polyfill'
 import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
-import { getActiveLibrary } from '../stores/library/selector'
+import { getActiveLibrary } from '../stores/libraries/selector'
 
 const GET_LIBRARIES = gql`
   {
@@ -62,7 +62,7 @@ const BrowseContainer = (props) => {
     const libs = librariesData.allLibraries.map((lib, index) => {
       const lsActiveLibrary = localStorage.getItem('activeLibrary')
       if (lsActiveLibrary) {
-        lib['isActive'] = lsActiveLibrary == lib.id ? true : false
+        lib['isActive'] = lsActiveLibrary === lib.id ? true : false
       } else {
         lib['isActive'] = index === 0 ? true : false
         index === 0 && localStorage.setItem('activeLibrary', lib.id)
@@ -120,7 +120,7 @@ const BrowseContainer = (props) => {
       refetch()
     }
     if (photosData) setPhotoData(photosData)
-  })
+  }, [envData, photosData, refetch])
 
   if (photoData) {
     photos = photoData.allPhotos.edges.map((photo) => ({

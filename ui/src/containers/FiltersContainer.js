@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import Filters from '../components/Filters'
 import Spinner from '../components/Spinner'
-import { getActiveLibrary } from '../stores/library/selector'
+import { getActiveLibrary } from '../stores/libraries/selector'
 
 const GET_FILTERS = gql`
   query AllFilters($libraryId: UUID, $multiFilter: String) {
@@ -93,7 +93,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   )
   useEffect(() => {
     refetch()
-  })
+  }, [activeLibrary, refetch])
 
   const getFilterdData = (type, array) => {
     const filterArr = selectedFilters.filter(s => s.group === type)

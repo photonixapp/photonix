@@ -1,38 +1,32 @@
 import React, { useState, useEffect } from 'react'
+import { useMutation } from '@apollo/react-hooks'
+import useLocalStorageState from 'use-local-storage-state'
 
 import history from '../history'
 import BoundingBoxes from './BoundingBoxes'
 import MapView from '../components/MapView'
 import ColorTags from './ColorTags'
 import HierarchicalTagsContainer from '../containers/HierarchicalTagsContainer'
-import EditableTagContainer from '../containers/EditableTagContainer'
+import EditableTags from '../components/EditableTags'
+import ImageHistogram from '../components/ImageHistogram'
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
-import { useMutation } from '@apollo/react-hooks'
 
-import { ReactComponent as CloseIcon } from '../static/images/close.svg'
+import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
 import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
 import '../static/css/PhotoDetail.css'
 
-const LS_KEY = 'showObjectBoxes'
-
 const PhotoDetail = ({ photoId, photo, refetch }) => {
   const [starRating, updateStarRating] = useState(photo.starRating)
   const [editorMode, setEditorMode] = useState(false)
-  const [showBoundingBox, setShowBoundingBox] = useState(false)
+  const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
+    'showObjectBoxes',
+    true
+  )
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
-
-  useEffect(() => {
-    const lsVal = JSON.parse(localStorage.getItem(LS_KEY))
-    if (lsVal === null) {
-      setShowBoundingBox(true)
-    } else {
-      setShowBoundingBox(lsVal)
-    }
-  }, [])
 
   useEffect(() => {
     updateStarRating(photo.starRating)
@@ -59,7 +53,6 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   }
 
   const updateboundingBoxVisibility = (val) => {
-    localStorage.setItem(LS_KEY, val)
     setShowBoundingBox(val)
   }
 
@@ -102,6 +95,11 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
                 large={true}
                 alwaysShow={true}
               />
+              <div className="histogram">
+                <ImageHistogram
+                  imageUrl={`/thumbnails/3840x3840_contain_q75/${photoId}/`}
+                />
+              </div>
             </div>
             <div className="box">
               <h2>Camera</h2>
@@ -161,7 +159,12 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
             {photo.colorTags.length ? (
               <div className="box">
                 <h2>Colors</h2>
-                <ColorTags tags={photo.colorTags.map((item) => ({name: item.tag.name, significance: item.significance}))} />
+                <ColorTags
+                  tags={photo.colorTags.map((item) => ({
+                    name: item.tag.name,
+                    significance: item.significance,
+                  }))}
+                />
               </div>
             ) : (
               ''
@@ -209,7 +212,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
                   onClick={() => setEditorMode(!editorMode)}
                 />
               </h2>
-              <EditableTagContainer
+              <EditableTags
                 tags={photo.genericTags}
                 editorMode={editorMode}
                 photoId={photoId}
@@ -228,8 +231,8 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           />
         </div>
       )}
-      <div className="closeIcon" title="[Esc] or [Backspace]">
-        <CloseIcon alt="Close" onClick={history.goBack} />
+      <div className="backIcon" title="[Esc] key to go back to photo list">
+        <ArrowBackIcon alt="Close" onClick={history.goBack} />
       </div>
       <div className="scrollHint">
         <ArrowDownIcon className="img1" alt="" />

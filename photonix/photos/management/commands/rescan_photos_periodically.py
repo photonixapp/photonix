@@ -19,13 +19,12 @@ class Command(BaseCommand):
             exit(1)
 
         rescan_photo_libraries(paths)
-        print('Completed')
+        print('Rescan complete')
 
     def handle(self, *args, **options):
         try:
             while True:
                 # TODO: Add a lock in here because DB corruption occurs if rescan_photos is called while it's still already running
-                # TODO; Update this script to loop over Libraries that are scannable
                 self.rescan_photos(options['paths'])
 
                 sleep(60 * 15)  # Sleep for an hour
