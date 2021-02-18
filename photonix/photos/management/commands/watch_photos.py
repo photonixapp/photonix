@@ -1,4 +1,5 @@
 import asyncio
+import imghdr
 from pathlib import Path
 from time import sleep
 
@@ -58,9 +59,11 @@ class Command(BaseCommand):
 
                         if event.mask in [Mask.DELETE, Mask.MOVED_FROM]:
                             print(f'Removing photo "{photo_path}" from library "{library_id}"')
+                            await record_photo_async(photo_path, library_id, str(event.mask).split('.')[1])
                         else:
-                            print(f'Adding photo "{photo_path}" to library "{library_id}"')
-                        await record_photo_async(photo_path, library_id, str(event.mask).split('.')[1])
+                            if imghdr.what(photo_path):
+                                print(f'Adding photo "{photo_path}" to library "{library_id}"')
+                                await record_photo_async(photo_path, library_id, str(event.mask).split('.')[1])
 
             loop = asyncio.get_event_loop()
             loop.create_task(check_libraries())
