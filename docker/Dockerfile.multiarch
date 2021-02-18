@@ -58,7 +58,7 @@ COPY ui/package.json /srv/ui/package.json
 COPY ui/yarn.lock /srv/ui/yarn.lock
 WORKDIR /srv/ui
 ENV NODE_ENV=production
-RUN yarn install --no-cache
+RUN yarn install --no-cache --network-timeout 1000000
 
 # Copy over the code
 COPY ui/public /srv/ui/public
@@ -96,14 +96,16 @@ FROM ${ARCH}python:3.8.6-slim-buster
 RUN apt-get update && \
     apt-get install -y \
         dcraw \
+        libatlas3-base \
+        libfreetype6 \
+        libfreetype6-dev \
         libimage-exiftool-perl \
+        libpq-dev \
+        libtiff5-dev \
         netcat \
         nginx-light \
         supervisor \
-        libatlas3-base \
-        libpq-dev \
-        libtiff5-dev \
-        && \
+    && \
         apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \

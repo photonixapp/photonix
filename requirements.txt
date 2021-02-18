@@ -15,6 +15,7 @@ Markdown==3.1.1
 Pillow==7.2.0
 
 inotify==0.2.10
+asyncinotify==2.0.2
 python-dateutil==2.8.1
 pytz==2019.3
 pyshp==2.1.0
