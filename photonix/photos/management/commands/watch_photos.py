@@ -1,5 +1,6 @@
 import asyncio
 import imghdr
+import subprocess
 from pathlib import Path
 from time import sleep
 
@@ -51,7 +52,6 @@ class Command(BaseCommand):
                 async for event in inotify:
                     if event.mask in [Mask.CLOSE_WRITE, Mask.MOVED_TO, Mask.DELETE, Mask.MOVED_FROM]:
                         photo_path = event.path
-
                         library_id = None
                         for potential_library_path, (potential_library_id, _) in watching_libraries.items():
                             if str(photo_path).startswith(potential_library_path):
@@ -61,7 +61,7 @@ class Command(BaseCommand):
                             print(f'Removing photo "{photo_path}" from library "{library_id}"')
                             await record_photo_async(photo_path, library_id, str(event.mask).split('.')[1])
                         else:
-                            if imghdr.what(photo_path):
+                            if imghdr.what(photo_path) or not subprocess.run(['dcraw', '-i', photo_path]).returncode:
                                 print(f'Adding photo "{photo_path}" to library "{library_id}"')
                                 await record_photo_async(photo_path, library_id, str(event.mask).split('.')[1])
 
