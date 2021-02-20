@@ -80,7 +80,9 @@ const Step4PhotoImporting = ({ history }) => {
             label="Monitor base path for changes?"
             register={register}
             errors={errors}
-            defaultValue={state.data.watchForChanges}
+            defaultValue={
+              state?.data?.watchForChanges ? state.data.watchForChanges : true
+            }
           />
           <p>
             Is there another folder on this server that you like us to watch and

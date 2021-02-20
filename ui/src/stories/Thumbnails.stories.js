@@ -1,16 +1,14 @@
-import React from 'react';
+import React from 'react'
 import { MemoryRouter } from 'react-router'
 
-import Thumbnails from './Thumbnails';
+import Thumbnails from '../components/Thumbnails'
 
 export default {
   title: 'Photonix/Photo List/Thumbnails',
   component: Thumbnails,
-};
+}
 
-const generateId = () => (
-  Math.floor(Math.random() * 100000)
-)
+const generateId = () => Math.floor(Math.random() * 100000)
 
 const randomImage = () => {
   let images = [
@@ -25,26 +23,37 @@ const randomImage = () => {
 
 const randomLocation = () => {
   let locations = [
-    ["64.039132", "-16.173093"],
-    ["64.150117", "-21.933912"],
+    ['64.039132', '-16.173093'],
+    ['64.150117', '-21.933912'],
   ]
   return locations[Math.floor(Math.random() * locations.length)]
 }
 
 let photos = []
-for (var i=0; i < 100; i++) {
-  photos.push(
-    {
-      id: generateId(),
-      location: randomLocation(),
-      thumbnail: randomImage()
-    },
-  )
+for (var i = 0; i < 100; i++) {
+  photos.push({
+    id: generateId(),
+    location: randomLocation(),
+    thumbnail: randomImage(),
+  })
 }
 
 let photoSections = []
 
-let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+let months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
 let years = ['2017', '2018']
 years.reverse()
 months.reverse()
@@ -58,7 +67,7 @@ for (let year of years) {
       let photo = {
         id: id,
         location: [null, null],
-        thumbnail: randomImage()
+        thumbnail: randomImage(),
       }
       monthPhotos.push(photo)
     }
@@ -68,9 +77,9 @@ for (let year of years) {
       segments: [
         {
           numPhotos: monthPhotos.length,
-          photos: monthPhotos
-        }
-      ]
+          photos: monthPhotos,
+        },
+      ],
     }
     photoSections.push(section)
   }
@@ -80,10 +89,10 @@ const Template = (args) => (
   <MemoryRouter>
     <Thumbnails {...args} />
   </MemoryRouter>
-);
+)
 
-export const DefaultThumbnails = Template.bind({});
+export const DefaultThumbnails = Template.bind({})
 
 DefaultThumbnails.args = {
   photoSections: photoSections,
-};
+}

@@ -92,6 +92,7 @@ class PhotoNode(DjangoObjectType):
     def resolve_generic_tags(self, info):
         return self.photo_tags.filter(tag__type='G')
 
+
 class PhotoFilter(django_filters.FilterSet):
     multi_filter = CharFilter(method='multi_filter_filter')
 
@@ -121,7 +122,9 @@ class PhotoFilter(django_filters.FilterSet):
         for filter_val in filters:
             if ':' in filter_val:
                 key, val = filter_val.split(':')
-                if key == 'tag':
+                if key == 'library_id':
+                    queryset = queryset.filter(library__id=val)
+                elif key == 'tag':
                     queryset = queryset.filter(photo_tags__tag__id=val)
                     has_tags = True
                 elif key == 'camera':
@@ -193,33 +196,34 @@ class LibrarySetting(graphene.ObjectType):
     library = graphene.Field(LibraryType)
     source_folder = graphene.String()
 
+
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
-    all_cameras = graphene.List(CameraType)
+    all_cameras = graphene.List(CameraType, library_id=graphene.UUID())
 
     lens = graphene.Field(LensType, id=graphene.UUID(), name=graphene.String())
-    all_lenses = graphene.List(LensType)
+    all_lenses = graphene.List(LensType, library_id=graphene.UUID())
 
-    all_apertures = graphene.List(graphene.Float)
-    all_exposures = graphene.List(graphene.String)
-    all_iso_speeds = graphene.List(graphene.Int)
-    all_focal_lengths = graphene.List(graphene.Float)
-    all_metering_modes = graphene.List(graphene.String)
-    all_drive_modes = graphene.List(graphene.String)
-    all_shooting_modes = graphene.List(graphene.String)
+    all_apertures = graphene.List(graphene.Float, library_id=graphene.UUID())
+    all_exposures = graphene.List(graphene.String, library_id=graphene.UUID())
+    all_iso_speeds = graphene.List(graphene.Int, library_id=graphene.UUID())
+    all_focal_lengths = graphene.List(graphene.Float, library_id=graphene.UUID())
+    all_metering_modes = graphene.List(graphene.String, library_id=graphene.UUID())
+    all_drive_modes = graphene.List(graphene.String, library_id=graphene.UUID())
+    all_shooting_modes = graphene.List(graphene.String, library_id=graphene.UUID())
 
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
     all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
     map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
-    all_location_tags = graphene.List(LocationTagType)
-    all_object_tags = graphene.List(ObjectTagType)
-    all_person_tags = graphene.List(PersonTagType)
-    all_color_tags = graphene.List(ColorTagType)
-    all_style_tags = graphene.List(StyleTagType)
-    all_generic_tags = graphene.List(LocationTagType)
-    library_setting = graphene.Field(LibrarySetting)
+    all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID())
+    all_object_tags = graphene.List(ObjectTagType, library_id=graphene.UUID())
+    all_person_tags = graphene.List(PersonTagType, library_id=graphene.UUID())
+    all_color_tags = graphene.List(ColorTagType, library_id=graphene.UUID())
+    all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID())
+    all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID())
+    library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
 
     def resolve_all_libraries(self, info, **kwargs):
         user = info.context.user
@@ -241,7 +245,8 @@ class Query(graphene.ObjectType):
     @login_required
     def resolve_all_cameras(self, info, **kwargs):
         user = info.context.user
-        return Camera.objects.filter(library__users__user=user)
+        return Camera.objects.filter(
+            library__users__user=user, library__id=kwargs.get('library_id'))
 
     def resolve_lens(self, info, **kwargs):
         id = kwargs.get('id')
@@ -257,36 +262,36 @@ class Query(graphene.ObjectType):
 
     def resolve_all_lenses(self, info, **kwargs):
         user = info.context.user
-        return Lens.objects.filter(library__users__user=user)
+        return Lens.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'))
 
     def resolve_all_apertures(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(aperture__isnull=True).values_list('aperture', flat=True).distinct().order_by('aperture')
+        return Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(aperture__isnull=True).values_list('aperture', flat=True).distinct().order_by('aperture')
 
     def resolve_all_exposures(self, info, **kwargs):
         user = info.context.user
-        photo_list = Photo.objects.filter(library__users__user=user).exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
+        photo_list = Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
         return sorted(photo_list, key=lambda i: float(i.split('/')[0]) / float(i.split('/')[1] if '/' in i else i))
 
     def resolve_all_iso_speeds(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(iso_speed__isnull=True).values_list('iso_speed', flat=True).distinct().order_by('iso_speed')
+        return Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(iso_speed__isnull=True).values_list('iso_speed', flat=True).distinct().order_by('iso_speed')
 
     def resolve_all_focal_lengths(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(focal_length__isnull=True).values_list('focal_length', flat=True).distinct().order_by('focal_length')
+        return Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(focal_length__isnull=True).values_list('focal_length', flat=True).distinct().order_by('focal_length')
 
     def resolve_all_metering_modes(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(metering_mode__isnull=True).values_list('metering_mode', flat=True).distinct().order_by('metering_mode')
+        return Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(metering_mode__isnull=True).values_list('metering_mode', flat=True).distinct().order_by('metering_mode')
 
     def resolve_all_drive_modes(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(drive_mode__isnull=True).values_list('drive_mode', flat=True).distinct().order_by('drive_mode')
+        return Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(drive_mode__isnull=True).values_list('drive_mode', flat=True).distinct().order_by('drive_mode')
 
     def resolve_all_shooting_modes(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(shooting_mode__isnull=True).values_list('shooting_mode', flat=True).distinct().order_by('shooting_mode')
+        return Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(shooting_mode__isnull=True).values_list('shooting_mode', flat=True).distinct().order_by('shooting_mode')
 
     def resolve_photo(self, info, **kwargs):
         id = kwargs.get('id')
@@ -302,37 +307,37 @@ class Query(graphene.ObjectType):
     @login_required
     def resolve_map_photos(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(latitude__isnull=True,longitude__isnull=True)
+        return Photo.objects.filter(library__users__user=user).exclude(latitude__isnull=True, longitude__isnull=True)
 
     def resolve_all_location_tags(self, info, **kwargs):
         user = info.context.user
-        return Tag.objects.filter(library__users__user=user, type='L')
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L')
 
     def resolve_all_object_tags(self, info, **kwargs):
         user = info.context.user
-        return Tag.objects.filter(library__users__user=user, type='O')
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O')
 
     def resolve_all_person_tags(self, info, **kwargs):
         user = info.context.user
-        return Tag.objects.filter(library__users__user=user, type='P')
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P')
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
-        return Tag.objects.filter(library__users__user=user, type='C')
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C')
 
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
-        return Tag.objects.filter(library__users__user=user, type='S')
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S')
 
     def resolve_all_generic_tags(self, info, **kwargs):
         user = info.context.user
-        return Tag.objects.filter(library__users__user=user, type='G')
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G')
 
     def resolve_library_setting(self, info, **kwargs):
         """Api for library setting query."""
         # always pass a dictionary for `library_setting`
         user = info.context.user
-        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=kwargs.get('library_id'))
         if libraries:
             library_obj = libraries[0]
             library_path = library_obj.paths.all()[0]
@@ -368,7 +373,7 @@ class UpdateLibraryColorEnabled(graphene.Mutation):
         """Method to save the updated data for ColorEnabled api."""
         ok = False
         user = info.context.user
-        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
         if libraries and str(input.get('classification_color_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_color_enabled = input.classification_color_enabled
@@ -399,7 +404,7 @@ class UpdateLibraryLocationEnabled(graphene.Mutation):
         """Method to save the updated data for LocationEnabled api."""
         ok = False
         user = info.context.user
-        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
         if libraries and str(input.get('classification_location_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_location_enabled = input.classification_location_enabled
@@ -430,7 +435,7 @@ class UpdateLibraryStyleEnabled(graphene.Mutation):
         """Method to save the updated data for StyleEnabled api."""
         ok = False
         user = info.context.user
-        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
         if libraries and str(input.get('classification_style_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_style_enabled = input.classification_style_enabled
@@ -461,7 +466,7 @@ class UpdateLibraryObjectEnabled(graphene.Mutation):
         """Method to save the updated data for ObjectEnabled api."""
         ok = False
         user = info.context.user
-        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
         if libraries and str(input.get('classification_object_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_object_enabled = input.classification_object_enabled
@@ -492,7 +497,7 @@ class UpdateLibrarySourceFolder(graphene.Mutation):
         """Method to save the updated data for SourceFolder api."""
         ok = False
         user = info.context.user
-        libraries = Library.objects.filter(users__user=user, users__owner=True)
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
         if libraries and input.get('source_folder'):
             library_path = libraries[0].paths.all()[0]
             library_path.path = input.source_folder

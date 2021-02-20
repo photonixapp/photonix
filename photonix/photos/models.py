@@ -223,9 +223,10 @@ class Tag(UUIDModel, VersionedModel):
     parent = models.ForeignKey('Tag', related_name='+', null=True, on_delete=models.CASCADE)
     type = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True)
     source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
+    ordering = models.FloatField(null=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['ordering', 'name']
         unique_together = [['library', 'name', 'type', 'source']]
 
     def __str__(self):
