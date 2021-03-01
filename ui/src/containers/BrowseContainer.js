@@ -37,6 +37,19 @@ const GET_PHOTOS = gql`
     }
   }
 `
+const GET_MAP_PHOTOS = gql`
+  query Photos($filters: String) {
+    mapPhotos(multiFilter: $filters) {
+      edges {
+        node {
+          id
+          url
+          location
+        }
+      }
+    }
+  }
+`
 
 const BrowseContainer = (props) => {
   const dispatch = useDispatch()
@@ -45,11 +58,14 @@ const BrowseContainer = (props) => {
   const activeLibrary = useSelector(getActiveLibrary)
   const [expanded, setExpanded] = useState(true)
   const [photoData, setPhotoData] = useState()
+  const [isMapShowing, setIsMapShowing] = useState(false)
 
   const params = new URLSearchParams(window.location.search)
   const mode = params.get('mode')
     ? params.get('mode').toUpperCase()
     : 'TIMELINE'
+
+  if (mode === 'MAP' && !isMapShowing) setIsMapShowing(true)
 
   const { data: envData } = useQuery(ENVIRONMENT)
   const {
@@ -115,6 +131,18 @@ const BrowseContainer = (props) => {
     console.log('photosError', photosError)
   }
 
+  const {
+    error: mapPhotosError,
+    data: mapPhotosData,
+    refetch: mapPhotosRefetch,
+  } = useQuery(GET_MAP_PHOTOS, {
+    variables: {
+      filters: filtersStr,
+      skip: !user,
+    },
+  })
+  if (mapPhotosError) console.log(mapPhotosError)
+
   useEffect(() => {
     if (envData && envData.environment && !envData.environment.firstRun) {
       refetch()
@@ -153,6 +181,21 @@ const BrowseContainer = (props) => {
     ? librariesError
     : photosError
 
+  useEffect(() => {
+    if (isMapShowing) mapPhotosRefetch()
+  }, [isMapShowing, filtersStr])
+
+  let photosWithLocation = []
+
+  if (mapPhotosData) {
+    photosWithLocation = mapPhotosData.mapPhotos.edges.map((photo) => ({
+      id: photo.node.id,
+      thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+      location: photo.node.location
+        ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
+        : null,
+    }))
+  }
   return (
     <>
       {isLibrarySet && (
@@ -170,6 +213,8 @@ const BrowseContainer = (props) => {
           onClearFilters={props.onClearFilters}
           expanded={expanded}
           onExpandCollapse={() => setExpanded(!expanded)}
+          setIsMapShowing={setIsMapShowing}
+          mapPhotos={photosWithLocation}
         />
       )}
     </>
