@@ -112,7 +112,7 @@ class PhotoFilter(django_filters.FilterSet):
         }
 
     def sanitize(self, value_list):
-        return [v for v in value_list if v != '']  # Remove empty items
+        return [v for v in value_list if v != '' and v not in ['in', 'near', 'during', 'taken', 'on', 'of']]  # Remove empty items
 
     def customize(self, value):
         return value
@@ -120,8 +120,8 @@ class PhotoFilter(django_filters.FilterSet):
     def multi_filter_filter(self, queryset, name, value):
         filters = value.split(' ')
         filters = self.sanitize(filters)
-        filters = map(self.customize, filters)
-        photos_list = filter_photos_queryset(filters, queryset, False) 
+        # filters = map(self.customize, filters)
+        photos_list = filter_photos_queryset(filters, queryset, False)
         return photos_list
 
 
