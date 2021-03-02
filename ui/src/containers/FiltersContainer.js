@@ -96,11 +96,6 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
 
   }, [activeLibrary, refetch])
 
-  })
-
-  }, [activeLibrary, refetch])
-  
-
   const getFilterdData = (type, array) => {
     const filterArr = selectedFilters.filter(s => s.group === type)
     return array.filter(c => !filterArr.find(rm => (rm.name === c.name)))
