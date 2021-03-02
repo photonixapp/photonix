@@ -1,6 +1,11 @@
-import inotify.adapters
+import asyncio
+import imghdr
+import subprocess
 from pathlib import Path
+from time import sleep
 
+from asgiref.sync import sync_to_async
+from asyncinotify import Inotify, Mask
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -12,22 +17,66 @@ class Command(BaseCommand):
     help = 'Watches photo directories and creates relevant database records for all photos that are added or modified.'
 
     def watch_photos(self):
-        library_paths = LibraryPath.objects.filter(type='St', backend_type='Lo')
+        watching_libraries = {}
 
-        for library_path in library_paths:
-            print(f'Watching path for changes {library_path.path}')
+        with Inotify() as inotify:
 
-            # TODO: Work out how to watch multiple paths at once
-            i = inotify.adapters.InotifyTree(library_path.path)
+            @sync_to_async
+            def get_libraries():
+                return {l.path: l.library_id for l in LibraryPath.objects.filter(type='St', backend_type='Lo')}
 
-            for event in i.event_gen():
-                if event is not None:
-                    (header, type_names, watch_path, filename) = event
-                    # if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_FROM', 'IN_MOVED_TO']):  # TODO: Make moving photos really efficient by using the 'from' path
-                    if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_TO']):
-                        photo_path = Path(watch_path, filename)
-                        print(f'Recording photo "{photo_path}" to library "{library_path.library}"')
-                        record_photo(photo_path, library_path.library)
+            @sync_to_async
+            def record_photo_async(photo_path, library_id, event_mask):
+                record_photo(photo_path, library_id, event_mask)
+
+            async def check_libraries():
+                while True:
+                    await asyncio.sleep(1)
+
+                    current_libraries = await get_libraries()
+
+                    for path, id in current_libraries.items():
+                        if path not in watching_libraries:
+                            print('Watching new path:', path)
+                            watch = inotify.add_watch(path, Mask.MODIFY | Mask.CREATE | Mask.DELETE | Mask.CLOSE | Mask.MOVE)
+                            watching_libraries[path] = (id, watch)
+
+                    for path, (id, watch) in watching_libraries.items():
+                        if path not in current_libraries:
+                            print('Removing old path:', path)
+                            inotify.rm_watch(watch)
+
+                    await asyncio.sleep(4)
+
+            async def handle_inotify_events():
+                async for event in inotify:
+                    if event.mask in [Mask.CLOSE_WRITE, Mask.MOVED_TO, Mask.DELETE, Mask.MOVED_FROM]:
+                        photo_path = event.path
+                        library_id = None
+                        for potential_library_path, (potential_library_id, _) in watching_libraries.items():
+                            if str(photo_path).startswith(potential_library_path):
+                                library_id = potential_library_id
+
+                        if event.mask in [Mask.DELETE, Mask.MOVED_FROM]:
+                            print(f'Removing photo "{photo_path}" from library "{library_id}"')
+                            await record_photo_async(photo_path, library_id, str(event.mask).split('.')[1])
+                        else:
+                            if imghdr.what(photo_path) or not subprocess.run(['dcraw', '-i', photo_path]).returncode:
+                                print(f'Adding photo "{photo_path}" to library "{library_id}"')
+                                await record_photo_async(photo_path, library_id, str(event.mask).split('.')[1])
+
+            loop = asyncio.get_event_loop()
+            loop.create_task(check_libraries())
+            loop.create_task(handle_inotify_events())
+
+            try:
+                loop.run_forever()
+            except KeyboardInterrupt:
+                print('Shutting down')
+            finally:
+                loop.run_until_complete(loop.shutdown_asyncgens())
+                loop.close()
+
 
     def handle(self, *args, **options):
         try:

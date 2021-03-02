@@ -5,17 +5,29 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.utils.timezone import utc
-from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task
+
+from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task, Library, Tag
 from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime, parse_gps_location)
 
 
-def record_photo(path, library):
-    file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
+def record_photo(path, library, inotify_event_type=None):
+    if type(library) == Library:
+        library_id = library.id
+    else:
+        library_id = str(library)
 
     try:
         photo_file = PhotoFile.objects.get(path=path)
     except PhotoFile.DoesNotExist:
         photo_file = PhotoFile()
+
+    if inotify_event_type in ['DELETE', 'MOVED_FROM']: 
+        if PhotoFile.objects.filter(path=path).exists():
+            return delete_photo_record(photo_file)
+        else:
+            return False
+
+    file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
     if photo_file and photo_file.file_modified_at == file_modified_at:
         return False
@@ -35,7 +47,7 @@ def record_photo(path, library):
         camera_model = camera_model.replace(camera_make, '').strip()
     if camera_make and camera_model:
         try:
-            camera = Camera.objects.get(library=library, make=camera_make, model=camera_model)
+            camera = Camera.objects.get(library_id=library_id, make=camera_make, model=camera_model)
             if date_taken < camera.earliest_photo:
                 camera.earliest_photo = date_taken
                 camera.save()
@@ -43,7 +55,7 @@ def record_photo(path, library):
                 camera.latest_photo = date_taken
                 camera.save()
         except Camera.DoesNotExist:
-            camera = Camera(library=library, make=camera_make, model=camera_model,
+            camera = Camera(library_id=library_id, make=camera_make, model=camera_model,
                             earliest_photo=date_taken, latest_photo=date_taken)
             camera.save()
 
@@ -59,7 +71,7 @@ def record_photo(path, library):
                 lens.latest_photo = date_taken
                 lens.save()
         except Lens.DoesNotExist:
-            lens = Lens(library=library, name=lens_name, earliest_photo=date_taken,
+            lens = Lens(library_id=library_id, name=lens_name, earliest_photo=date_taken,
                         latest_photo=date_taken)
             lens.save()
 
@@ -96,7 +108,7 @@ def record_photo(path, library):
                 pass
 
         photo = Photo(
-            library=library,
+            library_id=library_id,
             taken_at=date_taken,
             taken_by=metadata.get('Artist') or None,
             aperture=aperture,
@@ -141,3 +153,15 @@ def record_photo(path, library):
     ).save()
 
     return photo
+
+
+def delete_photo_record(photo_file_obj):
+    """Delete photo record if photo not exixts on library path."""
+    photo_obj = photo_file_obj.photo
+    photo_file_obj.delete()
+    if not photo_obj.files.all():
+        photo_obj.delete()
+    Tag.objects.filter(photo_tags=None).delete()
+    Camera.objects.filter(photos=None).delete()
+    Lens.objects.filter(photos=None).delete()
+    return False

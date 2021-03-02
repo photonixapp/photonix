@@ -5,7 +5,7 @@ import gql from 'graphql-tag'
 import 'url-search-params-polyfill'
 import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
-import { getActiveLibrary } from '../stores/library/selector'
+import { getActiveLibrary } from '../stores/libraries/selector'
 
 const GET_LIBRARIES = gql`
   {
@@ -37,6 +37,19 @@ const GET_PHOTOS = gql`
     }
   }
 `
+const GET_MAP_PHOTOS = gql`
+  query Photos($filters: String) {
+    mapPhotos(multiFilter: $filters) {
+      edges {
+        node {
+          id
+          url
+          location
+        }
+      }
+    }
+  }
+`
 
 const BrowseContainer = (props) => {
   const dispatch = useDispatch()
@@ -45,11 +58,14 @@ const BrowseContainer = (props) => {
   const activeLibrary = useSelector(getActiveLibrary)
   const [expanded, setExpanded] = useState(true)
   const [photoData, setPhotoData] = useState()
+  const [isMapShowing, setIsMapShowing] = useState(false)
 
   const params = new URLSearchParams(window.location.search)
   const mode = params.get('mode')
     ? params.get('mode').toUpperCase()
     : 'TIMELINE'
+
+  if (mode === 'MAP' && !isMapShowing) setIsMapShowing(true)
 
   const { data: envData } = useQuery(ENVIRONMENT)
   const {
@@ -62,7 +78,7 @@ const BrowseContainer = (props) => {
     const libs = librariesData.allLibraries.map((lib, index) => {
       const lsActiveLibrary = localStorage.getItem('activeLibrary')
       if (lsActiveLibrary) {
-        lib['isActive'] = lsActiveLibrary == lib.id ? true : false
+        lib['isActive'] = lsActiveLibrary === lib.id ? true : false
       } else {
         lib['isActive'] = index === 0 ? true : false
         index === 0 && localStorage.setItem('activeLibrary', lib.id)
@@ -115,12 +131,24 @@ const BrowseContainer = (props) => {
     console.log('photosError', photosError)
   }
 
+  const {
+    error: mapPhotosError,
+    data: mapPhotosData,
+    refetch: mapPhotosRefetch,
+  } = useQuery(GET_MAP_PHOTOS, {
+    variables: {
+      filters: filtersStr,
+      skip: !user,
+    },
+  })
+  if (mapPhotosError) console.log(mapPhotosError)
+
   useEffect(() => {
     if (envData && envData.environment && !envData.environment.firstRun) {
       refetch()
     }
     if (photosData) setPhotoData(photosData)
-  })
+  }, [envData, photosData, refetch])
 
   if (photoData) {
     photos = photoData.allPhotos.edges.map((photo) => ({
@@ -153,6 +181,21 @@ const BrowseContainer = (props) => {
     ? librariesError
     : photosError
 
+  useEffect(() => {
+    if (isMapShowing) mapPhotosRefetch()
+  }, [isMapShowing, filtersStr])
+
+  let photosWithLocation = []
+
+  if (mapPhotosData) {
+    photosWithLocation = mapPhotosData.mapPhotos.edges.map((photo) => ({
+      id: photo.node.id,
+      thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+      location: photo.node.location
+        ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
+        : null,
+    }))
+  }
   return (
     <>
       {isLibrarySet && (
@@ -170,6 +213,8 @@ const BrowseContainer = (props) => {
           onClearFilters={props.onClearFilters}
           expanded={expanded}
           onExpandCollapse={() => setExpanded(!expanded)}
+          setIsMapShowing={setIsMapShowing}
+          mapPhotos={photosWithLocation}
         />
       )}
     </>

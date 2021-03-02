@@ -215,6 +215,7 @@ class Query(graphene.ObjectType):
 
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
     all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
+    map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
     all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID())
     all_object_tags = graphene.List(ObjectTagType, library_id=graphene.UUID())
@@ -302,6 +303,11 @@ class Query(graphene.ObjectType):
     def resolve_all_photos(self, info, **kwargs):
         user = info.context.user
         return Photo.objects.filter(library__users__user=user)
+
+    @login_required
+    def resolve_map_photos(self, info, **kwargs):
+        user = info.context.user
+        return Photo.objects.filter(library__users__user=user).exclude(latitude__isnull=True, longitude__isnull=True)
 
     def resolve_all_location_tags(self, info, **kwargs):
         user = info.context.user

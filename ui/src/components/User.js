@@ -1,8 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import PropTypes from 'prop-types'
 
-import { getActiveLibrary } from '../stores/library/selector'
+import { getActiveLibrary } from '../stores/libraries/selector'
 import accountCircle from '../static/images/account_circle.svg'
 import arrowDown from '../static/images/arrow_down.svg'
 import library from '../static/images/library.svg'
@@ -61,7 +62,6 @@ const User = ({ profile, libraries }) => {
     setIsComponentVisible(true)
   }
 
-
   return (
     <div ref={ref} className="user" onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
       <img src={accountCircle} alt="User account" />
@@ -110,6 +110,19 @@ const User = ({ profile, libraries }) => {
       </ul>
     </div>
   )
+}
+
+User.propTypes = {
+  profile: PropTypes.shape({
+    username: PropTypes.string,
+    email: PropTypes.string,
+  }),
+  libraries: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+    })
+  ),
 }
 
 export default User

@@ -26,9 +26,9 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
   const [values, setValues] = useState({
     'ISO Speed': [],
     'Focal Length': [],
-    'Aperture': [],
-    'Exposure': [],
-    'Rating': [],
+    Aperture: [],
+    Exposure: [],
+    Rating: [],
   })
   const [isDomainAvail, setIsDomainAvail] = useState(false)
 
@@ -41,7 +41,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
     })
     setValues(vals)
     setIsDomainAvail(true)
-  }, [])
+  }, [data])
 
   useEffect(() => {
     if (isDomainAvail) {
@@ -52,7 +52,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
         'Exposure',
         'Rating',
       ]
-      fields.map((f) => {
+      fields.forEach((f) => {
         const fieldPresent = selectedFilters.filter((g) => g.group === f)
         if (fieldPresent.length === 0) {
           const group = data.filter((d) => d.name === f)[0]
@@ -62,7 +62,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
       })
       setValues(values)
     }
-  })
+  }, [isDomainAvail, values, selectedFilters, data])
 
   function floatToVal(available, selected) {
     const pos = selected * 10
@@ -70,7 +70,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
   }
 
   function setValue(e, group, listedItems) {
-    if (e.length === 0) return 
+    if (e.length === 0) return
     let id = group.items[0].id.slice(0, group.items[0].id.indexOf(':'))
     let groupName = group.name
     const min = Number(e[0].toFixed(1))
@@ -135,7 +135,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
               group.name === 'Exposure' ||
               group.name === 'Rating'
             ) {
-              if(!values[group.name]) return
+              if (!values[group.name]) return []
               const listedItems = group.items.map((item) => {
                 return item.name
               })
