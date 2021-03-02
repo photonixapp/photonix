@@ -7,9 +7,12 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser
 from django.contrib.auth import load_backend, login
+from photonix.photos.utils.filter_photos import filter_photos_queryset
+
 
 User = get_user_model()
 
@@ -118,51 +121,8 @@ class PhotoFilter(django_filters.FilterSet):
         filters = value.split(' ')
         filters = self.sanitize(filters)
         filters = map(self.customize, filters)
-        has_tags = False
-        for filter_val in filters:
-            if ':' in filter_val:
-                key, val = filter_val.split(':')
-                if key == 'library_id':
-                    queryset = queryset.filter(library__id=val)
-                elif key == 'tag':
-                    queryset = queryset.filter(photo_tags__tag__id=val)
-                    has_tags = True
-                elif key == 'camera':
-                    queryset = queryset.filter(camera__id=val)
-                elif key == 'lens':
-                    queryset = queryset.filter(lens__id=val)
-                elif key == 'aperture':
-                    queryset = queryset.filter(
-                        aperture__gte=float(val.split('-')[0]),
-                        aperture__lte=float(val.split('-')[1]))
-                elif key == 'exposure':
-                    queryset = queryset.filter(exposure__in=val.split('-'))
-                elif key == 'isoSpeed':
-                    queryset = queryset.filter(
-                        iso_speed__gte=int(val.split('-')[0]),
-                        iso_speed__lte=int(val.split('-')[1]))
-                elif key == 'focalLength':
-                    queryset = queryset.filter(
-                        focal_length__gte=float(val.split('-')[0]),
-                        focal_length__lte=float(val.split('-')[1]))
-                elif key == 'flash':
-                    queryset = queryset.filter(
-                        flash=val == 'on' and True or False)
-                elif key == 'meeteringMode':
-                    queryset = queryset.filter(metering_mode=val)
-                elif key == 'driveMode':
-                    queryset = queryset.filter(drive_mode=val)
-                elif key == 'shootingMode':
-                    queryset = queryset.filter(shooting_mode=val)
-                elif key == 'rating':
-                    queryset = queryset.filter(
-                        star_rating__gte=int(val.split('-')[0]),
-                        star_rating__lte=int(val.split('-')[1]))
-            else:
-                queryset = queryset.filter(photo_tags__tag__name__icontains=filter_val)
-        if has_tags:
-            queryset.order_by('-photo_tags__significance')
-        return queryset.distinct()
+        photos_list = filter_photos_queryset(filters, queryset, False) 
+        return photos_list
 
 
 class LocationTagType(DjangoObjectType):
@@ -217,12 +177,12 @@ class Query(graphene.ObjectType):
     all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
     map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
-    all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID())
-    all_object_tags = graphene.List(ObjectTagType, library_id=graphene.UUID())
-    all_person_tags = graphene.List(PersonTagType, library_id=graphene.UUID())
-    all_color_tags = graphene.List(ColorTagType, library_id=graphene.UUID())
-    all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID())
-    all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID())
+    all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
+    all_object_tags = graphene.List(ObjectTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
+    all_person_tags = graphene.List(PersonTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
+    all_color_tags = graphene.List(ColorTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
+    all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
+    all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
 
     def resolve_all_libraries(self, info, **kwargs):
@@ -311,26 +271,62 @@ class Query(graphene.ObjectType):
 
     def resolve_all_location_tags(self, info, **kwargs):
         user = info.context.user
+        if kwargs.get('multi_filter'):
+            filters = kwargs.get('multi_filter').split(' ')
+            photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L')
 
     def resolve_all_object_tags(self, info, **kwargs):
         user = info.context.user
+        if kwargs.get('multi_filter'):
+            filters = kwargs.get('multi_filter').split(' ')
+            photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O')
 
     def resolve_all_person_tags(self, info, **kwargs):
         user = info.context.user
+        if kwargs.get('multi_filter'):
+            filters = kwargs.get('multi_filter').split(' ')
+            photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P')
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
+        if kwargs.get('multi_filter'):
+            filters = kwargs.get('multi_filter').split(' ')
+            photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C')
 
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
+        if kwargs.get('multi_filter'):
+            filters = kwargs.get('multi_filter').split(' ')
+            photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S')
 
     def resolve_all_generic_tags(self, info, **kwargs):
         user = info.context.user
+        if kwargs.get('multi_filter'):
+            filters = kwargs.get('multi_filter').split(' ')
+            photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                False, kwargs.get('library_id'))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G')
 
     def resolve_library_setting(self, info, **kwargs):
