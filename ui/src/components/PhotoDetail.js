@@ -11,9 +11,11 @@ import EditableTags from '../components/EditableTags'
 import ImageHistogram from '../components/ImageHistogram'
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
+import { ReactComponent as ArrowUpIcon } from '../static/images/arrow_up.svg'
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
 import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
@@ -26,6 +28,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     'showObjectBoxes',
     true
   )
+  const [showDetailBox, setShowDetailBox] = useState(false)
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
 
   useEffect(() => {
@@ -78,14 +81,22 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     date = new Intl.DateTimeFormat().format(date)
   }
 
+  const url = `/thumbnails/3840x3840_contain_q75/${photoId}/`
   return (
-    <div
-      className="PhotoDetail"
-      style={{
-        backgroundImage: `url('/thumbnails/3840x3840_contain_q75/${photoId}/')`,
-      }}
-    >
-      <div className="content">
+    <>
+    <div className="PhotoDetail">
+      <div className="imgContainer">
+        <TransformWrapper
+          wheel={{
+            limitsOnWheel: false
+          }}
+        >
+          <TransformComponent>
+            <img src={url} />
+          </TransformComponent>
+        </TransformWrapper>
+        </div>
+      <div className="content" style={{display: showDetailBox ? 'block' : 'none'}}>
         <div className="metadata">
           <div className="boxes">
             <div className="box">
@@ -234,12 +245,20 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
       <div className="backIcon" title="[Esc] key to go back to photo list">
         <ArrowBackIcon alt="Close" onClick={history.goBack} />
       </div>
+      {showDetailBox &&
+        <ArrowUpIcon className="showDetailIcon" height="30" width="30" onClick={() => setShowDetailBox(!showDetailBox)} />
+      }
+      {!showDetailBox &&
+        <ArrowDownIcon className="showDetailIcon" height="30" width="30" onClick={() => setShowDetailBox(!showDetailBox)} />
+      }
+      
       <div className="scrollHint">
         <ArrowDownIcon className="img1" alt="" />
         <ArrowDownIcon className="img2" alt="" />
         <ArrowDownIcon className="img3" alt="" />
       </div>
     </div>
+    </>
   )
 }
 

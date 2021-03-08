@@ -2,22 +2,34 @@
   width: 100vw;
   height: 100vh;
   background-color: #1b1b1b;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  overflow: hidden;
 }
-
+.imgContainer {
+  width: 100%;
+  max-width: calc(100vw - 0px);
+  margin: 0 auto;
+  text-align: center;
+  height: 100%;
+}
+.imgContainer .react-transform-component {
+  margin: 0 auto;
+}
+.imgContainer img {
+  height: 100vh;
+  display: block;
+  margin: 0 auto;
+}
 .PhotoDetail .content {
   width: 110vw;
   height: 100vh;
   overflow: auto;
-  position: absolute;
-  z-index: 1;
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
 }
 
 .PhotoDetail .metadata {
-  padding-top: 100vh;
+  padding-top: 50vh;
   min-height: 200px;
   width: 100vw;
 }
@@ -26,14 +38,18 @@
   margin: 0 0 20px 0;
 }
 .PhotoDetail .metadata .boxes {
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0,0,0,1);
   padding: 40px 0 0 40px;
+  z-index: 999;
 }
 .PhotoDetail .metadata .boxes .box {
   display: inline-block;
   width: 220px;
   vertical-align: top;
   margin: 0 40px 40px 0;
+}
+.PhotoDetail .metadata .boxes .box img {
+  display: inline;
 }
 .PhotoDetail .metadata .boxes .box h2 svg {
   filter: invert(0.9);
@@ -79,7 +95,14 @@
 .PhotoDetail .backIcon svg {
   filter: invert(0.9);
 }
-
+.PhotoDetail .showDetailIcon {
+  position: absolute;
+  right: 40px;
+  top: 7px;
+  filter: invert(0.9);
+  cursor: pointer;
+  z-index: 10;
+}
 .PhotoDetail .scrollHint {
   position: absolute;
   width: 100%;
@@ -119,7 +142,11 @@
 .PhotoDetail .scrollHint svg.img3 {
   animation-delay: 400ms;
 }
-
+@media all and (max-width: 767px) {
+  .imgContainer img {
+    max-width: 100%;
+  }
+}
 /* When two boxes can no longer fit next to each other */
 @media all and (max-width: 500px) {
   .PhotoDetail .metadata .boxes .box {

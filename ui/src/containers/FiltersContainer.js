@@ -7,27 +7,27 @@ import Spinner from '../components/Spinner'
 import { getActiveLibrary } from '../stores/libraries/selector'
 
 const GET_FILTERS = gql`
-  query AllFilters($libraryId: UUID) {
-    allLocationTags(libraryId: $libraryId) {
+  query AllFilters($libraryId: UUID, $multiFilter: String) {
+    allLocationTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
       parent {
         id
       }
     }
-    allObjectTags(libraryId: $libraryId) {
+    allObjectTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
-    allPersonTags(libraryId: $libraryId) {
+    allPersonTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
-    allColorTags(libraryId: $libraryId) {
+    allColorTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
-    allStyleTags(libraryId: $libraryId) {
+    allStyleTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
@@ -40,7 +40,7 @@ const GET_FILTERS = gql`
       id
       name
     }
-    allGenericTags(libraryId: $libraryId) {
+    allGenericTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       name
       id
     }
@@ -75,8 +75,15 @@ function createFilterSelection(sectionName, data, prefix = 'tag') {
 const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
+  let filtersStr = ''
+  if (activeLibrary) {
+    filtersStr = `${selectedFilters
+      .map((filter) => filter.id)
+      .join(' ')}`
+  }
+  
   let variables = {}
-  variables = { libraryId: activeLibrary?.id }
+  variables = { libraryId: activeLibrary?.id, multiFilter: filtersStr }
   const { loading, error, data, refetch } = useQuery(
     GET_FILTERS,
     {
@@ -86,8 +93,15 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   )
   useEffect(() => {
     refetch()
+
   }, [activeLibrary, refetch])
 
+  const getFilterdData = (type, array) => {
+    const filterArr = selectedFilters.filter(s => s.group === type)
+    return array.filter(c => !filterArr.find(rm => (rm.name === c.name)))
+  }
+
+  
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
@@ -99,19 +113,24 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
       )
     }
     if (data.allObjectTags.length) {
-      filterData.push(createFilterSelection('Objects', data.allObjectTags))
+      const objectsTags = getFilterdData('Objects', data.allObjectTags)
+      filterData.push(createFilterSelection('Objects', objectsTags))
     }
     if (data.allLocationTags.length) {
-      filterData.push(createFilterSelection('Locations', data.allLocationTags))
+      const locationsTags = getFilterdData('Locations', data.allLocationTags)
+      filterData.push(createFilterSelection('Locations', locationsTags))
     }
     if (data.allPersonTags.length) {
-      filterData.push(createFilterSelection('People', data.allPersonTags))
+      const peopleTags = getFilterdData('People', data.allPersonTags)
+      filterData.push(createFilterSelection('People', peopleTags))
     }
     if (data.allColorTags.length) {
-      filterData.push(createFilterSelection('Colors', data.allColorTags))
+      const colorsTags = getFilterdData('Colors', data.allColorTags)
+      filterData.push(createFilterSelection('Colors', colorsTags))
     }
     if (data.allStyleTags.length) {
-      filterData.push(createFilterSelection('Styles', data.allStyleTags))
+      const stylesTags = getFilterdData('Styles', data.allStyleTags)
+      filterData.push(createFilterSelection('Styles', stylesTags))
     }
     if (data.allCameras.length) {
       filterData.push({
@@ -190,7 +209,6 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
       )
     }
   }
-
   return (
     <Filters
       data={filterData}
