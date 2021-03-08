@@ -17,13 +17,13 @@ month_dict = {
 }
 
 
-def remove_unused_words(filter_string):
-    """Removed unused words from filter string."""
+def get_date_elements_from_filters(filter_string):
+    """Removed unused words from filter string and return date values if any date exists in filter string."""
     date_elements_dict = {}
     removable_date_filters = []
     for val in filter_string:
         if (':' not in val) and val.lower():
-            if (not date_elements_dict.get('date')) and bool(re.search(r'\d', val)) and (val.split(re.sub("\D", "", val))[1] in ['st', 'nd', 'rd', 'th'] or val.isdigit()) and 1 <= int(re.sub("\D", "", val)) <= 31:
+            if (not date_elements_dict.get('date')) and bool(re.search(r'\d', val)) and (val.isdigit() or val.split(re.sub("\D", "", val))[1] in ['st', 'nd', 'rd', 'th']) and 1 <= int(re.sub("\D", "", val)) <= 31:
                 date_elements_dict.update({'date': re.sub("\D", "", val)})
                 removable_date_filters.append(val)
                 continue
@@ -32,12 +32,12 @@ def remove_unused_words(filter_string):
                 removable_date_filters.append(val)
                 continue
             if (not date_elements_dict.get('month')) and val.isalpha() and len(val) >= 3:
-                if val in month_dict.keys():
+                if val.lower() in month_dict.keys():
                     date_elements_dict.update({'month': month_dict.get(val)})
                     removable_date_filters.append(val)
                 else:
                     for month_name in month_dict.keys():
-                        if month_name.startswith(val):
+                        if month_name.lower().startswith(val):
                             date_elements_dict.update({'month': month_dict.get(month_name)})
                             removable_date_filters.append(val)
                             break
@@ -49,7 +49,7 @@ def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
     if library_id:
         filters = [v for v in filters if v != '' and v not in ['in', 'near', 'during', 'taken', 'on', 'of']]
         queryset = queryset.filter(library__id=library_id)
-    date_elements_dict, removable_date_filters = remove_unused_words(filters)
+    date_elements_dict, removable_date_filters = get_date_elements_from_filters(filters)
     for filter_val in filters:
         if ':' in filter_val:
             key, val = filter_val.split(':')
