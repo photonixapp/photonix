@@ -43,9 +43,9 @@ def record_photo(path, library, inotify_event_type=None):
     camera = None
     camera_make = metadata.get('Make')
     camera_model = metadata.get('Camera Model Name')
-    if camera_model:
-        camera_model = camera_model.replace(camera_make, '').strip()
     if camera_make and camera_model:
+        camera_model = camera_model.replace(camera_make, '').strip()
+    if camera_model:
         try:
             camera = Camera.objects.get(library_id=library_id, make=camera_make, model=camera_model)
             if date_taken < camera.earliest_photo:
