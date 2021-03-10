@@ -82,7 +82,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     <div
       className="PhotoDetail"
       style={{
-        backgroundImage: `url('/thumbnails/3840x3840_contain_q75/${photoId}/')`,
+        backgroundImage: `url('/thumbnailer/photo/3840x3840_contain_q75/${photoId}/')`,
       }}
     >
       <div className="content">
@@ -97,7 +97,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
               />
               <div className="histogram">
                 <ImageHistogram
-                  imageUrl={`/thumbnails/3840x3840_contain_q75/${photoId}/`}
+                  imageUrl={`/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`}
                 />
               </div>
             </div>

@@ -146,6 +146,7 @@ STATIC_URL = '/static-collected/'
 MEDIA_ROOT = str(Path(BASE_DIR).parent / 'data')
 
 THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
+THUMBNAIL_URL = '/thumbnails/'
 
 THUMBNAIL_SIZES = [
     # Width, height, crop method, JPEG quality, whether it should be generated upon upload

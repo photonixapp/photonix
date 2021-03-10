@@ -1,12 +1,13 @@
 
 import io
 import os
+from pathlib import Path
 
 from PIL import Image, ImageOps
 
 from django.conf import settings
 from django.utils import timezone
-from photonix.photos.models import Photo, Task
+from photonix.photos.models import Photo, PhotoFile, Task
 from photonix.photos.utils.metadata import PhotoMetadata
 
 
@@ -39,34 +40,38 @@ def generate_thumbnails_for_photo(photo, task):
     task.complete(next_type='classify_images', next_subject_id=photo.id)
 
 
-def get_thumbnail_path(photo, width=256, height=256, crop='cover', quality=75):
-    if not isinstance(photo, Photo):
-        photo = Photo.objects.get(id=photo)
-
-    directory = os.path.join(settings.THUMBNAIL_ROOT, '{}x{}_{}_q{}'.format(width, height, crop, quality))
-    if not os.path.exists(directory):
-        try:
-            os.makedirs(directory)
-        except FileExistsError:  # Could have been created by parallel thread which is OK
-            pass
-
-    return os.path.join(directory, '{}.jpg'.format(photo.id))
+def get_thumbnail_path(photo_file_id, width=256, height=256, crop='cover', quality=75):
+    directory = Path(f'{settings.THUMBNAIL_ROOT}/photofile/{width}x{height}_{crop}_q{quality}')
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory / f'{photo_file_id}.jpg'
 
 
-def get_thumbnail(photo, width=256, height=256, crop='cover', quality=75, return_type='path', force_regenerate=False):
-    if not isinstance(photo, Photo):
-        photo = Photo.objects.get(id=photo)
+def get_thumbnail_url(photo_file_id, width=256, height=256, crop='cover', quality=75):
+    return f'{settings.THUMBNAIL_URL}photofile/{width}x{height}_{crop}_q{quality}/{photo_file_id}.jpg'
+
+
+def get_thumbnail(photo_file=None, photo=None, width=256, height=256, crop='cover', quality=75, return_type='path', force_regenerate=False):
+    if not photo_file:
+        if not isinstance(photo, Photo):
+            photo = Photo.objects.get(id=photo)
+        photo_file = photo.base_file
+    elif not isinstance(photo_file, PhotoFile):
+        photo_file = PhotoFile.objects.get(id=photo_file)
 
     # If thumbnail image was previously generated and we weren't told to re-generate, return that one
-    output_path = get_thumbnail_path(photo, width, height, crop, quality)
+    output_path = get_thumbnail_path(photo_file.id, width, height, crop, quality)
+    output_url = get_thumbnail_url(photo_file.id, width, height, crop, quality)
+
     if os.path.exists(output_path):
         if return_type == 'bytes':
             return open(output_path, 'rb').read()
+        elif return_type == 'url':
+            return output_url
         else:
             return output_path
 
     # Read base image and metadata
-    input_path = photo.base_image_path
+    input_path = photo_file.base_image_path
     im = Image.open(input_path)
 
     if im.mode != 'RGB':
@@ -103,4 +108,6 @@ def get_thumbnail(photo, width=256, height=256, crop='cover', quality=75, return
     # Return accordingly
     if return_type == 'bytes':
         return img_byte_array.getvalue()
+    elif return_type == 'url':
+        return output_url
     return output_path

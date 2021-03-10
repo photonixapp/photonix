@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from pathlib import Path
 
@@ -8,7 +8,7 @@ from photonix.photos.utils.thumbnails import get_thumbnail
 from photonix.photos.models import Library
 
 
-def thumbnail(request, photo_id, width, height, crop, quality):
+def thumbnailer(request, type, id, width, height, crop, quality):
     width = int(width)
     height = int(height)
     quality = int(quality)
@@ -22,9 +22,15 @@ def thumbnail(request, photo_id, width, height, crop, quality):
     if thumbnail_size_index is None:
         return HttpResponseNotFound('No photo thumbnail with these parameters')
 
-    img_bytes = get_thumbnail(photo_id, width, height, crop, quality, return_type='bytes')
-    response = HttpResponse(img_bytes, content_type='image/jpeg')
-    return response
+    photo_id = None
+    photo_file_id = None
+    if type == 'photo':
+        photo_id = id
+    elif type == 'photofile':
+        photo_file_id = id
+
+    path = get_thumbnail(photo_file=photo_file_id, photo=photo_id, width=width, height=height, crop=crop, quality=quality, return_type='url')
+    return HttpResponseRedirect(path)
 
 
 def upload(request):
