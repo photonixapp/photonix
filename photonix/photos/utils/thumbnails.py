@@ -31,7 +31,7 @@ def generate_thumbnails_for_photo(photo, task):
     for thumbnail in settings.THUMBNAIL_SIZES:
         if thumbnail[4]:  # Required from the start
             try:
-                get_thumbnail(photo, thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], force_regenerate=True)
+                get_thumbnail(photo=photo, width=thumbnail[0], height=thumbnail[1], crop=thumbnail[2], quality=thumbnail[3], force_regenerate=True)
             except (FileNotFoundError, IndexError):
                 task.failed()
                 return
@@ -101,6 +101,7 @@ def get_thumbnail(photo_file=None, photo=None, width=256, height=256, crop='cove
         im.save(output_path, format='JPEG', quality=quality)
 
     # Update Photo DB model
+    # TODO: check whether these fields exist and whether they should be on the photofile (also)
     photo.last_thumbnailed_version = 0
     photo.last_thumbnailed_at = timezone.now()
     photo.save()
