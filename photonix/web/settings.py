@@ -156,6 +156,7 @@ THUMBNAIL_SIZES = [
     (1920, 1920, 'contain', 75, False),  # 2k
     (3840, 3840, 'contain', 75, False),  # 4k
 ]
+ACCURATE_THUMBNAILS = os.environ.get('ACCURATE_THUMBNAILS', False)
 
 
 PHOTO_INPUT_DIRS = [str(Path(BASE_DIR).parent.parent / 'photos_to_import')]
