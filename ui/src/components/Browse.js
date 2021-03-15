@@ -1,5 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import useLocalStorageState from 'use-local-storage-state'
+
 import Header from './Header'
 import SearchContainer from '../containers/SearchContainer'
 import PhotoListContainer from '../containers/PhotoListContainer'
@@ -18,13 +20,16 @@ const Browse = ({
   photoSections,
   onFilterToggle,
   onClearFilters,
-  onExpandCollapse,
-  expanded,
   search,
   updateSearchText,
   setIsMapShowing,
   mapPhotos
 }) => {
+  const [expanded, setExpanded] = useLocalStorageState(
+    'searchExpanded',
+    window.innerHeight > 850 ? true : false
+  )
+
   let content =
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
@@ -34,6 +39,7 @@ const Browse = ({
         photoSections={photoSections}
       />
     )
+
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
 
@@ -56,7 +62,7 @@ const Browse = ({
             <li>Map</li>
           </Link>
         </ul>
-        <div className="expandCollapse" onClick={onExpandCollapse}>
+        <div className="expandCollapse" onClick={() => setExpanded(!expanded)}>
           <img src={arrowDown} alt="" />
         </div>
       </div>

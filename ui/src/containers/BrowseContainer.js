@@ -56,7 +56,6 @@ const BrowseContainer = (props) => {
   const [isLibrarySet, setIsLibrarySet] = useState(false)
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
-  const [expanded, setExpanded] = useState(true)
   const [photoData, setPhotoData] = useState()
   const [isMapShowing, setIsMapShowing] = useState(false)
 
@@ -211,8 +210,6 @@ const BrowseContainer = (props) => {
           photoSections={photoSections}
           onFilterToggle={props.onFilterToggle}
           onClearFilters={props.onClearFilters}
-          expanded={expanded}
-          onExpandCollapse={() => setExpanded(!expanded)}
           setIsMapShowing={setIsMapShowing}
           mapPhotos={photosWithLocation}
         />
