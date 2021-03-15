@@ -144,7 +144,7 @@ class Photo(UUIDModel, VersionedModel):
         return '/thumbnails/{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.id)
 
     def thumbnail_path(self, thumbnail):
-        return str(Path(settings.THUMBNAIL_ROOT) / '{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.id))
+        return str(Path(settings.THUMBNAIL_ROOT) / 'photofile' / '{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.base_file.id))
 
     @property
     def base_file(self):

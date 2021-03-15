@@ -152,7 +152,7 @@ const BrowseContainer = (props) => {
   if (photoData) {
     photos = photoData.allPhotos.edges.map((photo) => ({
       id: photo.node.id,
-      thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+      thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location
         ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
         : null,
@@ -189,7 +189,7 @@ const BrowseContainer = (props) => {
   if (mapPhotosData) {
     photosWithLocation = mapPhotosData.mapPhotos.edges.map((photo) => ({
       id: photo.node.id,
-      thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+      thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location
         ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
         : null,
