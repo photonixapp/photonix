@@ -8,6 +8,37 @@ const Container = styled('ul')`
   & > h2 {
     display: block;
   }
+
+  .section {
+    margin-bottom: 40px;
+  }
+
+  @media all and (max-width: 1000px) {
+    .section {
+      width: 100%;
+      display: grid;
+      grid-template-columns: auto auto auto auto auto auto;
+      grid-column-gap: 20px;
+      grid-row-gap: 20px;
+      box-sizing: content-box;
+    }
+  }
+  @media all and (max-width: 800px) {
+    .section {
+      grid-template-columns: auto auto auto auto auto;
+    }
+  }
+  @media all and (max-width: 700px) {
+    .section {
+      margin-bottom: 20px;
+      grid-template-columns: auto auto auto auto;
+    }
+  }
+  @media all and (max-width: 500px) {
+    .section {
+      grid-template-columns: auto auto auto;
+    }
+  }
 `
 const SectionHeading = styled('h2')`
   display: block;

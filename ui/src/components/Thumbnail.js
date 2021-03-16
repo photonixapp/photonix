@@ -22,6 +22,7 @@ const Container = styled('li')`
   img.thumbnail {
     width: 100%;
     height: 100%;
+    display: block;
   }
 
   div {
@@ -31,15 +32,31 @@ const Container = styled('li')`
     background-position: center;
   }
 
-  @media all and (max-width: 700px) {
-    width: 96px;
-    height: 96px;
+  .thumbnail-wrapper {
+    display: block !important;
+  }
+
+  @media all and (max-width: 1000px) {
+    width: 100%;
+    height: 0;
+    margin: 0;
+    padding-bottom: 100%;
+    display: block;
+
+    img.thumbnail {
+      height: auto;
+    }
   }
 `
-const StarRatingStyled = styled('span')`
+const StarRatingStyled = styled('div')`
   position: relative;
-  top: -23px;
-  left: 1px;
+  padding-top: 100%;
+
+  div {
+    position: relative;
+    top: -21px;
+    left: 5px;
+  }
 `
 
 const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
@@ -79,11 +96,14 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
           effect="opacity"
           src={imageUrl}
           className="thumbnail"
+          wrapperClassName="thumbnail-wrapper"
           width="100%"
           height="100%"
         />
         <StarRatingStyled>
-          <StarRating starRating={newStarRating} onStarClick={onStarClick} />
+          <div>
+            <StarRating starRating={newStarRating} onStarClick={onStarClick} />
+          </div>
         </StarRatingStyled>
       </Container>
     </Link>
