@@ -15,9 +15,12 @@ from photonix.photos.models import LibraryPath
 
 
 class Command(BaseCommand):
+    """Management command to watch photo directory and create photo records in database."""
+
     help = 'Watches photo directories and creates relevant database records for all photos that are added or modified.'
 
     def watch_photos(self):
+        """Management command to watch photo directory and create photo records in database."""
         watching_libraries = {}
 
         with Inotify() as inotify:
@@ -90,7 +93,7 @@ class Command(BaseCommand):
                         else:
                             print(f'Removing photo "{str(photo_moved_from_path)}" from library "{library_id}"')
                             await record_photo_async(photo_moved_from_path, library_id, 'MOVED_FROM')
-                    if Mask.CREATE in event.mask and event.path is not None and event.path.is_dir():
+                    elif Mask.CREATE in event.mask and event.path is not None and event.path.is_dir():
                         current_libraries = await get_libraries()
                         for path, id in current_libraries.items():
                             for directory in get_directories_recursive(event.path):
@@ -98,7 +101,7 @@ class Command(BaseCommand):
                                 watch = inotify.add_watch(directory, Mask.MODIFY | Mask.CREATE | Mask.DELETE | Mask.CLOSE | Mask.MOVE)
                                 watching_libraries[path] = (id, watch)
 
-                    if event.mask in [Mask.CLOSE_WRITE, Mask.MOVED_TO, Mask.DELETE, Mask.MOVED_FROM] or event.mask.value == 1073741888:
+                    elif event.mask in [Mask.CLOSE_WRITE, Mask.MOVED_TO, Mask.DELETE, Mask.MOVED_FROM] or event.mask.value == 1073741888:
                         photo_path = event.path
                         library_id = None
                         for potential_library_path, (potential_library_id, _) in watching_libraries.items():

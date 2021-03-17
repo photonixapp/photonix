@@ -25,12 +25,12 @@ def record_photo(path, library, inotify_event_type=None):
         if PhotoFile.objects.filter(path=path).exists():
             return delete_photo_record(photo_file)
         else:
-            return False
+            return True
 
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
     if photo_file and photo_file.file_modified_at == file_modified_at:
-        return False
+        return True
 
     metadata = PhotoMetadata(path)
     date_taken = None
@@ -161,7 +161,7 @@ def delete_photo_record(photo_file_obj):
     Tag.objects.filter(photo_tags=None).delete()
     Camera.objects.filter(photos=None).delete()
     Lens.objects.filter(photos=None).delete()
-    return False
+    return True
 
 
 def move_or_rename_photo(photo_old_path, photo_new_path, library_id):
@@ -172,7 +172,7 @@ def move_or_rename_photo(photo_old_path, photo_new_path, library_id):
         photo_file.save()
         return photo_file
     except Exception as e:
-        return False
+        return True
 
 
 def delete_child_dir_all_photos(directory_path, library_id):
