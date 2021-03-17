@@ -68,14 +68,17 @@
 
 .PhotoDetail .backIcon {
   position: absolute;
-  top: 10px;
+  top: 40px;
+  top: max(40px, env(safe-area-inset-top));
+  padding: 5px;
   left: 10px;
+  left: max(10px, env(safe-area-inset-left));
   cursor: pointer;
   z-index: 10;
 }
-.isMobileApp .PhotoDetail .backIcon {
+/* .isMobileApp .PhotoDetail .backIcon {
   top: 40px;
-}
+} */
 .PhotoDetail .backIcon svg {
   filter: invert(0.9);
 }

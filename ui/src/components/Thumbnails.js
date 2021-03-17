@@ -17,26 +17,15 @@ const Container = styled('ul')`
     .section {
       width: 100%;
       display: grid;
-      grid-template-columns: auto auto auto auto auto auto;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
       grid-column-gap: 20px;
       grid-row-gap: 20px;
       box-sizing: content-box;
     }
   }
-  @media all and (max-width: 800px) {
-    .section {
-      grid-template-columns: auto auto auto auto auto;
-    }
-  }
   @media all and (max-width: 700px) {
     .section {
       margin-bottom: 20px;
-      grid-template-columns: auto auto auto auto;
-    }
-  }
-  @media all and (max-width: 500px) {
-    .section {
-      grid-template-columns: auto auto auto;
     }
   }
 `
