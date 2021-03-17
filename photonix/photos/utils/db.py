@@ -157,11 +157,37 @@ def record_photo(path, library, inotify_event_type=None):
 
 def delete_photo_record(photo_file_obj):
     """Delete photo record if photo not exixts on library path."""
-    photo_obj = photo_file_obj.photo
-    photo_file_obj.delete()
-    if not photo_obj.files.all():
-        photo_obj.delete()
+    delete_photofile_and_photo_record(photo_file_obj)
     Tag.objects.filter(photo_tags=None).delete()
     Camera.objects.filter(photos=None).delete()
     Lens.objects.filter(photos=None).delete()
     return False
+
+
+def move_or_rename_photo(photo_old_path, photo_new_path, library_id):
+    """Rename a photoFile or change the path while moving photo in child directory."""
+    try:
+        photo_file = PhotoFile.objects.get(path=photo_old_path)
+        photo_file.path = photo_new_path
+        photo_file.save()
+        return photo_file
+    except Exception as e:
+        return False
+
+
+def delete_child_dir_all_photos(directory_path, library_id):
+    """When a child directory deleted it delete all the photo records of that directory."""
+    for photo_file_obj in PhotoFile.objects.filter(path__startswith=directory_path):
+        delete_photofile_and_photo_record(photo_file_obj)
+    Tag.objects.filter(photo_tags=None).delete()
+    Camera.objects.filter(photos=None).delete()
+    Lens.objects.filter(photos=None).delete()
+    return True
+
+
+def delete_photofile_and_photo_record(photo_file_obj):
+    """Delete photoFile object with its photo object."""
+    photo_obj = photo_file_obj.photo
+    photo_file_obj.delete()
+    if not photo_obj.files.all():
+        photo_obj.delete()
