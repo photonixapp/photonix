@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/react-hooks'
+import styled from '@emotion/styled'
 import useLocalStorageState from 'use-local-storage-state'
 
 import history from '../history'
@@ -17,7 +18,146 @@ import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
 import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
-import '../static/css/PhotoDetail.css'
+
+const Container = styled('div')`
+   {
+    width: 100vw;
+    height: 100vh;
+    background-color: #1b1b1b;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    overflow: hidden;
+  }
+
+  .content {
+    width: 110vw;
+    height: 100vh;
+    overflow: auto;
+    position: absolute;
+    z-index: 1;
+  }
+
+  .metadata {
+    padding-top: 100vh;
+    min-height: 200px;
+    width: 100vw;
+  }
+  .metadata h2 {
+    font-size: 18px;
+    margin: 0 0 20px 0;
+  }
+  .metadata .boxes {
+    background: rgba(0, 0, 0, 0.75);
+    padding: 40px 0 0 40px;
+  }
+  .metadata .boxes .box {
+    display: inline-block;
+    width: 220px;
+    vertical-align: top;
+    margin: 0 40px 40px 0;
+  }
+  .metadata .boxes .box h2 svg {
+    filter: invert(0.9);
+    height: 24px;
+    width: 24px;
+    margin: 0px 0px -6px 10px;
+    vertical-align: 0;
+    padding: 2px;
+    cursor: pointer;
+  }
+
+  .metadata .boxes .box ul {
+    padding: 0;
+    list-style: none;
+    margin: 0;
+  }
+
+  .metadata .boxes .histogram {
+    margin-top: 16px;
+  }
+  .metadata .boxes .map {
+    width: auto;
+    height: 150px;
+    border: 1px solid #888;
+  }
+
+  .BoundingBoxesContainer {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+  }
+
+  .backIcon {
+    position: fixed;
+    top: 40px;
+    top: max(40px, env(safe-area-inset-top));
+    padding: 5px;
+    left: 10px;
+    left: max(10px, env(safe-area-inset-left));
+    cursor: pointer;
+    z-index: 10;
+  }
+  /* .isMobileApp .backIcon {
+  top: 40px;
+} */
+  .backIcon svg {
+    filter: invert(0.9);
+  }
+
+  .scrollHint {
+    position: absolute;
+    width: 100%;
+    bottom: 20px;
+  }
+  @keyframes example {
+    0% {
+      opacity: 0;
+    }
+    25% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  .scrollHint svg {
+    filter: invert(0.9);
+    transition: all 600ms;
+    transition-timing-function: ease-in-out;
+    display: block;
+    margin: 0 auto -15px;
+    opacity: 0;
+    animation-name: example;
+    animation-duration: 1600ms;
+    animation-iteration-count: 3;
+  }
+  .scrollHint svg.img1 {
+    animation-delay: 0ms;
+  }
+  .scrollHint svg.img2 {
+    animation-delay: 200ms;
+  }
+  .scrollHint svg.img3 {
+    animation-delay: 400ms;
+  }
+
+  /* When two boxes can no longer fit next to each other */
+  @media all and (max-width: 500px) {
+    .metadata .boxes .box {
+      width: 100%;
+    }
+    .metadata .boxes .histogram {
+      margin-right: 40px;
+    }
+    .metadata .boxes .map {
+      margin-right: 40px;
+    }
+  }
+`
 
 const PhotoDetail = ({ photoId, photo, refetch }) => {
   const [starRating, updateStarRating] = useState(photo.starRating)
@@ -79,8 +219,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   }
 
   return (
-    <div
-      className="PhotoDetail"
+    <Container
       style={{
         backgroundImage: `url('/thumbnailer/photo/3840x3840_contain_q75/${photoId}/')`,
       }}
@@ -239,7 +378,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
         <ArrowDownIcon className="img2" alt="" />
         <ArrowDownIcon className="img3" alt="" />
       </div>
-    </div>
+    </Container>
   )
 }
 

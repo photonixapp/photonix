@@ -26,6 +26,7 @@ const Container = styled('ul')`
   @media all and (max-width: 700px) {
     .section {
       margin-bottom: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     }
   }
 `
