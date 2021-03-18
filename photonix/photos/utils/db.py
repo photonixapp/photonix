@@ -94,7 +94,6 @@ def record_photo(path, library, inotify_event_type=None):
             iso_speed = int(re.search(r'[0-9]+', metadata.get('ISO')).group(0))
         except AttributeError:
             pass
-
     if not photo:
         # Save Photo
         aperture = None
@@ -126,6 +125,10 @@ def record_photo(path, library, inotify_event_type=None):
             altitude=metadata.get('GPS Altitude') and metadata.get('GPS Altitude').split(' ')[0]
         )
         photo.save()
+    else:
+        for photo_file in photo.files.all():
+            if not os.path.exists(photo_file.path):
+                photo_file.delete()
 
     width = metadata.get('Image Width')
     height = metadata.get('Image Height')
