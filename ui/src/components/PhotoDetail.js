@@ -12,34 +12,47 @@ import EditableTags from '../components/EditableTags'
 import ImageHistogram from '../components/ImageHistogram'
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
+import { ReactComponent as ArrowUpIcon } from '../static/images/arrow_up.svg'
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
 import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
 
 const Container = styled('div')`
-   {
-    width: 100vw;
-    height: 100vh;
-    background-color: #1b1b1b;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    overflow: hidden;
-  }
+  width: 100vw;
+  height: 100vh;
+  background-color: #1b1b1b;
 
+  .imgContainer {
+    width: 100%;
+    max-width: calc(100vw - 0px);
+    margin: 0 auto;
+    text-align: center;
+    height: 100%;
+  }
+  .imgContainer .react-transform-component {
+    margin: 0 auto;
+  }
+  .imgContainer img {
+    height: 100vh;
+    display: block;
+    margin: 0 auto;
+  }
   .content {
     width: 110vw;
     height: 100vh;
     overflow: auto;
-    position: absolute;
-    z-index: 1;
+    position: fixed;
+    z-index: 10;
+    top: 0;
+    left: 0;
   }
 
   .metadata {
-    padding-top: 100vh;
+    padding-top: 50vh;
     min-height: 200px;
     width: 100vw;
   }
@@ -48,14 +61,18 @@ const Container = styled('div')`
     margin: 0 0 20px 0;
   }
   .metadata .boxes {
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 1);
     padding: 40px 0 0 40px;
+    z-index: 999;
   }
   .metadata .boxes .box {
     display: inline-block;
     width: 220px;
     vertical-align: top;
     margin: 0 40px 40px 0;
+  }
+  .metadata .boxes .box img {
+    display: inline;
   }
   .metadata .boxes .box h2 svg {
     filter: invert(0.9);
@@ -89,22 +106,26 @@ const Container = styled('div')`
   }
 
   .backIcon {
-    position: fixed;
-    top: 40px;
-    top: max(40px, env(safe-area-inset-top));
-    padding: 5px;
+    position: absolute;
+    top: 10px;
     left: 10px;
-    left: max(10px, env(safe-area-inset-left));
     cursor: pointer;
     z-index: 10;
   }
-  /* .isMobileApp .backIcon {
-  top: 40px;
-} */
+  .PhotoDetail .backIcon {
+    top: 40px;
+  }
   .backIcon svg {
     filter: invert(0.9);
   }
-
+  .showDetailIcon {
+    position: absolute;
+    right: 40px;
+    top: 7px;
+    filter: invert(0.9);
+    cursor: pointer;
+    z-index: 10;
+  }
   .scrollHint {
     position: absolute;
     width: 100%;
@@ -144,7 +165,11 @@ const Container = styled('div')`
   .scrollHint svg.img3 {
     animation-delay: 400ms;
   }
-
+  @media all and (max-width: 767px) {
+    .imgContainer img {
+      max-width: 100%;
+    }
+  }
   /* When two boxes can no longer fit next to each other */
   @media all and (max-width: 500px) {
     .metadata .boxes .box {
@@ -166,6 +191,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     'showObjectBoxes',
     true
   )
+  const [showDetailBox, setShowDetailBox] = useState(false)
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
 
   useEffect(() => {
@@ -218,13 +244,25 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     date = new Intl.DateTimeFormat().format(date)
   }
 
+  const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
+
   return (
-    <Container
-      style={{
-        backgroundImage: `url('/thumbnailer/photo/3840x3840_contain_q75/${photoId}/')`,
-      }}
-    >
-      <div className="content">
+    <Container>
+      <div className="imgContainer">
+        <TransformWrapper
+          wheel={{
+            limitsOnWheel: false,
+          }}
+        >
+          <TransformComponent>
+            <img src={url} />
+          </TransformComponent>
+        </TransformWrapper>
+      </div>
+      <div
+        className="content"
+        style={{ display: showDetailBox ? 'block' : 'none' }}
+      >
         <div className="metadata">
           <div className="boxes">
             <div className="box">
@@ -373,6 +411,23 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
       <div className="backIcon" title="[Esc] key to go back to photo list">
         <ArrowBackIcon alt="Close" onClick={history.goBack} />
       </div>
+      {showDetailBox && (
+        <ArrowUpIcon
+          className="showDetailIcon"
+          height="30"
+          width="30"
+          onClick={() => setShowDetailBox(!showDetailBox)}
+        />
+      )}
+      {!showDetailBox && (
+        <ArrowDownIcon
+          className="showDetailIcon"
+          height="30"
+          width="30"
+          onClick={() => setShowDetailBox(!showDetailBox)}
+        />
+      )}
+
       <div className="scrollHint">
         <ArrowDownIcon className="img1" alt="" />
         <ArrowDownIcon className="img2" alt="" />
