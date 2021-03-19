@@ -52,7 +52,7 @@ const StarRating = ({
           src={starHovering >= i + 1 ? star : starOutline}
           onMouseEnter={() => onStarEnter(i + 1)}
           onMouseLeave={() => onStarLeave()}
-          onClick={(e) => onStarClick(i + 1, e)}
+          onClick={(e) => onStarClick && onStarClick(i + 1, e)}
           key={i + 1}
           alt={`${i + 1} stars`}
         />

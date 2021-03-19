@@ -125,4 +125,8 @@ button {
     -webkit-transform: none;
     transform: none;
   }
+  .react-router-modal__modal {
+    width: 100%;
+    height: 100%;
+  }
 }

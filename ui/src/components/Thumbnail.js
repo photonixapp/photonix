@@ -68,24 +68,29 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
 
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
 
-  const onStarClick = (num, e) => {
-    e.preventDefault()
-    if (newStarRating === num) {
-      updateStarRating(0)
-      updatePhoto({
-        variables: {
-          photoId: id,
-          starRating: 0,
-        },
-      }).catch((e) => {})
-    } else {
-      updateStarRating(num)
-      updatePhoto({
-        variables: {
-          photoId: id,
-          starRating: num,
-        },
-      }).catch((e) => {})
+  // Only allow star ratings to be changed from here if device have hovering device (cursor/mouse/trackpad) to prevent accidentally setting it
+  let onStarClick = null
+  const canHover = window.matchMedia('(hover: hover)').matches
+  if (canHover) {
+    onStarClick = (num, e) => {
+      e.preventDefault()
+      if (newStarRating === num) {
+        updateStarRating(0)
+        updatePhoto({
+          variables: {
+            photoId: id,
+            starRating: 0,
+          },
+        }).catch((e) => {})
+      } else {
+        updateStarRating(num)
+        updatePhoto({
+          variables: {
+            photoId: id,
+            starRating: num,
+          },
+        }).catch((e) => {})
+      }
     }
   }
 
