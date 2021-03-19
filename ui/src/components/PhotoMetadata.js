@@ -23,6 +23,7 @@ const Container = styled('div')`
   height: 100%;
   background: rgba(0,0,0,0.8);
   overflow-y: auto;
+  overflow-x: hidden;
   padding-top: 40px;
   transition: right 400ms;
 
@@ -77,28 +78,28 @@ const Container = styled('div')`
       }
     }
     .box1 {
-      transition-duration: 400ms;
-    }
-    .box2 {
       transition-duration: 500ms;
     }
-    .box3 {
+    .box2 {
       transition-duration: 600ms;
     }
-    .box4 {
+    .box3 {
       transition-duration: 700ms;
     }
-    .box5 {
+    .box4 {
       transition-duration: 800ms;
     }
-    .box6 {
+    .box5 {
       transition-duration: 900ms;
     }
-    .box7 {
+    .box6 {
       transition-duration: 1000ms;
     }
-    .box8 {
+    .box7 {
       transition-duration: 1100ms;
+    }
+    .box8 {
+      transition-duration: 1200ms;
     }
   }
 
