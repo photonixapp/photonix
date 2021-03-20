@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import useLocalStorageState from 'use-local-storage-state'
 
@@ -9,6 +9,8 @@ import PhotoMetadata from './PhotoMetadata'
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
+
+const I_KEY = 73
 
 const Container = styled('div')`
   width: 100vw;
@@ -66,7 +68,25 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     'showObjectBoxes',
     true
   )
-  const [showPhotoMetadata, setShowPhotoMetadata] = useState(false)
+  const [showMetadata, setShowMetadata] = useState(false)
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      switch (event.keyCode) {
+        case I_KEY:
+          setShowMetadata(!showMetadata)
+          break
+        default:
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [showMetadata])
 
   let boxes = photo?.objectTags.map((objectTag) => {
     return {
@@ -86,29 +106,33 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
       {photo && (
         <PhotoMetadata
           photo={photo}
-          show={showPhotoMetadata}
+          show={showMetadata}
           refetch={refetch}
           showBoundingBox={showBoundingBox}
           setShowBoundingBox={setShowBoundingBox}
         />
       )}
-      <div className="backIcon" title="[Esc] key to go back to photo list">
+      <div
+        className="backIcon"
+        title="Press [Esc] key to go back to photo list"
+      >
         <ArrowBackIcon alt="Close" onClick={history.goBack} />
       </div>
-      {showPhotoMetadata && (
-        <CloseIcon
-          className="showDetailIcon"
-          height="30"
-          width="30"
-          onClick={() => setShowPhotoMetadata(!showPhotoMetadata)}
-        />
-      )}
-      {!showPhotoMetadata && (
+      {!showMetadata ? (
         <InfoIcon
           className="showDetailIcon"
           height="30"
           width="30"
-          onClick={() => setShowPhotoMetadata(!showPhotoMetadata)}
+          onClick={() => setShowMetadata(!showMetadata)}
+          title="Press [I] key to show/hide photo details"
+        />
+      ) : (
+        <CloseIcon
+          className="showDetailIcon"
+          height="30"
+          width="30"
+          onClick={() => setShowMetadata(!showMetadata)}
+          title="Press [I] key to show/hide photo details"
         />
       )}
     </Container>
