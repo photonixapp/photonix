@@ -5,6 +5,8 @@ import Thumbnail from './Thumbnail'
 const Container = styled('ul')`
   margin: 0;
   padding: 0;
+  padding: 40px 40px 0 40px;
+
   & > h2 {
     display: block;
   }
@@ -14,7 +16,9 @@ const Container = styled('ul')`
   }
 
   @media all and (max-width: 1000px) {
+    padding: 20px 20px 0 20px;
     .section {
+      margin-bottom: 20px;
       width: 100%;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -24,9 +28,12 @@ const Container = styled('ul')`
     }
   }
   @media all and (max-width: 700px) {
+    padding: 10px 10px 0 10px;
     .section {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      grid-column-gap: 10px;
+      grid-row-gap: 10px;
     }
   }
 `

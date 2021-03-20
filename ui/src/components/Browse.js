@@ -5,7 +5,7 @@ import useLocalStorageState from 'use-local-storage-state'
 
 import Header from './Header'
 import SearchContainer from '../containers/SearchContainer'
-import PhotoListContainer from '../containers/PhotoListContainer'
+import PhotoList from '../components/PhotoList'
 import MapView from '../components/MapView'
 import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
@@ -73,7 +73,8 @@ const Container = styled('div')`
   }
 
   .main {
-    overscroll-behavior-x: none;
+    overflow: hidden;
+    height: 100%;
   }
 
   @media all and (max-width: 700px) {
@@ -114,10 +115,7 @@ const Browse = ({
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
     ) : (
-      <PhotoListContainer
-        selectedFilters={selectedFilters}
-        photoSections={photoSections}
-      />
+      <PhotoList photoSections={photoSections} />
     )
 
   if (loading) content = <Spinner />

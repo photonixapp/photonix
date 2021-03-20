@@ -36,6 +36,7 @@ const Container = styled('div')`
         max-width: 100%;
         max-height: 100%;
         position: relative;
+        cursor: zoom-in;
         img {
           opacity: 0;
           max-width: 100vw;

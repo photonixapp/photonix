@@ -10,6 +10,8 @@ import 'react-lazy-load-image-component/src/effects/opacity.css'
 const Container = styled('li')`
   width: 130px;
   height: 130px;
+  line-height: 0;
+  vertical-align: bottom;
   border: 1px solid #888;
   list-style: none;
   margin: 0 20px 20px 0;
@@ -91,8 +93,8 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
   }
 
   return (
-    <Link to={`/photo/${id}`} key={id}>
-      <Container>
+    <Container>
+      <Link to={`/photo/${id}`} key={id}>
         <LazyLoadImage
           effect="opacity"
           src={imageUrl}
@@ -104,8 +106,8 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
         <StarRatingStyled>
           <StarRating starRating={newStarRating} onStarClick={onStarClick} />
         </StarRatingStyled>
-      </Container>
-    </Link>
+      </Link>
+    </Container>
   )
 }
 
