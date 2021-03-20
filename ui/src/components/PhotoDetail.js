@@ -68,7 +68,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   )
   const [showPhotoMetadata, setShowPhotoMetadata] = useState(false)
 
-  let boxes = photo.objectTags.map((objectTag) => {
+  let boxes = photo?.objectTags.map((objectTag) => {
     return {
       name: objectTag.tag.name,
       positionX: objectTag.positionX,
@@ -83,13 +83,15 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   return (
     <Container>
       <ZoomableImage url={url} boxes={showBoundingBox && boxes} />
-      <PhotoMetadata
-        photo={photo}
-        show={showPhotoMetadata}
-        refetch={refetch}
-        showBoundingBox={showBoundingBox}
-        setShowBoundingBox={setShowBoundingBox}
-      />
+      {photo && (
+        <PhotoMetadata
+          photo={photo}
+          show={showPhotoMetadata}
+          refetch={refetch}
+          showBoundingBox={showBoundingBox}
+          setShowBoundingBox={setShowBoundingBox}
+        />
+      )}
       <div className="backIcon" title="[Esc] key to go back to photo list">
         <ArrowBackIcon alt="Close" onClick={history.goBack} />
       </div>
