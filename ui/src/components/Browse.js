@@ -82,11 +82,11 @@ const Container = styled('div')`
       right: 20px;
     }
     .searchBar.collapsed {
-      height: 120px;
+      height: 110px;
     }
     .expandCollapse {
       bottom: 10px;
-      left: 20px;
+      left: 10px;
     }
   }
 `
