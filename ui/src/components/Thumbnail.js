@@ -18,18 +18,12 @@ const Container = styled('li')`
   background: #292929;
   overflow: hidden;
   cursor: pointer;
+  position: relative;
 
   img.thumbnail {
     width: 100%;
     height: 100%;
     display: block;
-  }
-
-  div {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
   }
 
   .thumbnail-wrapper {
@@ -49,8 +43,10 @@ const Container = styled('li')`
   }
 `
 const StarRatingStyled = styled('div')`
-  position: relative;
-  padding-top: 100%;
+  position: absolute;
+  height: 18px;
+  bottom: 2px;
+  left: 5px;
 
   div {
     position: relative;
@@ -106,9 +102,7 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
           height="100%"
         />
         <StarRatingStyled>
-          <div>
-            <StarRating starRating={newStarRating} onStarClick={onStarClick} />
-          </div>
+          <StarRating starRating={newStarRating} onStarClick={onStarClick} />
         </StarRatingStyled>
       </Container>
     </Link>
