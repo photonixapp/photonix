@@ -128,7 +128,9 @@ class Photo(UUIDModel, VersionedModel):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     altitude = models.DecimalField(max_digits=6, decimal_places=1, null=True)
     star_rating = models.PositiveIntegerField(
-        help_text='assign rating to photo', verbose_name="Rating", null=True, blank=True) 
+        help_text='assign rating to photo', verbose_name="Rating", null=True, blank=True)
+    preferred_photo_file = models.ForeignKey('PhotoFile', related_name='+', null=True, on_delete=models.SET_NULL)  # File selected by the user that is the best version to be used
+    thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
 
     class Meta:
         ordering = ['-taken_at']
@@ -148,7 +150,9 @@ class Photo(UUIDModel, VersionedModel):
 
     @property
     def base_file(self):
-        preferred_files = self.files.filter(preferred=True)
+        preferred_files = []
+        if self.preferred_photo_file:
+            preferred_files = [self.preferred_photo_file]
         if not preferred_files:
             preferred_files = self.files.filter(raw_processed=True)
         if not preferred_files:
@@ -183,7 +187,7 @@ class PhotoFile(UUIDModel, VersionedModel):
     mimetype = models.CharField(max_length=32, blank=True, null=True)
     file_modified_at = models.DateTimeField()
     bytes = models.PositiveIntegerField()
-    preferred = models.BooleanField(default=False)
+    thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
     raw_processed = models.BooleanField(default=False)
     raw_version = models.PositiveIntegerField(null=True)
     raw_external_params = models.CharField(max_length=16, blank=True, null=True)
@@ -237,7 +241,7 @@ class PhotoTag(UUIDModel, VersionedModel):
     photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE, null=True)
     tag = models.ForeignKey(Tag, related_name='photo_tags', on_delete=models.CASCADE)
     source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
-    model_version = models.PositiveIntegerField(null=True)
+    model_version = models.PositiveIntegerField(default=0)
     confidence = models.FloatField()
     significance = models.FloatField(null=True)
     verified = models.BooleanField(default=False)
