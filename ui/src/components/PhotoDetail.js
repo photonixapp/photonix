@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import styled from '@emotion/styled'
 import useLocalStorageState from 'use-local-storage-state'
 
@@ -10,7 +10,7 @@ import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
-const I_KEY = 73
+// const I_KEY = 73
 
 const Container = styled('div')`
   width: 100vw;
@@ -70,23 +70,24 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   )
   const [showMetadata, setShowMetadata] = useState(false)
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      switch (event.keyCode) {
-        case I_KEY:
-          setShowMetadata(!showMetadata)
-          break
-        default:
-          break
-      }
-    }
+  // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
+  // useEffect(() => {
+  //   const handleKeyDown = (event) => {
+  //     switch (event.keyCode) {
+  //       case I_KEY:
+  //         setShowMetadata(!showMetadata)
+  //         break
+  //       default:
+  //         break
+  //     }
+  //   }
 
-    document.addEventListener('keydown', handleKeyDown)
+  //   document.addEventListener('keydown', handleKeyDown)
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [showMetadata])
+  //   return () => {
+  //     document.removeEventListener('keydown', handleKeyDown)
+  //   }
+  // }, [showMetadata])
 
   let boxes = photo?.objectTags.map((objectTag) => {
     return {
@@ -124,7 +125,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
-          title="Press [I] key to show/hide photo details"
+          // title="Press [I] key to show/hide photo details"
         />
       ) : (
         <CloseIcon
@@ -132,7 +133,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
-          title="Press [I] key to show/hide photo details"
+          // title="Press [I] key to show/hide photo details"
         />
       )}
     </Container>
