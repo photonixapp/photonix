@@ -13,6 +13,9 @@ from photonix.photos.models import Photo, PhotoFile, Task
 from photonix.photos.utils.metadata import PhotoMetadata
 
 
+THUMBNAILER_VERSION = 20210321
+
+
 def process_generate_thumbnails_tasks():
     for task in Task.objects.filter(type='generate_thumbnails', status='P').order_by('created_at'):
         photo_id = task.subject_id
@@ -29,7 +32,6 @@ def generate_thumbnails_for_photo(photo, task):
             task.failed()
             return
 
-    # TODO: Put these tasks on a thumbnailing queue like the classification_scheduler so it can be done in parallel
     for thumbnail in settings.THUMBNAIL_SIZES:
         if thumbnail[4]:  # Required from the start
             try:
@@ -38,8 +40,15 @@ def generate_thumbnails_for_photo(photo, task):
                 task.failed()
                 return
 
-    # Complete task for photo and add next task for classifying images
-    task.complete(next_type='classify_images', next_subject_id=photo.id)
+    if photo.thumbnailed_version < THUMBNAILER_VERSION:
+        photo.thumbnailed_version = THUMBNAILER_VERSION
+        photo.save()
+
+    # Complete task for photo and add next task for classifying images if this hasn't happened previously
+    if Task.objects.filter(type='classify_images', subject_id=photo.id).count() > 0:
+        task.complete()
+    else:
+        task.complete(next_type='classify_images', next_subject_id=photo.id)
 
 
 def get_thumbnail_path(photo_file_id, width=256, height=256, crop='cover', quality=75):
@@ -105,12 +114,10 @@ def get_thumbnail(photo_file=None, photo=None, width=256, height=256, crop='cove
     else:
         im.save(output_path, format='JPEG', quality=quality)
 
-    # Update Photo DB model
-    # TODO: check whether these fields exist and whether they should be on the photofile (also)
-    if photo:
-        photo.last_thumbnailed_version = 0
-        photo.last_thumbnailed_at = timezone.now()
-        photo.save()
+    # Update PhotoFile DB model with version of thumbnailer
+    if photo_file.thumbnailed_version != THUMBNAILER_VERSION:
+        photo_file.thumbnailed_version = THUMBNAILER_VERSION
+        photo_file.save()
 
     # Return accordingly
     if return_type == 'bytes':
