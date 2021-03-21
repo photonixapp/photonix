@@ -182,7 +182,7 @@ const BrowseContainer = (props) => {
 
   useEffect(() => {
     if (isMapShowing) mapPhotosRefetch()
-  }, [isMapShowing, filtersStr])
+  }, [isMapShowing, filtersStr, mapPhotosRefetch])
 
   let photosWithLocation = []
 

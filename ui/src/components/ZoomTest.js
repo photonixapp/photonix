@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React from 'react'
 import styled from '@emotion/styled'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
@@ -43,7 +43,7 @@ const Container = styled('div')`
   }
 `
 
-const ZoomTest = ({}) => {
+const ZoomTest = () => {
   return (
     <Container>
       <TransformWrapper

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 
@@ -35,14 +35,14 @@ const StarRating = ({
     setStarHovering(num)
     !alwaysShow && setDisplayStars(true)
   }
-  const onStarLeave = () => {
+  const onStarLeave = useCallback(() => {
     setStarHovering(starRating)
     !alwaysShow && setDisplayStars(starRating > 0)
-  }
+  }, [alwaysShow, starRating])
   useEffect(() => {
     setDisplayStars(true)
     onStarLeave()
-  }, [starRating])
+  }, [starRating, onStarLeave])
   const Stars = large ? StarsLarge : StarsSmall
 
   return (
