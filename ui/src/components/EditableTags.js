@@ -1,10 +1,50 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useMutation } from '@apollo/react-hooks'
 import PropTypes from 'prop-types'
+import styled from '@emotion/styled'
 
 import { CREATE_TAG, REMOVE_TAG } from '../graphql/tag'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
-import '../static/css/EditableTag.css'
+
+const Container = styled('ul')`
+  li {
+    background: #383838;
+    display: inline-block;
+    margin: 0 10px 10px 0;
+    padding: 3px 10px 4px 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    svg {
+      filter: invert(0.9);
+      height: 18px;
+      width: 0;
+      margin: 0px 0px -6px 0;
+      vertical-align: 0;
+      cursor: pointer;
+      opacity: 0.5;
+    }
+    &.editing {
+      padding: 3px 6px 4px 10px;
+      svg {
+        width: 18px;
+        margin: 0px 0px -5px 4px;
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+  input {
+    width: 100%;
+    background: #383838;
+    border: #383838;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 5px;
+    opacity: 0.5;
+    transition: opacity 500ms;
+  }
+`
 
 const EditableTag = ({ tags, editorMode, photoId, refetch }) => {
   const [newTag, setNewTag] = useState('')
@@ -12,9 +52,21 @@ const EditableTag = ({ tags, editorMode, photoId, refetch }) => {
   const [createTag] = useMutation(CREATE_TAG)
   const [removeTag] = useMutation(REMOVE_TAG)
 
+  const ref = useRef(null)
+
   useEffect(() => {
     setTagList(tags)
   }, [tags])
+
+  useEffect(() => {
+    if (editorMode && ref?.current) {
+      ref.current.focus()
+      ref.current.parentElement.parentElement.parentElement.parentElement.parentElement.scrollTo(
+        0,
+        999999
+      )
+    }
+  }, [editorMode, tagsList])
 
   const onHandleChange = (event) => {
     setNewTag(event.target.value)
@@ -51,13 +103,11 @@ const EditableTag = ({ tags, editorMode, photoId, refetch }) => {
   }
 
   return (
-    <ul className="EditableTag">
-      {tagsList.map((photoTag, index) => (
-        <li key={index}>
+    <Container>
+      {tagsList.map((photoTag) => (
+        <li key={photoTag.tag.id} className={editorMode && 'editing'}>
           {photoTag.tag.name}
-          {editorMode && (
-            <CloseIcon onClick={() => deleteTag(photoTag.tag.id)} />
-          )}
+          <CloseIcon onClick={() => deleteTag(photoTag.tag.id)} />
         </li>
       ))}
 
@@ -68,10 +118,12 @@ const EditableTag = ({ tags, editorMode, photoId, refetch }) => {
             value={newTag}
             onChange={onHandleChange}
             placeholder="New tag"
+            ref={ref}
+            style={{ opacity: newTag.length > 0 ? 1 : 0.5 }}
           />
         </form>
       )}
-    </ul>
+    </Container>
   )
 }
 

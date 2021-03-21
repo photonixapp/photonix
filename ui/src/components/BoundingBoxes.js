@@ -1,33 +1,60 @@
 import React from 'react'
+import styled from '@emotion/styled'
 
-import '../static/css/BoundingBoxes.css'
+const Container = styled('div')`
+  width: 100%;
+  height: 100%;
+  position: relative;
 
-const BoundingBoxes = ({ photoWidth, photoHeight, boxes }) => {
-  let multiplier = window.innerWidth / photoWidth
-  if ((window.innerHeight / photoHeight) < multiplier) {
-    multiplier = window.innerHeight / photoHeight
+  .FeatureBox {
+    border: 3px solid rgba(255, 0, 0, 0.75);
+    position: absolute;
+    .FeatureLabel {
+      color: #fff;
+      font-size: 14px;
+      background-color: rgba(255, 0, 0, 0.75);
+      display: inline-block;
+      overflow: hidden;
+      max-width: 100%;
+      padding: 0 5px 2px 2px;
+      float: left;
+      text-align: left;
+      white-space: nowrap;
+    }
   }
-  let displayHeight = photoHeight * multiplier
-  let displayWidth = photoWidth * multiplier
-  let offsetLeft = Math.round((window.innerWidth - displayWidth) / 2, 10)
-  let offsetTop = Math.round((window.innerHeight - displayHeight) / 2, 10)
 
-  return (
-    <div className="BoundingBoxes">
-      {
-        boxes.map((box, index) => {
-          let width = (box.sizeX * displayWidth) + 'px'
-          let height = (box.sizeY * displayHeight) + 'px'
-          let left = offsetLeft + (box.positionX * displayWidth) - (box.sizeX * displayWidth / 2) + 'px'
-          let top = offsetTop + (box.positionY * displayHeight) - (box.sizeY * displayHeight / 2) + 'px'
-          return (
-            <div className="FeatureBox" key={index} style={{left: left, top: top, width: width, height: height}}>
-              <div className="FeatureLabel" key={index}>{box.name}</div>
-            </div>
-          )
-        })
+  @media all and (max-width: 1000px) {
+    .FeatureBox {
+      border-width: 1px;
+      .FeatureLabel {
+        font-size: 8px;
+        padding: 0 3px 1px 3px;
       }
-    </div>
+    }
+  }
+`
+
+const BoundingBoxes = ({ boxes }) => {
+  return (
+    <Container>
+      {boxes.map((box, index) => {
+        let left = (box.positionX - box.sizeX / 2) * 100 + '%'
+        let top = (box.positionY - box.sizeY / 2) * 100 + '%'
+        let width = box.sizeX * 100 + '%'
+        let height = box.sizeY * 100 + '%'
+        return (
+          <div
+            className="FeatureBox"
+            key={index}
+            style={{ left: left, top: top, width: width, height: height }}
+          >
+            <div className="FeatureLabel" key={index}>
+              {box.name}
+            </div>
+          </div>
+        )
+      })}
+    </Container>
   )
 }
 

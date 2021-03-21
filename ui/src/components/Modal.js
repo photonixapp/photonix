@@ -34,10 +34,9 @@ const Accent = styled('div')`
 `
 const CloseIconContainer = styled('span')`
   filter: invert(0.9);
-  position: absolute;
-  top: 10px;
-  right: 10px;
   cursor: pointer;
+  float: right;
+  padding: 10px;
 `
 const Body = styled('div')`
   padding: 40px;
@@ -91,11 +90,6 @@ const Modal = ({
       style={window.innerWidth > 700 ? { width: width, height: height } : {}}
       className={className}
     >
-      {allowClose && (
-        <CloseIconContainer onClick={onClose}>
-          <CloseIcon className="closeIcon" alt="Close" />
-        </CloseIconContainer>
-      )}
       {topAccent && (
         <Accent>
           <div style={{ background: '#005461' }}></div>
@@ -104,6 +98,11 @@ const Modal = ({
           <div style={{ background: '#F5791E' }}></div>
           <div style={{ background: '#F54820' }}></div>
         </Accent>
+      )}
+      {allowClose && (
+        <CloseIconContainer onClick={onClose}>
+          <CloseIcon className="closeIcon" alt="Close" />
+        </CloseIconContainer>
       )}
       <Body>{children}</Body>
     </Container>
