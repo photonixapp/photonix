@@ -33,7 +33,7 @@ const Container = styled('li')`
     display: block !important;
   }
 
-  @media all and (max-width: 1000px) {
+  @media all and (max-width: 1920px) {
     width: 100%;
     height: 0;
     margin: 0;

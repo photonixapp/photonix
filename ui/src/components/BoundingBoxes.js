@@ -18,6 +18,8 @@ const Container = styled('div')`
       max-width: 100%;
       padding: 0 5px 2px 2px;
       float: left;
+      text-align: left;
+      white-space: nowrap;
     }
   }
 
