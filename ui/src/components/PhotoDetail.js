@@ -6,9 +6,11 @@ import useLocalStorageState from 'use-local-storage-state'
 import history from '../history'
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
-import { getNextPrevPhotos } from '../stores/photos/selector'
+import { getPrevNextPhotos } from '../stores/photos/selector'
 
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
+import { ReactComponent as ArrowLeftIcon } from '../static/images/arrow_left.svg'
+import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.svg'
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
@@ -37,12 +39,26 @@ const Container = styled('div')`
     left: 10px;
     cursor: pointer;
     z-index: 10;
+    svg {
+      filter: invert(0.9);
+    }
   }
-  .PhotoDetail .backIcon {
-    top: 40px;
-  }
-  .backIcon svg {
-    filter: invert(0.9);
+  .prevNextIcons {
+    position: absolute;
+    top: 0;
+    padding-top: 40vh;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    opacity: 0;
+    transition: opacity 250ms;
+    svg {
+      filter: invert(0.9);
+      cursor: pointer;
+      padding: 10vh 10px;
+      width: 48px;
+      height: 25vh;
+    }
   }
   .showDetailIcon {
     position: absolute;
@@ -73,8 +89,9 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     true
   )
   const [showMetadata, setShowMetadata] = useState(false)
-  const nextPrevPhotos = useSelector((state) =>
-    getNextPrevPhotos(state, photoId)
+  const [showPrevNext, setShowPrevNext] = useState(false)
+  const prevNextPhotos = useSelector((state) =>
+    getPrevNextPhotos(state, photoId)
   )
 
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
@@ -97,11 +114,11 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   // }, [showMetadata])
 
   const prevPhoto = () => {
-    let id = nextPrevPhotos.prev[0]
+    let id = prevNextPhotos.prev[0]
     id && history.push(`/photo/${id}`)
   }
   const nextPhoto = () => {
-    let id = nextPrevPhotos.next[0]
+    let id = prevNextPhotos.next[0]
     id && history.push(`/photo/${id}`)
   }
 
@@ -124,7 +141,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [photoId, nextPrevPhotos])
+  }, [photoId, prevNextPhotos])
 
   let boxes = photo?.objectTags.map((objectTag) => {
     return {
@@ -156,6 +173,21 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
       >
         <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
       </div>
+      <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
+        <ArrowLeftIcon
+          alt="Previous"
+          onClick={prevPhoto}
+          onMouseOver={() => setShowPrevNext(true)}
+          onMouseOut={() => setShowPrevNext(false)}
+        />
+        <ArrowRightIcon
+          alt="Previous"
+          onClick={nextPhoto}
+          onMouseOver={() => setShowPrevNext(true)}
+          onMouseOut={() => setShowPrevNext(false)}
+        />
+      </div>
+      <ArrowRightIcon alt="Next" />
       {!showMetadata ? (
         <InfoIcon
           className="showDetailIcon"
