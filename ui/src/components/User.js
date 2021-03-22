@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import PropTypes from 'prop-types'
@@ -11,10 +11,43 @@ import settings from '../static/images/settings.svg'
 import logout from '../static/images/logout.svg'
 import '../static/css/Header.css'
 
+function useComponentVisible(initialIsVisible) {
+  const [isComponentVisible, setIsComponentVisible] = useState(
+    initialIsVisible
+  );
+  const ref = useRef(null);
+
+  const handleHideDropdown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      setIsComponentVisible(false);
+    }
+  };
+
+  const handleClickOutside = event => {
+    if (ref.current && !ref.current.contains(event.target)) {
+      setIsComponentVisible(false);
+    }
+  };
+  useEffect(() => {
+    document.addEventListener("keydown", handleHideDropdown, false);
+    document.addEventListener("click", handleClickOutside, false);
+    return () => {
+      document.removeEventListener("keydown", handleHideDropdown, true);
+      document.removeEventListener("click", handleClickOutside, true);
+    };
+  });
+
+  return { ref, isComponentVisible, setIsComponentVisible };
+}
 const User = ({ profile, libraries }) => {
   const dispatch = useDispatch()
   const activeLibrary = useSelector(getActiveLibrary)
-
+  const {
+    ref,
+    isComponentVisible,
+    setIsComponentVisible
+  } = useComponentVisible(false);
+  
   const isActiveLibrary = (id) => {
     return activeLibrary?.id === id
   }
@@ -25,12 +58,15 @@ const User = ({ profile, libraries }) => {
       payload: lib,
     })
   }
+  const handleShowMenu = () => {
+    setIsComponentVisible(true)
+  }
 
   return (
-    <div className="user">
+    <div ref={ref} className="user" onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
       <img src={accountCircle} alt="User account" />
       <img src={arrowDown} className="arrowDown" alt="" />
-      <ul className="menu">
+      <ul className="menu" style={{display: isComponentVisible ? 'block' : 'none'}}>
         {profile ? (
           <Link to="/account">
             <li className="profile">

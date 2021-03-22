@@ -70,7 +70,7 @@ const MapView = ({
 }
 
 MapView.propTypes = {
-  photos: PropTypes.string,
+  photos: PropTypes.array,
   bounds: PropTypes.func,
   location: PropTypes.array,
   zoom: PropTypes.number,

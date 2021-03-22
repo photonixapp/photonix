@@ -1,39 +1,20 @@
 import React from 'react'
+import styled from '@emotion/styled'
 
 import Thumbnails from './Thumbnails'
-import Histogram from './Histogram'
-import '../static/css/PhotoList.css'
 
-const PhotoList = ({
-  photoSections,
-  onScroll,
-  onMouseDown,
-  onTouchStart,
-  onHistogramClick,
-  containerRef,
-  scrollbarHandleRef,
-  displayScrollbar,
-  selectedSection,
-}) => (
-  <div className="PhotoList">
-    <div className="PhotoListScroller" ref={containerRef} onScroll={onScroll}>
+const Container = styled('div')`
+  height: 100%;
+  overflow-y: auto;
+`
+
+const PhotoList = ({ photoSections }) => {
+  return (
+    <Container>
       <Thumbnails photoSections={photoSections} />
-    </div>
-    <div
-      className="Scrollbar"
-      ref={scrollbarHandleRef}
-      style={{ opacity: displayScrollbar ? 1 : null }}
-      onMouseDown={onMouseDown}
-      onTouchStart={onTouchStart}
-    ></div>
-    {photoSections.length >= 5 ? (
-      <Histogram
-        photoSections={photoSections}
-        selectedSection={selectedSection}
-        onClick={onHistogramClick}
-      />
-    ) : null}
-  </div>
-)
+      {/* #TODO: Add the DateHistogram feature back here */}
+    </Container>
+  )
+}
 
 export default PhotoList

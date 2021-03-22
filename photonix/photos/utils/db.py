@@ -21,8 +21,11 @@ def record_photo(path, library, inotify_event_type=None):
     except PhotoFile.DoesNotExist:
         photo_file = PhotoFile()
 
-    if inotify_event_type in ['DELETE', 'MOVED_FROM']:
-        return delete_photo_record(photo_file)
+    if inotify_event_type in ['DELETE', 'MOVED_FROM']: 
+        if PhotoFile.objects.filter(path=path).exists():
+            return delete_photo_record(photo_file)
+        else:
+            return False
 
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
@@ -160,4 +163,5 @@ def delete_photo_record(photo_file_obj):
         photo_obj.delete()
     Tag.objects.filter(photo_tags=None).delete()
     Camera.objects.filter(photos=None).delete()
+    Lens.objects.filter(photos=None).delete()
     return False

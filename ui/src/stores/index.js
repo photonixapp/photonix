@@ -1,10 +1,12 @@
 import { combineReducers } from 'redux'
-import user from './user'
 import libraries from './libraries'
+import photos from './photos'
+import user from './user'
 
 const reducers = combineReducers({
-  user,
   libraries,
+  photos,
+  user,
 })
 
 export default reducers

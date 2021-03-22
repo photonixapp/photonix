@@ -12,6 +12,7 @@
 .FiltersContent {
   width: max-content;
   margin: 0 0 0 40px;
+  transition: opacity 1000ms;
 }
 
 .FiltersContent .filterGradient {
@@ -21,9 +22,24 @@
   bottom: 0;
   margin: 0 -40px 0 -40px;
   /* background: rgba(0,0,0,0.5); */
-  background: -moz-linear-gradient(top, rgba(41,41,41,0) 0%, rgba(41,41,41,0) 1%, rgba(41,41,41,1) 100%);
-  background: -webkit-linear-gradient(top, rgba(41,41,41,0) 0%,rgba(41,41,41,0) 1%,rgba(41,41,41,1) 100%);
-  background: linear-gradient(to bottom, rgba(41,41,41,0) 0%,rgba(41,41,41,0) 1%,rgba(41,41,41,1) 100%);
+  background: -moz-linear-gradient(
+    top,
+    rgba(41, 41, 41, 0) 0%,
+    rgba(41, 41, 41, 0) 1%,
+    rgba(41, 41, 41, 1) 100%
+  );
+  background: -webkit-linear-gradient(
+    top,
+    rgba(41, 41, 41, 0) 0%,
+    rgba(41, 41, 41, 0) 1%,
+    rgba(41, 41, 41, 1) 100%
+  );
+  background: linear-gradient(
+    to bottom,
+    rgba(41, 41, 41, 0) 0%,
+    rgba(41, 41, 41, 0) 1%,
+    rgba(41, 41, 41, 1) 100%
+  );
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00292929', endColorstr='#292929',GradientType=0 );
 }
 
@@ -73,12 +89,13 @@
   background: #484848;
   display: inline-block;
   margin: 0 10px 10px 0;
-  padding: 6px 10px 4px;
+  padding: 5px 10px 4px;
   font-size: 12px;
   border-radius: 4px;
   cursor: pointer;
 }
-.FilterGroup>li:last-child, .FilterGroup>ul.HierarchicalTags:last-child {
+.FilterGroup > li:last-child,
+.FilterGroup > ul.HierarchicalTags:last-child {
   margin-bottom: 100px;
 }
 .tooltip {
@@ -103,7 +120,7 @@
 }
 
 .tooltip .tooltiptext::after {
-  content: "";
+  content: '';
   position: absolute;
   top: -10px;
   left: 50%;
@@ -117,7 +134,7 @@
     margin: 0 -20px -20px;
   }
   .FiltersContent {
-    margin-left: 20px;
+    margin-left: 30px;
   }
   .FilterGroup {
     width: 180px;

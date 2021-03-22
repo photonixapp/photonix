@@ -146,14 +146,15 @@ STATIC_URL = '/static-collected/'
 MEDIA_ROOT = str(Path(BASE_DIR).parent / 'data')
 
 THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
+THUMBNAIL_URL = '/thumbnails/'
 
 THUMBNAIL_SIZES = [
-    # Width, height, crop method, JPEG quality, whether it should be generated upon upload
-    (256, 256, 'cover', 50, True),  # Square thumbnails
+    # Width, height, crop method, JPEG quality, whether it should be generated upon upload, force accurate gamma-aware sRGB resizing
+    (256, 256, 'cover', 50, True, True),  # Square thumbnails
     # We use the largest dimension for both dimensions as they won't crop and some with in portrait mode
-    (960, 960, 'contain', 75, False),  # 960px
-    (1920, 1920, 'contain', 75, False),  # 2k
-    (3840, 3840, 'contain', 75, False),  # 4k
+    (960, 960, 'contain', 75, False, False),  # 960px
+    (1920, 1920, 'contain', 75, False, False),  # 2k
+    (3840, 3840, 'contain', 75, False, False),  # 4k
 ]
 
 

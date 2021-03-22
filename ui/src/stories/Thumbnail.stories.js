@@ -8,7 +8,11 @@ export default {
   argTypes: { onStarRatingChange: { action: 'onStarRatingChange' } },
 }
 
-const Template = (args) => <Thumbnail {...args} />
+const Template = (args) => (
+  <div style={{ width: 130 }}>
+    <Thumbnail {...args} />
+  </div>
+)
 
 export const DefaultThumbnail = Template.bind({})
 DefaultThumbnail.args = {
