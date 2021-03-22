@@ -1,16 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
+import { useSelector } from 'react-redux'
 import useLocalStorageState from 'use-local-storage-state'
 
 import history from '../history'
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
+import { getPrevNextPhotos } from '../stores/photos/selector'
 
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
+import { ReactComponent as ArrowLeftIcon } from '../static/images/arrow_left.svg'
+import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.svg'
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
 // const I_KEY = 73
+const LEFT_KEY = 37
+const RIGHT_KEY = 39
 
 const Container = styled('div')`
   width: 100vw;
@@ -33,12 +39,26 @@ const Container = styled('div')`
     left: 10px;
     cursor: pointer;
     z-index: 10;
+    svg {
+      filter: invert(0.9);
+    }
   }
-  .PhotoDetail .backIcon {
-    top: 40px;
-  }
-  .backIcon svg {
-    filter: invert(0.9);
+  .prevNextIcons {
+    position: absolute;
+    top: 0;
+    padding-top: 40vh;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    opacity: 0;
+    transition: opacity 250ms;
+    svg {
+      filter: invert(0.9);
+      cursor: pointer;
+      padding: 10vh 10px;
+      width: 48px;
+      height: 25vh;
+    }
   }
   .showDetailIcon {
     position: absolute;
@@ -69,6 +89,10 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     true
   )
   const [showMetadata, setShowMetadata] = useState(false)
+  const [showPrevNext, setShowPrevNext] = useState(false)
+  const prevNextPhotos = useSelector((state) =>
+    getPrevNextPhotos(state, photoId)
+  )
 
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
@@ -89,6 +113,36 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   //   }
   // }, [showMetadata])
 
+  const prevPhoto = () => {
+    let id = prevNextPhotos.prev[0]
+    id && history.push(`/photo/${id}`)
+  }
+  const nextPhoto = () => {
+    let id = prevNextPhotos.next[0]
+    id && history.push(`/photo/${id}`)
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      switch (event.keyCode) {
+        case LEFT_KEY:
+          prevPhoto()
+          break
+        case RIGHT_KEY:
+          nextPhoto()
+          break
+        default:
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [photoId, prevNextPhotos])
+
   let boxes = photo?.objectTags.map((objectTag) => {
     return {
       name: objectTag.tag.name,
@@ -104,6 +158,26 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   return (
     <Container>
       <ZoomableImage url={url} boxes={showBoundingBox && boxes} />
+      <div
+        className="backIcon"
+        title="Press [Esc] key to go back to photo list"
+      >
+        <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
+      </div>
+      <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
+        <ArrowLeftIcon
+          alt="Previous"
+          onClick={prevPhoto}
+          onMouseOver={() => setShowPrevNext(true)}
+          onMouseOut={() => setShowPrevNext(false)}
+        />
+        <ArrowRightIcon
+          alt="Previous"
+          onClick={nextPhoto}
+          onMouseOver={() => setShowPrevNext(true)}
+          onMouseOut={() => setShowPrevNext(false)}
+        />
+      </div>
       {photo && (
         <PhotoMetadata
           photo={photo}
@@ -113,12 +187,6 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           setShowBoundingBox={setShowBoundingBox}
         />
       )}
-      <div
-        className="backIcon"
-        title="Press [Esc] key to go back to photo list"
-      >
-        <ArrowBackIcon alt="Close" onClick={history.goBack} />
-      </div>
       {!showMetadata ? (
         <InfoIcon
           className="showDetailIcon"

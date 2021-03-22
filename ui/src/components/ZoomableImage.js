@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
@@ -42,16 +42,22 @@ const Container = styled('div')`
           max-width: 100vw;
           max-height: 100vh;
           vertical-align: top;
-          transition: opacity 500ms;
+          &.display {
+            opacity: 1;
+            transition: opacity 250ms ease-in;
+          }
         }
-        .boundingBoxesContainer {
+        > span {
           opacity: 0;
           width: 100%;
           height: 100%;
           position: absolute;
           top: 0;
           left: 0;
-          transition: opacity 2000ms;
+          &.display {
+            opacity: 1;
+            transition: opacity 1000ms ease-in;
+          }
         }
       }
     }
@@ -83,6 +89,12 @@ const ZoomableImage = ({ url, boxes }) => {
     }
   }
 
+  useEffect(() => {
+    setLoading(true)
+    setDisplayImage(false)
+    setScale(1)
+  }, [url])
+
   return (
     <Container>
       <TransformWrapper
@@ -94,6 +106,7 @@ const ZoomableImage = ({ url, boxes }) => {
         doubleClick={{
           mode: scale < 5 ? 'zoomIn' : 'reset',
         }}
+        key={url}
       >
         {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
           <>
@@ -105,16 +118,11 @@ const ZoomableImage = ({ url, boxes }) => {
                       src={url}
                       alt=""
                       onLoad={handleImageLoaded}
-                      style={{ opacity: displayImage ? 1 : 0 }}
+                      className={displayImage ? 'display' : undefined}
                     />
-                    {boxes && (
-                      <span
-                        className="boundingBoxesContainer"
-                        style={{ opacity: displayImage ? 1 : 0 }}
-                      >
-                        <BoundingBoxes boxes={boxes} />
-                      </span>
-                    )}
+                    <span className={displayImage ? ' display' : undefined}>
+                      {boxes && <BoundingBoxes boxes={boxes} />}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -123,7 +131,7 @@ const ZoomableImage = ({ url, boxes }) => {
         )}
       </TransformWrapper>
       {!url ||
-        (!displayImage && (
+        (!displayImage && loading && (
           <div className="spinnerWrapper">
             <Spinner show={loading} />
           </div>

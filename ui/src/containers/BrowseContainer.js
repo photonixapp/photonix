@@ -142,11 +142,22 @@ const BrowseContainer = (props) => {
   })
   if (mapPhotosError) console.log(mapPhotosError)
 
+  const updatePhotosStore = (photoIds) => {
+    dispatch({
+      type: 'SET_PHOTOS',
+      payload: photoIds,
+    })
+  }
+
   useEffect(() => {
     if (envData && envData.environment && !envData.environment.firstRun) {
       refetch()
     }
-    if (photosData) setPhotoData(photosData)
+    if (photosData) {
+      setPhotoData(photosData)
+      let ids = photosData?.allPhotos.edges.map((item) => item.node.id)
+      updatePhotosStore(ids)
+    }
   }, [envData, photosData, refetch])
 
   if (photoData) {

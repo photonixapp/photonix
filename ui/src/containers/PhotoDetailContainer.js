@@ -91,7 +91,7 @@ const PhotoDetailContainer = (props) => {
     const handleKeyDown = (event) => {
       switch (event.keyCode) {
         case ESCAPE_KEY:
-          history.goBack()
+          history.push('/')
           break
         default:
           break
