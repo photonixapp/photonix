@@ -1,16 +1,20 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
+import { useSelector } from 'react-redux'
 import useLocalStorageState from 'use-local-storage-state'
 
 import history from '../history'
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
+import { getNextPrevPhotos } from '../stores/photos/selector'
 
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
 // const I_KEY = 73
+const LEFT_KEY = 37
+const RIGHT_KEY = 39
 
 const Container = styled('div')`
   width: 100vw;
@@ -69,6 +73,9 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     true
   )
   const [showMetadata, setShowMetadata] = useState(false)
+  const nextPrevPhotos = useSelector((state) =>
+    getNextPrevPhotos(state, photoId)
+  )
 
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
@@ -88,6 +95,36 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   //     document.removeEventListener('keydown', handleKeyDown)
   //   }
   // }, [showMetadata])
+
+  const prevPhoto = () => {
+    let id = nextPrevPhotos.prev[0]
+    id && history.push(`/photo/${id}`)
+  }
+  const nextPhoto = () => {
+    let id = nextPrevPhotos.next[0]
+    id && history.push(`/photo/${id}`)
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      switch (event.keyCode) {
+        case LEFT_KEY:
+          prevPhoto()
+          break
+        case RIGHT_KEY:
+          nextPhoto()
+          break
+        default:
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [photoId, nextPrevPhotos])
 
   let boxes = photo?.objectTags.map((objectTag) => {
     return {
@@ -117,7 +154,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
       >
-        <ArrowBackIcon alt="Close" onClick={history.goBack} />
+        <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
       </div>
       {!showMetadata ? (
         <InfoIcon

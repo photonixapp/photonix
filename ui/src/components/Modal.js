@@ -110,7 +110,7 @@ const Modal = ({
 }
 
 Modal.propTypes = {
-  body: PropTypes.element,
+  children: PropTypes.element,
   topAccent: PropTypes.bool,
   allowClose: PropTypes.bool,
   width: PropTypes.bool,

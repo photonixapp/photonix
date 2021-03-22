@@ -7,7 +7,11 @@ export default {
   component: ZoomableImage,
 }
 
-const Template = (args) => <ZoomableImage {...args} />
+const Template = (args) => (
+  <div style={{ position: 'absolute', top: 0, left: 0 }}>
+    <ZoomableImage {...args} />
+  </div>
+)
 
 export const DefaultZoomableImage = Template.bind({})
 DefaultZoomableImage.args = {
