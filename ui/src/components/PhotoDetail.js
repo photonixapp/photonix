@@ -158,15 +158,6 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   return (
     <Container>
       <ZoomableImage url={url} boxes={showBoundingBox && boxes} />
-      {photo && (
-        <PhotoMetadata
-          photo={photo}
-          show={showMetadata}
-          refetch={refetch}
-          showBoundingBox={showBoundingBox}
-          setShowBoundingBox={setShowBoundingBox}
-        />
-      )}
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
@@ -187,7 +178,15 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           onMouseOut={() => setShowPrevNext(false)}
         />
       </div>
-      <ArrowRightIcon alt="Next" />
+      {photo && (
+        <PhotoMetadata
+          photo={photo}
+          show={showMetadata}
+          refetch={refetch}
+          showBoundingBox={showBoundingBox}
+          setShowBoundingBox={setShowBoundingBox}
+        />
+      )}
       {!showMetadata ? (
         <InfoIcon
           className="showDetailIcon"
