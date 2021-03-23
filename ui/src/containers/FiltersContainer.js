@@ -99,7 +99,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
     const filterArr = selectedFilters.filter(s => s.group === type)
     return array.filter(c => !filterArr.find(rm => (rm.name === c.name)))
   }
-
+  
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
