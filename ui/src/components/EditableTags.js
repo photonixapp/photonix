@@ -105,7 +105,10 @@ const EditableTag = ({ tags, editorMode, photoId, refetch }) => {
   return (
     <Container>
       {tagsList.map((photoTag) => (
-        <li key={photoTag.tag.id} className={editorMode && 'editing'}>
+        <li
+          key={photoTag.tag.id}
+          className={editorMode ? 'editing' : undefined}
+        >
           {photoTag.tag.name}
           <CloseIcon onClick={() => deleteTag(photoTag.tag.id)} />
         </li>
