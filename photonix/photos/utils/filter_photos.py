@@ -1,4 +1,5 @@
 
+from django.db.models import Case, When
 import datetime
 import re
 month_dict = {
@@ -44,12 +45,13 @@ def remove_unused_words(filter_string):
     return date_elements_dict, removable_date_filters
 
 
-def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
+def filter_photos_queryset(filters, queryset, library_id=None):
     """Method returns photos list."""
     if library_id:
         filters = [v for v in filters if v != '' and v not in ['in', 'near', 'during', 'taken', 'on', 'of']]
         queryset = queryset.filter(library__id=library_id)
     date_elements_dict, removable_date_filters = remove_unused_words(filters)
+    selected_tag_id = None
     for filter_val in filters:
         if ':' in filter_val:
             key, val = filter_val.split(':')
@@ -57,7 +59,8 @@ def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
                 queryset = queryset.filter(library__id=val)
             elif key == 'tag':
                 queryset = queryset.filter(photo_tags__tag__id=val)
-                has_tags = True
+                if not selected_tag_id:
+                    selected_tag_id = val
             elif key == 'camera':
                 queryset = queryset.filter(camera__id=val)
             elif key == 'lens':
@@ -92,6 +95,8 @@ def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
         else:
             if filter_val not in removable_date_filters:
                 queryset = queryset.filter(photo_tags__tag__name__icontains=filter_val)
+                if (not selected_tag_id) and Tag.objects.filter(name__icontains=filter_val).exists():
+                    selected_tag_id = Tag.objects.filter(name__icontains=filter_val)[0].id
     if date_elements_dict.get('month') or date_elements_dict.get('year'):
         if not date_elements_dict.get('year'):
             year = datetime.date.today().year if date_elements_dict.get('month') <= datetime.date.today().month else datetime.date.today().year - 1
@@ -102,6 +107,7 @@ def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
             queryset = queryset.filter(taken_at__year=date_elements_dict.get('year') or year)
             if date_elements_dict.get('month'):
                 queryset = queryset.filter(taken_at__month=date_elements_dict.get('month'))
-    if has_tags:
-        queryset.order_by('-photo_tags__significance')
+    if selected_tag_id and (not library_id):
+        # queryset.order_by('-photo_tags__significance')
+        queryset = queryset.annotate(selected_tag=Case(When(photo_tags__tag__id=selected_tag_id, then=('photo_tags__significance')),default=None)).order_by('-selected_tag')
     return queryset.distinct()
