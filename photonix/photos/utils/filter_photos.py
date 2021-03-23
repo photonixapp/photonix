@@ -1,10 +1,14 @@
 
+from photonix.photos.models import Tag
+from django.db.models import Case, When
 
-def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
+
+def filter_photos_queryset(filters, queryset, library_id=None):
     """Method returns photos list."""
     if library_id:
         filters = [v for v in filters if v != '']
         queryset = queryset.filter(library__id=library_id)
+    selected_tag_id = None
     for filter_val in filters:
         if ':' in filter_val:
             key, val = filter_val.split(':')
@@ -12,7 +16,8 @@ def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
                 queryset = queryset.filter(library__id=val)
             elif key == 'tag':
                 queryset = queryset.filter(photo_tags__tag__id=val)
-                has_tags = True
+                if not selected_tag_id:
+                    selected_tag_id = val
             elif key == 'camera':
                 queryset = queryset.filter(camera__id=val)
             elif key == 'lens':
@@ -47,7 +52,9 @@ def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
         else:
             queryset = queryset.filter(
                 photo_tags__tag__name__icontains=filter_val)
-    if has_tags:
-        queryset.order_by('-photo_tags__significance')
+            if (not selected_tag_id) and Tag.objects.filter(name__icontains=filter_val).exists():
+                selected_tag_id = Tag.objects.filter(name__icontains=filter_val)[0].id
+    if selected_tag_id and (not library_id):
+        # queryset.order_by('-photo_tags__significance')
+        queryset = queryset.annotate(selected_tag=Case(When(photo_tags__tag__id=selected_tag_id, then=('photo_tags__significance')),default=None)).order_by('-selected_tag')
     return queryset.distinct()
-

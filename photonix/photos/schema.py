@@ -121,7 +121,7 @@ class PhotoFilter(django_filters.FilterSet):
         filters = value.split(' ')
         filters = self.sanitize(filters)
         filters = map(self.customize, filters)
-        photos_list = filter_photos_queryset(filters, queryset, False) 
+        photos_list = filter_photos_queryset(filters, queryset)
         return photos_list
 
 
@@ -275,7 +275,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                False, kwargs.get('library_id'))
+                kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L')
 
@@ -285,7 +285,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                False, kwargs.get('library_id'))
+                kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O')
 
@@ -295,7 +295,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                False, kwargs.get('library_id'))
+                kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P')
 
@@ -305,7 +305,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                False, kwargs.get('library_id'))
+                kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C')
 
@@ -315,7 +315,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                False, kwargs.get('library_id'))
+                kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S')
 
@@ -325,7 +325,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                False, kwargs.get('library_id'))
+                kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G')
 
