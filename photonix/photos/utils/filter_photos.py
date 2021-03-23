@@ -22,8 +22,8 @@ def remove_unused_words(filter_string):
     date_elements_dict = {}
     removable_date_filters = []
     for val in filter_string:
-        if (':' not in val) and val.lower():
-            if (not date_elements_dict.get('date')) and bool(re.search(r'\d', val)) and (val.split(re.sub("\D", "", val))[1] in ['st', 'nd', 'rd', 'th'] or val.isdigit()) and 1 <= int(re.sub("\D", "", val)) <= 31:
+        if (':' not in val) and val:
+            if (not date_elements_dict.get('date')) and bool(re.search(r'\d', val)) and (val.split(re.sub("\D", "", val))[1].lower() in ['st', 'nd', 'rd', 'th'] or val.isdigit()) and 1 <= int(re.sub("\D", "", val)) <= 31:
                 date_elements_dict.update({'date': re.sub("\D", "", val)})
                 removable_date_filters.append(val)
                 continue
@@ -32,12 +32,12 @@ def remove_unused_words(filter_string):
                 removable_date_filters.append(val)
                 continue
             if (not date_elements_dict.get('month')) and val.isalpha() and len(val) >= 3:
-                if val in month_dict.keys():
-                    date_elements_dict.update({'month': month_dict.get(val)})
+                if val.lower() in month_dict.keys():
+                    date_elements_dict.update({'month': month_dict.get(val.lower())})
                     removable_date_filters.append(val)
                 else:
                     for month_name in month_dict.keys():
-                        if month_name.startswith(val):
+                        if month_name.startswith(val.lower()):
                             date_elements_dict.update({'month': month_dict.get(month_name)})
                             removable_date_filters.append(val)
                             break
@@ -90,20 +90,18 @@ def filter_photos_queryset(filters, queryset, has_tags, library_id=None):
                     star_rating__gte=int(val.split('-')[0]),
                     star_rating__lte=int(val.split('-')[1]))
         else:
-            if filter_val not in removable_date_filters or not (date_elements_dict.get('month') or date_elements_dict.get('year')):
+            if filter_val not in removable_date_filters:
                 queryset = queryset.filter(photo_tags__tag__name__icontains=filter_val)
     if date_elements_dict.get('month') or date_elements_dict.get('year'):
+        if not date_elements_dict.get('year'):
+            year = datetime.date.today().year if date_elements_dict.get('month') <= datetime.date.today().month else datetime.date.today().year - 1
         if date_elements_dict.get('month') and date_elements_dict.get('date'):
-            if not date_elements_dict.get('year'):
-                year = datetime.date.today().year if date_elements_dict.get('month') <= datetime.date.today().month else datetime.date.today().year - 1
             queryset = queryset.filter(
-                created_at__date=str(date_elements_dict.get('year') or year) + '-' + str(date_elements_dict.get('month')) + '-' + str(date_elements_dict.get('date')))
+                taken_at__date=str(date_elements_dict.get('year') or year) + '-' + str(date_elements_dict.get('month')) + '-' + str(date_elements_dict.get('date')))
         else:
-            if date_elements_dict.get('year'):
-                queryset = queryset.filter(created_at__year=date_elements_dict.get('year') or year)
+            queryset = queryset.filter(taken_at__year=date_elements_dict.get('year') or year)
             if date_elements_dict.get('month'):
-                queryset = queryset.filter(created_at__month=date_elements_dict.get('month'))
-
+                queryset = queryset.filter(taken_at__month=date_elements_dict.get('month'))
     if has_tags:
         queryset.order_by('-photo_tags__significance')
     return queryset.distinct()
