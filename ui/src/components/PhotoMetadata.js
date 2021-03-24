@@ -277,6 +277,12 @@ const PhotoMetadata = ({
             refetch={refetch}
           />
         </div>
+        <div className="box box8">
+          <h2>
+            Path
+          </h2>
+          <p>data/images/photo.jpeg</p>
+        </div>
       </div>
     </Container>
   )
