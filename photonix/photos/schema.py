@@ -9,7 +9,7 @@ from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser
+from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile
 from django.contrib.auth import load_backend, login
 from photonix.photos.utils.filter_photos import filter_photos_queryset
 
@@ -34,6 +34,10 @@ class LensType(DjangoObjectType):
 class PhotoTagType(DjangoObjectType):
     class Meta:
         model = PhotoTag
+
+class PhotoFileType(DjangoObjectType):
+    class Meta:
+        model = PhotoFile
 
 
 class CustomNode(graphene.Node):
@@ -60,6 +64,7 @@ class PhotoNode(DjangoObjectType):
     width = graphene.Int()
     height = graphene.Int()
     generic_tags = graphene.List(PhotoTagType)
+    photo_file = graphene.List(PhotoFileType)
 
     class Meta:
         model = Photo
@@ -94,6 +99,9 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_generic_tags(self, info):
         return self.photo_tags.filter(tag__type='G')
+
+    def resolve_photo_file(self, info):
+        return self.files.all()
 
 
 class PhotoFilter(django_filters.FilterSet):

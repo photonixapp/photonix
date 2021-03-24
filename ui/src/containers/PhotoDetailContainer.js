@@ -74,6 +74,10 @@ const GET_PHOTO = gql`
           name
         }
       }
+      photoFile{
+        id
+        path
+      }
       width
       height
     }
