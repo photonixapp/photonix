@@ -46,7 +46,6 @@ const Container = styled('div')`
   .prevNextIcons {
     position: absolute;
     top: 0;
-    padding-top: 40vh;
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -58,6 +57,14 @@ const Container = styled('div')`
       padding: 10vh 10px;
       width: 48px;
       height: 25vh;
+      position: absolute;
+      top: 37.5vh;
+      &.prevArrow {
+        left: 0;
+      }
+      &.nextArrow {
+        right: 0;
+      }
     }
   }
   .showDetailIcon {
@@ -167,12 +174,14 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
       <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
         <ArrowLeftIcon
           alt="Previous"
+          className="prevArrow"
           onClick={prevPhoto}
           onMouseOver={() => setShowPrevNext(true)}
           onMouseOut={() => setShowPrevNext(false)}
         />
         <ArrowRightIcon
           alt="Previous"
+          className="nextArrow"
           onClick={nextPhoto}
           onMouseOver={() => setShowPrevNext(true)}
           onMouseOut={() => setShowPrevNext(false)}
