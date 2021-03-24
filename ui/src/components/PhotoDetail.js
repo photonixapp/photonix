@@ -178,6 +178,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           onClick={prevPhoto}
           onMouseOver={() => setShowPrevNext(true)}
           onMouseOut={() => setShowPrevNext(false)}
+          title="Use [←] left/right [→] arrow keys to quickly go to the previous/next photo"
         />
         <ArrowRightIcon
           alt="Previous"
@@ -185,6 +186,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           onClick={nextPhoto}
           onMouseOver={() => setShowPrevNext(true)}
           onMouseOut={() => setShowPrevNext(false)}
+          title="Use [←] left/right [→] arrow keys to quickly go to the previous/next photo"
         />
       </div>
       {photo && (
