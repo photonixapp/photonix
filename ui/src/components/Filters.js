@@ -215,14 +215,18 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
             }
 
             return (
-              <div
-                className="FilterGroup"
-                key={group.name}
-                style={filterGroupExtraStyles}
-              >
-                <h2>{group.name}</h2>
-                {items}
-              </div>
+              <>
+              {items && Object.keys(items).length !== 0 &&
+                <div
+                  className="FilterGroup"
+                  key={group.name}
+                  style={filterGroupExtraStyles}
+                >
+                  <h2>{group.name}</h2>
+                  {items}
+                </div>
+              }
+              </>
             )
           })}
           <div className="filterGradient"></div>
