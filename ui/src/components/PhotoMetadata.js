@@ -281,7 +281,7 @@ const PhotoMetadata = ({
           <h2>
             Path
           </h2>
-          <p>data/images/photo.jpeg</p>
+          <p>{photo?.photoFile[0]?.path}</p>
         </div>
       </div>
     </Container>
