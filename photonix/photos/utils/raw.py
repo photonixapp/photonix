@@ -10,7 +10,7 @@ from PIL import Image
 from django.conf import settings
 from photonix.photos.models import Photo, PhotoFile, Task
 
-from .metadata import get_dimensions
+from .metadata import get_dimensions, get_mimetype
 
 RAW_PROCESS_VERSION = '20190305'
 NON_RAW_MIMETYPES = [
