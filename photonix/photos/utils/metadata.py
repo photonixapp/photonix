@@ -83,3 +83,11 @@ def get_dimensions(path):
     if metadata.data.get('Image Width') and metadata.data.get('Image Height'):
         return (int(metadata.data['Image Width']), int(metadata.data['Image Height']))
     return (None, None)
+
+def get_mimetype(path):
+    # Done
+    """Pulls the MIME Type from the given path"""
+    metadata = PhotoMetadata(path)
+    if metadata.data.get('MIME Type'):
+        return metadata.data.get('MIME Type')
+    return None
