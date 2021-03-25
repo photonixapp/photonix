@@ -15,6 +15,14 @@ from .metadata import get_dimensions
 RAW_PROCESS_VERSION = '20190305'
 NON_RAW_MIMETYPES = [
     'image/jpeg',
+    'image/png',
+    'image/tiff',
+    'image/bmp',
+    'image/gif',
+    'image/jp2',
+    'image/x-portable-pixmap',
+    'image/x-xbitmap',
+    'image/webp',
 ]
 
 
