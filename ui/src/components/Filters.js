@@ -100,6 +100,12 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
       }
     }
   }
+  function showTagSection(items, groupName) {
+    if (groupName === 'Locations' || groupName === 'Colors') {
+      return items && items.props.tags.length !== 0
+    }
+    return items && Object.keys(items).length !== 0
+  }
   return (
     <ScrollArea>
       {isDomainAvail && (
@@ -122,6 +128,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
               items = (
                 <HierarchicalTagsContainer
                   tags={group.items.map((item) => {
+
                     item.onClick = () =>
                       onToggle(item.id, group.name, item.name)
                     return item
@@ -213,16 +220,19 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
                 }
               })
             }
-
             return (
-              <div
-                className="FilterGroup"
-                key={group.name}
-                style={filterGroupExtraStyles}
-              >
-                <h2>{group.name}</h2>
-                {items}
-              </div>
+              <>
+              {showTagSection(items, group.name) &&
+                <div
+                  className="FilterGroup"
+                  key={group.name}
+                  style={filterGroupExtraStyles}
+                >
+                  <h2>{group.name}</h2>
+                  {items}
+                </div>
+              }
+              </>
             )
           })}
           <div className="filterGradient"></div>

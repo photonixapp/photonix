@@ -1,5 +1,6 @@
 
 from django.db.models import Case, When
+from photonix.photos.models import Tag
 import datetime
 import re
 month_dict = {
