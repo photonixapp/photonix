@@ -2,7 +2,6 @@
 from django.conf import settings
 import django_filters
 from django_filters import CharFilter
-import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
@@ -12,6 +11,9 @@ from django.contrib.auth import get_user_model
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile
 from django.contrib.auth import load_backend, login
 from photonix.photos.utils.filter_photos import filter_photos_queryset
+from photonix.photos.utils.metadata import PhotoMetadata
+import os
+import graphene
 
 
 User = get_user_model()
@@ -165,6 +167,35 @@ class LibrarySetting(graphene.ObjectType):
     source_folder = graphene.String()
 
 
+class PhotoMetadataFields(graphene.ObjectType):
+    """To pass fields which show metadata attributes for photo."""
+
+    exiftool_version_number = graphene.String()
+    file_name = graphene.String()
+    directory = graphene.String()
+    file_size = graphene.String()
+    file_modification_date_time = graphene.String()
+    file_access_date_time = graphene.String()
+    file_inode_change_date_time = graphene.String()
+    file_permissions = graphene.String()
+    file_type = graphene.String()
+    file_type_extension = graphene.String()
+    mime_type = graphene.String()
+    jfif_version = graphene.String()
+    resolution_unit = graphene.String()
+    x_resolution = graphene.String()
+    y_resolution = graphene.String()
+    image_width = graphene.String()
+    image_height = graphene.String()
+    encoding_process = graphene.String()
+    bits_per_sample = graphene.String()
+    color_components = graphene.String()
+    y_cb_cr_sub_sampling = graphene.String()
+    image_size = graphene.String()
+    megapixels = graphene.String()
+    ok = graphene.Boolean()
+
+
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
@@ -192,6 +223,7 @@ class Query(graphene.ObjectType):
     all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
+    photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_path=graphene.String())
 
     def resolve_all_libraries(self, info, **kwargs):
         user = info.context.user
@@ -347,6 +379,38 @@ class Query(graphene.ObjectType):
             library_path = library_obj.paths.all()[0]
             return {"library": library_obj, "source_folder": library_path.path}
         raise Exception('User is not the owner of library!')
+
+    def resolve_photo_file_metadata(self, info, **kwargs):
+        """Return metadata for photofile."""
+        if os.path.exists(str(kwargs.get('photo_file_path'))):
+            metadata = PhotoMetadata(kwargs.get('photo_file_path'))
+            return {
+                'exiftool_version_number': metadata.get('ExifTool Version Number'),
+                'file_name': metadata.get('File Name'),
+                'directory': metadata.get('Directory'),
+                'file_size': metadata.get('File Size'),
+                'file_modification_date_time': metadata.get('File Modification Date/Time'),
+                'file_access_date_time': metadata.get('File Access Date/Time'),
+                'file_inode_change_date_time': metadata.get('File Inode Change Date/Time'),
+                'file_permissions': metadata.get('File Permissions'),
+                'file_type': metadata.get('File Type'),
+                'file_type_extension': metadata.get('File Type Extension'),
+                'mime_type': metadata.get('MIME Type'),
+                'jfif_version': metadata.get('JFIF Version'),
+                'resolution_unit': metadata.get('Resolution Unit'),
+                'x_resolution': metadata.get('X Resolution'),
+                'y_resolution': metadata.get('Y Resolution'),
+                'image_width': metadata.get('Image Width'),
+                'image_height': metadata.get('Image Height'),
+                'encoding_process': metadata.get('Encoding Process'),
+                'bits_per_sample': metadata.get('Bits Per Sample'),
+                'color_components': metadata.get('Color Components'),
+                'y_cb_cr_sub_sampling': metadata.get('Y Cb Cr Sub Sampling'),
+                'image_size': metadata.get('Image Size'),
+                'megapixels': metadata.get('Megapixels'),
+                'ok': True
+            }
+        return {'ok': False}
 
 
 class LibraryInput(graphene.InputObjectType):
