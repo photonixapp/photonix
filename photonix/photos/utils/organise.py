@@ -11,6 +11,8 @@ from photonix.photos.utils.fs import (determine_destination,
                                       find_new_file_name, mkdir_p)
 from photonix.photos.utils.metadata import get_datetime
 
+SYNOLOGY_THUMBNAILS_DIR_NAME = '/@eaDir'
+
 
 class FileHashCache(object):
     '''
@@ -96,6 +98,8 @@ def import_photos_from_dir(orig, move=False):
     were_bad = 0
 
     for r, d, f in os.walk(orig):
+        if SYNOLOGY_THUMBNAILS_DIR_NAME in r:
+            continue
         for fn in sorted(f):
             filepath = os.path.join(r, fn)
             dest = determine_destination(filepath)
@@ -156,6 +160,8 @@ def import_photos_in_place(library_path):
     were_bad = 0
 
     for r, d, f in os.walk(orig):
+        if SYNOLOGY_THUMBNAILS_DIR_NAME in r:
+            continue
         for fn in sorted(f):
             filepath = os.path.join(r, fn)
             if blacklisted_type(fn):
