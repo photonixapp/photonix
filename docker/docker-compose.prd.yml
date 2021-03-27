@@ -36,7 +36,7 @@ services:
       REDIS_HOST: redis
       ALLOWED_HOSTS: '*'
     volumes:
-      - ../data/photos:/data/photos
+      - ../data/photos:/data/photos:ro
       - ../data/raw-photos-processed:/data/raw-photos-processed
       - ../data/cache:/data/cache
       - ../data/models:/data/models
