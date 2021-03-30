@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/react-hooks'
 import styled from '@emotion/styled'
+import { Link } from 'react-router-dom'
 
 import MapView from '../components/MapView'
 import ColorTags from './ColorTags'
@@ -9,7 +10,6 @@ import EditableTags from '../components/EditableTags'
 import ImageHistogram from '../components/ImageHistogram'
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
-
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
 import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
@@ -66,6 +66,11 @@ const Container = styled('div')`
         padding: 0;
         list-style: none;
         margin: 0;
+        li {
+          a {
+            color: #ddd;
+          }
+        }
       }
       h2 svg {
         filter: invert(0.9);
@@ -195,6 +200,7 @@ const PhotoMetadata = ({
             ) : (
               ''
             )}
+            <li><Link to={`/metadata/${photo?.photoFile[0]?.id}`}>More details</Link></li>
           </ul>
         </div>
         {photo.locationTags.length ? (
