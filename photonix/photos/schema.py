@@ -223,7 +223,7 @@ class Query(graphene.ObjectType):
     all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
-    photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_path=graphene.String())
+    photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_id=graphene.UUID())
 
     def resolve_all_libraries(self, info, **kwargs):
         user = info.context.user
@@ -382,8 +382,9 @@ class Query(graphene.ObjectType):
 
     def resolve_photo_file_metadata(self, info, **kwargs):
         """Return metadata for photofile."""
-        if os.path.exists(str(kwargs.get('photo_file_path'))):
-            metadata = PhotoMetadata(kwargs.get('photo_file_path'))
+        photo_file = PhotoFile.objects.filter(id=kwargs.get('photo_file_id'))
+        if photo_file and os.path.exists(photo_file[0].path):
+            metadata = PhotoMetadata(photo_file[0].path)
             return {
                 'exiftool_version_number': metadata.get('ExifTool Version Number'),
                 'file_name': metadata.get('File Name'),
