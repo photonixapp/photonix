@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/react-hooks'
 import styled from '@emotion/styled'
-import { Link } from 'react-router-dom'
+import { Collapse } from "@chakra-ui/core"
 
 import MapView from '../components/MapView'
 import ColorTags from './ColorTags'
@@ -13,6 +13,7 @@ import { PHOTO_UPDATE } from '../graphql/photo'
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
 import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
+import PhotoExtraDataContainer from '../containers/PhotoExtraDataContainer'
 
 const Container = styled('div')`
   position: absolute;
@@ -66,10 +67,9 @@ const Container = styled('div')`
         padding: 0;
         list-style: none;
         margin: 0;
-        li {
-          a {
-            color: #ddd;
-          }
+        li.link {
+          cursor: pointer;
+          text-decoration: underline;
         }
       }
       h2 svg {
@@ -122,6 +122,7 @@ const PhotoMetadata = ({
 }) => {
   const [starRating, updateStarRating] = useState(photo.starRating)
   const [editorMode, setEditorMode] = useState(false)
+  const [metadataShow, setMetadataShow] = useState(false)
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
 
   let date = null
@@ -160,6 +161,7 @@ const PhotoMetadata = ({
       }).catch((e) => {})
     }
   }
+  const handleToggle = () => setMetadataShow(!metadataShow)
 
   return (
     <Container className={show && 'showing'}>
@@ -200,8 +202,17 @@ const PhotoMetadata = ({
             ) : (
               ''
             )}
-            <li><Link to={`/metadata/${photo?.photoFile[0]?.id}`}>More details</Link></li>
+            {!metadataShow &&
+              <li className="link" onClick={handleToggle}>Show More</li>
+            }
+            <Collapse isOpen={metadataShow}>
+              <PhotoExtraDataContainer id={photo?.photoFile[0]?.id} />
+            </Collapse>
+            {metadataShow &&
+              <li className="link" onClick={handleToggle}>Hide</li>
+            }
           </ul>
+          
         </div>
         {photo.locationTags.length ? (
           <div className="box box3">

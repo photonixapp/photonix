@@ -13,7 +13,6 @@ import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 import Onboarding from '../components/Onboarding'
 import Settings from '../components/Settings'
 import Account from '../components/Account'
-import PhotoMetadataContainer from '../containers/PhotoMetadataContainer'
 import history from '../history'
 import '../static/css/App.css'
 import '../static/css/typography.css'
@@ -65,11 +64,6 @@ const App = ({
         path="/photo/:photoId"
         parentPath="/"
         component={PhotoDetailContainer}
-      />
-      <ModalRoute
-        path="/metadata/:id"
-        parentPath="/"
-        component={PhotoMetadataContainer}
       />
     </Switch>
   </>

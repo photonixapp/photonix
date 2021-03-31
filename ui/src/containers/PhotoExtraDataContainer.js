@@ -2,7 +2,7 @@ import React from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import gql from 'graphql-tag'
 
-import PhotoMetadataModal from '../components/PhotoMetadataModal'
+import PhotoExtraData from '../components/PhotoExtraData'
 import Spinner from '../components/Spinner'
 
 const GET_PHOTO_METADATA = gql`
@@ -36,21 +36,20 @@ const GET_PHOTO_METADATA = gql`
   }
 `
 
-const PhotoMetadataContainer = (props) => {
+const PhotoExtraDataContainer = (props) => {
   const { loading, data } = useQuery(GET_PHOTO_METADATA, {
     variables: {
-      id: props.match.params.id,
+      id: props.id,
     },
   })
- 
   if (loading) return <Spinner />
   if (!data?.photoFileMetadata.ok) return `Something went wrong!`
 
   return (
-    <PhotoMetadataModal
+    <PhotoExtraData
       data={data?.photoFileMetadata}
     />
   )
 }
 
-export default PhotoMetadataContainer
+export default PhotoExtraDataContainer
