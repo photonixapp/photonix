@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/react-hooks'
 import styled from '@emotion/styled'
-import { Collapse } from "@chakra-ui/core"
+import { Collapse, Select } from "@chakra-ui/core"
 
 import MapView from '../components/MapView'
 import ColorTags from './ColorTags'
@@ -106,6 +106,12 @@ const Container = styled('div')`
     .box8 {
       transition-duration: 1200ms;
     }
+    .box9 {
+      transition-duration: 1300ms;
+    }
+    .box10 {
+      transition-duration: 1400ms;
+    }
   }
 
   @media all and (max-width: 500px) {
@@ -119,6 +125,7 @@ const PhotoMetadata = ({
   refetch,
   showBoundingBox,
   setShowBoundingBox,
+  updataPhotoFile
 }) => {
   const [starRating, updateStarRating] = useState(photo.starRating)
   const [editorMode, setEditorMode] = useState(false)
@@ -162,6 +169,11 @@ const PhotoMetadata = ({
     }
   }
   const handleToggle = () => setMetadataShow(!metadataShow)
+
+  const getFileName = (path) => {
+    const arr = path.split('/')
+    return arr[arr.length-1]
+  }
 
   return (
     <Container className={show && 'showing'}>
@@ -294,12 +306,22 @@ const PhotoMetadata = ({
             refetch={refetch}
           />
         </div>
-        <div className="box box8">
+        <div className="box box9">
           <h2>
             Path
           </h2>
-          <p>{photo?.photoFile[0]?.path}</p>
+          <p>{photo?.baseFilePath}</p>
         </div>
+        {photo.photoFile.length > 1 &&
+          <div className="box box10">
+            <h2>Versions</h2>
+            <Select defaultValue={photo.baseFileId} onChange={(e) => updataPhotoFile(e.target.value)}>
+              {photo.photoFile.map(file => (
+                <option key={file.id} value={file.id}>{getFileName(file.path)}</option>
+              ))}
+            </Select>
+          </div>
+        }
       </div>
     </Container>
   )

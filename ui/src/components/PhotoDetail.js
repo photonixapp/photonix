@@ -90,7 +90,7 @@ const Container = styled('div')`
   }
 `
 
-const PhotoDetail = ({ photoId, photo, refetch }) => {
+const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
     true
@@ -196,6 +196,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           refetch={refetch}
           showBoundingBox={showBoundingBox}
           setShowBoundingBox={setShowBoundingBox}
+          updataPhotoFile={updataPhotoFile}
         />
       )}
       {!showMetadata ? (
