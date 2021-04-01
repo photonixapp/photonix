@@ -8,7 +8,7 @@ from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile
+from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile,Task
 from django.contrib.auth import load_backend, login
 from photonix.photos.utils.filter_photos import filter_photos_queryset
 from photonix.photos.utils.metadata import PhotoMetadata
@@ -805,6 +805,7 @@ class ChangePreferredPhotoFile(graphene.Mutation):
         photo_obj = PhotoFile.objects.get(id=selected_photo_file_id).photo
         photo_obj.preferred_photo_file = PhotoFile.objects.get(id=selected_photo_file_id)
         photo_obj.save()
+        Task(type='generate_thumbnails', subject_id=photo_obj.id).save()
         return ChangePreferredPhotoFile(ok=True)
 
 
