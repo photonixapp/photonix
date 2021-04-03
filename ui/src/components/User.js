@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import PropTypes from 'prop-types'
+import styled from '@emotion/styled'
 
 import { getActiveLibrary } from '../stores/libraries/selector'
 import accountCircle from '../static/images/account_circle.svg'
@@ -9,35 +10,129 @@ import arrowDown from '../static/images/arrow_down.svg'
 import library from '../static/images/library.svg'
 import settings from '../static/images/settings.svg'
 import logout from '../static/images/logout.svg'
-import '../static/css/Header.css'
+
+const Container = styled('div')`
+  width: 84px;
+
+  > img {
+    filter: invert(0.9);
+    padding: 10px 0 10px 10px;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+  }
+  .arrowDown {
+    width: 34px;
+    padding: 10px 10px 10px 0;
+  }
+
+  .notifications img,
+  .userMenu {
+    position: absolute;
+    width: 200px;
+    right: 0px;
+    top: 50px;
+    z-index: 10;
+    background: #484848;
+    margin: 0;
+    list-style: none;
+    padding: 0;
+    box-shadow: -3px 8px 17px rgba(0, 0, 0, 0.15);
+  }
+  .isMobileApp header .userMenu {
+    top: 80px;
+  }
+  .userMenu li {
+    padding: 12px 15px 12px 15px;
+    cursor: default;
+    display: flex;
+  }
+  .userMenu li:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .userMenu a,
+  .userMenu a li,
+  .userMenu li.library {
+    cursor: pointer;
+    color: #ddd;
+    text-decoration: none;
+  }
+  .userMenu a:hover li {
+    color: #fff;
+  }
+  .userMenu li img {
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    vertical-align: -6px;
+    margin-right: 10px;
+    filter: invert(0.9);
+  }
+  .userMenu li .text {
+    flex: 1;
+    align-self: center;
+    margin-top: 1px;
+  }
+  .userMenu li.profile img {
+    width: 32px;
+    height: 32px;
+    margin-left: -4px;
+    margin-right: 6px;
+    vertical-align: -4px;
+  }
+  .userMenu li.profile div {
+    display: inline-block;
+    width: 100px;
+  }
+  .userMenu li.profile div .username {
+    font-weight: 600;
+    line-height: 18px;
+    display: block;
+  }
+  .userMenu li.profile div .email {
+    font-size: 10px;
+    line-height: 12px;
+    display: block;
+  }
+
+  .activeLibrary {
+    height: 10px;
+    width: 10px;
+    background-color: rgb(0, 168, 161);
+    border-radius: 100%;
+    float: right;
+    margin: 8px 0 0 0;
+  }
+  .inactiveLibrary {
+    width: 10px;
+  }
+`
 
 function useComponentVisible(initialIsVisible) {
-  const [isComponentVisible, setIsComponentVisible] = useState(
-    initialIsVisible
-  );
-  const ref = useRef(null);
+  const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible)
+  const ref = useRef(null)
 
   const handleHideDropdown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      setIsComponentVisible(false);
+    if (event.key === 'Escape') {
+      setIsComponentVisible(false)
     }
-  };
+  }
 
-  const handleClickOutside = event => {
+  const handleClickOutside = (event) => {
     if (ref.current && !ref.current.contains(event.target)) {
-      setIsComponentVisible(false);
+      setIsComponentVisible(false)
     }
-  };
+  }
   useEffect(() => {
-    document.addEventListener("keydown", handleHideDropdown, false);
-    document.addEventListener("click", handleClickOutside, false);
+    document.addEventListener('keydown', handleHideDropdown, false)
+    document.addEventListener('click', handleClickOutside, false)
     return () => {
-      document.removeEventListener("keydown", handleHideDropdown, true);
-      document.removeEventListener("click", handleClickOutside, true);
-    };
-  });
+      document.removeEventListener('keydown', handleHideDropdown, true)
+      document.removeEventListener('click', handleClickOutside, true)
+    }
+  })
 
-  return { ref, isComponentVisible, setIsComponentVisible };
+  return { ref, isComponentVisible, setIsComponentVisible }
 }
 const User = ({ profile, libraries }) => {
   const dispatch = useDispatch()
@@ -45,9 +140,9 @@ const User = ({ profile, libraries }) => {
   const {
     ref,
     isComponentVisible,
-    setIsComponentVisible
-  } = useComponentVisible(false);
-  
+    setIsComponentVisible,
+  } = useComponentVisible(false)
+
   const isActiveLibrary = (id) => {
     return activeLibrary?.id === id
   }
@@ -63,10 +158,13 @@ const User = ({ profile, libraries }) => {
   }
 
   return (
-    <div ref={ref} className="user" onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
+    <Container ref={ref} onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
       <img src={accountCircle} alt="User account" />
       <img src={arrowDown} className="arrowDown" alt="" />
-      <ul className="menu" style={{display: isComponentVisible ? 'block' : 'none'}}>
+      <ul
+        className="userMenu"
+        style={{ display: isComponentVisible ? 'block' : 'none' }}
+      >
         {profile ? (
           <Link to="/account">
             <li className="profile">
@@ -108,7 +206,7 @@ const User = ({ profile, libraries }) => {
           </li>
         </Link>
       </ul>
-    </div>
+    </Container>
   )
 }
 

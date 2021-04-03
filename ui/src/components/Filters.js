@@ -128,7 +128,6 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
               items = (
                 <HierarchicalTagsContainer
                   tags={group.items.map((item) => {
-
                     item.onClick = () =>
                       onToggle(item.id, group.name, item.name)
                     return item
@@ -222,16 +221,16 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
             }
             return (
               <>
-              {showTagSection(items, group.name) &&
-                <div
-                  className="FilterGroup"
-                  key={group.name}
-                  style={filterGroupExtraStyles}
-                >
-                  <h2>{group.name}</h2>
-                  {items}
-                </div>
-              }
+                {showTagSection(items, group.name) && (
+                  <div
+                    className="FilterGroup"
+                    key={group.name}
+                    style={filterGroupExtraStyles}
+                  >
+                    <h2>{group.name}</h2>
+                    {items}
+                  </div>
+                )}
               </>
             )
           })}

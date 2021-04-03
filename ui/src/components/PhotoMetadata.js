@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/react-hooks'
+import { useSelector } from 'react-redux'
 import styled from '@emotion/styled'
 
 import MapView from '../components/MapView'
@@ -9,6 +10,7 @@ import EditableTags from '../components/EditableTags'
 import ImageHistogram from '../components/ImageHistogram'
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
+import { getSafeArea } from '../stores/layout/selector'
 
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
@@ -115,6 +117,7 @@ const PhotoMetadata = ({
   showBoundingBox,
   setShowBoundingBox,
 }) => {
+  const safeArea = useSelector(getSafeArea)
   const [starRating, updateStarRating] = useState(photo.starRating)
   const [editorMode, setEditorMode] = useState(false)
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
@@ -158,7 +161,7 @@ const PhotoMetadata = ({
 
   return (
     <Container className={show && 'showing'}>
-      <div className="boxes">
+      <div className="boxes" style={{ marginTop: safeArea.top }}>
         <div className="box box1">
           <StarRating
             starRating={starRating}

@@ -6,6 +6,7 @@ import useLocalStorageState from 'use-local-storage-state'
 import history from '../history'
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
+import { getSafeArea } from '../stores/layout/selector'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
@@ -91,6 +92,7 @@ const Container = styled('div')`
 `
 
 const PhotoDetail = ({ photoId, photo, refetch }) => {
+  const safeArea = useSelector(getSafeArea)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
     true
@@ -168,6 +170,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
+        style={{ marginTop: safeArea.top }}
       >
         <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
       </div>
@@ -204,6 +207,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
+          style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
       ) : (
@@ -212,6 +216,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
+          style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
       )}
