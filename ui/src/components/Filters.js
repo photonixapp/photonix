@@ -220,18 +220,17 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
               })
             }
             return (
-              <>
+              <span key={group.name}>
                 {showTagSection(items, group.name) && (
                   <div
                     className="FilterGroup"
-                    key={group.name}
                     style={filterGroupExtraStyles}
                   >
                     <h2>{group.name}</h2>
                     {items}
                   </div>
                 )}
-              </>
+              </span>
             )
           })}
           <div className="filterGradient"></div>

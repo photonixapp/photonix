@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
 import { useSelector } from 'react-redux'
 import useLocalStorageState from 'use-local-storage-state'
@@ -122,14 +122,14 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   //   }
   // }, [showMetadata])
 
-  const prevPhoto = () => {
+  const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
     id && history.push(`/photo/${id}`)
-  }
-  const nextPhoto = () => {
+  }, [prevNextPhotos])
+  const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
     id && history.push(`/photo/${id}`)
-  }
+  }, [prevNextPhotos])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -150,7 +150,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [photoId, prevNextPhotos])
+  }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
   let boxes = photo?.objectTags.map((objectTag) => {
     return {

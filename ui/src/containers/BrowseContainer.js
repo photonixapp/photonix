@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
@@ -142,12 +142,12 @@ const BrowseContainer = (props) => {
   })
   if (mapPhotosError) console.log(mapPhotosError)
 
-  const updatePhotosStore = (photoIds) => {
+  const updatePhotosStore = useCallback((photoIds) => {
     dispatch({
       type: 'SET_PHOTOS',
       payload: photoIds,
     })
-  }
+  }, [dispatch])
 
   useEffect(() => {
     if (envData && envData.environment && !envData.environment.firstRun) {
@@ -158,7 +158,7 @@ const BrowseContainer = (props) => {
       let ids = photosData?.allPhotos.edges.map((item) => item.node.id)
       updatePhotosStore(ids)
     }
-  }, [envData, photosData, refetch])
+  }, [envData, photosData, refetch, updatePhotosStore])
 
   if (photoData) {
     photos = photoData.allPhotos.edges.map((photo) => ({
