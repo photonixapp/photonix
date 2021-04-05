@@ -1,8 +1,11 @@
 
-import unittest
 import datetime
+import os
 from pathlib import Path
+import unittest
+
 import pytest
+
 from .factories import LibraryUserFactory
 from .utils import get_graphql_content
 from photonix.photos.models import Tag, PhotoTag, Library, LibraryPath, Photo
@@ -71,7 +74,7 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         data = get_graphql_content(response)
         self.assertFalse(data['data']['environment']['firstRun'])
-        self.assertTrue(data['data']['environment']['demo'])
+        # TODO: Test to make sure the user is actually logged in here - userId etc. should be set
 
     def test_get_photo(self):
         # self.api_client.set_user(self.defaults['user'])
@@ -309,7 +312,7 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         self.assertEqual(tuple(tuple(data.values())[0].values())[0].get('sourceFolder'),self.defaults['library'].paths.all()[0].path)
 
-    def test_change_password_mutaion(self):
+    def test_change_password_mutation(self):
         """Test change password mutaion response."""
         mutation = """
             mutation changePassword (
