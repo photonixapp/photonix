@@ -168,31 +168,8 @@ class LibrarySetting(graphene.ObjectType):
 
 
 class PhotoMetadataFields(graphene.ObjectType):
-    """To pass fields which show metadata attributes for photo."""
-
-    exiftool_version_number = graphene.String()
-    file_name = graphene.String()
-    directory = graphene.String()
-    file_size = graphene.String()
-    file_modification_date_time = graphene.String()
-    file_access_date_time = graphene.String()
-    file_inode_change_date_time = graphene.String()
-    file_permissions = graphene.String()
-    file_type = graphene.String()
-    file_type_extension = graphene.String()
-    mime_type = graphene.String()
-    jfif_version = graphene.String()
-    resolution_unit = graphene.String()
-    x_resolution = graphene.String()
-    y_resolution = graphene.String()
-    image_width = graphene.String()
-    image_height = graphene.String()
-    encoding_process = graphene.String()
-    bits_per_sample = graphene.String()
-    color_components = graphene.String()
-    y_cb_cr_sub_sampling = graphene.String()
-    image_size = graphene.String()
-    megapixels = graphene.String()
+    """ Metadata about photo as extracted by exiftool """
+    data = graphene.types.generic.GenericScalar()
     ok = graphene.Boolean()
 
 
@@ -386,29 +363,7 @@ class Query(graphene.ObjectType):
         if photo_file and os.path.exists(photo_file[0].path):
             metadata = PhotoMetadata(photo_file[0].path)
             return {
-                'exiftool_version_number': metadata.get('ExifTool Version Number'),
-                'file_name': metadata.get('File Name'),
-                'directory': metadata.get('Directory'),
-                'file_size': metadata.get('File Size'),
-                'file_modification_date_time': metadata.get('File Modification Date/Time'),
-                'file_access_date_time': metadata.get('File Access Date/Time'),
-                'file_inode_change_date_time': metadata.get('File Inode Change Date/Time'),
-                'file_permissions': metadata.get('File Permissions'),
-                'file_type': metadata.get('File Type'),
-                'file_type_extension': metadata.get('File Type Extension'),
-                'mime_type': metadata.get('MIME Type'),
-                'jfif_version': metadata.get('JFIF Version'),
-                'resolution_unit': metadata.get('Resolution Unit'),
-                'x_resolution': metadata.get('X Resolution'),
-                'y_resolution': metadata.get('Y Resolution'),
-                'image_width': metadata.get('Image Width'),
-                'image_height': metadata.get('Image Height'),
-                'encoding_process': metadata.get('Encoding Process'),
-                'bits_per_sample': metadata.get('Bits Per Sample'),
-                'color_components': metadata.get('Color Components'),
-                'y_cb_cr_sub_sampling': metadata.get('Y Cb Cr Sub Sampling'),
-                'image_size': metadata.get('Image Size'),
-                'megapixels': metadata.get('Megapixels'),
+                'data': metadata.get_all(),
                 'ok': True
             }
         return {'ok': False}
