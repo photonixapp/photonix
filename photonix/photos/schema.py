@@ -128,6 +128,8 @@ class PhotoFilter(django_filters.FilterSet):
         return value
 
     def multi_filter_filter(self, queryset, name, value):
+        if 'library_id:' not in value:
+            raise GraphQLError('library_id not supplied!')
         filters = value.split(' ')
         filters = self.sanitize(filters)
         # filters = map(self.customize, filters)
@@ -289,6 +291,8 @@ class Query(graphene.ObjectType):
     def resolve_all_location_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -299,6 +303,8 @@ class Query(graphene.ObjectType):
     def resolve_all_object_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -309,6 +315,8 @@ class Query(graphene.ObjectType):
     def resolve_all_person_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -319,6 +327,8 @@ class Query(graphene.ObjectType):
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -329,6 +339,8 @@ class Query(graphene.ObjectType):
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -339,6 +351,8 @@ class Query(graphene.ObjectType):
     def resolve_all_generic_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -575,8 +589,9 @@ class CreateLibrary(graphene.Mutation):
                 type="St", path=input.path, url=input.get('url'),
                 s3_access_key_id=input.s3_access_key_id,
                 s3_secret_key=input.s3_secret_key)
-        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
-            "has_created_library": True})
+        user = User.objects.get(pk=input.user_id)
+        user.has_created_library = True
+        user.save()
         LibraryUser.objects.create(
             library=library_obj, user=user, owner=True)
         return CreateLibrary(
@@ -613,15 +628,17 @@ class PhotoImporting(graphene.Mutation):
     @staticmethod
     def mutate(self, info, input=None):
         """Mutate method."""
-        LibraryPath.objects.filter(pk=input.library_path_id).update(
-            watch_for_changes=input.watch_for_changes)
+        library_path_obj = LibraryPath.objects.get(pk=input.library_path_id)
+        library_path_obj.watch_for_changes = input.watch_for_changes
+        library_path_obj.save()
         if input.add_another_path:
             LibraryPath.objects.create(
                 library=Library.objects.get(pk=input.library_id),
                 type="Im", backend_type="Lo",
                 path=input.import_path, delete_after_import=input.delete_after_import)
-        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
-            "has_configured_importing": True})
+        user = User.objects.get(pk=input.user_id)
+        user.has_configured_importing = True
+        user.save()
         return PhotoImporting(
             has_configured_importing=user.has_configured_importing,
             ok=True, user_id=user.id, library_id=input.library_id)
@@ -642,14 +659,15 @@ class ImageAnalysis(graphene.Mutation):
     @staticmethod
     def mutate(self, info, input=None):
         """Mutate method."""
-        Library.objects.filter(pk=input.library_id).update(
-            classification_color_enabled=input.classification_color_enabled,
-            classification_location_enabled=input.classification_location_enabled,
-            classification_style_enabled=input.classification_style_enabled,
-            classification_object_enabled=input.classification_object_enabled
-        )
-        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
-            "has_configured_image_analysis": True})
+        library_obj = Library.objects.get(pk=input.library_id)
+        library_obj.classification_color_enabled = input.classification_color_enabled
+        library_obj.classification_location_enabled = input.classification_location_enabled
+        library_obj.classification_style_enabled = input.classification_style_enabled
+        library_obj.classification_object_enabled = input.classification_object_enabled
+        library_obj.save()
+        user = User.objects.get(pk=input.user_id)
+        user.has_configured_image_analysis = True
+        user.save()
         # For make user login automatically from backend.
         if not hasattr(user, 'backend'):
             for backend in settings.AUTHENTICATION_BACKENDS:
@@ -678,8 +696,9 @@ class PhotoRating(graphene.Mutation):
     def mutate(self, info, photo_id=None, star_rating=None):
         try:
             if 0 <= star_rating <= 5:
-                photo_obj, created = Photo.objects.update_or_create(pk=photo_id, defaults={
-                    "star_rating": star_rating})
+                photo_obj = Photo.objects.get(pk=photo_id)
+                photo_obj.star_rating = star_rating
+                photo_obj.save()
                 return PhotoRating(ok=True, photo=photo_obj)
         except:
             raise GraphQLError("rating is required!")
@@ -703,7 +722,7 @@ class CreateGenricTag(graphene.Mutation):
         except Exception as e:
             raise GraphQLError("Invalid photo id!")
         tag_obj, created = Tag.objects.get_or_create(
-            library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
+            library=photo_obj.library,
             name=name, type='G', source='H', defaults={})
         if (not created) and photo_obj.photo_tags.filter(tag=tag_obj).exists():
             return CreateGenricTag(

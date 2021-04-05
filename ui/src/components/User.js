@@ -156,7 +156,6 @@ const User = ({ profile, libraries }) => {
   const handleShowMenu = () => {
     setIsComponentVisible(true)
   }
-
   return (
     <Container ref={ref} onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
       <img src={accountCircle} alt="User account" />

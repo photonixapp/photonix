@@ -91,6 +91,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   )
   useEffect(() => {
     refetch()
+
   }, [activeLibrary, refetch])
 
   const getFilterdData = (type, array) => {
@@ -105,7 +106,6 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
     }
     return data
   }
-
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
