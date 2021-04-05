@@ -202,7 +202,9 @@ class PhotoFile(UUIDModel, VersionedModel):
 
     @property
     def base_image_path(self):
-        if self.raw_processed:
+        from photonix.photos.utils.raw import NON_RAW_MIMETYPES
+
+        if self.mimetype not in NON_RAW_MIMETYPES:
             return str(Path(settings.PHOTO_RAW_PROCESSED_DIR) / str('{}.jpg'.format(self.id)))
         return self.path
 

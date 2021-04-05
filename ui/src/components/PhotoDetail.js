@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
 import { useSelector } from 'react-redux'
 import useLocalStorageState from 'use-local-storage-state'
@@ -6,6 +6,7 @@ import useLocalStorageState from 'use-local-storage-state'
 import history from '../history'
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
+import { getSafeArea } from '../stores/layout/selector'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
@@ -46,7 +47,6 @@ const Container = styled('div')`
   .prevNextIcons {
     position: absolute;
     top: 0;
-    padding-top: 40vh;
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -58,6 +58,14 @@ const Container = styled('div')`
       padding: 10vh 10px;
       width: 48px;
       height: 25vh;
+      position: absolute;
+      top: 37.5vh;
+      &.prevArrow {
+        left: 0;
+      }
+      &.nextArrow {
+        right: 0;
+      }
     }
   }
   .showDetailIcon {
@@ -84,6 +92,7 @@ const Container = styled('div')`
 `
 
 const PhotoDetail = ({ photoId, photo, refetch }) => {
+  const safeArea = useSelector(getSafeArea)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
     true
@@ -113,14 +122,14 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
   //   }
   // }, [showMetadata])
 
-  const prevPhoto = () => {
+  const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
     id && history.push(`/photo/${id}`)
-  }
-  const nextPhoto = () => {
+  }, [prevNextPhotos])
+  const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
     id && history.push(`/photo/${id}`)
-  }
+  }, [prevNextPhotos])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -141,7 +150,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [photoId, prevNextPhotos])
+  }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
   let boxes = photo?.objectTags.map((objectTag) => {
     return {
@@ -161,21 +170,26 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
+        style={{ marginTop: safeArea.top }}
       >
         <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
       </div>
       <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
         <ArrowLeftIcon
           alt="Previous"
+          className="prevArrow"
           onClick={prevPhoto}
           onMouseOver={() => setShowPrevNext(true)}
           onMouseOut={() => setShowPrevNext(false)}
+          title="Use [←] left/right [→] arrow keys to quickly go to the previous/next photo"
         />
         <ArrowRightIcon
           alt="Previous"
+          className="nextArrow"
           onClick={nextPhoto}
           onMouseOver={() => setShowPrevNext(true)}
           onMouseOut={() => setShowPrevNext(false)}
+          title="Use [←] left/right [→] arrow keys to quickly go to the previous/next photo"
         />
       </div>
       {photo && (
@@ -193,6 +207,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
+          style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
       ) : (
@@ -201,6 +216,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
+          style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
       )}
