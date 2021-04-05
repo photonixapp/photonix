@@ -78,6 +78,10 @@ class Query(graphene.ObjectType):
         return user
 
     def resolve_environment(self, info):
+        return {
+            'demo': os.environ.get('DEMO', False),
+            'first_run': False,
+        }
         user = User.objects.first()
         if user and user.has_config_persional_info and \
             user.has_created_library and user.has_configured_importing and \

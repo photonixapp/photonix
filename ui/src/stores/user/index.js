@@ -11,7 +11,7 @@ const setUser = (state, payload) => {
 const user = (state = initialState, action = {}) => {
   switch (action.type) {
     case SET_USER:
-      return setUser(action.payload)
+      return setUser(state, action.payload)
     default:
       return state
   }

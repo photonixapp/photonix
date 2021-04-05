@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
@@ -56,7 +56,6 @@ const BrowseContainer = (props) => {
   const [isLibrarySet, setIsLibrarySet] = useState(false)
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
-  const [expanded, setExpanded] = useState(true)
   const [photoData, setPhotoData] = useState()
   const [isMapShowing, setIsMapShowing] = useState(false)
 
@@ -143,17 +142,28 @@ const BrowseContainer = (props) => {
   })
   if (mapPhotosError) console.log(mapPhotosError)
 
+  const updatePhotosStore = useCallback((photoIds) => {
+    dispatch({
+      type: 'SET_PHOTOS',
+      payload: photoIds,
+    })
+  }, [dispatch])
+
   useEffect(() => {
     if (envData && envData.environment && !envData.environment.firstRun) {
       refetch()
     }
-    if (photosData) setPhotoData(photosData)
-  }, [envData, photosData, refetch])
+    if (photosData) {
+      setPhotoData(photosData)
+      let ids = photosData?.allPhotos.edges.map((item) => item.node.id)
+      updatePhotosStore(ids)
+    }
+  }, [envData, photosData, refetch, updatePhotosStore])
 
   if (photoData) {
     photos = photoData.allPhotos.edges.map((photo) => ({
       id: photo.node.id,
-      thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+      thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location
         ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
         : null,
@@ -183,14 +193,14 @@ const BrowseContainer = (props) => {
 
   useEffect(() => {
     if (isMapShowing) mapPhotosRefetch()
-  }, [isMapShowing, filtersStr])
+  }, [isMapShowing, filtersStr, mapPhotosRefetch])
 
   let photosWithLocation = []
 
   if (mapPhotosData) {
     photosWithLocation = mapPhotosData.mapPhotos.edges.map((photo) => ({
       id: photo.node.id,
-      thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+      thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location
         ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
         : null,
@@ -211,8 +221,6 @@ const BrowseContainer = (props) => {
           photoSections={photoSections}
           onFilterToggle={props.onFilterToggle}
           onClearFilters={props.onClearFilters}
-          expanded={expanded}
-          onExpandCollapse={() => setExpanded(!expanded)}
           setIsMapShowing={setIsMapShowing}
           mapPhotos={photosWithLocation}
         />

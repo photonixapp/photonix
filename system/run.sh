@@ -28,5 +28,8 @@ python /srv/photonix/manage.py rescan_photos
 >&2 echo "Resetting Redis lock"
 python /srv/photonix/manage.py reset_redis_locks
 
+>&2 echo "Reschedule any regeneration of thumbnails or analysis jobs"
+python /srv/photonix/manage.py housekeeping
+
 >&2 echo "Starting supervisor"
 supervisord -c /etc/supervisord.conf

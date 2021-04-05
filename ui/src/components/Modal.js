@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react'
-import history from '../history'
+import { useSelector } from 'react-redux'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 
+import history from '../history'
+import { getSafeArea } from '../stores/layout/selector'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
 const ESCAPE_KEY = 27
@@ -34,10 +36,9 @@ const Accent = styled('div')`
 `
 const CloseIconContainer = styled('span')`
   filter: invert(0.9);
-  position: absolute;
-  top: 10px;
-  right: 10px;
   cursor: pointer;
+  float: right;
+  padding: 10px;
 `
 const Body = styled('div')`
   padding: 40px;
@@ -68,6 +69,7 @@ const Modal = ({
   className,
   onClose,
 }) => {
+  const safeArea = useSelector(getSafeArea)
   useEffect(() => {
     const handleKeyDown = (event) => {
       switch (event.keyCode) {
@@ -91,11 +93,6 @@ const Modal = ({
       style={window.innerWidth > 700 ? { width: width, height: height } : {}}
       className={className}
     >
-      {allowClose && (
-        <CloseIconContainer onClick={onClose}>
-          <CloseIcon className="closeIcon" alt="Close" />
-        </CloseIconContainer>
-      )}
       {topAccent && (
         <Accent>
           <div style={{ background: '#005461' }}></div>
@@ -105,13 +102,21 @@ const Modal = ({
           <div style={{ background: '#F54820' }}></div>
         </Accent>
       )}
-      <Body>{children}</Body>
+      {allowClose && (
+        <CloseIconContainer
+          onClick={onClose}
+          style={{ marginTop: safeArea.top }}
+        >
+          <CloseIcon className="closeIcon" alt="Close" />
+        </CloseIconContainer>
+      )}
+      <Body style={{ marginTop: safeArea.top }}>{children}</Body>
     </Container>
   )
 }
 
 Modal.propTypes = {
-  body: PropTypes.element,
+  children: PropTypes.element,
   topAccent: PropTypes.bool,
   allowClose: PropTypes.bool,
   width: PropTypes.bool,
