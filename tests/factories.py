@@ -12,7 +12,7 @@ class UserFactory(factory.django.DjangoModelFactory):
         model = User
 
     username = 'test'
-    email = 'test@gmail.com'
+    email = 'test@example.com'
     has_config_persional_info = True
     has_created_library = True
     has_configured_importing = True

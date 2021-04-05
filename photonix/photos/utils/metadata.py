@@ -22,6 +22,9 @@ class PhotoMetadata(object):
     def get(self, attribute):
         return self.data.get(attribute)
 
+    def get_all(self):
+        return self.data
+
 
 def parse_datetime(date_str):
     if not date_str:

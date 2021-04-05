@@ -2,16 +2,18 @@
 from django.conf import settings
 import django_filters
 from django_filters import CharFilter
-import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser
+from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile
 from django.contrib.auth import load_backend, login
 from photonix.photos.utils.filter_photos import filter_photos_queryset
+from photonix.photos.utils.metadata import PhotoMetadata
+import os
+import graphene
 
 
 User = get_user_model()
@@ -34,6 +36,10 @@ class LensType(DjangoObjectType):
 class PhotoTagType(DjangoObjectType):
     class Meta:
         model = PhotoTag
+
+class PhotoFileType(DjangoObjectType):
+    class Meta:
+        model = PhotoFile
 
 
 class CustomNode(graphene.Node):
@@ -60,6 +66,7 @@ class PhotoNode(DjangoObjectType):
     width = graphene.Int()
     height = graphene.Int()
     generic_tags = graphene.List(PhotoTagType)
+    photo_file = graphene.List(PhotoFileType)
 
     class Meta:
         model = Photo
@@ -95,6 +102,9 @@ class PhotoNode(DjangoObjectType):
     def resolve_generic_tags(self, info):
         return self.photo_tags.filter(tag__type='G')
 
+    def resolve_photo_file(self, info):
+        return self.files.all()
+
 
 class PhotoFilter(django_filters.FilterSet):
     multi_filter = CharFilter(method='multi_filter_filter')
@@ -119,7 +129,7 @@ class PhotoFilter(django_filters.FilterSet):
 
     def multi_filter_filter(self, queryset, name, value):
         if 'library_id:' not in value:
-            raise GraphQLError("filter string not contain library_id!")
+            raise GraphQLError('library_id not supplied!')
         filters = value.split(' ')
         filters = self.sanitize(filters)
         # filters = map(self.customize, filters)
@@ -159,6 +169,12 @@ class LibrarySetting(graphene.ObjectType):
     source_folder = graphene.String()
 
 
+class PhotoMetadataFields(graphene.ObjectType):
+    """ Metadata about photo as extracted by exiftool """
+    data = graphene.types.generic.GenericScalar()
+    ok = graphene.Boolean()
+
+
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
@@ -186,6 +202,7 @@ class Query(graphene.ObjectType):
     all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
+    photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_id=graphene.UUID())
 
     def resolve_all_libraries(self, info, **kwargs):
         user = info.context.user
@@ -275,7 +292,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError('library_id not passed from frontend!')
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -287,7 +304,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -299,7 +316,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -311,7 +328,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -323,7 +340,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -335,7 +352,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -353,6 +370,17 @@ class Query(graphene.ObjectType):
             library_path = library_obj.paths.all()[0]
             return {"library": library_obj, "source_folder": library_path.path}
         raise Exception('User is not the owner of library!')
+
+    def resolve_photo_file_metadata(self, info, **kwargs):
+        """Return metadata for photofile."""
+        photo_file = PhotoFile.objects.filter(id=kwargs.get('photo_file_id'))
+        if photo_file and os.path.exists(photo_file[0].path):
+            metadata = PhotoMetadata(photo_file[0].path)
+            return {
+                'data': metadata.get_all(),
+                'ok': True
+            }
+        return {'ok': False}
 
 
 class LibraryInput(graphene.InputObjectType):
