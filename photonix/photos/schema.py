@@ -119,7 +119,7 @@ class PhotoFilter(django_filters.FilterSet):
 
     def multi_filter_filter(self, queryset, name, value):
         if 'library_id:' not in value:
-            raise GraphQLError("filter string not contain library_id!")
+            raise GraphQLError('library_id not supplied!')
         filters = value.split(' ')
         filters = self.sanitize(filters)
         # filters = map(self.customize, filters)
@@ -275,7 +275,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError('library_id not passed from frontend!')
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -287,7 +287,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -299,7 +299,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -311,7 +311,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -323,7 +323,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -335,7 +335,7 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if kwargs.get('multi_filter'):
             if not kwargs.get('library_id'):
-                raise GraphQLError("library_id not passed from frontend!!")
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
