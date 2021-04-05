@@ -538,9 +538,9 @@ class TestGraphQL(unittest.TestCase):
         """Test photo filtering API by passing date with all scenarios."""
         tree_tag, _ = Tag.objects.get_or_create(library=self.defaults['library'], name='Tree', type='O')
         tree_photo_tag, _ = PhotoTag.objects.get_or_create(photo=self.defaults['tree_photo'], tag=tree_tag, confidence=1.0)
-        today = datetime.date.today()
+        taken_at_date = self.defaults['snow_photo'].taken_at
         # Filter photos by current year only example 'library_id:{0} 2021'
-        multi_filter = 'library_id:{0} {1}'.format(self.defaults['library'].id, today.year)
+        multi_filter = 'library_id:{0} {1}'.format(self.defaults['library'].id, taken_at_date.year)
         query = """
             query Photos($filters: String) {
                 allPhotos(multiFilter: $filters) {
@@ -559,44 +559,45 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(len(data['data']['allPhotos']['edges']), 2)
         self.assertEqual(data['data']['allPhotos']['edges'][1]['node']['id'], str(self.defaults['snow_photo'].id))
         self.assertEqual(data['data']['allPhotos']['edges'][0]['node']['id'], str(self.defaults['tree_photo'].id))
-        # Filter photos by month name only example 'library_id:{0} March'
-        multi_filter = 'library_id:{0} {1}'.format(self.defaults['library'].id, today.strftime('%B').lower())
+        # Filter photos by month name only example 'library_id:{0} March 2017'
+        multi_filter = 'library_id:{0} {1} {2}'.format(self.defaults['library'].id, taken_at_date.strftime('%B').lower(),taken_at_date.year)
         response = self.api_client.post_graphql(query, {'filters': multi_filter})
         data = get_graphql_content(response)
-        self.assertEqual(len(data['data']['allPhotos']['edges']), 2)
+        self.assertEqual(len(data['data']['allPhotos']['edges']), 1)
 
-        # Filter photos by first 3 letter of month name only example 'library_id:{0} Mar'
-        multi_filter = 'library_id:{0} {1}'.format(self.defaults['library'].id, today.strftime('%b').lower())
+        # Filter photos by first 3 letter of month name only example 'library_id:{0} Mar' 2017
+        multi_filter = 'library_id:{0} {1} {2}'.format(self.defaults['library'].id, taken_at_date.strftime('%b').lower(), taken_at_date.year)
         response = self.api_client.post_graphql(query, {'filters': multi_filter})
         data = get_graphql_content(response)
-        self.assertEqual(len(data['data']['allPhotos']['edges']), 2)
+        self.assertEqual(len(data['data']['allPhotos']['edges']), 1)
 
-        # Filter photos by date and current month name. example 'library_id:{0} March 18'
-        multi_filter = 'library_id:{0} {1} {2}'.format(self.defaults['library'].id, today.strftime('%b').lower(), today.strftime("%d"))
+        # Filter photos by date and current month name. example 'library_id:{0} March 18 2017'
+        multi_filter = 'library_id:{0} {1} {2} {3}'.format(self.defaults['library'].id, taken_at_date.strftime('%b').lower(), taken_at_date.strftime("%d"), taken_at_date.year)
         response = self.api_client.post_graphql(query, {'filters': multi_filter})
         data = get_graphql_content(response)
-        self.assertEqual(len(data['data']['allPhotos']['edges']), 2)
+        self.assertEqual(len(data['data']['allPhotos']['edges']), 1)
 
         # Filter photos by date and current month name and year example 'library_id:{0} 18 March 2021'.
-        multi_filter = 'library_id:{0} {1} {2} {3}'.format(self.defaults['library'].id, today.strftime("%d"), today.strftime('%b').lower(), today.year)
+        multi_filter = 'library_id:{0} {1} {2} {3}'.format(self.defaults['library'].id, taken_at_date.strftime("%d"), taken_at_date.strftime('%b').lower(), taken_at_date.year)
         response = self.api_client.post_graphql(query, {'filters': multi_filter})
         data = get_graphql_content(response)
-        self.assertEqual(len(data['data']['allPhotos']['edges']), 2)
+        self.assertEqual(len(data['data']['allPhotos']['edges']), 1)
 
         # Filter photos by date having some other words like in of etc example 'library_id:{0} party in mar 2021'.
-        multi_filter = 'library_id:{0} party in {1} {2}'.format(self.defaults['library'].id, today.strftime('%b').lower(), today.year)
+        multi_filter = 'library_id:{0} party in {1} {2}'.format(self.defaults['library'].id, taken_at_date.strftime('%b').lower(), taken_at_date.year)
         response = self.api_client.post_graphql(query, {'filters': multi_filter})
         data = get_graphql_content(response)
         self.assertEqual(len(data['data']['allPhotos']['edges']), 0)# Because photos having this date but any photo not having party tag.
 
         # Filter photos by date having some other words like in of etc and any tag name with date example 'library_id:{0} Tree in mar 2021'.
-        multi_filter = 'library_id:{0} Tree in {1} {2}'.format(self.defaults['library'].id, today.strftime('%b').lower(), today.year)
+        taken_at_date = self.defaults['tree_photo'].taken_at
+        multi_filter = 'library_id:{0} Tree in {1} {2}'.format(self.defaults['library'].id, taken_at_date.strftime('%b').lower(), taken_at_date.year)
         response = self.api_client.post_graphql(query, {'filters': multi_filter})
         data = get_graphql_content(response)
         self.assertEqual(len(data['data']['allPhotos']['edges']), 1)
 
-        # Filter photos by tag id and month name example 'library_id:{0} tag:id mar'.
-        multi_filter = 'library_id:{0} tag:{1} {2}'.format(self.defaults['library'].id, tree_tag.id, today.strftime('%B').lower())
+        # Filter photos by tag id and month name example 'library_id:{0} tag:id mar 2018'.
+        multi_filter = 'library_id:{0} tag:{1} {2} {3}'.format(self.defaults['library'].id, tree_tag.id, taken_at_date.strftime('%B').lower(), taken_at_date.year)
         response = self.api_client.post_graphql(query, {'filters': multi_filter})
         data = get_graphql_content(response)
         self.assertEqual(len(data['data']['allPhotos']['edges']), 1)
@@ -605,8 +606,8 @@ class TestGraphQL(unittest.TestCase):
         """Test photo filtering API for map."""
         tree_tag, _ = Tag.objects.get_or_create(library=self.defaults['library'], name='Tree', type='O')
         tree_photo_tag, _ = PhotoTag.objects.get_or_create(photo=self.defaults['tree_photo'], tag=tree_tag, confidence=1.0)
-        today = datetime.date.today()
-        multi_filter = 'library_id:{0} tag:{1} {2}'.format(self.defaults['library'].id, tree_tag.id, today.strftime('%B').lower())
+        taken_at_date = self.defaults['tree_photo'].taken_at
+        multi_filter = 'library_id:{0} tag:{1} {2} {3}'.format(self.defaults['library'].id, tree_tag.id, taken_at_date.strftime('%B').lower(),taken_at_date.year)
         query = """
             query Photos($filters: String) {
                 mapPhotos(multiFilter: $filters) {
