@@ -32,6 +32,7 @@
     "react-router-modal": "^1.5.2",
     "react-scripts": "3.4.0",
     "react-scrollbar": "^0.5.6",
+    "react-swipeable": "^6.1.0",
     "react-zoom-pan-pinch": "^1.6.1",
     "redux": "^4.0.5",
     "url-search-params-polyfill": "^8.1.0",

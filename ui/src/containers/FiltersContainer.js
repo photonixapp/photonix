@@ -77,11 +77,9 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   const activeLibrary = useSelector(getActiveLibrary)
   let filtersStr = ''
   if (activeLibrary) {
-    filtersStr = `${selectedFilters
-      .map((filter) => filter.id)
-      .join(' ')}`
+    filtersStr = `${selectedFilters.map((filter) => filter.id).join(' ')}`
   }
-  
+
   let variables = {}
   variables = { libraryId: activeLibrary?.id, multiFilter: filtersStr }
   const { loading, error, data, refetch } = useQuery(
@@ -97,11 +95,17 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   }, [activeLibrary, refetch])
 
   const getFilterdData = (type, array) => {
-    const filterArr = selectedFilters.filter(s => s.group === type)
-    return array.filter(c => !filterArr.find(rm => (rm.name === c.name)))
+    const filterArr = selectedFilters.filter((s) => s.group === type)
+    let data = []
+    if (type === 'Locations' && filterArr.length > 0) {
+      const id = array.filter((c) => filterArr.find((rm) => rm.name === c.name))[0].id
+      data = array.filter((c) => !filterArr.find((rm) => rm.name === c.name))
+      data = data.filter((d) => d?.parent?.id !== id)
+    } else {
+      data = array.filter((c) => !filterArr.find((rm) => rm.name === c.name))
+    }
+    return data
   }
-
-  
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
