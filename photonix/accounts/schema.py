@@ -86,6 +86,7 @@ class Query(graphene.ObjectType):
             return {
                 'demo': os.environ.get('DEMO', False),
                 'first_run': False,
+                'user_id': user.id
             }
         else:
             if not user:

@@ -74,7 +74,8 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         data = get_graphql_content(response)
         self.assertFalse(data['data']['environment']['firstRun'])
-        # TODO: Test to make sure the user is actually logged in here - userId etc. should be set
+        assert data['data']['environment']['userId']
+        self.assertEqual(str(response.wsgi_request.user.id), data['data']['environment']['userId'])
 
     def test_get_photo(self):
         # self.api_client.set_user(self.defaults['user'])
