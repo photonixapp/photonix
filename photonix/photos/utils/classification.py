@@ -4,7 +4,7 @@ from time import sleep
 
 from django.db import transaction
 from django.utils import timezone
-from photonix.photos.models import Task
+from photonix.photos.models import Task, Photo
 from photonix.photos.utils.tasks import requeue_stuck_tasks
 
 CLASSIFIERS = [
@@ -28,7 +28,10 @@ def generate_classifier_tasks_for_photo(photo_id, task):
     # Add task for each classifier on current photo
     with transaction.atomic():
         for classifier in CLASSIFIERS:
-            Task(type='classify.{}'.format(classifier), subject_id=photo_id, parent=task).save()
+            Task(
+                type='classify.{}'.format(classifier), subject_id=photo_id,
+                parent=task, library=Photo.objects.get(id=photo_id).library
+            ).save()
         task.complete_with_children = True
         task.save()
 
@@ -82,8 +85,17 @@ class ThreadedQueueProcessor:
         try:
             while True:
                 requeue_stuck_tasks(self.task_type)
-
-                for task in Task.objects.filter(type=self.task_type, status='P')[:64]:
+                if self.task_type == 'classify.color':
+                    task_queryset = Task.objects.filter(library__classification_color_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.location':
+                    task_queryset = Task.objects.filter(library__classification_location_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.object':
+                    task_queryset = Task.objects.filter(library__classification_object_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.style':
+                    task_queryset = Task.objects.filter(library__classification_style_enabled=True, type=self.task_type, status='P')
+                else:
+                    task_queryset = Task.objects.filter(type=self.task_type, status='P')
+                for task in task_queryset[:64]:
                     if self.num_workers > 1:
                         print('putting task')
                         self.queue.put(task)
