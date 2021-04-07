@@ -149,7 +149,8 @@ def record_photo(path, library, inotify_event_type=None):
     Task(
         type='ensure_raw_processed',
         subject_id=photo.id,
-        complete_with_children=True
+        complete_with_children=True,
+        library=photo.library
     ).save()
 
     return photo
