@@ -35,6 +35,7 @@
     "react-swipeable": "^6.1.0",
     "react-zoom-pan-pinch": "^1.6.1",
     "redux": "^4.0.5",
+    "throttle-debounce": "^3.0.1",
     "url-search-params-polyfill": "^8.1.0",
     "use-local-storage-state": "^9.0.2"
   },
