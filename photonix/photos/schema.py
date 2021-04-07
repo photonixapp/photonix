@@ -68,6 +68,7 @@ class PhotoNode(DjangoObjectType):
     photo_file = graphene.List(PhotoFileType)
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
+    base_file_rotate = graphene.String()
 
     class Meta:
         model = Photo
@@ -111,6 +112,9 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_base_file_id(self, info):
         return self.base_file.id
+
+    def resolve_base_file_rotate(self, info):
+        return self.base_file.rotate
 
 
 class PhotoFilter(django_filters.FilterSet):
@@ -805,8 +809,33 @@ class ChangePreferredPhotoFile(graphene.Mutation):
         photo_obj = PhotoFile.objects.get(id=selected_photo_file_id).photo
         photo_obj.preferred_photo_file = PhotoFile.objects.get(id=selected_photo_file_id)
         photo_obj.save()
-        Task(type='generate_thumbnails', subject_id=photo_obj.id).save()
+        Task(type='generate_thumbnails', subject_id=photo_obj.id, library=photo_obj.library).save()
         return ChangePreferredPhotoFile(ok=True)
+
+
+class SavePhotoFileRotation(graphene.Mutation):
+    """To save photoFile rotation."""
+
+    class Arguments:
+        """Input arguments which will pass from frontend."""
+
+        photo_file_id = graphene.ID()
+        rotation_value = graphene.String()
+    ok = graphene.Boolean()
+    rotation_value = graphene.String()
+
+    @staticmethod
+    def mutate(self, info, photo_file_id=None, rotation_value=None):
+        """Mutation to save photoFile rotation."""
+        if photo_file_id and rotation_value in ['0', '90', '180', '270']:
+            photofile_obj = PhotoFile.objects.get(id=photo_file_id)
+            photofile_obj.rotate = rotation_value
+            photofile_obj.save()
+            Task(
+                type='generate_thumbnails', subject_id=photofile_obj.photo.id,
+                library=photofile_obj.photo.library).save()
+            return SavePhotoFileRotation(ok=True, rotation_value=rotation_value)
+        return SavePhotoFileRotation(ok=False, rotation_value=rotation_value)
 
 
 class Mutation(graphene.ObjectType):
@@ -822,3 +851,4 @@ class Mutation(graphene.ObjectType):
     create_generic_tag = CreateGenricTag.Field()
     remove_generic_tag = RemoveGenericTag.Field()
     change_preferred_photo_file = ChangePreferredPhotoFile.Field()
+    save_photoFile_rotation = SavePhotoFileRotation.Field()
