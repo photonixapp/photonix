@@ -162,11 +162,9 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     }
   })
 
-  const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
-
   return (
     <Container>
-      <ZoomableImage url={url} boxes={showBoundingBox && boxes} />
+      <ZoomableImage photoId={photoId} boxes={showBoundingBox && boxes} next={nextPhoto} prev={prevPhoto}/>
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
