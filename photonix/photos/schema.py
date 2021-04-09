@@ -2,19 +2,21 @@ import os
 
 from django.conf import settings
 from django.contrib.auth import get_user_model, load_backend, login
-import django_filters
 from django_filters import CharFilter
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
-from django.db.models import Case, When, Value, IntegerField
-import graphene
-
+from django.db.models import Case, When, Value, IntegerField, Q
+from django.contrib.auth import load_backend, login
+from photonix.photos.utils.tasks import count_remaining_task
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile, Task
 from photonix.photos.utils.filter_photos import filter_photos_queryset, sort_photos_exposure
 from photonix.photos.utils.metadata import PhotoMetadata
 from django.db.models.functions import Lower
+import django_filters
+import graphene
+import os
 
 User = get_user_model()
 
@@ -208,6 +210,17 @@ class PhotoMetadataFields(graphene.ObjectType):
     ok = graphene.Boolean()
 
 
+class TaskType(graphene.ObjectType):
+    """Different type of tasks."""
+
+    generate_thumbnails = graphene.types.generic.GenericScalar()
+    process_raw = graphene.types.generic.GenericScalar()
+    classify_color = graphene.types.generic.GenericScalar()
+    classify_location = graphene.types.generic.GenericScalar()
+    classify_object = graphene.types.generic.GenericScalar()
+    classify_style = graphene.types.generic.GenericScalar()
+
+
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
@@ -237,6 +250,7 @@ class Query(graphene.ObjectType):
     all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
     photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_id=graphene.UUID())
+    task_progress = graphene.Field(TaskType)
 
     def resolve_all_libraries(self, info, **kwargs):
         user = info.context.user
@@ -451,6 +465,16 @@ class Query(graphene.ObjectType):
                 'ok': True
             }
         return {'ok': False}
+
+    def resolve_task_progress(self, info, **kwargs):
+        """Return No. of remaining and total tasks with there diffrent types."""
+        return {
+            "generate_thumbnails": count_remaining_task('generate_thumbnails'),
+            "process_raw": count_remaining_task('process_raw'),
+            "classify_color": count_remaining_task('classify.color'),
+            "classify_location": count_remaining_task('classify.location'),
+            "classify_object": count_remaining_task('classify.object'),
+            "classify_style": count_remaining_task('classify.style')}
 
 
 class LibraryInput(graphene.InputObjectType):
