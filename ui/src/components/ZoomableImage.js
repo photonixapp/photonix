@@ -75,7 +75,7 @@ const Container = styled('div')`
   }
 `
 
-const ZoomableImage = ({ url, boxes }) => {
+const ZoomableImage = ({ url, boxes, rotation}) => {
   const [scale, setScale] = useState(1)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
@@ -119,6 +119,7 @@ const ZoomableImage = ({ url, boxes }) => {
                       alt=""
                       onLoad={handleImageLoaded}
                       className={displayImage ? 'display' : undefined}
+                      style={{transform: `rotate(${rotation}deg)`}}
                     />
                     <span className={displayImage ? ' display' : undefined}>
                       {boxes && <BoundingBoxes boxes={boxes} />}

@@ -13,6 +13,8 @@ import { ReactComponent as ArrowLeftIcon } from '../static/images/arrow_left.svg
 import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.svg'
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
+import { ReactComponent as RotateLeftIcon } from '../static/images/rotate_left.svg'
+import { ReactComponent as RotateRightIcon } from '../static/images/rotate_right.svg'
 
 // const I_KEY = 73
 const LEFT_KEY = 37
@@ -68,14 +70,21 @@ const Container = styled('div')`
     }
   }
   .showDetailIcon {
-    position: absolute;
     right: 10px;
-    top: 10px;
+  }
+  .icon {
+    position: absolute;
     filter: invert(0.9);
     cursor: pointer;
     z-index: 10;
+    top: 10px;
   }
-
+  .rotateRight {
+    right: 70px;
+  }
+  .rotateLeft {
+    right: 40px;
+  }
   /* When two boxes can no longer fit next to each other */
   @media all and (max-width: 500px) {
     .metadata .boxes .box {
@@ -90,13 +99,14 @@ const Container = styled('div')`
   }
 `
 
-const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
+const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile, saveRotation }) => {
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
     true
   )
   const [showMetadata, setShowMetadata] = useState(false)
   const [showPrevNext, setShowPrevNext] = useState(false)
+  const [rotation, setRotation] = useState(0)
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
@@ -150,6 +160,10 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
     }
   }, [photoId, prevNextPhotos])
 
+  useEffect(() => {
+    setRotation(Number(photo?.baseFileRotate))
+  }, [photo])
+
   let boxes = photo?.objectTags.map((objectTag) => {
     return {
       name: objectTag.tag.name,
@@ -159,12 +173,18 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
       sizeY: objectTag.sizeY,
     }
   })
+  const rotate = (direction) => {
+    let newRotation = (direction === 'right') ? rotation + 90 : rotation - 90
+    if (newRotation >= 360 || newRotation === -360) newRotation = 0
+    setRotation(newRotation)
+    saveRotation(newRotation)
+  }
 
   const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
 
   return (
     <Container>
-      <ZoomableImage url={url} boxes={showBoundingBox && boxes} />
+      <ZoomableImage url={url} boxes={showBoundingBox && boxes} rotation={rotation} />
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
@@ -199,9 +219,21 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
           updataPhotoFile={updataPhotoFile}
         />
       )}
+      <RotateRightIcon
+        className="icon rotateRight"
+        height="30"
+        width="30"
+        onClick={() => rotate('right')}
+      />
+      <RotateLeftIcon
+        className="icon rotateLeft"
+        height="30"
+        width="30"
+        onClick={() => rotate('left')}
+      />
       {!showMetadata ? (
         <InfoIcon
-          className="showDetailIcon"
+          className="icon showDetailIcon"
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
@@ -209,7 +241,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
         />
       ) : (
         <CloseIcon
-          className="showDetailIcon"
+          className="icon showDetailIcon"
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}

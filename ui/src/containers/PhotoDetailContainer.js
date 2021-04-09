@@ -80,6 +80,7 @@ const GET_PHOTO = gql`
       }
       baseFileId
       baseFilePath
+      baseFileRotate
       width
       height
     }
@@ -92,6 +93,14 @@ const UPDATE_PREFERRED_PHOTOFILE = gql`
     }
   }
 `
+const SAVE_PHOTOFILE_ROTATION = gql`
+  mutation savePhotoFileRotation($id: ID!, $rotation: String!) {
+    savePhotofileRotation(photoFileId:$id,rotationValue:$rotation){
+      ok
+      rotationValue
+    }
+  }
+`
 
 const PhotoDetailContainer = (props) => {
   const { loading, data, refetch } = useQuery(GET_PHOTO, {
@@ -100,6 +109,7 @@ const PhotoDetailContainer = (props) => {
     },
   })
   const [updataPreferredPhotoFile] = useMutation(UPDATE_PREFERRED_PHOTOFILE)
+  const [saveRotationValue] = useMutation(SAVE_PHOTOFILE_ROTATION)
   useEffect(() => {
     const handleKeyDown = (event) => {
       switch (event.keyCode) {
@@ -133,6 +143,16 @@ const PhotoDetailContainer = (props) => {
     })
     .catch((e) => {})
   }
+  const saveRotation = (rotation) => {
+    const id = data?.photo.baseFileId
+    saveRotationValue({
+      variables: {
+        id: id,
+        rotation: rotation
+      }
+    })
+    .catch((e) => { console.log(e)})
+  }
 
   return (
     <PhotoDetail
@@ -140,6 +160,7 @@ const PhotoDetailContainer = (props) => {
       photo={data?.photo}
       refetch={refetch}
       updataPhotoFile={updataPhotoFile}
+      saveRotation={saveRotation}
     />
   )
 }
