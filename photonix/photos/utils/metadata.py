@@ -10,7 +10,10 @@ from django.utils.timezone import utc
 class PhotoMetadata(object):
     def __init__(self, path):
         self.data = {}
-        result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
+        try:
+            result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
+        except UnicodeDecodeError:
+            result = ''
         for line in str(result).split('\n'):
             if line:
                 try:
