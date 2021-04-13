@@ -41,7 +41,7 @@ def ensure_raw_processed(photo_id, task):
         # TODO: Make raw photo detection better
         if photo_file.mimetype not in NON_RAW_MIMETYPES:
             has_raw_photos = True
-            Task(type='process_raw', subject_id=photo_file.id, parent=task).save()
+            Task(type='process_raw', subject_id=photo_file.id, parent=task, library=photo_file.photo.library).save()
 
     # Complete and add next task to generate thumbnails
     if not has_raw_photos:
