@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
-import { throttle } from 'throttle-debounce'
+import { debounce } from 'throttle-debounce'
 
 import 'url-search-params-polyfill'
 import { ENVIRONMENT } from '../graphql/onboarding'
@@ -61,7 +61,7 @@ const BrowseContainer = (props) => {
   const [photoData, setPhotoData] = useState()
   const [isMapShowing, setIsMapShowing] = useState(false)
   const [searchStr, setSearchStr] = useState('')
-  const throttled = useRef(throttle(2000, (str) => setSearchStr(str)))
+  const debounced = useRef(debounce(400, (str) => setSearchStr(str)))
 
   const params = new URLSearchParams(window.location.search)
   const mode = params.get('mode')
@@ -112,7 +112,7 @@ const BrowseContainer = (props) => {
       filtersStr = filtersStr.length
         ? `${filtersStr} ${props.search}`
         : props.search
-        throttled.current(filtersStr)
+      debounced.current(filtersStr)
     } else {
       if (filtersStr !== searchStr) setSearchStr(filtersStr)
     }
@@ -149,12 +149,15 @@ const BrowseContainer = (props) => {
   })
   if (mapPhotosError) console.log(mapPhotosError)
 
-  const updatePhotosStore = useCallback((photoIds) => {
-    dispatch({
-      type: 'SET_PHOTOS',
-      payload: photoIds,
-    })
-  }, [dispatch])
+  const updatePhotosStore = useCallback(
+    (photoIds) => {
+      dispatch({
+        type: 'SET_PHOTOS',
+        payload: photoIds,
+      })
+    },
+    [dispatch]
+  )
 
   useEffect(() => {
     if (envData && envData.environment && !envData.environment.firstRun) {
