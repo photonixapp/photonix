@@ -108,7 +108,7 @@ const Container = styled('div')`
   }
 `
 
-function useComponentVisible(initialIsVisible) {
+export const useComponentVisible = (initialIsVisible) => {
   const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible)
   const ref = useRef(null)
 
