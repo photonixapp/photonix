@@ -3,10 +3,10 @@ import { useSelector } from 'react-redux'
 import styled from '@emotion/styled'
 
 import User from './User'
+import Notification from './Notification'
 import { getIsMobileApp, getSafeArea } from '../stores/layout/selector'
 import logo from '../static/images/logo.svg'
 import menuIcon from '../static/images/menu.svg'
-// import notifications from '../static/images/notifications.svg'
 
 const Container = styled('div')`
   height: 50px;
@@ -45,9 +45,6 @@ const Container = styled('div')`
   .navigation {
     flex-grow: 1;
   }
-  .notifications {
-    width: 50px;
-  }
 `
 
 const Header = ({ profile, libraries }) => {
@@ -71,9 +68,7 @@ const Header = ({ profile, libraries }) => {
         Photonix
       </div>
       <div className="navigation"></div>
-      {/* <div className="notifications">
-          <img src={notifications} alt="Notifications" />
-        </div> */}
+      <Notification/>
       <User profile={profile} libraries={libraries} />
     </Container>
   )

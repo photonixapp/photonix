@@ -178,14 +178,14 @@ export default function Settings() {
   )
 }
 
-const useSettings = (activeLibrary) => {
+export const useSettings = (activeLibrary) => {
   const [existingSettings, setSettings] = useState({})
   const { loading, error, data, refetch } = useQuery(GET_SETTINGS, {
     variables: { libraryId: activeLibrary?.id },
   })
-  console.log(error)
+  // console.log(error)
   const isInitialMount = useRef(true)
-
+  
   useEffect(() => {
     if (activeLibrary) {
       refetch()
@@ -222,6 +222,5 @@ const useSettings = (activeLibrary) => {
     }
     setSettings(newSettings)
   }
-
   return [existingSettings, setAndSaveSettings]
 }
