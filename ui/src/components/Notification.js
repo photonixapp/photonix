@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import { Progress, Box, Flex } from "@chakra-ui/core"
 import { useQuery, useMutation } from '@apollo/react-hooks'
@@ -9,7 +9,7 @@ import play from '../static/images/play.svg'
 import pause from '../static/images/pause.svg'
 import { GET_TASK_PROGRESS } from '../graphql/settings'
 import { getActiveLibrary } from '../stores/libraries/selector'
-import { useComponentVisible } from './User'
+import { useComponentVisible } from './Header'
 import { useSettings } from './Settings'
 import {
   SETTINGS_STYLE,
@@ -28,9 +28,9 @@ const Container = styled('div')`
     height: 50px;
     cursor: pointer;
   }
-  .userMenu {
+  .notificationMenu {
     position: absolute;
-    width: 290px;
+    width: 400px;
     right: 0px;
     top: 50px;
     z-index: 10;
@@ -40,22 +40,23 @@ const Container = styled('div')`
     padding: 0;
     box-shadow: -3px 8px 17px rgba(0, 0, 0, 0.15);
   }
-  .isMobileApp header .userMenu {
+  .isMobileApp header .notificationMenu {
     top: 80px;
   }
-  .userMenu li {
+  .notificationMenu li {
     padding: 12px 15px 12px 15px;
     cursor: default;
     // display: flex;
     margin-bottom: 20px;
+    font-size: 16px;
   }
-  .userMenu li:last-child {
+  .notificationMenu li:last-child {
     margin-bottom: 10px;
   }
-  .userMenu li:hover {
+  .notificationMenu li:hover {
     background: rgba(255, 255, 255, 0.1);
   }
-  .userMenu li img {
+  .notificationMenu li img {
     padding: 0;
     width: 35px;
     height: 35px;
@@ -64,8 +65,16 @@ const Container = styled('div')`
     filter: invert(0.9);
     cursor: pointer;
   }
+  @media(max-width:767px) {
+    .notificationMenu {
+      width: 290px
+    }
+    .notificationMenu li {
+      font-size: 13px;
+    }
+  }
 `
-const Notification = () => {
+const Notification = (props) => {
   const activeLibrary = useSelector(getActiveLibrary)
   const [settings, setSettings] = useSettings(activeLibrary)
   const [showNotificationIcon, setShowNotificationIcon] = useState(true)
@@ -75,21 +84,27 @@ const Notification = () => {
     isComponentVisible,
     setIsComponentVisible,
   } = useComponentVisible(false)
+  const { showNotification, setShowNotification, setShowUserMenu} = props
   const handleShowMenu = () => {
-    if (!isComponentVisible) {
+    if (!showNotification) {
       setIsComponentVisible(true)
+      setShowNotification(true)
+      setShowUserMenu(false)
       settingsRefetch()
     }
   }
   const { data, refetch } = useQuery(GET_TASK_PROGRESS)
-  const { data: settingsData, refetch: settingsRefetch } = useQuery(GET_SETTINGS, {
+  const { refetch: settingsRefetch } = useQuery(GET_SETTINGS, {
     variables: { libraryId: activeLibrary?.id },
   })
   const [settingUpdateStyle] = useMutation(SETTINGS_STYLE)
   const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
-
+  useEffect(() => {
+    if (!isComponentVisible)
+    setShowNotification(false)
+  }, [isComponentVisible, setShowNotification])
   const getTitle = key => {
     switch(key) {
       case 'generateThumbnails':
@@ -120,6 +135,7 @@ const Notification = () => {
       getKeys(data).map(key => {
         if (data.taskProgress[key]?.total > 0)
           window.sessionStorage.setItem(key, data.taskProgress[key]?.total)
+          return key
       })
       setFirstRun(false)
     }
@@ -136,6 +152,7 @@ const Notification = () => {
         } else if(remaining === 0) {
           window.sessionStorage.setItem(key, 0)
         }
+        return key
       })
     }
   }
@@ -175,20 +192,6 @@ const Notification = () => {
     }
   }
 
-  const getSetting = key => {
-    switch(key) {
-      case 'classifyObject':
-        return settings.classificationObjectEnabled
-      case 'classifyColor':
-        return settings.classificationColorEnabled
-      case 'classifyLocation':
-        return settings.classificationLocationEnabled
-      case 'classifyStyle':
-        return settings.classificationStyleEnabled
-      default:
-        return ''
-    }
-  }
   const toggleBooleanSetting = key => {
     let newSettings = { ...settings }
     newSettings[getSettingsKey(key)] = !settings[getSettingsKey(key)]
@@ -239,8 +242,8 @@ const Notification = () => {
       <Container ref={ref} onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
         <img src={notifications} alt="Notification" />
         <ul
-          className="userMenu"
-          style={{ display: isComponentVisible ? 'block' : 'none' }}
+          className="notificationMenu"
+          style={{ display: showNotification ? 'block' : 'none' }}
         >
           {data?
             getNotificationKeys(data).map((key, index) => (
@@ -248,8 +251,8 @@ const Notification = () => {
                 <Flex color="white" align="center">
                   <Box flex="1">
                     <Flex mb="1">
-                      <Box flex="1" fontSize={14}>{getTitle(key)}</Box>
-                      <Box width="80px" fontSize={14} textAlign="right">
+                      <Box flex="1">{getTitle(key)}</Box>
+                      <Box width="80px" textAlign="right">
                         {data.taskProgress[key]?.total-data.taskProgress[key]?.remaining}/{data.taskProgress[key]?.total}
                       </Box>
                     </Flex>
@@ -258,9 +261,9 @@ const Notification = () => {
                   <Box ml="2" width="35px" >
                     {key !== 'generateThumbnails' && key !== 'processRaw' ?
                       settings[getSettingsKey(key)] ?
-                      <img src={pause} onClick={() => toggleBooleanSetting(key)} />
+                      <img src={pause} onClick={() => toggleBooleanSetting(key)} alt="pause" />
                       :
-                      <img src={play} onClick={() => toggleBooleanSetting(key)} />
+                      <img src={play} onClick={() => toggleBooleanSetting(key)} alt="play" />
                       :
                       null
                     }
