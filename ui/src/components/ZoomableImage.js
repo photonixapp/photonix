@@ -80,6 +80,7 @@ const Container = styled('div')`
 
 const ZoomableImage = ({ photoId, boxes, next, prev }) => {
   const [scale, setScale] = useState(1)
+  const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
   
@@ -89,12 +90,12 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
   const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
 
   const prevPhoto = useCallback(() => {
-    if (scale === 1) prev()
-  }, [scale, prev])
+    if (!zoom) prev()
+  }, [zoom, prev])
 
   const nextPhoto = useCallback(() => {
-    if (scale === 1) next()
-  }, [scale, next])
+    if (!zoom) next()
+  }, [zoom, next])
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => nextPhoto(),
@@ -130,6 +131,14 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
     setScale(1)
   }, [url])
 
+  const handleZoom = (e) => {
+    if (e.scale === 1 && zoom) {
+      setZoom(false)
+    } else if(e.scale > 1 && !zoom) {
+      setZoom(true)
+    }
+  }
+
   return (
     <Container>
       <TransformWrapper
@@ -137,7 +146,7 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
           limitsOnWheel: false,
           step: 75,
         }}
-        onZoomChange={({ scale }) => setScale(scale)}
+        onZoomChange={handleZoom}
         onPanningStop={({ scale }) => setScale(scale)}
         doubleClick={{
           mode: scale < 5 ? 'zoomIn' : 'reset',
@@ -149,6 +158,7 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
             <TransformComponent>
               <div className="pinchArea">
                 <div {...swipeHandlers} className="imageFlex">
+                  
                   <div className="imageWrapper">
                     <img
                       src={url}
