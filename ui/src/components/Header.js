@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import styled from '@emotion/styled'
 
@@ -46,11 +46,38 @@ const Container = styled('div')`
     flex-grow: 1;
   }
 `
+export const useComponentVisible = (initialIsVisible, type) => {
+  const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible)
+  const ref = useRef(null)
+
+  const handleHideDropdown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setIsComponentVisible(false)
+    }
+  }
+
+  const handleClickOutside = (event) => {
+    if (ref.current && !ref.current.contains(event.target)) {
+      setIsComponentVisible(false)
+    }
+  }
+  useEffect(() => {
+    document.addEventListener('keydown', handleHideDropdown, false)
+    document.addEventListener('click', handleClickOutside, false)
+    return () => {
+      document.removeEventListener('keydown', handleHideDropdown, true)
+      document.removeEventListener('click', handleClickOutside, true)
+    }
+  })
+
+  return { ref, isComponentVisible, setIsComponentVisible }
+}
 
 const Header = ({ profile, libraries }) => {
   const isMobileApp = useSelector(getIsMobileApp)
   const safeArea = useSelector(getSafeArea)
-
+  const [showNotification, setShowNotification] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   return (
     <Container
       className="flex-container-row"
@@ -68,8 +95,8 @@ const Header = ({ profile, libraries }) => {
         Photonix
       </div>
       <div className="navigation"></div>
-      <Notification/>
-      <User profile={profile} libraries={libraries} />
+      <Notification showNotification={showNotification} setShowNotification={setShowNotification} setShowUserMenu={setShowUserMenu}/>
+      <User profile={profile} libraries={libraries} showUserMenu={showUserMenu} setShowUserMenu={setShowUserMenu} setShowNotification={setShowNotification} />
     </Container>
   )
 }
