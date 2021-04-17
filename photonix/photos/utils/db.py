@@ -41,10 +41,8 @@ def record_photo(path, library, inotify_event_type=None):
             break
 
     camera = None
-    camera_make = metadata.get('Make')
-    if camera_make is None:
-        camera_make = ''
-    camera_model = metadata.get('Camera Model Name')
+    camera_make = metadata.get('Make', '')
+    camera_model = metadata.get('Camera Model Name', '')
     if camera_model:
         camera_model = camera_model.replace(camera_make, '').strip()
     if camera_make and camera_model:
