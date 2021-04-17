@@ -142,16 +142,17 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
   return (
     <Container>
       <TransformWrapper
+        key={url}
         wheel={{
           limitsOnWheel: false,
           step: 75,
         }}
-        onZoomChange={handleZoom}
-        onPanningStop={({ scale }) => setScale(scale)}
         doubleClick={{
           mode: scale < 5 ? 'zoomIn' : 'reset',
         }}
-        key={url}
+        pan={{ lockAxisY: !zoom }}
+        onZoomChange={handleZoom}
+        onPanningStop={({ scale }) => setScale(scale)}
       >
         {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
           <>
