@@ -22,8 +22,8 @@ class PhotoMetadata(object):
                 except ValueError:
                     pass
 
-    def get(self, attribute):
-        return self.data.get(attribute)
+    def get(self, attribute, default=None):
+        return self.data.get(attribute, default)
 
     def get_all(self):
         return self.data
