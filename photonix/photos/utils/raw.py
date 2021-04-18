@@ -10,11 +10,19 @@ from PIL import Image
 from django.conf import settings
 from photonix.photos.models import Photo, PhotoFile, Task
 
-from .metadata import get_dimensions
+from .metadata import get_dimensions, get_mimetype
 
 RAW_PROCESS_VERSION = '20190305'
 NON_RAW_MIMETYPES = [
     'image/jpeg',
+    'image/png',
+    'image/tiff',
+    'image/bmp',
+    'image/gif',
+    'image/jp2',
+    'image/x-portable-pixmap',
+    'image/x-xbitmap',
+    'image/webp',
 ]
 
 
@@ -80,6 +88,19 @@ def __get_generated_image(temp_dir, basename):
         if fn != basename:
             return Path(temp_dir) / fn
 
+def __get_exiftool_image(temp_dir, basename):
+    """
+    Exiftool outputs two files when copying the tags over, we
+    want the file that ends in .jpg and not .jpg_original, but
+    to keep the filesystem tidy we need to get the path.
+    """
+    exiftool_files = {}
+    for fn in os.listdir(temp_dir):
+        if fn.endswith('.jpg_original'):
+            exiftool_files['original']: Path(temp_dir) / fn
+        if fn.endswith('.jpg'):
+            exiftool_files['output']: Path(temp_dir) / fn
+    return exiftool_files
 
 def __has_acceptable_dimensions(original_image_path, new_image_path, accept_empty_original_dimensions=False):
     original_image_dimensions = get_dimensions(original_image_path)
@@ -140,9 +161,29 @@ def generate_jpeg(path):
     valid_image = False
     process_params = None
 
-    # First try to extract the JPEG that might be inside the raw file
-    subprocess.run(['dcraw', '-e', temp_input_path])
-    temp_output_path = __get_generated_image(temp_dir, basename)
+    # Handle Canon's CR3 format since their thumbnails are proprietary.
+    mimetype = get_mimetype(temp_input_path)
+    if mimetype == 'image/x-canon-cr3':
+        subprocess.Popen([
+            'exiftool', '-b', '-JpgFromRaw', '-w', 'jpg', '-ext', 'CR3',
+            temp_input_path, '-execute', '-tagsfromfile', temp_input_path,
+            '-ext', 'jpg', Path(temp_dir)],
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.PIPE).communicate()
+        exiftool_output = __get_exiftool_image(temp_dir, basename)
+        # Clean up the original file without tags.
+        if 'original' in exiftool_output:
+            os.remove(exiftool_output['original'])
+        # Set the input file.
+        if 'output' in exiftool_output:
+            temp_output_path = exiftool_output['output']
+        else:
+            temp_output_path = None
+    else:
+        # First try to extract the JPEG that might be inside the raw file
+        subprocess.run(['dcraw', '-e', temp_input_path])
+        temp_output_path = __get_generated_image(temp_dir, basename)
 
     # Check the JPEGs dimensions are close enough to the raw's dimensions
     if temp_output_path:
