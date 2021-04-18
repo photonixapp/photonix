@@ -8,7 +8,7 @@ from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile,Task
+from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile, Task
 from django.contrib.auth import load_backend, login
 from photonix.photos.utils.filter_photos import filter_photos_queryset
 from photonix.photos.utils.metadata import PhotoMetadata
