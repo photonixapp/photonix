@@ -19,8 +19,8 @@ month_dict = {
 }
 
 
-def remove_unused_words(filter_string):
-    """Removed unused words from filter string."""
+def get_date_elements_from_filters(filter_string):
+    """Removed unused words from filter string and return date values if any date exists in filter string."""
     date_elements_dict = {}
     removable_date_filters = []
     for val in filter_string:
@@ -51,7 +51,7 @@ def filter_photos_queryset(filters, queryset, library_id=None):
     if library_id:
         filters = [v for v in filters if v != '' and v not in ['in', 'near', 'during', 'taken', 'on', 'of']]
         queryset = queryset.filter(library__id=library_id)
-    date_elements_dict, removable_date_filters = remove_unused_words(filters)
+    date_elements_dict, removable_date_filters = get_date_elements_from_filters(filters)
     selected_tag_id = None
     for filter_val in filters:
         if ':' in filter_val:

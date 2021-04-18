@@ -135,6 +135,8 @@ class PhotoFilter(django_filters.FilterSet):
         return value
 
     def multi_filter_filter(self, queryset, name, value):
+        if 'library_id:' not in value:
+            raise GraphQLError('library_id not supplied!')
         filters = value.split(' ')
         filters = self.sanitize(filters)
         # filters = map(self.customize, filters)
@@ -175,31 +177,8 @@ class LibrarySetting(graphene.ObjectType):
 
 
 class PhotoMetadataFields(graphene.ObjectType):
-    """To pass fields which show metadata attributes for photo."""
-
-    exiftool_version_number = graphene.String()
-    file_name = graphene.String()
-    directory = graphene.String()
-    file_size = graphene.String()
-    file_modification_date_time = graphene.String()
-    file_access_date_time = graphene.String()
-    file_inode_change_date_time = graphene.String()
-    file_permissions = graphene.String()
-    file_type = graphene.String()
-    file_type_extension = graphene.String()
-    mime_type = graphene.String()
-    jfif_version = graphene.String()
-    resolution_unit = graphene.String()
-    x_resolution = graphene.String()
-    y_resolution = graphene.String()
-    image_width = graphene.String()
-    image_height = graphene.String()
-    encoding_process = graphene.String()
-    bits_per_sample = graphene.String()
-    color_components = graphene.String()
-    y_cb_cr_sub_sampling = graphene.String()
-    image_size = graphene.String()
-    megapixels = graphene.String()
+    """ Metadata about photo as extracted by exiftool """
+    data = graphene.types.generic.GenericScalar()
     ok = graphene.Boolean()
 
 
@@ -319,6 +298,8 @@ class Query(graphene.ObjectType):
     def resolve_all_location_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -329,6 +310,8 @@ class Query(graphene.ObjectType):
     def resolve_all_object_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -339,6 +322,8 @@ class Query(graphene.ObjectType):
     def resolve_all_person_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -349,6 +334,8 @@ class Query(graphene.ObjectType):
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -359,6 +346,8 @@ class Query(graphene.ObjectType):
     def resolve_all_style_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -369,6 +358,8 @@ class Query(graphene.ObjectType):
     def resolve_all_generic_tags(self, info, **kwargs):
         user = info.context.user
         if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
@@ -393,29 +384,7 @@ class Query(graphene.ObjectType):
         if photo_file and os.path.exists(photo_file[0].path):
             metadata = PhotoMetadata(photo_file[0].path)
             return {
-                'exiftool_version_number': metadata.get('ExifTool Version Number'),
-                'file_name': metadata.get('File Name'),
-                'directory': metadata.get('Directory'),
-                'file_size': metadata.get('File Size'),
-                'file_modification_date_time': metadata.get('File Modification Date/Time'),
-                'file_access_date_time': metadata.get('File Access Date/Time'),
-                'file_inode_change_date_time': metadata.get('File Inode Change Date/Time'),
-                'file_permissions': metadata.get('File Permissions'),
-                'file_type': metadata.get('File Type'),
-                'file_type_extension': metadata.get('File Type Extension'),
-                'mime_type': metadata.get('MIME Type'),
-                'jfif_version': metadata.get('JFIF Version'),
-                'resolution_unit': metadata.get('Resolution Unit'),
-                'x_resolution': metadata.get('X Resolution'),
-                'y_resolution': metadata.get('Y Resolution'),
-                'image_width': metadata.get('Image Width'),
-                'image_height': metadata.get('Image Height'),
-                'encoding_process': metadata.get('Encoding Process'),
-                'bits_per_sample': metadata.get('Bits Per Sample'),
-                'color_components': metadata.get('Color Components'),
-                'y_cb_cr_sub_sampling': metadata.get('Y Cb Cr Sub Sampling'),
-                'image_size': metadata.get('Image Size'),
-                'megapixels': metadata.get('Megapixels'),
+                'data': metadata.get_all(),
                 'ok': True
             }
         return {'ok': False}
@@ -627,8 +596,9 @@ class CreateLibrary(graphene.Mutation):
                 type="St", path=input.path, url=input.get('url'),
                 s3_access_key_id=input.s3_access_key_id,
                 s3_secret_key=input.s3_secret_key)
-        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
-            "has_created_library": True})
+        user = User.objects.get(pk=input.user_id)
+        user.has_created_library = True
+        user.save()
         LibraryUser.objects.create(
             library=library_obj, user=user, owner=True)
         return CreateLibrary(
@@ -665,15 +635,17 @@ class PhotoImporting(graphene.Mutation):
     @staticmethod
     def mutate(self, info, input=None):
         """Mutate method."""
-        LibraryPath.objects.filter(pk=input.library_path_id).update(
-            watch_for_changes=input.watch_for_changes)
+        library_path_obj = LibraryPath.objects.get(pk=input.library_path_id)
+        library_path_obj.watch_for_changes = input.watch_for_changes
+        library_path_obj.save()
         if input.add_another_path:
             LibraryPath.objects.create(
                 library=Library.objects.get(pk=input.library_id),
                 type="Im", backend_type="Lo",
                 path=input.import_path, delete_after_import=input.delete_after_import)
-        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
-            "has_configured_importing": True})
+        user = User.objects.get(pk=input.user_id)
+        user.has_configured_importing = True
+        user.save()
         return PhotoImporting(
             has_configured_importing=user.has_configured_importing,
             ok=True, user_id=user.id, library_id=input.library_id)
@@ -694,14 +666,15 @@ class ImageAnalysis(graphene.Mutation):
     @staticmethod
     def mutate(self, info, input=None):
         """Mutate method."""
-        Library.objects.filter(pk=input.library_id).update(
-            classification_color_enabled=input.classification_color_enabled,
-            classification_location_enabled=input.classification_location_enabled,
-            classification_style_enabled=input.classification_style_enabled,
-            classification_object_enabled=input.classification_object_enabled
-        )
-        user, created = User.objects.update_or_create(pk=input.user_id, defaults={
-            "has_configured_image_analysis": True})
+        library_obj = Library.objects.get(pk=input.library_id)
+        library_obj.classification_color_enabled = input.classification_color_enabled
+        library_obj.classification_location_enabled = input.classification_location_enabled
+        library_obj.classification_style_enabled = input.classification_style_enabled
+        library_obj.classification_object_enabled = input.classification_object_enabled
+        library_obj.save()
+        user = User.objects.get(pk=input.user_id)
+        user.has_configured_image_analysis = True
+        user.save()
         # For make user login automatically from backend.
         if not hasattr(user, 'backend'):
             for backend in settings.AUTHENTICATION_BACKENDS:
@@ -730,8 +703,9 @@ class PhotoRating(graphene.Mutation):
     def mutate(self, info, photo_id=None, star_rating=None):
         try:
             if 0 <= star_rating <= 5:
-                photo_obj, created = Photo.objects.update_or_create(pk=photo_id, defaults={
-                    "star_rating": star_rating})
+                photo_obj = Photo.objects.get(pk=photo_id)
+                photo_obj.star_rating = star_rating
+                photo_obj.save()
                 return PhotoRating(ok=True, photo=photo_obj)
         except:
             raise GraphQLError("rating is required!")
@@ -755,7 +729,7 @@ class CreateGenricTag(graphene.Mutation):
         except Exception as e:
             raise GraphQLError("Invalid photo id!")
         tag_obj, created = Tag.objects.get_or_create(
-            library=Library.objects.filter(users__user=info.context.user).order_by('pk').first(),
+            library=photo_obj.library,
             name=name, type='G', source='H', defaults={})
         if (not created) and photo_obj.photo_tags.filter(tag=tag_obj).exists():
             return CreateGenricTag(

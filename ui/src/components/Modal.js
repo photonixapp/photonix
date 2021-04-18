@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react'
-import history from '../history'
+import { useSelector } from 'react-redux'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 
+import history from '../history'
+import { getSafeArea } from '../stores/layout/selector'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
 const ESCAPE_KEY = 27
@@ -67,6 +69,7 @@ const Modal = ({
   className,
   onClose,
 }) => {
+  const safeArea = useSelector(getSafeArea)
   useEffect(() => {
     const handleKeyDown = (event) => {
       switch (event.keyCode) {
@@ -100,11 +103,14 @@ const Modal = ({
         </Accent>
       )}
       {allowClose && (
-        <CloseIconContainer onClick={onClose}>
+        <CloseIconContainer
+          onClick={onClose}
+          style={{ marginTop: safeArea.top }}
+        >
           <CloseIcon className="closeIcon" alt="Close" />
         </CloseIconContainer>
       )}
-      <Body>{children}</Body>
+      <Body style={{ marginTop: safeArea.top }}>{children}</Body>
     </Container>
   )
 }

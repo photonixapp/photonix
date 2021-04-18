@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
 import { useSelector } from 'react-redux'
 import useLocalStorageState from 'use-local-storage-state'
@@ -6,6 +6,7 @@ import useLocalStorageState from 'use-local-storage-state'
 import history from '../history'
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
+import { getSafeArea } from '../stores/layout/selector'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
@@ -91,6 +92,7 @@ const Container = styled('div')`
 `
 
 const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
+  const safeArea = useSelector(getSafeArea)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
     true
@@ -120,14 +122,14 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
   //   }
   // }, [showMetadata])
 
-  const prevPhoto = () => {
+  const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
     id && history.push(`/photo/${id}`)
-  }
-  const nextPhoto = () => {
+  }, [prevNextPhotos])
+  const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
     id && history.push(`/photo/${id}`)
-  }
+  }, [prevNextPhotos])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -148,7 +150,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [photoId, prevNextPhotos])
+  }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
   let boxes = photo?.objectTags.map((objectTag) => {
     return {
@@ -160,14 +162,13 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
     }
   })
 
-  const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
-
   return (
     <Container>
-      <ZoomableImage url={url} boxes={showBoundingBox && boxes} />
+      <ZoomableImage photoId={photoId} boxes={showBoundingBox && boxes} next={nextPhoto} prev={prevPhoto}/>
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
+        style={{ marginTop: safeArea.top }}
       >
         <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
       </div>
@@ -205,6 +206,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
+          style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
       ) : (
@@ -213,6 +215,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile }) => {
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
+          style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
       )}

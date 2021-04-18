@@ -25,12 +25,12 @@ def record_photo(path, library, inotify_event_type=None):
         if PhotoFile.objects.filter(path=path).exists():
             return delete_photo_record(photo_file)
         else:
-            return False
+            return True
 
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
     if photo_file and photo_file.file_modified_at == file_modified_at:
-        return False
+        return True
 
     metadata = PhotoMetadata(path)
     date_taken = None
@@ -41,8 +41,8 @@ def record_photo(path, library, inotify_event_type=None):
             break
 
     camera = None
-    camera_make = metadata.get('Make')
-    camera_model = metadata.get('Camera Model Name')
+    camera_make = metadata.get('Make', '')
+    camera_model = metadata.get('Camera Model Name', '')
     if camera_model:
         camera_model = camera_model.replace(camera_make, '').strip()
     if camera_make and camera_model:
@@ -94,7 +94,6 @@ def record_photo(path, library, inotify_event_type=None):
             iso_speed = int(re.search(r'[0-9]+', metadata.get('ISO')).group(0))
         except AttributeError:
             pass
-
     if not photo:
         # Save Photo
         aperture = None
@@ -126,6 +125,10 @@ def record_photo(path, library, inotify_event_type=None):
             altitude=metadata.get('GPS Altitude') and metadata.get('GPS Altitude').split(' ')[0]
         )
         photo.save()
+    else:
+        for photo_file in photo.files.all():
+            if not os.path.exists(photo_file.path):
+                photo_file.delete()
 
     width = metadata.get('Image Width')
     height = metadata.get('Image Height')
@@ -157,11 +160,37 @@ def record_photo(path, library, inotify_event_type=None):
 
 def delete_photo_record(photo_file_obj):
     """Delete photo record if photo not exixts on library path."""
+    delete_photofile_and_photo_record(photo_file_obj)
+    Tag.objects.filter(photo_tags=None).delete()
+    Camera.objects.filter(photos=None).delete()
+    Lens.objects.filter(photos=None).delete()
+    return True
+
+
+def move_or_rename_photo(photo_old_path, photo_new_path, library_id):
+    """Rename a photoFile or change the path while moving photo in child directory."""
+    try:
+        photo_file = PhotoFile.objects.get(path=photo_old_path)
+        photo_file.path = photo_new_path
+        photo_file.save()
+        return photo_file
+    except Exception as e:
+        return True
+
+
+def delete_child_dir_all_photos(directory_path, library_id):
+    """When a child directory deleted it delete all the photo records of that directory."""
+    for photo_file_obj in PhotoFile.objects.filter(path__startswith=directory_path):
+        delete_photofile_and_photo_record(photo_file_obj)
+    Tag.objects.filter(photo_tags=None).delete()
+    Camera.objects.filter(photos=None).delete()
+    Lens.objects.filter(photos=None).delete()
+    return True
+
+
+def delete_photofile_and_photo_record(photo_file_obj):
+    """Delete photoFile object with its photo object."""
     photo_obj = photo_file_obj.photo
     photo_file_obj.delete()
     if not photo_obj.files.all():
         photo_obj.delete()
-    Tag.objects.filter(photo_tags=None).delete()
-    Camera.objects.filter(photos=None).delete()
-    Lens.objects.filter(photos=None).delete()
-    return False
