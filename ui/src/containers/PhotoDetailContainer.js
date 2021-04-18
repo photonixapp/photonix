@@ -122,7 +122,7 @@ const PhotoDetailContainer = (props) => {
     refetch()
   }, [data, loading, refetch])
 
-  const updataPhotoFile = (id) => {
+  const updatePhotoFile = (id) => {
     updataPreferredPhotoFile({
       variables: { id }
     })
@@ -139,7 +139,7 @@ const PhotoDetailContainer = (props) => {
       photoId={props.match.params.photoId}
       photo={data?.photo}
       refetch={refetch}
-      updataPhotoFile={updataPhotoFile}
+      updatePhotoFile={updatePhotoFile}
     />
   )
 }

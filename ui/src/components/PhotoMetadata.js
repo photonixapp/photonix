@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/react-hooks'
 import { useSelector } from 'react-redux'
 import styled from '@emotion/styled'
-import { Collapse, Select } from "@chakra-ui/core"
+import { Collapse, Select } from '@chakra-ui/core'
 
 import MapView from '../components/MapView'
 import ColorTags from './ColorTags'
@@ -139,7 +139,7 @@ const PhotoMetadata = ({
   refetch,
   showBoundingBox,
   setShowBoundingBox,
-  updataPhotoFile
+  updatePhotoFile,
 }) => {
   const safeArea = useSelector(getSafeArea)
   const [starRating, updateStarRating] = useState(photo.starRating)
@@ -188,7 +188,7 @@ const PhotoMetadata = ({
 
   const getFileName = (path) => {
     const arr = path.split('/')
-    return arr[arr.length-1]
+    return arr[arr.length - 1]
   }
 
   return (
@@ -355,16 +355,21 @@ const PhotoMetadata = ({
             refetch={refetch}
           />
         </div>
-        {photo.photoFile.length > 1 &&
+        {photo.photoFile.length > 1 && (
           <div className={`box box${boxCount++}`}>
             <h2>Versions</h2>
-            <Select defaultValue={photo.baseFileId} onChange={(e) => updataPhotoFile(e.target.value)}>
-              {photo.photoFile.map(file => (
-                <option key={file.id} value={file.id}>{getFileName(file.path)}</option>
+            <Select
+              defaultValue={photo.baseFileId}
+              onChange={(e) => updatePhotoFile(e.target.value)}
+            >
+              {photo.photoFile.map((file) => (
+                <option key={file.id} value={file.id}>
+                  {getFileName(file.path)}
+                </option>
               ))}
             </Select>
           </div>
-        }
+        )}
       </div>
     </Container>
   )

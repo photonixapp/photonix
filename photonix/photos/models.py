@@ -154,12 +154,7 @@ class Photo(UUIDModel, VersionedModel):
         if self.preferred_photo_file:
             preferred_files = [self.preferred_photo_file]
         if not preferred_files:
-            preferred_files = self.files.filter(raw_processed=True)
-        if not preferred_files:
-            preferred_files = self.files.filter(
-                mimetype='image/jpeg').order_by('-created_at')
-        if not preferred_files:
-            preferred_files = self.files.all().order_by('-created_at')
+            preferred_files = self.files.all().order_by('-file_modified_at')
         if preferred_files:
             return preferred_files[0]
         return None
