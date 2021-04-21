@@ -41,7 +41,7 @@ WORKDIR /srv
 COPY docker/pip.conf /etc/pip.conf
 COPY docker/.pypirc /root/.pypirc
 RUN pip install --upgrade pip
-RUN pip install --no-cache-dir pypi-uploader
+RUN pip install --no-cache-dir pypi-uploader==1.1.0
 
 COPY requirements.txt /srv/requirements.txt
 COPY docker/install_and_upload_python_packages.py /root/install_and_upload_python_packages.py
