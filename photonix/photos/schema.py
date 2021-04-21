@@ -1,7 +1,7 @@
 
 from django.conf import settings
 import django_filters
-from django_filters import CharFilter
+from django_filters import CharFilter, NumberFilter
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
@@ -57,6 +57,17 @@ class PhotoInterface(graphene.Interface):
     photo_tags__tag__id = graphene.String()
     multi_filter = graphene.String()
 
+class FilterConnection(graphene.Connection):
+    """To get total list of objects without setting limit on queryset."""
+
+    total = graphene.Int()
+
+    def resolve_total(self, info, **kwargs):
+        return info.context.session.get('total')
+
+    class Meta:
+        abstract = True
+
 
 class PhotoNode(DjangoObjectType):
     url = graphene.String()
@@ -75,6 +86,7 @@ class PhotoNode(DjangoObjectType):
     class Meta:
         model = Photo
         interfaces = (CustomNode, PhotoInterface)
+        connection_class = FilterConnection
 
     def resolve_location(self, info):
         if self.latitude and self.longitude:
@@ -117,7 +129,9 @@ class PhotoNode(DjangoObjectType):
 
 
 class PhotoFilter(django_filters.FilterSet):
-    multi_filter = CharFilter(method='multi_filter_filter')
+    multi_filter = CharFilter(field_name="multi_filter", method='multi_filter_filter')
+    end_page = NumberFilter(field_name="end_page", method='end_page_filter')
+
 
     class Meta:
         model = Photo
@@ -138,13 +152,19 @@ class PhotoFilter(django_filters.FilterSet):
         return value
 
     def multi_filter_filter(self, queryset, name, value):
+        """To apply filters on queryset."""
         if 'library_id:' not in value:
             raise GraphQLError('library_id not supplied!')
         filters = value.split(' ')
         filters = self.sanitize(filters)
         # filters = map(self.customize, filters)
         photos_list = filter_photos_queryset(filters, queryset)
+        self.request.session.update({'total': photos_list.count()})
         return photos_list
+
+    def end_page_filter(self, queryset, name, value):
+        """To apply limit on queryset to pass only 1000 photos on frontend for each scroll."""
+        return queryset.distinct()[:1000] if value == 1 else queryset.distinct()[(value - 1) * 1000:value * 1000]
 
 
 class LocationTagType(DjangoObjectType):
@@ -173,7 +193,7 @@ class StyleTagType(DjangoObjectType):
 
 
 class LibrarySetting(graphene.ObjectType):
-    """To pass fields for library settingg query api."""
+    """To pass fields for library setting query api."""
 
     library = graphene.Field(LibraryType)
     source_folder = graphene.String()
@@ -205,12 +225,12 @@ class Query(graphene.ObjectType):
     all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
     map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
-    all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
-    all_object_tags = graphene.List(ObjectTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
-    all_person_tags = graphene.List(PersonTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
-    all_color_tags = graphene.List(ColorTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
-    all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
-    all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
+    all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String(), end_page=graphene.Int())
+    all_object_tags = graphene.List(ObjectTagType, library_id=graphene.UUID(), multi_filter=graphene.String(), end_page=graphene.Int())
+    all_person_tags = graphene.List(PersonTagType, library_id=graphene.UUID(), multi_filter=graphene.String(), end_page=graphene.Int())
+    all_color_tags = graphene.List(ColorTagType, library_id=graphene.UUID(), multi_filter=graphene.String(), end_page=graphene.Int())
+    all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID(), multi_filter=graphene.String(), end_page=graphene.Int())
+    all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String(), end_page=graphene.Int())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
     photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_id=graphene.UUID())
 
@@ -306,7 +326,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                kwargs.get('library_id'))
+                kwargs.get('library_id'), kwargs.get('end_page'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='L')
 
@@ -318,7 +338,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                kwargs.get('library_id'))
+                kwargs.get('library_id'), kwargs.get('end_page'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='O')
 
@@ -330,7 +350,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                kwargs.get('library_id'))
+                kwargs.get('library_id'), kwargs.get('end_page'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P')
 
@@ -342,7 +362,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                kwargs.get('library_id'))
+                kwargs.get('library_id'), kwargs.get('end_page'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='C')
 
@@ -354,7 +374,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                kwargs.get('library_id'))
+                kwargs.get('library_id'), kwargs.get('end_page'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S')
 
@@ -366,7 +386,7 @@ class Query(graphene.ObjectType):
             filters = kwargs.get('multi_filter').split(' ')
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
-                kwargs.get('library_id'))
+                kwargs.get('library_id'), kwargs.get('end_page'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='G')
 

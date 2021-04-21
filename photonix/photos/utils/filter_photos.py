@@ -46,7 +46,7 @@ def get_date_elements_from_filters(filter_string):
     return date_elements_dict, removable_date_filters
 
 
-def filter_photos_queryset(filters, queryset, library_id=None):
+def filter_photos_queryset(filters, queryset, library_id=None, end_page=None):
     """Method returns photos list."""
     if library_id:
         filters = [v for v in filters if v != '' and v not in ['in', 'near', 'during', 'taken', 'on', 'of']]
@@ -111,4 +111,6 @@ def filter_photos_queryset(filters, queryset, library_id=None):
     if selected_tag_id and (not library_id):
         # queryset.order_by('-photo_tags__significance')
         queryset = queryset.annotate(selected_tag=Case(When(photo_tags__tag__id=selected_tag_id, then=('photo_tags__significance')),default=None)).order_by('-selected_tag')
+    if end_page:
+        return queryset.distinct()[:1000] if end_page == 1 else queryset.distinct()[(end_page - 1) * 1000:end_page * 1000]
     return queryset.distinct()
