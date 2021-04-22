@@ -11,6 +11,8 @@ import MapView from '../components/MapView'
 import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
 
+
+
 const Container = styled('div')`
   height: 100%;
   width: 100%;
@@ -111,6 +113,7 @@ const Browse = ({
   updateSearchText,
   setIsMapShowing,
   mapPhotos,
+  reFetchPhoto
 }) => {
   const [expanded, setExpanded] = useLocalStorageState(
     'searchExpanded',
@@ -121,7 +124,7 @@ const Browse = ({
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
     ) : (
-      <PhotoList photoSections={photoSections} />
+      <PhotoList photoSections={photoSections} reFetchPhoto={reFetchPhoto}/>
     )
   const handlers = useSwipeable({
     onSwipedDown: () => setExpanded(!expanded),
@@ -158,7 +161,7 @@ const Browse = ({
         </ul>
         
       </div>
-      <div className="main">{content}</div>
+      <div className="main" >{content}</div>
     </Container>
   )
 }
