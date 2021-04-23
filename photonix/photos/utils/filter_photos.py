@@ -112,3 +112,12 @@ def filter_photos_queryset(filters, queryset, library_id=None):
         # queryset.order_by('-photo_tags__significance')
         queryset = queryset.annotate(selected_tag=Case(When(photo_tags__tag__id=selected_tag_id, then=('photo_tags__significance')),default=None)).order_by('-selected_tag')
     return queryset.distinct()
+
+
+def sort_photos_exposure(exposure_value):
+    """
+    To sort exposure of photos.
+    """
+    if '/' in exposure_value:
+        return float(exposure_value.split('/')[0]) / float(exposure_value.split('/')[1])
+    return float(exposure_value)
