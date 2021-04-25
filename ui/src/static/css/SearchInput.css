@@ -36,7 +36,7 @@
 .SearchInput li.filter svg.removeIcon:hover {
   opacity: 0.6;
 }
-.SearchInput input[type="text"] {
+.SearchInput input[type='text'] {
   width: 150px;
   height: 30px;
   flex: 1;
@@ -49,12 +49,13 @@
   color: #fff;
   line-height: 1;
 }
-.SearchInput input[type="text"]::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-  color: rgba(255,255,255,0.6);
+.SearchInput input[type='text']::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: rgba(255, 255, 255, 0.6);
   opacity: 1; /* Firefox */
 }
 .SearchInput svg.clearAll {
-  filter: invert(0.6);
+  filter: invert(0.7);
   cursor: pointer;
   position: absolute;
   right: 14px;

@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import { useQuery } from '@apollo/react-hooks'
+import React, { useEffect } from 'react'
+import { useQuery, useMutation } from '@apollo/react-hooks'
 import gql from 'graphql-tag'
 
 import history from '../history'
 import PhotoDetail from '../components/PhotoDetail'
-import Spinner from '../components/Spinner'
 
 const ESCAPE_KEY = 27
-const BACKSPACE_KEY = 8
 
 const GET_PHOTO = gql`
   query Photo($id: UUID) {
@@ -76,26 +74,37 @@ const GET_PHOTO = gql`
           name
         }
       }
+      photoFile{
+        id
+        path
+      }
+      baseFileId
+      baseFilePath
       width
       height
     }
   }
 `
+const UPDATE_PREFERRED_PHOTOFILE = gql`
+  mutation changePreferredPhotoFile($id: ID!) {
+    changePreferredPhotoFile(selectedPhotoFileId: $id) {
+      ok
+    }
+  }
+`
 
 const PhotoDetailContainer = (props) => {
-  const [photo, setPhoto] = useState()
-
-  const { loading, error, data, refetch } = useQuery(GET_PHOTO, {
+  const { loading, data, refetch } = useQuery(GET_PHOTO, {
     variables: {
       id: props.match.params.photoId,
     },
   })
-
+  const [updataPreferredPhotoFile] = useMutation(UPDATE_PREFERRED_PHOTOFILE)
   useEffect(() => {
     const handleKeyDown = (event) => {
       switch (event.keyCode) {
         case ESCAPE_KEY:
-          history.goBack()
+          history.push('/')
           break
         default:
           break
@@ -111,24 +120,28 @@ const PhotoDetailContainer = (props) => {
 
   useEffect(() => {
     refetch()
-    if (!loading && data) {
-      setPhoto(data)
-    }
   }, [data, loading, refetch])
 
-  if (loading) return <Spinner />
-  if (error) return `Error! ${error.message}`
-
-  if (photo && photo.photo) {
-    return (
-      <PhotoDetail
-        photoId={props.match.params.photoId}
-        photo={data.photo}
-        refetch={refetch}
-      />
-    )
+  const updatePhotoFile = (id) => {
+    updataPreferredPhotoFile({
+      variables: { id }
+    })
+    .then((res) => {
+      if (res.data.changePreferredPhotoFile.ok) {
+        window.location.reload()
+      }
+    })
+    .catch((e) => {})
   }
-  return null
+
+  return (
+    <PhotoDetail
+      photoId={props.match.params.photoId}
+      photo={data?.photo}
+      refetch={refetch}
+      updatePhotoFile={updatePhotoFile}
+    />
+  )
 }
 
 export default PhotoDetailContainer

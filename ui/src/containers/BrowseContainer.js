@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
+import { debounce } from 'throttle-debounce'
+
 import 'url-search-params-polyfill'
 import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
@@ -37,19 +39,36 @@ const GET_PHOTOS = gql`
     }
   }
 `
+const GET_MAP_PHOTOS = gql`
+  query Photos($filters: String) {
+    mapPhotos(multiFilter: $filters) {
+      edges {
+        node {
+          id
+          url
+          location
+        }
+      }
+    }
+  }
+`
 
 const BrowseContainer = (props) => {
   const dispatch = useDispatch()
   const [isLibrarySet, setIsLibrarySet] = useState(false)
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
-  const [expanded, setExpanded] = useState(true)
   const [photoData, setPhotoData] = useState()
+  const [isMapShowing, setIsMapShowing] = useState(false)
+  const [searchStr, setSearchStr] = useState('')
+  const debounced = useRef(debounce(400, (str) => setSearchStr(str)))
 
   const params = new URLSearchParams(window.location.search)
   const mode = params.get('mode')
     ? params.get('mode').toUpperCase()
     : 'TIMELINE'
+
+  if (mode === 'MAP' && !isMapShowing) setIsMapShowing(true)
 
   const { data: envData } = useQuery(ENVIRONMENT)
   const {
@@ -93,6 +112,9 @@ const BrowseContainer = (props) => {
       filtersStr = filtersStr.length
         ? `${filtersStr} ${props.search}`
         : props.search
+      debounced.current(filtersStr)
+    } else {
+      if (filtersStr !== searchStr) setSearchStr(filtersStr)
     }
   }
   const {
@@ -104,7 +126,7 @@ const BrowseContainer = (props) => {
     GET_PHOTOS,
     {
       variables: {
-        filters: filtersStr,
+        filters: searchStr,
       },
     },
     {
@@ -115,17 +137,43 @@ const BrowseContainer = (props) => {
     console.log('photosError', photosError)
   }
 
+  const {
+    error: mapPhotosError,
+    data: mapPhotosData,
+    refetch: mapPhotosRefetch,
+  } = useQuery(GET_MAP_PHOTOS, {
+    variables: {
+      filters: searchStr,
+      skip: !user,
+    },
+  })
+  if (mapPhotosError) console.log(mapPhotosError)
+
+  const updatePhotosStore = useCallback(
+    (photoIds) => {
+      dispatch({
+        type: 'SET_PHOTOS',
+        payload: photoIds,
+      })
+    },
+    [dispatch]
+  )
+
   useEffect(() => {
     if (envData && envData.environment && !envData.environment.firstRun) {
       refetch()
     }
-    if (photosData) setPhotoData(photosData)
-  }, [envData, photosData, refetch])
+    if (photosData) {
+      setPhotoData(photosData)
+      let ids = photosData?.allPhotos.edges.map((item) => item.node.id)
+      updatePhotosStore(ids)
+    }
+  }, [envData, photosData, refetch, updatePhotosStore])
 
   if (photoData) {
     photos = photoData.allPhotos.edges.map((photo) => ({
       id: photo.node.id,
-      thumbnail: `/thumbnails/256x256_cover_q50/${photo.node.id}/`,
+      thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location
         ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
         : null,
@@ -153,6 +201,21 @@ const BrowseContainer = (props) => {
     ? librariesError
     : photosError
 
+  useEffect(() => {
+    if (isMapShowing) mapPhotosRefetch()
+  }, [isMapShowing, searchStr, mapPhotosRefetch])
+
+  let photosWithLocation = []
+
+  if (mapPhotosData) {
+    photosWithLocation = mapPhotosData.mapPhotos.edges.map((photo) => ({
+      id: photo.node.id,
+      thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
+      location: photo.node.location
+        ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
+        : null,
+    }))
+  }
   return (
     <>
       {isLibrarySet && (
@@ -168,8 +231,8 @@ const BrowseContainer = (props) => {
           photoSections={photoSections}
           onFilterToggle={props.onFilterToggle}
           onClearFilters={props.onClearFilters}
-          expanded={expanded}
-          onExpandCollapse={() => setExpanded(!expanded)}
+          setIsMapShowing={setIsMapShowing}
+          mapPhotos={photosWithLocation}
         />
       )}
     </>

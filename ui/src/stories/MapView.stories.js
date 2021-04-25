@@ -7,7 +7,11 @@ export default {
   component: MapView,
 }
 
-const Template = (args) => <MapView {...args} />
+const Template = (args) => (
+  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%' }}>
+    <MapView {...args} />
+  </div>
+)
 
 export const DefaultMap = Template.bind({})
 

@@ -7,7 +7,6 @@ import 'normalize.css'
 import 'react-router-modal/css/react-router-modal.css'
 
 import BrowseContainer from '../containers/BrowseContainer'
-import ComponentsBrowser from '../components/ComponentsBrowser'
 import Login from '../components/Login'
 import Logout from '../components/Logout'
 import PhotoDetailContainer from '../containers/PhotoDetailContainer'
@@ -17,6 +16,7 @@ import Account from '../components/Account'
 import history from '../history'
 import '../static/css/App.css'
 import '../static/css/typography.css'
+import ZoomTest from './ZoomTest'
 
 if (Cookies.get('refreshToken')) {
   logIn()
@@ -36,7 +36,7 @@ const App = ({
     <Switch>
       <Route path="/login" render={() => <Login />} />
       <Route path="/logout" render={() => <Logout />} />
-      <Route path="/components" render={ComponentsBrowser} />
+      {/* <Route path="/zoom" render={ZoomTest} /> */}
       <Route
         path="/"
         render={() => (
@@ -51,6 +51,7 @@ const App = ({
       />
     </Switch>
     <Switch>
+      <ModalRoute path="/zoom" component={ZoomTest} />
       <ModalRoute path="/account" parentPath="/" component={Account} />
       <ModalRoute
         path="/onboarding"
