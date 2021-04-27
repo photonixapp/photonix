@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.utils.timezone import utc
 
-from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task, Library, Tag
+from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task, Library, Tag, PhotoTag
 from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime, parse_gps_location)
 
 
@@ -15,7 +15,6 @@ def record_photo(path, library, inotify_event_type=None):
         library_id = library.id
     else:
         library_id = str(library)
-
     try:
         photo_file = PhotoFile.objects.get(path=path)
     except PhotoFile.DoesNotExist:
@@ -122,9 +121,20 @@ def record_photo(path, library, inotify_event_type=None):
             lens=lens,
             latitude=latitude,
             longitude=longitude,
-            altitude=metadata.get('GPS Altitude') and metadata.get('GPS Altitude').split(' ')[0]
+            altitude=metadata.get('GPS Altitude') and metadata.get('GPS Altitude').split(' ')[0],
+            star_rating=metadata.get('Rating') or 0    # Created at 27-4-2021: To fetch tag from metadata and assign to star rating. 
         )
         photo.save()
+
+        # Created at 27-4-2021: To fetch tags from metadata and create tag for photo. 
+        subject = metadata.get('Subject')
+        if subject:
+            tag = Tag.objects.create(library_id=library_id, name=subject, type="G")
+            PhotoTag.objects.create(
+                photo=photo,
+                tag=tag,
+                confidence=1.0
+            )
     else:
         for photo_file in photo.files.all():
             if not os.path.exists(photo_file.path):
