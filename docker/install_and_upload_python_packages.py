@@ -40,11 +40,11 @@ def install_and_upload(username=None, password=None):
     for dependency in open('/srv/requirements.txt').readlines():
         # Why loop through requirements.txt and install one-by-one rather than
         # pip install -r requirements.txt? h5py and matplotlib get compiled
-        # against wrong versions of numpy otherwise.
+        # against wrong versions of numpy if we don't.
         dependency = dependency.strip()
 
         if dependency:
-            cmd = ['/usr/local/bin/pip', 'install', dependency]
+            cmd = ['/usr/local/bin/pip', 'install', '--no-cache-dir', dependency]
             env = dict(os.environ)  # Need to pass all envvars down to subprocesses or we get compilation errors for C extensions
             env['PYTHONUNBUFFERED'] = '1'  # Without this we don't get real-time output from Python-based subprocesses
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
