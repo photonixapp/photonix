@@ -37,23 +37,30 @@ def install_and_upload(username=None, password=None):
     # this script uploads built .whl packages to a private PyPI server so
     # they're cached for next time.
 
-    cmd = ['/usr/local/bin/pip', 'install', '-r', '/srv/requirements.txt']
-    env = dict(os.environ)  # Need to pass all envvars down to subprocesses or we get compilation errors for C extensions
-    env['PYTHONUNBUFFERED'] = '1'  # Without this we don't get real-time output from Python-based subprocesses
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-    processor = LineProcessor(username=username, password=password, env=env)
+    for dependency in open('/srv/requirements.txt').readlines():
+        # Why loop through requirements.txt and install one-by-one rather than
+        # pip install -r requirements.txt? h5py and matplotlib get compiled
+        # against wrong versions of numpy otherwise.
+        dependency = dependency.strip()
 
-    for line in proc.stdout:
-        line = line.rstrip().decode('utf-8')
-        print(line)
-        if '\n' in line:
-            for sub_line in line.split('\n'):
-                processor.process_line(sub_line)
-        else:
-            processor.process_line(line)
+        if dependency:
+            cmd = ['/usr/local/bin/pip', 'install', dependency]
+            env = dict(os.environ)  # Need to pass all envvars down to subprocesses or we get compilation errors for C extensions
+            env['PYTHONUNBUFFERED'] = '1'  # Without this we don't get real-time output from Python-based subprocesses
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+            processor = LineProcessor(username=username, password=password, env=env)
 
-    if proc.wait() != 0:
-        exit(1)
+            for line in proc.stdout:
+                line = line.rstrip().decode('utf-8')
+                print(line)
+                if '\n' in line:
+                    for sub_line in line.split('\n'):
+                        processor.process_line(sub_line)
+                else:
+                    processor.process_line(line)
+
+            if proc.wait() != 0:
+                exit(1)
 
 
 if __name__ == '__main__':
