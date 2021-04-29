@@ -7,8 +7,17 @@ RUN apt-get update && \
         dcraw \
         git \
         gnupg \
+        libatlas-base-dev \
+        libatlas3-base \
+        libblas-dev \
+        libblas3 \
+        libfreetype6 \
+        libfreetype6-dev \
+        libhdf5-dev \
         libimage-exiftool-perl \
         libjpeg-dev \
+        liblapack-dev \
+        liblapack3 \
         libpq-dev \
         libtiff5-dev \
         netcat \

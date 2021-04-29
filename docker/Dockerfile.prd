@@ -4,21 +4,21 @@ FROM ${ARCH}python:3.8.6-slim-buster as builder
 # Install system dependencies - note that some of these are only used on non-amd64 where Python packages have to be compiled from source
 RUN apt-get update && \
     apt-get install -y \
-        curl \
         build-essential \
+        curl \
+        gfortran \
+        gnupg \
+        libatlas-base-dev \
+        libblas-dev \
+        libblas3 \
         libfreetype6 \
         libfreetype6-dev \
-        libatlas-base-dev \
-        gnupg \
+        libhdf5-dev \
         libjpeg-dev \
+        liblapack-dev \
+        liblapack3 \
         libpq-dev \
         libtiff5-dev \
-        libblas3 \
-        liblapack3 \
-        liblapack-dev \
-        libblas-dev \
-        gfortran \
-        libhdf5-dev \
         && \
         apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
