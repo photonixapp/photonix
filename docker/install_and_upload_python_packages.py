@@ -32,10 +32,10 @@ class LineProcessor:
 
 
 def install_and_upload(username=None, password=None):
-    # A lot of packages don't have pre-compiled binaries for other
-    # architectures which makes installation take a long time. Installing via
-    # this script uploads built .whl packages to a private PyPI server so
-    # they're cached for next time.
+    # A lot of packages don't have pre-compiled binaries for architectures
+    # other than amd64 which makes installation take a long time. Installing
+    # via this script uploads built .whl packages to a private PyPI server so
+    # they're cached online for next time.
 
     for dependency in open('/srv/requirements.txt').readlines():
         # Why loop through requirements.txt and install one-by-one rather than
@@ -43,7 +43,13 @@ def install_and_upload(username=None, password=None):
         # against wrong versions of numpy if we don't.
         dependency = dependency.strip()
 
-        if dependency:
+        # Pip doesn't seem to want to use our amd64 Tensorflow wheel even
+        # though our PyPI server should take precedence so we'll force the URL.
+        if dependency.startswith('tensorflow') and os.uname().machine == 'x86_64':
+            tf_version = re.search('\d+.\d+.\d+', dependency).group(0)
+            dependency = f'https://pypi.epixstudios.co.uk/packages/tensorflow-{tf_version}-cp38-cp38-linux_x86_64.whl'
+
+        if dependency and not dependency.startswith('#'):
             cmd = ['/usr/local/bin/pip', 'install', '--no-cache-dir', dependency]
             env = dict(os.environ)  # Need to pass all envvars down to subprocesses or we get compilation errors for C extensions
             env['PYTHONUNBUFFERED'] = '1'  # Without this we don't get real-time output from Python-based subprocesses
