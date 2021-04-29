@@ -11,8 +11,18 @@
 
 .FiltersContent {
   width: max-content;
-  margin: 0 0 0 40px;
+  margin: 0;
   transition: opacity 1000ms;
+  animation: ani linear 2s alternate infinite;
+  animation-iteration-count:2;
+  padding-left: 40px;
+}
+/* For auto scroll. */
+@keyframes ani {
+	0% { margin-left: 0; transform: translate3d(0, 0, 0);}
+	25% { margin-left: 0; transform: translate3d(0, 0, 0);}
+	75% { margin-left: 0; transform: translate3d(0, 0, 0);}
+	100% { margin-left: 0; transform: translate3d(-200px, 0, 0);}
 }
 
 .FiltersContent .filterGradient {
