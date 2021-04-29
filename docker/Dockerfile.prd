@@ -19,7 +19,7 @@ RUN apt-get update && \
         liblapack3 \
         libpq-dev \
         libtiff5-dev \
-        && \
+    && \
         apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \
