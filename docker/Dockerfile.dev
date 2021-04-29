@@ -34,8 +34,14 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
 # Install Python dependencies
 WORKDIR /srv
 COPY requirements.txt /srv/requirements.txt
-RUN sed -i "s|tensorflow==2.3.1|https://github.com/damianmoore/tensorflow-builder/releases/download/v2.3.1/tensorflow-2.3.1-cp38-cp38-linux_x86_64.whl|g" /srv/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY docker/install_and_upload_python_packages.py /root/install_and_upload_python_packages.py
+ENV PYTHONUNBUFFERED=1
+ARG PYPI_UPLOAD_USERNAME
+ARG PYPI_UPLOAD_PASSWORD
+RUN if [ "${PYPI_UPLOAD_USERNAME}" = "" ] ; \
+     then python /root/install_and_upload_python_packages.py ; \
+     else python /root/install_and_upload_python_packages.py -u ${PYPI_UPLOAD_USERNAME} -p ${PYPI_UPLOAD_PASSWORD} ; \
+    fi
 
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
