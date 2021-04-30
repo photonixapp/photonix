@@ -1,5 +1,5 @@
 ARG ARCH=
-FROM ${ARCH}python:3.8.6-slim-buster as builder
+FROM ${ARCH}python:3.8.9-slim-buster as builder
 
 # Install system dependencies - note that some of these are only used on non-amd64 where Python packages have to be compiled from source
 RUN apt-get update && \
@@ -26,20 +26,17 @@ RUN apt-get update && \
                    /var/tmp/*
 
 # Install Node & Yarn
-# TODO: Figure out why this step doesn't work with cross-compilation via docker buildx
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
     apt-get update && \
-    apt-get install -y nodejs yarn && \
+    apt-get install -y nodejs && \
          apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \
                    /var/tmp/*
+RUN npm install --global --unsafe-perm yarn
 
 # Install Python dependencies
 WORKDIR /srv
-
 COPY docker/pip.conf /etc/pip.conf
 COPY docker/.pypirc /root/.pypirc
 RUN pip install --upgrade pip
@@ -62,12 +59,13 @@ WORKDIR /srv/ui
 ENV NODE_ENV=production
 RUN yarn install --no-cache --network-timeout 1000000
 
-# Copy over the code
+# Copy over the frontend code
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
 
 # Build frontend app
-RUN yarn build
+# Node option here solves heap out-of-memory issue when building Webpack bundle on machines that only have 1GB RAM
+RUN NODE_OPTIONS=--max-old-space-size=768 yarn build
 
 # Remove large unused files in Python site-packages
 RUN find /usr/local/lib/python3.8 -type d -name  "__pycache__" -exec rm -r {} + && \
@@ -93,7 +91,7 @@ RUN rm -rf \
     /usr/local/lib/python3.8/site-packages/tensorboard_plugin_wit
 
 
-FROM ${ARCH}python:3.8.6-slim-buster
+FROM ${ARCH}python:3.8.9-slim-buster
 
 RUN apt-get update && \
     apt-get install -y \

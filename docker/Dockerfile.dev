@@ -1,4 +1,4 @@
-FROM python:3.8.6-slim-buster
+FROM python:3.8.9-slim-buster
 
 # Install system dependencies - note that some of these are only used on non-amd64 where Python packages have to be compiled from source
 RUN apt-get update && \
@@ -32,18 +32,16 @@ RUN apt-get update && \
 
 # Install Node & Yarn
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
     apt-get update && \
-    apt-get install -y nodejs yarn && \
+    apt-get install -y nodejs && \
          apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \
                    /var/tmp/*
+RUN npm install --global --unsafe-perm yarn
 
 # Install Python dependencies
 WORKDIR /srv
-
 COPY docker/pip.conf /etc/pip.conf
 COPY docker/.pypirc /root/.pypirc
 RUN pip install --upgrade pip

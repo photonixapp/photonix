@@ -27,7 +27,7 @@ Create a new directory to run inside and download the example Docker Compose fil
 
     mkdir photonix
     cd photonix
-    curl https://raw.githubusercontent.com/damianmoore/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
+    curl https://raw.githubusercontent.com/photonixapp/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
 
 Make volume directories for data stored outside the container.
 

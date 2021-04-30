@@ -7,7 +7,6 @@ import subprocess
 os.environ['PYTHONUNBUFFERED'] = '1'
 
 
-
 class LineProcessor:
     whl_name = None
     folder = None
