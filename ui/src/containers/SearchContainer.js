@@ -9,6 +9,8 @@ export default class SearchContainer extends React.Component {
       search={this.props.search}
       onFilterToggle={this.props.onFilterToggle}
       onClearFilters={this.props.onClearFilters}
-      updateSearchText={this.props.updateSearchText} />
+      updateSearchText={this.props.updateSearchText}
+      searchAreaExpand={this.props.searchAreaExpand} 
+    />
   }
 }

@@ -116,7 +116,6 @@ const Browse = ({
     'searchExpanded',
     window.innerHeight > 850 ? true : false
   )
-
   let content =
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
@@ -141,6 +140,7 @@ const Browse = ({
           onFilterToggle={onFilterToggle}
           onClearFilters={onClearFilters}
           updateSearchText={updateSearchText}
+          searchAreaExpand={expanded}
         />
         
       </div>
