@@ -14,16 +14,9 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v2
       -
-        name: Calculate Docker tags
-        id: gen_tags
-        run: |
-          if [[ $GITHUB_REF == 'refs/tags/'* ]]; then
-            TAGS='["photonixapp/photonix:latest","photonixapp/photonix:'${GITHUB_REF/refs\/tags\//}'"]'
-          else
-            TAGS='["photonixapp/photonix:latest"]'
-          fi
-          echo $TAGS
-          echo '::set-output name=tags::'$TAGS
+        name: Generate tags
+        id: docker_tags
+        uses: dnaka91/action-docker-tags@v0.1
       -
         name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -44,6 +37,6 @@ jobs:
           file: ./docker/Dockerfile.prd
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
-          tags: ${{ fromJson(steps.docker_tags.outputs.tags) }}
+          tags: ${{ steps.docker_tags.outputs.tags }}
           cache-from: type=registry,ref=photonixapp/photonix:latest
           cache-to: type=inline
