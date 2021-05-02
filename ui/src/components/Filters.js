@@ -22,7 +22,7 @@ const railStyle = {
   backgroundColor: '#484848',
 }
 
-const Filters = ({ data, selectedFilters, onToggle }) => {
+const Filters = ({ data, selectedFilters, onToggle, searchAreaExpand }) => {
   const [values, setValues] = useState({
     'ISO Speed': [],
     'Focal Length': [],
@@ -31,7 +31,6 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
     Rating: [],
   })
   const [isDomainAvail, setIsDomainAvail] = useState(false)
-
   useEffect(() => {
     const vals = []
     data.map((group) => {
@@ -109,7 +108,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
   return (
     <ScrollArea>
       {isDomainAvail && (
-        <div className="FiltersContent">
+        <div className={`FiltersContent ${!localStorage.getItem('autoScrollAnimation') && searchAreaExpand && 'AutoAnimation'}`}>
           {data.map((group) => {
             let items = ''
             let filterGroupExtraStyles = {}
