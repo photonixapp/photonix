@@ -32,4 +32,4 @@ jobs:
       - name: Dump Docker Username
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        run: echo "$DOCKERHUB_USERNAME"
+        run: echo $DOCKERHUB_USERNAME
