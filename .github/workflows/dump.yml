@@ -30,4 +30,6 @@ jobs:
           MATRIX_CONTEXT: ${{ toJson(matrix) }}
         run: echo "$MATRIX_CONTEXT"
       - name: Dump Docker Username
-        run: echo ${{ secrets.DOCKERHUB_USERNAME }}
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: echo "$DOCKERHUB_USERNAME"
