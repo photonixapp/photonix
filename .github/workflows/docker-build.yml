@@ -44,6 +44,6 @@ jobs:
           file: ./docker/Dockerfile.prd
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
-          tags: ${{ steps.docker_tags.outputs.tags }}
+          tags: ${{ fromJson(steps.docker_tags.outputs.tags) }}
           cache-from: type=registry,ref=photonixapp/photonix:latest
           cache-to: type=inline
