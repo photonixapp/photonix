@@ -1,3 +1,7 @@
+on:
+  push:
+    branches: docker-gh-action
+
 steps:
   - name: Dump GitHub context
     env:
