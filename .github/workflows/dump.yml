@@ -23,7 +23,5 @@ jobs:
           echo '::set-output name=tags::'$TAGS
       -
         name: Print tags
-        id: print_tags
-        needs: gen_tags
         run: |
           echo ${{ fromJson(steps.gen_tags.outputs.tags) }}
