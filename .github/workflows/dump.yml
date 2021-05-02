@@ -24,4 +24,4 @@ jobs:
       -
         name: Print tags
         run: |
-          echo ${{ fromJson(steps.gen_tags.outputs.tags) }}
+          echo ${{ steps.gen_tags.outputs.tags }}
