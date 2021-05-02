@@ -23,12 +23,12 @@ jobs:
       -
         name: Build and push
         uses: docker/build-push-action@v2
-       with:
-         context: .
-         file: ./docker/Dockerfile.prd
-         platforms: linux/amd64,linux/arm/v7,linux/arm64
-         push: true
-         tags: |
-            photonixapp/photonix:latest
-         cache-from: type=registry,ref=photonixapp/photonix:latest
-         cache-to: type=inline
+        with:
+          context: .
+          file: ./docker/Dockerfile.prd
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+              photonixapp/photonix:latest
+          cache-from: type=registry,ref=photonixapp/photonix:latest
+          cache-to: type=inline
