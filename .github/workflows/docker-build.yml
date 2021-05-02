@@ -2,7 +2,9 @@ name: "Docker Build"
  
 on:
   push:
-    branches: docker-gh-action
+    branches: master
+    tags:
+      - "v*.*"
  
 jobs:
   main:

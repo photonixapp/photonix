@@ -1,0 +1,28 @@
+name: "Dump"
+ 
+on:
+  push:
+    branches: docker-gh-action
+ 
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v2
+      -
+        name: Calculate Docker tags
+        id: gen_tags
+        run: |
+          if [[ $GITHUB_REF == 'refs/tags/'* ]]; then
+            TAGS='["user/image:latest","'${GITHUB_REF/refs\/tags\//}'"]'
+          else
+            TAGS='["user/image:latest"]'
+          fi
+          echo '::set-output name=tags::'$TAGS
+      -
+        name: Print tags
+        needs: gen_tags
+        run: |
+          echo ${{ fromJson(steps.gen_tags.outputs.tags) }}
