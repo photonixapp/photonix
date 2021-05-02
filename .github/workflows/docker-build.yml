@@ -22,6 +22,7 @@ jobs:
           else
             TAGS='["photonixapp/photonix:latest"]'
           fi
+          echo $TAGS
           echo '::set-output name=tags::'$TAGS
       -
         name: Setup Docker Buildx
