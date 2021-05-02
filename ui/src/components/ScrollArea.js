@@ -135,9 +135,14 @@ export default class ScrollArea extends React.Component {
     this.positionViewport()
   }
 
+  // To stop auto scroll animation after one time.
+  stopScrollAnimation = (e) => {
+    localStorage.setItem('autoScrollAnimation', true);
+  }
+
   render = () => (
     <>
-      <section className="Filters" onScroll={this.onScroll} ref={this.containerRef}>
+      <section className="Filters" onScroll={this.onScroll} ref={this.containerRef} onAnimationEnd={this.stopScrollAnimation}>
         {this.props.children}
         <div className="scrollbar" ref={this.scrollbarHandleRef} style={{opacity: this.displayScrollbar ? 1 : null}} onMouseDown={this.onMouseDown} onTouchStart={this.onTouchStart}></div>
       </section>
