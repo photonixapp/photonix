@@ -18,7 +18,7 @@ jobs:
         id: gen_tags
         run: |
           if [[ $GITHUB_REF == 'refs/tags/'* ]]; then
-            TAGS='["photonixapp/photonix:latest","'${GITHUB_REF/refs\/tags\//}'"]'
+            TAGS='["photonixapp/photonix:latest","photonixapp/photonix:'${GITHUB_REF/refs\/tags\//}'"]'
           else
             TAGS='["photonixapp/photonix:latest"]'
           fi
