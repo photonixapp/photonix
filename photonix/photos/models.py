@@ -154,12 +154,7 @@ class Photo(UUIDModel, VersionedModel):
         if self.preferred_photo_file:
             preferred_files = [self.preferred_photo_file]
         if not preferred_files:
-            preferred_files = self.files.filter(raw_processed=True)
-        if not preferred_files:
-            preferred_files = self.files.filter(
-                mimetype='image/jpeg').order_by('-created_at')
-        if not preferred_files:
-            preferred_files = self.files.all().order_by('-created_at')
+            preferred_files = self.files.all().order_by('-file_modified_at')
         if preferred_files:
             return preferred_files[0]
         return None
@@ -174,6 +169,10 @@ class Photo(UUIDModel, VersionedModel):
         if file:
             return (file.width, file.height)
         return (None, None)
+
+    @property
+    def has_photo_files(self):
+        return self.files.all().count() == 0
 
     def clear_tags(self, source, type):
         self.photo_tags.filter(tag__source=source, tag__type=type).delete()

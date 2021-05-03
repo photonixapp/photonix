@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useMutation } from '@apollo/react-hooks'
+import { useMutation } from '@apollo/client'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 

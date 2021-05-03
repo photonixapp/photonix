@@ -8,7 +8,7 @@ from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile
+from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile, Task
 from django.contrib.auth import load_backend, login
 from photonix.photos.utils.filter_photos import filter_photos_queryset
 from photonix.photos.utils.tasks import count_remaining_task
@@ -18,6 +18,7 @@ import graphene
 
 
 User = get_user_model()
+
 
 class LibraryType(DjangoObjectType):
     class Meta:
@@ -37,6 +38,7 @@ class LensType(DjangoObjectType):
 class PhotoTagType(DjangoObjectType):
     class Meta:
         model = PhotoTag
+
 
 class PhotoFileType(DjangoObjectType):
     class Meta:
@@ -68,6 +70,8 @@ class PhotoNode(DjangoObjectType):
     height = graphene.Int()
     generic_tags = graphene.List(PhotoTagType)
     photo_file = graphene.List(PhotoFileType)
+    base_file_path = graphene.String()
+    base_file_id = graphene.UUID()
 
     class Meta:
         model = Photo
@@ -104,7 +108,13 @@ class PhotoNode(DjangoObjectType):
         return self.photo_tags.filter(tag__type='G')
 
     def resolve_photo_file(self, info):
-        return self.files.all()
+        return self.files.all().order_by('-file_modified_at')
+
+    def resolve_base_file_path(self, info):
+        return self.base_file.path
+
+    def resolve_base_file_id(self, info):
+        return self.base_file.id
 
 
 class PhotoFilter(django_filters.FilterSet):
@@ -779,6 +789,26 @@ class RemoveGenericTag(graphene.Mutation):
         return RemoveGenericTag(ok=True)
 
 
+class ChangePreferredPhotoFile(graphene.Mutation):
+    """To update preferred_photo_file with selected photofile version on frontend."""
+
+    class Arguments:
+        """Input arguments which will pass from frontend."""
+
+        selected_photo_file_id = graphene.ID()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, selected_photo_file_id=None):
+        """Mutation to update preferred_photo_file for photo."""
+        photo_obj = PhotoFile.objects.get(id=selected_photo_file_id).photo
+        photo_obj.preferred_photo_file = PhotoFile.objects.get(id=selected_photo_file_id)
+        photo_obj.save()
+        Task(type='generate_thumbnails', subject_id=photo_obj.id).save()
+        return ChangePreferredPhotoFile(ok=True)
+
+
 class Mutation(graphene.ObjectType):
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
@@ -791,3 +821,4 @@ class Mutation(graphene.ObjectType):
     photo_rating = PhotoRating.Field()
     create_generic_tag = CreateGenricTag.Field()
     remove_generic_tag = RemoveGenericTag.Field()
+    change_preferred_photo_file = ChangePreferredPhotoFile.Field()

@@ -14,7 +14,7 @@ services:
 
   redis:
     container_name: photonix-redis
-    image: redis:3.2.8
+    image: redis:6.2.2
     ports:
       - '6379:6379'
 

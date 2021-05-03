@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery, useMutation } from '@apollo/client'
 import gql from 'graphql-tag'
 
 import history from '../history'
@@ -78,8 +78,17 @@ const GET_PHOTO = gql`
         id
         path
       }
+      baseFileId
+      baseFilePath
       width
       height
+    }
+  }
+`
+const UPDATE_PREFERRED_PHOTOFILE = gql`
+  mutation changePreferredPhotoFile($id: ID!) {
+    changePreferredPhotoFile(selectedPhotoFileId: $id) {
+      ok
     }
   }
 `
@@ -90,7 +99,7 @@ const PhotoDetailContainer = (props) => {
       id: props.match.params.photoId,
     },
   })
-
+  const [updataPreferredPhotoFile] = useMutation(UPDATE_PREFERRED_PHOTOFILE)
   useEffect(() => {
     const handleKeyDown = (event) => {
       switch (event.keyCode) {
@@ -113,11 +122,24 @@ const PhotoDetailContainer = (props) => {
     refetch()
   }, [data, loading, refetch])
 
+  const updatePhotoFile = (id) => {
+    updataPreferredPhotoFile({
+      variables: { id }
+    })
+    .then((res) => {
+      if (res.data.changePreferredPhotoFile.ok) {
+        window.location.reload()
+      }
+    })
+    .catch((e) => {})
+  }
+
   return (
     <PhotoDetail
       photoId={props.match.params.photoId}
       photo={data?.photo}
       refetch={refetch}
+      updatePhotoFile={updatePhotoFile}
     />
   )
 }

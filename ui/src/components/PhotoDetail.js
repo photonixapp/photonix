@@ -91,7 +91,7 @@ const Container = styled('div')`
   }
 `
 
-const PhotoDetail = ({ photoId, photo, refetch }) => {
+const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   const safeArea = useSelector(getSafeArea)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
@@ -162,11 +162,14 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
     }
   })
 
-  const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
-
   return (
     <Container>
-      <ZoomableImage url={url} boxes={showBoundingBox && boxes} />
+      <ZoomableImage
+        photoId={photoId}
+        boxes={showBoundingBox && boxes}
+        next={nextPhoto}
+        prev={prevPhoto}
+      />
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
@@ -199,6 +202,7 @@ const PhotoDetail = ({ photoId, photo, refetch }) => {
           refetch={refetch}
           showBoundingBox={showBoundingBox}
           setShowBoundingBox={setShowBoundingBox}
+          updatePhotoFile={updatePhotoFile}
         />
       )}
       {!showMetadata ? (
