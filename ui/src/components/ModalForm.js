@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useStateMachine } from 'little-state-machine'
 import { Flex, Button } from '@chakra-ui/core'
-import { useMutation, useQuery } from '@apollo/react-hooks'
+import { useMutation, useQuery } from '@apollo/client'
 import {
   ENVIRONMENT,
   STEP_ONE,

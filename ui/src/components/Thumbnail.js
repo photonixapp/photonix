@@ -4,7 +4,7 @@ import styled from '@emotion/styled'
 
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
-import { useMutation } from '@apollo/react-hooks'
+import { useMutation } from '@apollo/client'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
 import 'react-lazy-load-image-component/src/effects/opacity.css'
 
