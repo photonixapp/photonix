@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import { getActiveLibrary } from '../stores/libraries/selector'
@@ -8,9 +8,9 @@ import {
   Flex,
   Stack,
   FormLabel,
-  Input,
-  InputGroup,
-  IconButton,
+  // Input,
+  // InputGroup,
+  // IconButton,
 } from '@chakra-ui/core'
 
 import Modal from './Modal'
@@ -20,7 +20,7 @@ import {
   SETTINGS_LOCATION,
   SETTINGS_OBJECT,
   SETTINGS_FACE,
-  SETTINGS_SOURCE_FOLDER,
+  // SETTINGS_SOURCE_FOLDER,
   GET_SETTINGS,
 } from '../graphql/settings'
 // import folder from '../static/images/folder.svg'
@@ -119,30 +119,32 @@ export default function Settings() {
     }
   }
 
-  function onSelectSourceDir() {
-    if (window.sendSyncToElectron) {
-      let dirs = window.sendSyncToElectron('select-dir')
-      setSettings({ sourceDirs: dirs })
-    }
-  }
+  // TODO: Re-implement desktop app settings integration
+  // function onSelectSourceDir() {
+  //   if (window.sendSyncToElectron) {
+  //     let dirs = window.sendSyncToElectron('select-dir')
+  //     setSettings({ sourceDirs: dirs })
+  //   }
+  // }
 
-  function onChangeSourceDir(e) {
-    let newSettings = { ...settings }
-    newSettings.sourceDirs = e.currentTarget.value
-    setSettings(newSettings)
-    settingUpdateSourceFolder({
-      variables: {
-        sourceFolder: newSettings.sourceDirs,
-        libraryId: activeLibrary?.id,
-      },
-    }).catch((e) => {})
-  }
+  // function onChangeSourceDir(e) {
+  //   let newSettings = { ...settings }
+  //   newSettings.sourceDirs = e.currentTarget.value
+  //   setSettings(newSettings)
+  //   settingUpdateSourceFolder({
+  //     variables: {
+  //       sourceFolder: newSettings.sourceDirs,
+  //       libraryId: activeLibrary?.id,
+  //     },
+  //   }).catch((e) => {})
+  // }
+
   const [settingUpdateStyle] = useMutation(SETTINGS_STYLE)
   const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
   const [settingUpdateFace] = useMutation(SETTINGS_FACE)
-  const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
+  // const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
 
   return (
     <Modal className="Settings" topAccent={true}>
@@ -154,20 +156,20 @@ export default function Settings() {
 
           if (settings) {
             if (item.type === 'path') {
-              field = (
-                <InputGroup size="sm">
-                  <Input
-                    rounded="0"
-                    value={settings ? settings[item.key] : 'empty'}
-                    onChange={onChangeSourceDir}
-                  />
-                  <IconButton
-                    aria-label="Select source folder"
-                    icon="search"
-                    onClick={onSelectSourceDir}
-                  />
-                </InputGroup>
-              )
+              // field = (
+              //   <InputGroup size="sm">
+              //     <Input
+              //       rounded="0"
+              //       value={settings ? settings[item.key] : 'empty'}
+              //       onChange={onChangeSourceDir}
+              //     />
+              //     <IconButton
+              //       aria-label="Select source folder"
+              //       icon="search"
+              //       onClick={onSelectSourceDir}
+              //     />
+              //   </InputGroup>
+              // )
             } else if (item.type === 'boolean') {
               field = (
                 <Switch

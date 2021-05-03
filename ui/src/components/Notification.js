@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
-import { Progress, Box, Flex } from "@chakra-ui/core"
+import { Progress, Box, Flex } from '@chakra-ui/core'
 import { useQuery, useMutation } from '@apollo/client'
 import { useSelector } from 'react-redux'
 
@@ -16,12 +16,12 @@ import {
   SETTINGS_COLOR,
   SETTINGS_LOCATION,
   SETTINGS_OBJECT,
-  GET_SETTINGS
+  GET_SETTINGS,
 } from '../graphql/settings'
 
 const Container = styled('div')`
-  margin-right:10px;
-    > img {
+  margin-right: 10px;
+  > img {
     filter: invert(0.9);
     padding: 10px 0 10px 10px;
     width: 50px;
@@ -65,9 +65,9 @@ const Container = styled('div')`
     filter: invert(0.9);
     cursor: pointer;
   }
-  @media(max-width:767px) {
+  @media (max-width: 767px) {
     .notificationMenu {
-      width: 290px
+      width: 290px;
     }
     .notificationMenu li {
       font-size: 13px;
@@ -78,13 +78,12 @@ const Notification = (props) => {
   const activeLibrary = useSelector(getActiveLibrary)
   const [settings, setSettings] = useSettings(activeLibrary)
   const [showNotificationIcon, setShowNotificationIcon] = useState(true)
-  const [firstRun, setFirstRun] = useState(true)
   const {
     ref,
     isComponentVisible,
     setIsComponentVisible,
   } = useComponentVisible(false)
-  const { showNotification, setShowNotification, setShowUserMenu} = props
+  const { showNotification, setShowNotification, setShowUserMenu } = props
   const handleShowMenu = () => {
     if (!showNotification) {
       setIsComponentVisible(true)
@@ -102,11 +101,10 @@ const Notification = (props) => {
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
   useEffect(() => {
-    if (!isComponentVisible)
-    setShowNotification(false)
+    if (!isComponentVisible) setShowNotification(false)
   }, [isComponentVisible, setShowNotification])
-  const getTitle = key => {
-    switch(key) {
+  const getTitle = (key) => {
+    switch (key) {
       case 'generateThumbnails':
         return 'Generating thumbnails'
       case 'processRaw':
@@ -120,65 +118,74 @@ const Notification = (props) => {
       case 'classifyStyle':
         return 'Analysing styles'
       default:
-        return '';
+        return ''
     }
   }
-  
+
   const getKeys = (data) => {
     let keys = Object.keys(data.taskProgress)
-    keys.splice(keys.length-1)
+    keys.splice(keys.length - 1)
     return keys
   }
-  
+
   useEffect(() => {
-    if (data && firstRun) {
-      getKeys(data).map(key => {
-        if (data.taskProgress[key]?.total > 0)
-          window.sessionStorage.setItem(key, data.taskProgress[key]?.total)
-          return key
-      })
-      setFirstRun(false)
-    }
-  }, [data, firstRun])
-  
-  const refetchTasks = () => {
-    refetch()
-    if (data && !firstRun) {
-      getKeys(data).map(key => {
-        const sessionVal = window.sessionStorage.getItem(key)
-        const remaining = data.taskProgress[key]?.remaining
-        if (remaining > sessionVal) {
-          window.sessionStorage.setItem(key, data.taskProgress[key]?.total)
-        } else if(remaining === 0) {
+    if (data) {
+      console.log(data)
+      getKeys(data).map((key) => {
+        let remaining = data.taskProgress[key]?.remaining
+        if (remaining === 0) {
           window.sessionStorage.setItem(key, 0)
+        } else if (remaining > window.sessionStorage.getItem(key)) {
+          window.sessionStorage.setItem(key, remaining)
         }
         return key
       })
     }
-  }
+  }, [data])
+
+  // const refetchTasks = () => {
+  //   refetch()
+  //   if (data) {
+  //     getKeys(data).map((key) => {
+  //       const sessionVal = window.sessionStorage.getItem(key)
+  //       const remaining = data.taskProgress[key]?.remaining
+  //       if (remaining > sessionVal) {
+  //         window.sessionStorage.setItem(key, data.taskProgress[key]?.total)
+  //       } else if (remaining === 0) {
+  //         window.sessionStorage.setItem(key, 0)
+  //       }
+  //       return key
+  //     })
+  //   }
+  // }
   useEffect(() => {
-    let handle = setInterval(refetchTasks, 60000)
+    let handle = setInterval(refetch, 15000)
     return () => {
       clearInterval(handle)
     }
   })
 
-  const getNotificationKeys = (data) =>{
+  const getNotificationKeys = (data) => {
     const keys = getKeys(data)
-    const remaining = keys.filter(k => data.taskProgress[k].remaining > 0)
+    const remaining = keys.filter((k) => data.taskProgress[k].remaining > 0)
     if (remaining.length) {
       !showNotificationIcon && setShowNotificationIcon(true)
-     } else {
+    } else {
       showNotificationIcon && setShowNotificationIcon(false)
-     } 
+    }
     return remaining
   }
- 
-  const getProgressPercent = key => {
-    return ((window.sessionStorage.getItem(key) - data.taskProgress[key]?.remaining) / window.sessionStorage.getItem(key)) * 100
+
+  const getProgressPercent = (key) => {
+    return (
+      ((window.sessionStorage.getItem(key) -
+        data.taskProgress[key]?.remaining) /
+        window.sessionStorage.getItem(key)) *
+      100
+    )
   }
-  const getSettingsKey = key => {
-    switch(key) {
+  const getSettingsKey = (key) => {
+    switch (key) {
       case 'classifyObject':
         return 'classificationObjectEnabled'
       case 'classifyColor':
@@ -192,7 +199,7 @@ const Notification = (props) => {
     }
   }
 
-  const toggleBooleanSetting = key => {
+  const toggleBooleanSetting = (key) => {
     let newSettings = { ...settings }
     newSettings[getSettingsKey(key)] = !settings[getSettingsKey(key)]
     setSettings(newSettings)
@@ -238,43 +245,62 @@ const Notification = (props) => {
 
   return (
     <>
-    {showNotificationIcon ?
-      <Container ref={ref} onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
-        <img src={notifications} alt="Notification" />
-        <ul
-          className="notificationMenu"
-          style={{ display: showNotification ? 'block' : 'none' }}
+      {showNotificationIcon ? (
+        <Container
+          ref={ref}
+          onClick={handleShowMenu}
+          onMouseEnter={handleShowMenu}
         >
-          {data?
-            getNotificationKeys(data).map((key, index) => (
-              <li key={index}>
-                <Flex color="white" align="center">
-                  <Box flex="1">
-                    <Flex mb="1">
-                      <Box flex="1">{getTitle(key)}</Box>
-                      <Box width="80px" textAlign="right">
-                        {data.taskProgress[key]?.total-data.taskProgress[key]?.remaining}/{data.taskProgress[key]?.total}
+          <img src={notifications} alt="Notification" />
+          <ul
+            className="notificationMenu"
+            style={{ display: showNotification ? 'block' : 'none' }}
+          >
+            {data
+              ? getNotificationKeys(data).map((key, index) => (
+                  <li key={index}>
+                    <Flex color="white" align="center">
+                      <Box flex="1">
+                        <Flex mb="1">
+                          <Box flex="1">{getTitle(key)}</Box>
+                          <Box width="80px" textAlign="right">
+                            {window.sessionStorage.getItem(key) -
+                              data.taskProgress[key]?.remaining}
+                            /{window.sessionStorage.getItem(key)}
+                          </Box>
+                        </Flex>
+                        <Progress
+                          value={getProgressPercent(key)}
+                          color="teal"
+                          height="6px"
+                          roundedRight="6px"
+                        />
+                      </Box>
+                      <Box ml="2" width="35px">
+                        {key !== 'generateThumbnails' &&
+                        key !== 'processRaw' ? (
+                          settings[getSettingsKey(key)] ? (
+                            <img
+                              src={pause}
+                              onClick={() => toggleBooleanSetting(key)}
+                              alt="pause"
+                            />
+                          ) : (
+                            <img
+                              src={play}
+                              onClick={() => toggleBooleanSetting(key)}
+                              alt="play"
+                            />
+                          )
+                        ) : null}
                       </Box>
                     </Flex>
-                    <Progress value={getProgressPercent(key)} color="teal" height="6px" roundedRight="6px" />
-                  </Box>
-                  <Box ml="2" width="35px" >
-                    {key !== 'generateThumbnails' && key !== 'processRaw' ?
-                      settings[getSettingsKey(key)] ?
-                      <img src={pause} onClick={() => toggleBooleanSetting(key)} alt="pause" />
-                      :
-                      <img src={play} onClick={() => toggleBooleanSetting(key)} alt="play" />
-                      :
-                      null
-                    }
-                  </Box>
-                </Flex>
-              </li>
-            ))
-          : null}
-        </ul>
-      </Container>
-    : null }
+                  </li>
+                ))
+              : null}
+          </ul>
+        </Container>
+      ) : null}
     </>
   )
 }
