@@ -201,31 +201,48 @@ export const useSettings = (activeLibrary) => {
   // console.log(error)
   const isInitialMount = useRef(true)
   
-  useEffect(() => {
-    refetch()
-  }, [activeLibrary, refetch])
+  // useEffect(() => {
+  //   refetch()
+  // }, [activeLibrary, refetch])
 
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false
-    } else {
-      if (!loading && data) {
-        let setting = { ...data.librarySetting.library }
-        setting.sourceDirs = data.librarySetting.sourceFolder
-        setSettings(setting)
-      }
+    if (activeLibrary && !loading) {
+      refetch()
     }
-    // TODO: Re-sync with desktop app
-    // if (window.sendSyncToElectron) {
-    //   let result = window.sendSyncToElectron('get-settings')
-    //   setSettings(result)
-    // }
+  }, [activeLibrary, loading, refetch])
+
+  useEffect(() => {
+    // if (isInitialMount.current) {
+    //   isInitialMount.current = false
+    // } else {
+    if (!loading && data) {
+      let setting = { ...data.librarySetting.library }
+      setting.sourceDirs = data.librarySetting.sourceFolder
+      setSettings(setting)
+      }
   }, [data, loading])
 
+  
+  // useEffect(() => {
+  //   if (activeLibrary) {
+  //     refetch()
+  //   }
+  //   if (!loading) {
+  //     let setting = {...data.librarySetting.library}
+  //     setting.sourceDirs = data.librarySetting.sourceFolder
+  //     setSettings(setting)
+  //   }
+  //   if (window.sendSyncToElectron) {
+  //     let result = window.sendSyncToElectron('get-settings')
+  //     setSettings(result)
+  //   }
+  // }, [activeLibrary, loading, refetch, data])
+
+
   function setAndSaveSettings(newSettings) {
-    if (window.sendSyncToElectron) {
-      window.sendSyncToElectron('set-settings', newSettings)
-    }
+    // if (window.sendSyncToElectron) {
+    //   window.sendSyncToElectron('set-settings', newSettings)
+    // }
     setSettings(newSettings)
   }
   return [existingSettings, setAndSaveSettings]
