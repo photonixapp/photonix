@@ -194,7 +194,7 @@ export const useSettings = (activeLibrary) => {
       isInitialMount.current = false
     } else {
       if (!loading) {
-        let setting = data.librarySetting.library
+        let setting = {...data.librarySetting.library}
         setting.sourceDirs = data.librarySetting.sourceFolder
         setSettings(setting)
       }
@@ -206,7 +206,7 @@ export const useSettings = (activeLibrary) => {
       refetch()
     }
     if (!loading) {
-      let setting = data.librarySetting.library
+      let setting = {...data.librarySetting.library}
       setting.sourceDirs = data.librarySetting.sourceFolder
       setSettings(setting)
     }
