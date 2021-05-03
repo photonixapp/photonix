@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import Filters from '../components/Filters'
@@ -91,6 +91,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   )
   useEffect(() => {
     refetch()
+
   }, [activeLibrary, refetch])
 
   const getFilterdData = (type, array) => {
@@ -105,7 +106,6 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
     }
     return data
   }
-
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 

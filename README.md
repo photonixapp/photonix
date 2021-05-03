@@ -27,7 +27,7 @@ Create a new directory to run inside and download the example Docker Compose fil
 
     mkdir photonix
     cd photonix
-    curl https://raw.githubusercontent.com/damianmoore/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
+    curl https://raw.githubusercontent.com/photonixapp/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
 
 Make volume directories for data stored outside the container.
 
@@ -75,3 +75,7 @@ If you want to access the Bash or Python shells for development, you can use the
 PyTest is used as a test runner and for creating fixtures. The easiest way to run the tests is within the Docker container like this:
 
     make test
+
+## Building for multiple architectures
+
+    docker buildx build --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag damianmoore/photonix-multiarch --push -f docker/Dockerfile.multiarch --build-arg PYPI_UPLOAD_USERNAME=username --build-arg PYPI_UPLOAD_PASSWORD=password .

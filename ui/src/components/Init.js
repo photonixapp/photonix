@@ -1,45 +1,47 @@
 import React from 'react'
 import { Provider } from 'react-redux'
 import { createStore } from 'redux'
-import reducers from './../stores'
-import { ApolloClient } from 'apollo-client'
-import { InMemoryCache } from 'apollo-cache-inmemory'
-import { createHttpLink } from 'apollo-link-http'
-import { RetryLink } from 'apollo-link-retry'
-import { onError } from 'apollo-link-error'
-import { ApolloLink } from 'apollo-link'
-import { ApolloProvider } from '@apollo/react-hooks'
+import { ApolloClient, ApolloLink, ApolloProvider, from, HttpLink, InMemoryCache } from '@apollo/client'
+import { RetryLink } from "@apollo/client/link/retry";
 import { Router } from 'react-router-dom'
 import { ModalContainer } from 'react-router-modal'
 // import { ThemeProvider, CSSReset } from '@chakra-ui/core'
 import { ThemeProvider, ColorModeProvider } from '@chakra-ui/core'
 
 import history from '../history'
+import reducers from './../stores'
 import customTheme from '../theme'
 
 export const store = createStore(
   reducers,
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 )
+// Used by mobile app to set layout properties
+window.photonix = {
+  store: store,
+}
 
-export const client = new ApolloClient({
-  link: ApolloLink.from([
-    onError(({ graphQLErrors, networkError }) => {
-      if (graphQLErrors)
-        graphQLErrors.forEach(({ message, locations, path }) => {
-          console.log(
-            `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-          )
-        })
-      if (networkError) console.log(`[Network error]: ${networkError}`)
-    }),
-    new RetryLink(),
-    createHttpLink({
-      credentials: 'same-origin', // Required for older versions of Chromium (~v58)
-    }),
-  ]),
+const additiveLink = from([
+  new RetryLink(),
+  new ApolloLink((operation, forward) => {
+    return forward(operation).map((data) => {
+      // Raise GraphQL errors as exceptions that trigger RetryLink when re-authentication is in progress
+      if (data && data.errors && data.errors.length > 0) {
+        throw new Error('GraphQL Operational Error');
+      }
+      return data;
+    });
+  }),
+  new HttpLink({
+    uri: '/graphql',
+    credentials: 'same-origin', // Required for older versions of Chromium (~v58)
+  })
+]);
+
+const client = new ApolloClient({
   cache: new InMemoryCache(),
-})
+  link: additiveLink
+});
 
 const Init = ({ children }) => {
   const isMobileApp = navigator.userAgent.indexOf('PhotonixMobileApp') > -1
