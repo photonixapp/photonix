@@ -118,10 +118,6 @@ const PhotoDetailContainer = (props) => {
     }
   }, [])
 
-  useEffect(() => {
-    refetch()
-  }, [data, loading, refetch])
-
   const updatePhotoFile = (id) => {
     updataPreferredPhotoFile({
       variables: { id }

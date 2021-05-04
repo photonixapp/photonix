@@ -280,7 +280,7 @@ const PhotoMetadata = ({
             <h2>Locations</h2>
             <HierarchicalTagsContainer
               tags={photo.locationTags.map((item) => {
-                let newItem = item.tag
+                let newItem = { ...item.tag }
                 newItem.parent = item.parent
                 return newItem
               })}
