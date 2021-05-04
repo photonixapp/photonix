@@ -95,7 +95,7 @@ class ThreadedQueueProcessor:
                     task_queryset = Task.objects.filter(library__classification_style_enabled=True, type=self.task_type, status='P')
                 else:
                     task_queryset = Task.objects.filter(type=self.task_type, status='P')
-                for task in task_queryset[:64]:
+                for task in task_queryset[:8]:
                     if self.num_workers > 1:
                         print('putting task')
                         self.queue.put(task)
