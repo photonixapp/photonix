@@ -122,18 +122,18 @@ def record_photo(path, library, inotify_event_type=None):
             latitude=latitude,
             longitude=longitude,
             altitude=metadata.get('GPS Altitude') and metadata.get('GPS Altitude').split(' ')[0],
-            star_rating=metadata.get('Rating') or 0    # Created at 27-4-2021: To fetch tag from metadata and assign to star rating. 
+            star_rating=metadata.get('Rating')
         )
         photo.save()
 
-        # Created at 27-4-2021: To fetch tags from metadata and create tag for photo. 
-        subject = metadata.get('Subject')
-        if subject:
-            tag = Tag.objects.create(library_id=library_id, name=subject, type="G")
-            PhotoTag.objects.create(
-                photo=photo,
-                tag=tag,
-                confidence=1.0
+        for subject in metadata.get('Subject', '').split(','):
+            subject = subject.strip()
+            if subject:
+                tag = Tag.objects.create(library_id=library_id, name=subject, type="G")
+                PhotoTag.objects.create(
+                    photo=photo,
+                    tag=tag,
+                    confidence=1.0
             )
     else:
         for photo_file in photo.files.all():
