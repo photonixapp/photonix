@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
@@ -72,14 +72,16 @@ function createFilterSelection(sectionName, data, prefix = 'tag') {
   }
 }
 
-const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
+const FiltersContainer = ({ selectedFilters, onFilterToggle, setFilters }) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
+  const [isFiltersAvail, setIsFiltersAvail] = useState(false) 
   const activeLibrary = useSelector(getActiveLibrary)
+  let filterData = []
   let filtersStr = ''
   if (activeLibrary) {
     filtersStr = `${selectedFilters.map((filter) => filter.id).join(' ')}`
   }
-
+  const removebleTags = ["Aperture", "Exposure", "ISO Speed", "Focal Length", "Rating", "Flash"]
   let variables = {}
   variables = { libraryId: activeLibrary?.id, multiFilter: filtersStr }
   const { loading, error, data, refetch } = useQuery(
@@ -91,9 +93,16 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   )
   useEffect(() => {
     refetch()
-
   }, [activeLibrary, refetch])
-
+ 
+  useEffect(() => {
+    if (isFiltersAvail && filterData.length) {
+      const autoSuggestionFilters = filterData.filter(f => {
+        return removebleTags.indexOf(f.name) === -1
+      })
+      setFilters(autoSuggestionFilters)
+    } 
+  }, [isFiltersAvail])
   const getFilterdData = (type, array) => {
     const filterArr = selectedFilters.filter((s) => s.group === type)
     let data = []
@@ -109,7 +118,6 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
-  let filterData = []
   if (data) {
     if (data.allGenericTags.length) {
       filterData.push(
@@ -212,6 +220,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
         )
       )
     }
+    if (!isFiltersAvail) setIsFiltersAvail(true)
   }
   return (
     <Filters
