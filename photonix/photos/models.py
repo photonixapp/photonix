@@ -219,6 +219,7 @@ TAG_TYPE_CHOICES = (
     ('C', 'Color'),
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
     ('G', 'Generic'),  # Tags created by user
+    ('E', 'Event'),  # Checked image taken date is any festival date.
 )
 
 

@@ -78,7 +78,6 @@ def get_datetime(path):
     if not matched:
         matched = re.search(r'\D((19|20)[0-9]{2})([0-9]{2})([0-9]{2})\D', fn)
     if matched:
-        # import pdb; pdb.set_trace()
         date_str = '{}-{}-{}'.format(matched.group(1), matched.group(3), matched.group(4))
         return datetime.strptime(date_str, '%Y-%m-%d')
     return None
