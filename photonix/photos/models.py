@@ -277,6 +277,7 @@ class Task(UUIDModel, VersionedModel):
     finished_at = models.DateTimeField(null=True)
     parent = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)
     complete_with_children = models.BooleanField(default=False)
+    library = models.ForeignKey(Library, related_name='task_library', on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         ordering = ['created_at']
@@ -297,7 +298,7 @@ class Task(UUIDModel, VersionedModel):
 
         # Create next task in the chain if there should be one
         if not self.parent and next_type:
-            Task(type=next_type, subject_id=next_subject_id).save()
+            Task(type=next_type, subject_id=next_subject_id, library=self.library).save()
 
         if self.parent and self.parent.complete_with_children:
             # If all siblings are complete, we should mark our parent as complete

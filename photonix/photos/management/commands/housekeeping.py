@@ -26,7 +26,9 @@ class Command(BaseCommand):
         if photos.count():
             print(f'Rescheduling {photos.count()} photos to have their thumbnails regenerated')
             for photo in photos:
-                Task(type='generate_thumbnails', subject_id=photo.id).save()
+                Task(
+                    type='generate_thumbnails', subject_id=photo.id,
+                    library=photo.library).save()
 
     def handle(self, *args, **options):
         self.housekeeping()
