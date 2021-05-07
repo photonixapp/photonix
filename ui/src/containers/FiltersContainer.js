@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from 'react'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import Filters from '../components/Filters'

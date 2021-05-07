@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useQuery, useMutation } from '@apollo/react-hooks'
+import { useQuery, useMutation } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import { getActiveLibrary } from '../stores/libraries/selector'
 
@@ -183,38 +183,28 @@ const useSettings = (activeLibrary) => {
   const { loading, error, data, refetch } = useQuery(GET_SETTINGS, {
     variables: { libraryId: activeLibrary?.id },
   })
-  console.log(error)
   const isInitialMount = useRef(true)
 
   useEffect(() => {
-    if (activeLibrary) {
-      refetch()
-    }
+    refetch()
+  }, [activeLibrary])
+
+  useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false
     } else {
-      if (!loading) {
-        let setting = data.librarySetting.library
+      if (!loading && data) {
+        let setting = { ...data.librarySetting.library }
         setting.sourceDirs = data.librarySetting.sourceFolder
         setSettings(setting)
       }
     }
-  }, [data, activeLibrary, loading, refetch])
-
-  useEffect(() => {
-    if (activeLibrary) {
-      refetch()
-    }
-    if (!loading) {
-      let setting = data.librarySetting.library
-      setting.sourceDirs = data.librarySetting.sourceFolder
-      setSettings(setting)
-    }
-    if (window.sendSyncToElectron) {
-      let result = window.sendSyncToElectron('get-settings')
-      setSettings(result)
-    }
-  }, [activeLibrary, loading, refetch, data])
+    // TODO: Re-sync with desktop app
+    // if (window.sendSyncToElectron) {
+    //   let result = window.sendSyncToElectron('get-settings')
+    //   setSettings(result)
+    // }
+  }, [data, loading])
 
   function setAndSaveSettings(newSettings) {
     if (window.sendSyncToElectron) {
