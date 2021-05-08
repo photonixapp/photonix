@@ -9,7 +9,7 @@ import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
 import { getActiveLibrary } from '../stores/libraries/selector'
 
-const PHOTO_PER_PAGE = 1000
+const PHOTO_PER_PAGE = 100
 
 const GET_LIBRARIES = gql`
   {
@@ -30,7 +30,7 @@ const GET_PROFILE = gql`
 `
 const GET_PHOTOS = gql`
   query Photos($filters: String, $after: String, $first: Int) {
-    allPhotos(multiFilter: $filters, first:$first, after:$after) {
+    allPhotos(multiFilter: $filters, first: $first, after: $after) {
       pageInfo {
         endCursor
         hasNextPage
@@ -86,7 +86,7 @@ const BrowseContainer = (props) => {
 
   if (librariesData && librariesData.allLibraries.length && !isLibrarySet) {
     const libs = librariesData.allLibraries.map((lib, index) => {
-      let newLib = {...lib}
+      let newLib = { ...lib }
       const lsActiveLibrary = localStorage.getItem('activeLibrary')
       if (lsActiveLibrary) {
         newLib['isActive'] = lsActiveLibrary === lib.id ? true : false
@@ -130,14 +130,14 @@ const BrowseContainer = (props) => {
     error: photosError,
     data: photosData,
     // refetch,
-    fetchMore:fetchMorePhotos
+    fetchMore: fetchMorePhotos,
   } = useQuery(
     GET_PHOTOS,
     {
       variables: {
         filters: searchStr,
-        after: "",
-        first: PHOTO_PER_PAGE
+        after: '',
+        first: PHOTO_PER_PAGE,
       },
     },
     {
@@ -191,14 +191,14 @@ const BrowseContainer = (props) => {
       starRating: photo.node.starRating,
     }))
   }
-  
+
   let section = {
     id: 12345,
     title: null,
     segments: [
       {
         numPhotos: photos.length,
-        photos: photos
+        photos: photos,
       },
     ],
   }
@@ -228,24 +228,24 @@ const BrowseContainer = (props) => {
     }))
   }
 
-  // Re-fetching photos when scroll bottom down. 
-  const reFetchPhoto = () => {
+  // Re-fetching photos when scroll bottom down.
+  const refetchPhotos = () => {
     if (photoData) {
       if (photoData.allPhotos.pageInfo.hasNextPage) {
-        const {endCursor} = photoData.allPhotos.pageInfo
+        const { endCursor } = photoData.allPhotos.pageInfo
         fetchMorePhotos({
-          variables:{after: endCursor},
-          updateQuery: (prevResult, {fetchMoreResult}) => {
+          variables: { after: endCursor },
+          updateQuery: (prevResult, { fetchMoreResult }) => {
             fetchMoreResult.allPhotos.edges = [
-              ...prevResult.allPhotos.edges, ...fetchMoreResult.allPhotos.edges
+              ...prevResult.allPhotos.edges,
+              ...fetchMoreResult.allPhotos.edges,
             ]
-            return fetchMoreResult;
-          }
+            return fetchMoreResult
+          },
         })
       }
     }
   }
-
 
   return (
     <>
@@ -264,7 +264,7 @@ const BrowseContainer = (props) => {
           onClearFilters={props.onClearFilters}
           setIsMapShowing={setIsMapShowing}
           mapPhotos={photosWithLocation}
-          reFetchPhoto={reFetchPhoto}
+          refetchPhotos={refetchPhotos}
         />
       )}
     </>

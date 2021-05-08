@@ -74,7 +74,7 @@ const GET_PHOTO = gql`
           name
         }
       }
-      photoFile{
+      photoFile {
         id
         path
       }
@@ -94,7 +94,7 @@ const UPDATE_PREFERRED_PHOTOFILE = gql`
 `
 
 const PhotoDetailContainer = (props) => {
-  const { loading, data, refetch } = useQuery(GET_PHOTO, {
+  const { data, refetch } = useQuery(GET_PHOTO, {
     variables: {
       id: props.match.params.photoId,
     },
@@ -120,14 +120,14 @@ const PhotoDetailContainer = (props) => {
 
   const updatePhotoFile = (id) => {
     updataPreferredPhotoFile({
-      variables: { id }
+      variables: { id },
     })
-    .then((res) => {
-      if (res.data.changePreferredPhotoFile.ok) {
-        window.location.reload()
-      }
-    })
-    .catch((e) => {})
+      .then((res) => {
+        if (res.data.changePreferredPhotoFile.ok) {
+          window.location.reload()
+        }
+      })
+      .catch((e) => {})
   }
 
   return (

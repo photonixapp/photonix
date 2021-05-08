@@ -2,7 +2,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { Link } from 'react-router-dom'
 import useLocalStorageState from 'use-local-storage-state'
-import { useSwipeable } from "react-swipeable"
+import { useSwipeable } from 'react-swipeable'
 
 import Header from './Header'
 import SearchContainer from '../containers/SearchContainer'
@@ -10,8 +10,6 @@ import PhotoList from '../components/PhotoList'
 import MapView from '../components/MapView'
 import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
-
-
 
 const Container = styled('div')`
   height: 100%;
@@ -113,7 +111,7 @@ const Browse = ({
   updateSearchText,
   setIsMapShowing,
   mapPhotos,
-  reFetchPhoto
+  refetchPhotos,
 }) => {
   const [expanded, setExpanded] = useLocalStorageState(
     'searchExpanded',
@@ -124,13 +122,13 @@ const Browse = ({
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
     ) : (
-      <PhotoList photoSections={photoSections} reFetchPhoto={reFetchPhoto}/>
+      <PhotoList photoSections={photoSections} refetchPhotos={refetchPhotos} />
     )
   const handlers = useSwipeable({
     onSwipedDown: () => setExpanded(!expanded),
-    onSwipedUp: () => setExpanded(!expanded)
+    onSwipedUp: () => setExpanded(!expanded),
   })
-  
+
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
 
@@ -145,10 +143,17 @@ const Browse = ({
           onClearFilters={onClearFilters}
           updateSearchText={updateSearchText}
         />
-        
       </div>
-      <div className={expanded ? ` tabContainer expanded` : `tabContainer collapsed`}>
-        <div {...handlers} className="expandCollapse" onClick={() => setExpanded(!expanded)}>
+      <div
+        className={
+          expanded ? ` tabContainer expanded` : `tabContainer collapsed`
+        }
+      >
+        <div
+          {...handlers}
+          className="expandCollapse"
+          onClick={() => setExpanded(!expanded)}
+        >
           <img src={arrowDown} alt="" />
         </div>
         <ul className="tabs">
@@ -159,9 +164,8 @@ const Browse = ({
             <li>Map</li>
           </Link>
         </ul>
-        
       </div>
-      <div className="main" >{content}</div>
+      <div className="main">{content}</div>
     </Container>
   )
 }

@@ -59,7 +59,7 @@ class ThreadedQueueProcessor:
 
     def __process_task(self, task):
         try:
-            print('running task')
+            print(f'Running task: {task.type} - {task.subject_id}')
             task.start()
             self.runner(task.subject_id)
             task.complete()

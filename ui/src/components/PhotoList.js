@@ -9,8 +9,8 @@ const Container = styled('div')`
   overflow-y: auto;
 `
 
-const PhotoList = ({photoSections, reFetchPhoto}) => {
-  const [scrollerRef, handleScroll] = useInfiniteScroll(reFetchPhoto)
+const PhotoList = ({ photoSections, refetchPhotos }) => {
+  const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
 
   return (
     <Container ref={scrollerRef} onScroll={handleScroll}>
