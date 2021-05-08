@@ -1,5 +1,5 @@
 export const getPrevNextPhotos = (state, currentPhotoId) => {
-  const photos = state.photos
+  const photos = state.photos.photos
   let prevNextPhotos = {
     next: [],
     prev: [],
