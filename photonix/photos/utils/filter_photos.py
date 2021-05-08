@@ -166,3 +166,12 @@ def filter_photos_queryset(filters, queryset, library_id=None):
             .order_by("selected_tag")
         )
     return queryset.distinct()
+
+
+def sort_photos_exposure(exposure_value):
+    """
+    To sort exposure of photos.
+    """
+    if '/' in exposure_value:
+        return float(exposure_value.split('/')[0]) / float(exposure_value.split('/')[1])
+    return float(exposure_value)

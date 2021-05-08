@@ -10,11 +10,10 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile, Task
 from django.contrib.auth import load_backend, login
-from photonix.photos.utils.filter_photos import filter_photos_queryset
+from photonix.photos.utils.filter_photos import filter_photos_queryset, sort_photos_exposure
 from photonix.photos.utils.metadata import PhotoMetadata
 import os
 import graphene
-
 
 User = get_user_model()
 
@@ -202,7 +201,7 @@ class Query(graphene.ObjectType):
     all_shooting_modes = graphene.List(graphene.String, library_id=graphene.UUID())
 
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
-    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
+    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter, max_limit=None)
     map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
     all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
@@ -260,8 +259,8 @@ class Query(graphene.ObjectType):
     def resolve_all_exposures(self, info, **kwargs):
         user = info.context.user
         photo_list = Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(exposure__isnull=True).values_list('exposure', flat=True).distinct().order_by('exposure')
-        return sorted(photo_list, key=lambda i: float(i.split('/')[0]) / float(i.split('/')[1] if '/' in i else i))
-
+        return sorted(photo_list, key=sort_photos_exposure)
+    
     def resolve_all_iso_speeds(self, info, **kwargs):
         user = info.context.user
         return Photo.objects.filter(library__users__user=user, library__id=kwargs.get('library_id')).exclude(iso_speed__isnull=True).values_list('iso_speed', flat=True).distinct().order_by('iso_speed')

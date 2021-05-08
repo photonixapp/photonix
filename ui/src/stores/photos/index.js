@@ -7,7 +7,7 @@ const initialState = {
 const photos = (state = initialState, action = {}) => {
   switch (action.type) {
     case SET_PHOTOS:
-      return action.payload
+      return {...state, photos: action.payload}
     default:
       return state
   }
