@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery } from '@apollo/client'
 import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import { debounce } from 'throttle-debounce'
@@ -86,14 +86,15 @@ const BrowseContainer = (props) => {
 
   if (librariesData && librariesData.allLibraries.length && !isLibrarySet) {
     const libs = librariesData.allLibraries.map((lib, index) => {
+      let newLib = {...lib}
       const lsActiveLibrary = localStorage.getItem('activeLibrary')
       if (lsActiveLibrary) {
-        lib['isActive'] = lsActiveLibrary === lib.id ? true : false
+        newLib['isActive'] = lsActiveLibrary === lib.id ? true : false
       } else {
-        lib['isActive'] = index === 0 ? true : false
+        newLib['isActive'] = index === 0 ? true : false
         index === 0 && localStorage.setItem('activeLibrary', lib.id)
       }
-      return lib
+      return newLib
     })
     dispatch({
       type: 'SET_LIBRARIES',
