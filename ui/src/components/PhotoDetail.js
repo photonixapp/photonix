@@ -102,6 +102,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
+  const [numHistoryPushes, setNumHistoryPushes] = useState(0)
 
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
@@ -124,11 +125,17 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
 
   const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
-    id && history.push(`/photo/${id}`)
+    if (id) {
+      history.push(`/photo/${id}`)
+      setNumHistoryPushes(numHistoryPushes + 1)
+    }
   }, [prevNextPhotos])
   const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
-    id && history.push(`/photo/${id}`)
+    if (id) {
+      history.push(`/photo/${id}`)
+      setNumHistoryPushes(numHistoryPushes + 1)
+    }
   }, [prevNextPhotos])
 
   useEffect(() => {
@@ -175,7 +182,19 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
         title="Press [Esc] key to go back to photo list"
         style={{ marginTop: safeArea.top }}
       >
-        <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
+        <ArrowBackIcon
+          alt="Close"
+          onClick={() => {
+            if (
+              history.length - numHistoryPushes > 2 ||
+              document.referrer != ''
+            ) {
+              history.go(-(numHistoryPushes + 1))
+            } else {
+              history.push('/')
+            }
+          }}
+        />
       </div>
       <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
         <ArrowLeftIcon
