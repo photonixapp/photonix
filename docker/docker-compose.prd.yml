@@ -20,7 +20,7 @@ services:
 
   photonix:
     container_name: photonix
-    # image: damianmoore/photonix:latest
+    # image: photonixapp/photonix:latest
     image: photonix
     build:
       context: ..
