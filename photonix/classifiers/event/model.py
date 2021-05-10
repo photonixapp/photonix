@@ -33,13 +33,15 @@ class EventModel:
                     datetime.date(date_taken.year, 12, 31): "New Year Start",
                     datetime.date(date_taken.year, 1, 1):"New Year End",
                 }
+                date_taken = datetime.datetime(date_taken.year, 12, 31, 2, 30)
                 if events.get(date_taken.date()):
                     if events.get(date_taken.date()).startswith("New Year"):
-                        # check lgana h ki 31st December 12:00PM to 1st January 12:00PM 12 pm wala
-                        return "New Year"
+                        start_of_day = datetime.datetime.combine(datetime.date(date_taken.year, 12, 31), datetime.datetime.min.time())
+                        end_of_day = start_of_day + datetime.timedelta(days=1)
+                        if start_of_day <= date_taken.replace(tzinfo=None) <= end_of_day:
+                            return "New Year"
                     return events.get(date_taken.date())
-        return date_taken
-
+            return date_taken
 
 def run_on_photo(photo_id):
     model = EventModel()
@@ -67,5 +69,4 @@ if __name__ == '__main__':
 
     _, results = run_on_photo(sys.argv[1])
 
-    for result in results:
-        print('{} (score: {:0.10f})'.format(result[0], result[1]))
+    print(results)
