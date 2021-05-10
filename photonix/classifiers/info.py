@@ -3,4 +3,5 @@ CLASSIFIERS = [
     'location',
     'object',
     'style',
+    'event',
 ]
