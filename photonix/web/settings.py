@@ -20,7 +20,7 @@ from django.core.management import utils
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
 
-SECRET_KEY = utils.get_random_secret_key()
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', utils.get_random_secret_key())
 
 DEBUG = os.environ.get('ENV', 'prd') != 'prd'
 
