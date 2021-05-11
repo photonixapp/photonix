@@ -129,14 +129,14 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
       history.push(`/photo/${id}`)
       setNumHistoryPushes(numHistoryPushes + 1)
     }
-  }, [prevNextPhotos])
+  }, [prevNextPhotos, numHistoryPushes])
   const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
     if (id) {
       history.push(`/photo/${id}`)
       setNumHistoryPushes(numHistoryPushes + 1)
     }
-  }, [prevNextPhotos])
+  }, [prevNextPhotos, numHistoryPushes])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -187,7 +187,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           onClick={() => {
             if (
               history.length - numHistoryPushes > 2 ||
-              document.referrer != ''
+              document.referrer !== ''
             ) {
               history.go(-(numHistoryPushes + 1))
             } else {

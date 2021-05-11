@@ -1,8 +1,15 @@
 import React from 'react'
 import { Provider } from 'react-redux'
 import { createStore } from 'redux'
-import { ApolloClient, ApolloLink, ApolloProvider, from, HttpLink, InMemoryCache } from '@apollo/client'
-import { RetryLink } from "@apollo/client/link/retry";
+import {
+  ApolloClient,
+  ApolloLink,
+  ApolloProvider,
+  from,
+  HttpLink,
+  InMemoryCache,
+} from '@apollo/client'
+import { RetryLink } from '@apollo/client/link/retry'
 import { Router } from 'react-router-dom'
 import { ModalContainer } from 'react-router-modal'
 // import { ThemeProvider, CSSReset } from '@chakra-ui/core'
@@ -22,26 +29,35 @@ window.photonix = {
 }
 
 const additiveLink = from([
-  new RetryLink(),
+  new RetryLink({
+    delay: {
+      initial: 500,
+      max: Infinity,
+      jitter: true,
+    },
+    attempts: {
+      max: 30,
+    },
+  }),
   new ApolloLink((operation, forward) => {
     return forward(operation).map((data) => {
       // Raise GraphQL errors as exceptions that trigger RetryLink when re-authentication is in progress
       if (data && data.errors && data.errors.length > 0) {
-        throw new Error('GraphQL Operational Error');
+        throw new Error('GraphQL Operational Error')
       }
-      return data;
-    });
+      return data
+    })
   }),
   new HttpLink({
     uri: '/graphql',
     credentials: 'same-origin', // Required for older versions of Chromium (~v58)
-  })
-]);
+  }),
+])
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
-  link: additiveLink
-});
+  link: additiveLink,
+})
 
 const Init = ({ children }) => {
   const isMobileApp = navigator.userAgent.indexOf('PhotonixMobileApp') > -1
