@@ -18,6 +18,7 @@ import { ThemeProvider, ColorModeProvider } from '@chakra-ui/core'
 import history from '../history'
 import reducers from './../stores'
 import customTheme from '../theme'
+import { logOut } from '../auth'
 
 export const store = createStore(
   reducers,
@@ -43,6 +44,10 @@ const additiveLink = from([
     return forward(operation).map((data) => {
       // Raise GraphQL errors as exceptions that trigger RetryLink when re-authentication is in progress
       if (data && data.errors && data.errors.length > 0) {
+        if (data.errors[0].message === 'Error decoding signature') {
+          // Probably the Django SECRET_KEY changed so the user needs to re-authenticate.
+          logOut()
+        }
         throw new Error('GraphQL Operational Error')
       }
       return data
