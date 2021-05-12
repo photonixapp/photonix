@@ -1,6 +1,10 @@
+import os
 from time import sleep
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
+import redis
+from redis_lock import Lock
 
 from photonix.photos.utils.organise import rescan_photo_libraries
 from photonix.photos.utils.system import missing_system_dependencies
@@ -22,11 +26,11 @@ class Command(BaseCommand):
         print('Rescan complete')
 
     def handle(self, *args, **options):
+        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
         try:
             while True:
-                # TODO: Add a lock in here because DB corruption occurs if rescan_photos is called while it's still already running
-                self.rescan_photos(options['paths'])
-
-                sleep(60 * 15)  # Sleep for an hour
+                with Lock(r, 'rescan_photos'):
+                    self.rescan_photos(options['paths'])
+                sleep(60 * 60)  # Sleep for an hour
         except KeyboardInterrupt:
             pass
