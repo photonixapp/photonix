@@ -116,6 +116,11 @@ const Browse = ({
     'searchExpanded',
     window.innerHeight > 850 ? true : false
   )
+
+  const [autoExpanded, setAutoExpanded] = useLocalStorageState(
+    'autoExpanded', false
+  )
+
   let content =
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
@@ -129,11 +134,16 @@ const Browse = ({
   
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
+  
+  // To stop auto expand/collapse animation after one time.
+ const stopExpandAnimation = (e) => {
+  localStorage.setItem('autoExpanded', true);
+  }
 
   return (
     <Container>
       <Header profile={profile} libraries={libraries} />
-      <div className={expanded ? ` searchBar expanded` : `searchBar collapsed`}>
+      <div className={expanded ? `searchBar expanded` : !localStorage.getItem('autoExpanded') ? `searchBar autoExpand` : `searchBar collapsed`} onAnimationEnd={stopExpandAnimation}>
         <SearchContainer
           selectedFilters={selectedFilters}
           search={search}
