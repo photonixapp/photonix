@@ -15,12 +15,28 @@
   padding-left: 40px;
 }
 
+/* For auto expand and collapse. */
+div.searchBar.autoExpand {
+  animation: autoExpandCollapse linear 2s alternate;
+  animation-iteration-count:2;
+  animation-delay : 2s;
+  height: 130px;
+}
+
+@keyframes autoExpandCollapse {
+	0% { height: 140px; transition: height ease-in-out 200ms;}
+	25% { height: 200px; transition: height ease-in-out 200ms;}
+	75% { height: 300px; transition: height ease-in-out 200ms;}
+	100% { height: 320px; transition: height ease-in-out 200ms;}
+}
+
+/* For auto scroll. */
 .AutoAnimation {
   transition: opacity 1000ms;
   animation: autoScroll linear 2s alternate;
   animation-iteration-count:2;
 }
-/* For auto scroll. */
+
 @keyframes autoScroll {
 	0% { margin-left: 0; transform: translate3d(0, 0, 0);}
 	25% { margin-left: 0; transform: translate3d(0, 0, 0);}
@@ -152,5 +168,8 @@
   .FilterGroup {
     width: 180px;
     height: 250px;
+  }
+  div.searchBar.autoExpand {
+    height: 100px;
   }
 }
