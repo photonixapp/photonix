@@ -128,6 +128,7 @@ class PhotoFilter(django_filters.FilterSet):
             'photo_tags__tag__id': ['exact', 'in', 'icontains'],
             'photo_tags__tag__name': ['exact', 'icontains', 'in'],
             'library__id': ['exact'],
+            'id': ['exact'],
         }
 
     def sanitize(self, value_list):
