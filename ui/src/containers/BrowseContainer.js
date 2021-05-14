@@ -9,7 +9,7 @@ import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
 import { getActiveLibrary } from '../stores/libraries/selector'
 
-const PHOTO_PER_PAGE = 100
+const PHOTO_PER_PAGE = 1000
 
 const GET_LIBRARIES = gql`
   {

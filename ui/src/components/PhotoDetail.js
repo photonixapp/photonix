@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import useLocalStorageState from 'use-local-storage-state'
-
 import history from '../history'
+import gql from 'graphql-tag'
+
+// import GET_PHOTOS from '../containers/BrowseContainer'
+import { useQuery } from '@apollo/client'
+
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
 import { getSafeArea } from '../stores/layout/selector'
@@ -15,9 +19,32 @@ import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.s
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
+// import photos from '../stores/photos/index'
+
 // const I_KEY = 73
 const LEFT_KEY = 37
 const RIGHT_KEY = 39
+const BEFORE = 'before'
+const AFTER = 'after'
+
+const GET_PHOTOS = gql`
+  query Photos($filters: String, $after: String, $first: Int, $last: Int, $before: String $id: UUID) {
+    allPhotos(multiFilter: $filters, first: $first, after: $after, before:$before, last: $last, id: $id) {
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+      }
+      edges {
+        node {
+          id
+          location
+          starRating
+        }
+      }
+    }
+  }
+`
 
 const Container = styled('div')`
   width: 100vw;
@@ -92,6 +119,7 @@ const Container = styled('div')`
 `
 
 const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
+  // const dispatch = useDispatch()
   const safeArea = useSelector(getSafeArea)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
@@ -104,6 +132,10 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   )
   const [numHistoryPushes, setNumHistoryPushes] = useState(0)
 
+  const [fetchNextPrevious, setFetchNextPrevious] = useState(false)
+// TODO 
+  // const photosData1 = useSelector(photos)
+  
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
   //   const handleKeyDown = (event) => {
@@ -123,19 +155,97 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   //   }
   // }, [showMetadata])
 
+
+  const {
+    loading: photoLoading,
+    error: photosError,
+    data: photosData,
+    fetchMore: fetchMorePhotos,
+  } = useQuery(
+    GET_PHOTOS,
+    {
+      variables: {
+        filters: '',
+        id: photoId,
+        first:1,
+        last: null,
+        after: ''
+      },
+    },
+    {
+      skip: true,
+    }
+  )
+  if (photosError) {
+    console.log('photosError', photosError)
+  }
+  if (photoLoading) {
+    console.log('photoLoading', photosError)
+  }
+
+// TODO
+  // const updatePhotosStore = useCallback(
+  //   (data) => {
+  //     dispatch({
+  //       type: 'SET_PHOTOS',
+  //       payload: data,
+  //     })
+  //   },
+  //   [dispatch]
+  // )
+
+
+  // if (photosData && !photoLoading  && photosData1 && photosData1.photos.photosDetail){
+  //   const photoList = []
+  //   const photo1 = photosData1.photos.photosDetail.find( (item) => item.node.id === photoId)
+  //   photoList.push(photosData.allPhotos.edges[0].node)
+  //   if (photo1 === undefined){
+  //     updatePhotosStore({ids:photoId, photosDetail:photoList})
+  //   }
+  // }
+
+  // To fetch next/prevoius photos.
+  const fetchNextPreviousPhoto = async (val) => {
+    const { endCursor } = photosData.allPhotos.pageInfo
+    let photo_variables = {}
+    // TODO
+    // const photo = photosData1.photos.photosDetail.find( (item) => item.node.id === photoId)
+    if (val === AFTER) photo_variables = {after: endCursor, id: null}
+    else if(val === BEFORE) photo_variables = {before: endCursor, id: null, first:null, last:1} 
+    await fetchMorePhotos({
+      variables: photo_variables,
+      updateQuery: (prevResult, { fetchMoreResult }) => {
+        fetchMoreResult.allPhotos.edges = [
+          ...prevResult.allPhotos.edges,
+          ...fetchMoreResult.allPhotos.edges,
+        ]
+        setFetchNextPrevious(fetchMoreResult.allPhotos.edges[fetchMoreResult.allPhotos.edges.length-1])
+        return fetchMoreResult
+      },
+    })
+  }
+
+  // To show next/previous photos.
+  useEffect( () => {
+    if(fetchNextPrevious){
+      history.push(`/photo/${fetchNextPrevious.node.id}`)
+      setNumHistoryPushes(numHistoryPushes + 1)
+    }
+  }, [fetchNextPrevious])
+
   const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
     if (id) {
       history.push(`/photo/${id}`)
       setNumHistoryPushes(numHistoryPushes + 1)
-    }
+    }else fetchNextPreviousPhoto(BEFORE)
   }, [prevNextPhotos])
   const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
     if (id) {
       history.push(`/photo/${id}`)
       setNumHistoryPushes(numHistoryPushes + 1)
-    }
+    }else fetchNextPreviousPhoto(AFTER)
   }, [prevNextPhotos])
 
   useEffect(() => {
@@ -168,7 +278,6 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
       sizeY: objectTag.sizeY,
     }
   })
-
   return (
     <Container>
       <ZoomableImage
