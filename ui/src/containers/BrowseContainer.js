@@ -9,7 +9,7 @@ import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
 import { getActiveLibrary } from '../stores/libraries/selector'
 
-const PHOTO_PER_PAGE = 1000
+const PHOTO_PER_PAGE = 15
 
 const GET_LIBRARIES = gql`
   {
@@ -37,6 +37,7 @@ const GET_PHOTOS = gql`
         hasPreviousPage
       }
       edges {
+        cursor
         node {
           id
           location
@@ -161,10 +162,10 @@ const BrowseContainer = (props) => {
   if (mapPhotosError) console.log(mapPhotosError)
 
   const updatePhotosStore = useCallback(
-    (photoIds) => {
+    (data) => {
       dispatch({
         type: 'SET_PHOTOS',
-        payload: photoIds,
+        payload: data,
       })
     },
     [dispatch]
@@ -177,7 +178,9 @@ const BrowseContainer = (props) => {
     if (photosData) {
       setPhotoData(photosData)
       let ids = photosData?.allPhotos.edges.map((item) => item.node.id)
-      updatePhotosStore(ids)
+      let photoList = photosData?.allPhotos.edges
+      let data = {ids: ids, photoList: photoList}
+      updatePhotosStore(data)
     }
   }, [envData, photosData, updatePhotosStore])
 
