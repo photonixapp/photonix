@@ -19,7 +19,7 @@ import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.s
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
-// import photos from '../stores/photos/index'
+import photos from '../stores/photos/index'
 
 // const I_KEY = 73
 const LEFT_KEY = 37
@@ -36,6 +36,7 @@ const GET_PHOTOS = gql`
         hasPreviousPage
       }
       edges {
+        cursor
         node {
           id
           location
@@ -119,7 +120,7 @@ const Container = styled('div')`
 `
 
 const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
-  // const dispatch = useDispatch()
+  const dispatch = useDispatch()
   const safeArea = useSelector(getSafeArea)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
@@ -133,8 +134,14 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   const [numHistoryPushes, setNumHistoryPushes] = useState(0)
 
   const [fetchNextPrevious, setFetchNextPrevious] = useState(false)
+
+  const [firstPrevious, setFirstPrevious] = useLocalStorageState(
+    'firstPrevious',
+    0
+  )
 // TODO 
-  // const photosData1 = useSelector(photos)
+  const timelinePhotoIds = useSelector(photos)
+  // const mapPhotoIds = useSelector(mapPhot)
   
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
@@ -184,34 +191,28 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   }
 
 // TODO
-  // const updatePhotosStore = useCallback(
-  //   (data) => {
-  //     dispatch({
-  //       type: 'SET_PHOTOS',
-  //       payload: data,
-  //     })
-  //   },
-  //   [dispatch]
-  // )
-
-
-  // if (photosData && !photoLoading  && photosData1 && photosData1.photos.photosDetail){
-  //   const photoList = []
-  //   const photo1 = photosData1.photos.photosDetail.find( (item) => item.node.id === photoId)
-  //   photoList.push(photosData.allPhotos.edges[0].node)
-  //   if (photo1 === undefined){
-  //     updatePhotosStore({ids:photoId, photosDetail:photoList})
-  //   }
-  // }
+  const updatePhotosStore = useCallback(
+    (data) => {
+      dispatch({
+        type: 'SET_PHOTOS',
+        payload: data,
+      })
+    },
+    [dispatch]
+  )
 
   // To fetch next/prevoius photos.
   const fetchNextPreviousPhoto = async (val) => {
     const { endCursor } = photosData.allPhotos.pageInfo
     let photo_variables = {}
     // TODO
-    // const photo = photosData1.photos.photosDetail.find( (item) => item.node.id === photoId)
-    if (val === AFTER) photo_variables = {after: endCursor, id: null}
-    else if(val === BEFORE) photo_variables = {before: endCursor, id: null, first:null, last:1} 
+    const timelinePhoto = timelinePhotoIds.photos.photosDetail.find( (item) => item.node.id === photoId)
+    // const mapPhotoId = mapPhotoIds.photos.photosDetail.find( (item) => item.node.id === photoId)
+    if (val === AFTER) photo_variables = {after: timelinePhoto.cursor, id: null}
+    else if(val === BEFORE){
+      photo_variables = {before: firstPrevious >= 1? endCursor : null, id: null, first:null, last:1}
+      if (firstPrevious < 1) setFirstPrevious(firstPrevious + 1)
+    }
     await fetchMorePhotos({
       variables: photo_variables,
       updateQuery: (prevResult, { fetchMoreResult }) => {
@@ -220,6 +221,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           ...fetchMoreResult.allPhotos.edges,
         ]
         setFetchNextPrevious(fetchMoreResult.allPhotos.edges[fetchMoreResult.allPhotos.edges.length-1])
+        if (val !== BEFORE) updatePhotosStore({ids:[fetchMoreResult.allPhotos.edges[fetchMoreResult.allPhotos.edges.length-1].node.id], photoList:[fetchMoreResult.allPhotos.edges[fetchMoreResult.allPhotos.edges.length-1]]})
         return fetchMoreResult
       },
     })
