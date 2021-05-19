@@ -1,9 +1,9 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
-
+import {useMapEvent} from "react-leaflet";
 import '../static/css/Map.css'
 import 'react-leaflet-markercluster/dist/styles.min.css' // sass
 
@@ -11,7 +11,7 @@ const MapView = ({
   photos,
   bounds,
   location,
-  zoom,
+  // zoom,
   maxZoom,
   hideAttribution,
 }) => {
@@ -23,6 +23,36 @@ const MapView = ({
     : '&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors'
   let tileLayer = <TileLayer attribution={attribution} url={tileUrl} />
 
+  const [latState, setLatState] = useState(30)
+  const [lngState, setLngState] = useState(0)
+  const [renderState, setRenderState] = useState(2)
+  const [map, setMap] = useState(null);
+  const history = useHistory()
+
+  // Use to check the component comes back from next page and setStates.
+  useEffect(() => {
+    if (history.action === "POP"){
+      setRenderState(parseInt(localStorage.getItem('zoomLevel1')))
+      setLatState(localStorage.getItem('lat'))
+      setLngState(localStorage.getItem('lng'))
+    }
+  }, [history]);
+
+  // Use to handle map events and set new position and zoom value to map.
+  const MapEvents = () => {
+    const mapEvents = useMapEvent({
+      zoomend: () => {
+        localStorage.setItem('zoomLevel1', mapEvents.getZoom())
+        localStorage.setItem('lat', mapEvents.getCenter().lat)
+        localStorage.setItem('lng', mapEvents.getCenter().lng)
+      },
+  });
+  const position = [latState? latState : mapEvents.getCenter().lat, lngState? lngState : mapEvents.getCenter().lng]
+  const zoom = renderState? renderState : mapEvents.getZoom()
+  if(map) map.setView(position, zoom);
+  return null
+  }
+  
   if (photos) {
     markers = photos.map((photo, idx) =>
       photo.location ? (
@@ -31,7 +61,7 @@ const MapView = ({
           position={[photo.location[0], photo.location[1]]}
         >
           <Popup>
-            <Link to={'/photo/' + photo.id} key={photo.id}>
+            <Link to={`/photo/${photo.id}`} key={photo.id}>
               <img
                 src={photo.thumbnail}
                 style={{ width: 128, height: 128 }}
@@ -47,10 +77,12 @@ const MapView = ({
         <MapContainer
           bounds={bounds}
           boundsOptions={{ padding: [100, 100], maxZoom: maxZoom }}
-          zoom={zoom}
-          center={[30, 0]}
+          zoom={renderState}
+          center={[latState, lngState]}
+          whenCreated={map => {setMap(map)}}
         >
           {tileLayer}
+          <MapEvents />
           <MarkerClusterGroup>{markers}</MarkerClusterGroup>
         </MapContainer>
       </div>
@@ -60,7 +92,7 @@ const MapView = ({
 
     return (
       <div className="Map">
-        <MapContainer center={location} zoom={zoom} zoomControl={true}>
+        <MapContainer center={location} zoomControl={true}>
           {tileLayer}
           <MarkerClusterGroup>{markers}</MarkerClusterGroup>
         </MapContainer>
@@ -73,13 +105,13 @@ MapView.propTypes = {
   photos: PropTypes.array,
   bounds: PropTypes.func,
   location: PropTypes.array,
-  zoom: PropTypes.number,
+  // zoom: PropTypes.number,
   maxZoom: PropTypes.number,
   hideAttribution: PropTypes.bool,
 }
 
 MapView.defaultProps = {
-  zoom: 2,
+  // zoom: 2,
   maxZoom: 15,
 }
 
