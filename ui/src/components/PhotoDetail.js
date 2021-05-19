@@ -103,7 +103,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     getPrevNextPhotos(state, photoId)
   )
   const [numHistoryPushes, setNumHistoryPushes] = useState(0)
-
+  
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
   //   const handleKeyDown = (event) => {
@@ -189,7 +189,8 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
               history.length - numHistoryPushes > 2 ||
               document.referrer != ''
             ) {
-              history.go(-(numHistoryPushes + 1))
+              history.goBack()
+              // history.go(-(numHistoryPushes + 1))
             } else {
               history.push('/')
             }
