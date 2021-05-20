@@ -25,14 +25,14 @@ const MapView = ({
 
   const [latState, setLatState] = useState(30)
   const [lngState, setLngState] = useState(0)
-  const [renderState, setRenderState] = useState(2)
+  const [zoomState, setZoomState] = useState(2)
   const [map, setMap] = useState(null);
   const history = useHistory()
 
-  // Use to check the component comes back from next page and setStates.
+  // Use to check the component comes back from next page or not and setStates.
   useEffect(() => {
     if (history.action === "POP"){
-      setRenderState(parseInt(localStorage.getItem('zoomLevel1')))
+      setZoomState(parseInt(localStorage.getItem('mapZoom')))
       setLatState(localStorage.getItem('lat'))
       setLngState(localStorage.getItem('lng'))
     }
@@ -42,13 +42,13 @@ const MapView = ({
   const MapEvents = () => {
     const mapEvents = useMapEvent({
       zoomend: () => {
-        localStorage.setItem('zoomLevel1', mapEvents.getZoom())
+        localStorage.setItem('mapZoom', mapEvents.getZoom())
         localStorage.setItem('lat', mapEvents.getCenter().lat)
         localStorage.setItem('lng', mapEvents.getCenter().lng)
       },
   });
   const position = [latState? latState : mapEvents.getCenter().lat, lngState? lngState : mapEvents.getCenter().lng]
-  const zoom = renderState? renderState : mapEvents.getZoom()
+  const zoom = zoomState? zoomState : mapEvents.getZoom()
   if(map) map.setView(position, zoom);
   return null
   }
@@ -77,7 +77,7 @@ const MapView = ({
         <MapContainer
           bounds={bounds}
           boundsOptions={{ padding: [100, 100], maxZoom: maxZoom }}
-          zoom={renderState}
+          zoom={zoomState}
           center={[latState, lngState]}
           whenCreated={map => {setMap(map)}}
         >
