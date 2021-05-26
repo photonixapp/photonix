@@ -30,3 +30,13 @@
 .subHeading {
   margin: 0 0 40px 0 !important;
 }
+
+.profile-table tr td {
+  line-height: 0;
+}
+
+.profile-table {
+  width: 100%;
+  text-align: left;
+  margin-top: -20px;
+}
