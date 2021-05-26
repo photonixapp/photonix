@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotFound, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from pathlib import Path
 from graphql_jwt.utils import get_credentials
@@ -38,13 +38,32 @@ def thumbnailer(request, type, id, width, height, crop, quality):
 
 
 def upload(request):
+    '''
+    Handles file uploads from within the browser or mobile app auto-uploading
+    '''
     if 'library_id' not in request.GET:
         return JsonResponse({'ok': False, 'message': 'library_id must be supplied as GET parameter'}, status=400)
 
-    token = get_credentials(request)
-    user = get_user_by_token(token, request)
+    # Authenticate user
+    user = None
+    try:
+        token = get_credentials(request)
+        user = get_user_by_token(token, request)
+    except:
+        pass
+    if not user:
+        return JsonResponse({'ok': False, 'message': f'Invalid authentication token'}, status=403)
 
-    library = get_object_or_404(Library, id=request.GET['library_id'], users__user=user)
+    # Check Library exists and User is a member of it
+    library = None
+    try:
+        library = Library.objects.get(id=request.GET['library_id'], users__user=user)
+    except:
+        pass
+    if not library:
+        return JsonResponse({'ok': False, 'message': 'Invalid library_id'}, status=403)
+
+    # Accept file data and write to disk
     libpath = library.get_library_path_store()
     for fn, file in request.FILES.items():
         dest = Path(libpath.path) / fn
@@ -52,6 +71,7 @@ def upload(request):
             print(f'Writing to {dest}')
             for chunk in file.chunks():
                 destination.write(chunk)
+
     return JsonResponse({'ok': True})
 
 
