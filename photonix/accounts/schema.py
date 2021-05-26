@@ -68,6 +68,7 @@ class AfterSignup(graphene.ObjectType):
 
 class Query(graphene.ObjectType):
     profile = graphene.Field(UserType)
+    all_profile = graphene.List(UserType)
     environment = graphene.Field(Environment)
     after_signup = graphene.Field(AfterSignup)
 
@@ -76,6 +77,9 @@ class Query(graphene.ObjectType):
         if user.is_anonymous:
             raise Exception('Not logged in')
         return user
+
+    def resolve_all_profile(self, info):
+        return User.objects.all()
 
     def resolve_environment(self, info):
         user = User.objects.first()
