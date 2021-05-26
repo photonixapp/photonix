@@ -108,7 +108,13 @@ const Filters = ({ data, selectedFilters, onToggle, searchAreaExpand }) => {
   return (
     <ScrollArea>
       {isDomainAvail && (
-        <div className={`FiltersContent ${!localStorage.getItem('autoScrollAnimation') && searchAreaExpand && 'AutoAnimation'}`}>
+        <div
+          className={`FiltersContent ${
+            !localStorage.getItem('filtersPeeked') &&
+            searchAreaExpand &&
+            'PeekAnimation'
+          }`}
+        >
           {data.map((group) => {
             let items = ''
             let filterGroupExtraStyles = {}
@@ -221,10 +227,7 @@ const Filters = ({ data, selectedFilters, onToggle, searchAreaExpand }) => {
             return (
               <span key={group.name}>
                 {showTagSection(items, group.name) && (
-                  <div
-                    className="FilterGroup"
-                    style={filterGroupExtraStyles}
-                  >
+                  <div className="FilterGroup" style={filterGroupExtraStyles}>
                     <h2>{group.name}</h2>
                     {items}
                   </div>

@@ -6,26 +6,28 @@
 }
 .FiltersContent {
   width: max-content;
-  margin: 0 0 0 40px;
-}
-
-.FiltersContent {
-  width: max-content;
-  margin: 0;
   padding-left: 40px;
 }
 
-.AutoAnimation {
+.PeekAnimation {
   transition: opacity 1000ms;
-  animation: autoScroll linear 2s alternate;
-  animation-iteration-count:2;
+  animation: autoPeek ease-in-out 2s alternate;
+  animation-iteration-count: 2;
 }
 /* For auto scroll. */
-@keyframes autoScroll {
-	0% { margin-left: 0; transform: translate3d(0, 0, 0);}
-	25% { margin-left: 0; transform: translate3d(0, 0, 0);}
-	75% { margin-left: 0; transform: translate3d(0, 0, 0);}
-	100% { margin-left: 0; transform: translate3d(-200px, 0, 0);}
+@keyframes autoPeek {
+  0% {
+    margin-left: 0;
+    transform: translate3d(0, 0, 0);
+  }
+  75% {
+    margin-left: 0;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    margin-left: 0;
+    transform: translate3d(-200px, 0, 0);
+  }
 }
 
 .FiltersContent .filterGradient {
@@ -147,7 +149,7 @@
     margin: 0 -20px -20px;
   }
   .FiltersContent {
-    margin-left: 30px;
+    padding-left: 30px;
   }
   .FilterGroup {
     width: 180px;
