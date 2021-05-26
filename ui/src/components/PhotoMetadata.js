@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useMutation } from '@apollo/react-hooks'
+import { useMutation } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import styled from '@emotion/styled'
 import { Collapse, Select } from '@chakra-ui/core'
@@ -280,7 +280,7 @@ const PhotoMetadata = ({
             <h2>Locations</h2>
             <HierarchicalTagsContainer
               tags={photo.locationTags.map((item) => {
-                let newItem = item.tag
+                let newItem = { ...item.tag }
                 newItem.parent = item.parent
                 return newItem
               })}

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useQuery, useMutation } from '@apollo/react-hooks'
+import { useQuery, useMutation } from '@apollo/client'
 import gql from 'graphql-tag'
 
 import history from '../history'
@@ -74,12 +74,13 @@ const GET_PHOTO = gql`
           name
         }
       }
-      photoFile{
+      photoFile {
         id
         path
       }
       baseFileId
       baseFilePath
+      downloadUrl
       width
       height
     }
@@ -94,7 +95,7 @@ const UPDATE_PREFERRED_PHOTOFILE = gql`
 `
 
 const PhotoDetailContainer = (props) => {
-  const { loading, data, refetch } = useQuery(GET_PHOTO, {
+  const { data, refetch } = useQuery(GET_PHOTO, {
     variables: {
       id: props.match.params.photoId,
     },
@@ -118,20 +119,16 @@ const PhotoDetailContainer = (props) => {
     }
   }, [])
 
-  useEffect(() => {
-    refetch()
-  }, [data, loading, refetch])
-
   const updatePhotoFile = (id) => {
     updataPreferredPhotoFile({
-      variables: { id }
+      variables: { id },
     })
-    .then((res) => {
-      if (res.data.changePreferredPhotoFile.ok) {
-        window.location.reload()
-      }
-    })
-    .catch((e) => {})
+      .then((res) => {
+        if (res.data.changePreferredPhotoFile.ok) {
+          window.location.reload()
+        }
+      })
+      .catch((e) => {})
   }
 
   return (

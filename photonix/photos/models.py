@@ -37,6 +37,9 @@ class Library(UUIDModel, VersionedModel):
         for library_path in self.paths:
             library_path.rescan()
 
+    def get_library_path_store(self):
+        return self.paths.filter(type='St')[0]
+
 
 LIBRARY_PATH_TYPE_CHOICES = (
     ('St', 'Store'),
@@ -164,6 +167,12 @@ class Photo(UUIDModel, VersionedModel):
         return self.base_file.base_image_path
 
     @property
+    def download_url(self):
+        library_url = self.library.get_library_path_store().url
+        library_path = self.library.get_library_path_store().path
+        return self.base_file.path.replace(library_path, library_url)
+
+    @property
     def dimensions(self):
         file = self.base_file
         if file:
@@ -276,6 +285,7 @@ class Task(UUIDModel, VersionedModel):
     finished_at = models.DateTimeField(null=True)
     parent = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)
     complete_with_children = models.BooleanField(default=False)
+    library = models.ForeignKey(Library, related_name='task_library', on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         ordering = ['created_at']
@@ -296,7 +306,7 @@ class Task(UUIDModel, VersionedModel):
 
         # Create next task in the chain if there should be one
         if not self.parent and next_type:
-            Task(type=next_type, subject_id=next_subject_id).save()
+            Task(type=next_type, subject_id=next_subject_id, library=self.library).save()
 
         if self.parent and self.parent.complete_with_children:
             # If all siblings are complete, we should mark our parent as complete

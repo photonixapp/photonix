@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery } from '@apollo/client'
 import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import { debounce } from 'throttle-debounce'
@@ -8,6 +8,8 @@ import 'url-search-params-polyfill'
 import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
 import { getActiveLibrary } from '../stores/libraries/selector'
+
+const PHOTO_PER_PAGE = 100
 
 const GET_LIBRARIES = gql`
   {
@@ -27,8 +29,13 @@ const GET_PROFILE = gql`
   }
 `
 const GET_PHOTOS = gql`
-  query Photos($filters: String) {
-    allPhotos(multiFilter: $filters) {
+  query Photos($filters: String, $after: String, $first: Int) {
+    allPhotos(multiFilter: $filters, first: $first, after: $after) {
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+      }
       edges {
         node {
           id
@@ -79,14 +86,15 @@ const BrowseContainer = (props) => {
 
   if (librariesData && librariesData.allLibraries.length && !isLibrarySet) {
     const libs = librariesData.allLibraries.map((lib, index) => {
+      let newLib = { ...lib }
       const lsActiveLibrary = localStorage.getItem('activeLibrary')
       if (lsActiveLibrary) {
-        lib['isActive'] = lsActiveLibrary === lib.id ? true : false
+        newLib['isActive'] = lsActiveLibrary === lib.id ? true : false
       } else {
-        lib['isActive'] = index === 0 ? true : false
+        newLib['isActive'] = index === 0 ? true : false
         index === 0 && localStorage.setItem('activeLibrary', lib.id)
       }
-      return lib
+      return newLib
     })
     dispatch({
       type: 'SET_LIBRARIES',
@@ -121,12 +129,15 @@ const BrowseContainer = (props) => {
     loading: photosLoading,
     error: photosError,
     data: photosData,
-    refetch,
+    // refetch,
+    fetchMore: fetchMorePhotos,
   } = useQuery(
     GET_PHOTOS,
     {
       variables: {
         filters: searchStr,
+        after: '',
+        first: PHOTO_PER_PAGE,
       },
     },
     {
@@ -160,15 +171,15 @@ const BrowseContainer = (props) => {
   )
 
   useEffect(() => {
-    if (envData && envData.environment && !envData.environment.firstRun) {
-      refetch()
-    }
+    // if (envData && envData.environment && !envData.environment.firstRun) {
+    //   refetch()
+    // }
     if (photosData) {
       setPhotoData(photosData)
       let ids = photosData?.allPhotos.edges.map((item) => item.node.id)
       updatePhotosStore(ids)
     }
-  }, [envData, photosData, refetch, updatePhotosStore])
+  }, [envData, photosData, updatePhotosStore])
 
   if (photoData) {
     photos = photoData.allPhotos.edges.map((photo) => ({
@@ -216,6 +227,26 @@ const BrowseContainer = (props) => {
         : null,
     }))
   }
+
+  // Re-fetching photos when scroll bottom down.
+  const refetchPhotos = () => {
+    if (photoData) {
+      if (photoData.allPhotos.pageInfo.hasNextPage) {
+        const { endCursor } = photoData.allPhotos.pageInfo
+        fetchMorePhotos({
+          variables: { after: endCursor },
+          updateQuery: (prevResult, { fetchMoreResult }) => {
+            fetchMoreResult.allPhotos.edges = [
+              ...prevResult.allPhotos.edges,
+              ...fetchMoreResult.allPhotos.edges,
+            ]
+            return fetchMoreResult
+          },
+        })
+      }
+    }
+  }
+
   return (
     <>
       {isLibrarySet && (
@@ -233,6 +264,7 @@ const BrowseContainer = (props) => {
           onClearFilters={props.onClearFilters}
           setIsMapShowing={setIsMapShowing}
           mapPhotos={photosWithLocation}
+          refetchPhotos={refetchPhotos}
         />
       )}
     </>

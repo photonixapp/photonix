@@ -22,13 +22,10 @@ if [ "${DEMO}" = "1" ]; then
   python /srv/photonix/manage.py import_demo_photos
 fi
 
->&2 echo "Scanning for new photos"
-python /srv/photonix/manage.py rescan_photos
-
 >&2 echo "Resetting Redis lock"
 python /srv/photonix/manage.py reset_redis_locks
 
->&2 echo "Reschedule any regeneration of thumbnails or analysis jobs"
+>&2 echo "Rescheduling any required upgrade-related tasks"
 python /srv/photonix/manage.py housekeeping
 
 >&2 echo "Starting supervisor"
