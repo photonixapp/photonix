@@ -9,6 +9,7 @@ import PhotoMetadata from './PhotoMetadata'
 import { getSafeArea } from '../stores/layout/selector'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
+import { ReactComponent as DownloadIcon } from '../static/images/download_arrow.svg'
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as ArrowLeftIcon } from '../static/images/arrow_left.svg'
 import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.svg'
@@ -71,6 +72,14 @@ const Container = styled('div')`
   .showDetailIcon {
     position: absolute;
     right: 10px;
+    top: 10px;
+    filter: invert(0.9);
+    cursor: pointer;
+    z-index: 10;
+  }
+  .showDownloadIcon {
+    position: absolute;
+    right: 50px;
     top: 10px;
     filter: invert(0.9);
     cursor: pointer;
@@ -224,6 +233,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           updatePhotoFile={updatePhotoFile}
         />
       )}
+
       {!showMetadata ? (
         <InfoIcon
           className="showDetailIcon"
@@ -242,6 +252,16 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
+      )}
+      {photo?.downloadUrl && (
+        <a href={`${photo.downloadUrl}`} download>
+          <DownloadIcon
+            className="showDownloadIcon"
+            height="30"
+            width="30"
+            style={{ marginTop: safeArea.top, padding: 3 }}
+          />
+        </a>
       )}
     </Container>
   )

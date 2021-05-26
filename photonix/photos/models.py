@@ -37,6 +37,9 @@ class Library(UUIDModel, VersionedModel):
         for library_path in self.paths:
             library_path.rescan()
 
+    def get_library_path_store(self):
+        return self.paths.filter(type='St')[0]
+
 
 LIBRARY_PATH_TYPE_CHOICES = (
     ('St', 'Store'),
@@ -162,6 +165,12 @@ class Photo(UUIDModel, VersionedModel):
     @property
     def base_image_path(self):
         return self.base_file.base_image_path
+
+    @property
+    def download_url(self):
+        library_url = self.library.get_library_path_store().url
+        library_path = self.library.get_library_path_store().path
+        return self.base_file.path.replace(library_path, library_url)
 
     @property
     def dimensions(self):

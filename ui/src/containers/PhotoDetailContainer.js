@@ -80,6 +80,7 @@ const GET_PHOTO = gql`
       }
       baseFileId
       baseFilePath
+      downloadUrl
       width
       height
     }
