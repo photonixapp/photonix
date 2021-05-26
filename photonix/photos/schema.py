@@ -22,6 +22,9 @@ class LibraryType(DjangoObjectType):
     class Meta:
         model = Library
 
+class LibraryUserType(DjangoObjectType):
+    class Meta:
+        model = LibraryUser
 
 class CameraType(DjangoObjectType):
     class Meta:
@@ -186,6 +189,7 @@ class PhotoMetadataFields(graphene.ObjectType):
 
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
+    all_library_users = graphene.List(LibraryUserType)
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
     all_cameras = graphene.List(CameraType, library_id=graphene.UUID())
 
@@ -216,6 +220,9 @@ class Query(graphene.ObjectType):
     def resolve_all_libraries(self, info, **kwargs):
         user = info.context.user
         return Library.objects.filter(users__user=user)
+    
+    def resolve_all_library_user(self, info, **kwargs):
+        return LibraryUser.objects.all()
 
     def resolve_camera(self, info, **kwargs):
         id = kwargs.get('id')
@@ -785,6 +792,42 @@ class ChangePreferredPhotoFile(graphene.Mutation):
         return ChangePreferredPhotoFile(ok=True)
 
 
+class CreateLibraryUser(graphene.Mutation):
+    """Docstring for CreateLibraryUser."""
+
+    class Arguments:
+        """Docstring for Arguments."""
+        library_id = graphene.ID(required=True)
+        user_id = graphene.ID(required=True)
+
+    has_created_library_user = graphene.Boolean()
+    ok = graphene.Boolean()
+    user_id = graphene.ID()
+    library_id = graphene.ID()
+
+    @staticmethod
+    def mutate(self, info, library_id=None, user_id=None):
+        """Mutate method."""
+        LibraryUser.objects.create(
+            library_id=library_id, user_id=user_id, owner=False)
+        return CreateLibraryUser(
+            has_created_library_user=True,
+            user_id=user_id, library_id=library_id)
+
+
+class RemoveLibraryUser(graphene.Mutation):
+    class Arguments:
+        library_id = graphene.ID(required=True)
+        user_id = graphene.ID(required=True)
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, library_id=None, user_id=None):
+        LibraryUser.objects.get(library_id=library_id, user_id=user_id).delete()
+        return RemoveLibraryUser(ok=True)
+
+
 class Mutation(graphene.ObjectType):
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
@@ -798,3 +841,6 @@ class Mutation(graphene.ObjectType):
     create_generic_tag = CreateGenricTag.Field()
     remove_generic_tag = RemoveGenericTag.Field()
     change_preferred_photo_file = ChangePreferredPhotoFile.Field()
+    create_library_user = CreateLibraryUser.Field()
+    remove_library_user = RemoveLibraryUser.Field()
+
