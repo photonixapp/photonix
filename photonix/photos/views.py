@@ -2,6 +2,8 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from pathlib import Path
+from graphql_jwt.utils import get_credentials
+from graphql_jwt.shortcuts import get_user_by_token
 
 from photonix.photos.utils.thumbnails import get_thumbnail
 
@@ -38,9 +40,12 @@ def thumbnailer(request, type, id, width, height, crop, quality):
 def upload(request):
     if 'library_id' not in request.GET:
         return JsonResponse({'ok': False, 'message': 'library_id must be supplied as GET parameter'}, status=400)
-    user = request.user
-    lib = get_object_or_404(Library, id=request.GET['library_id'], user=user)
-    libpath = lib.paths.all()[0]
+
+    token = get_credentials(request)
+    user = get_user_by_token(token, request)
+
+    library = get_object_or_404(Library, id=request.GET['library_id'], users__user=user)
+    libpath = library.get_library_path_store()
     for fn, file in request.FILES.items():
         dest = Path(libpath.path) / fn
         with open(dest, 'wb+') as destination:
