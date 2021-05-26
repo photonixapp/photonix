@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useQuery, useMutation } from '@apollo/client'
+import { useQuery, useMutation, gql } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import { getActiveLibrary } from '../stores/libraries/selector'
 
@@ -24,10 +24,66 @@ import {
 } from '../graphql/settings'
 // import folder from '../static/images/folder.svg'
 import '../static/css/Settings.css'
+import { Link } from 'react-router-dom'
+
+
+const GET_ALL_PROFILE = gql`
+  {
+    allProfile {
+      id
+      username
+      email
+    }
+  }
+`
+const GET_PROFILE = gql`
+  {
+    profile {
+      id
+      username
+      email
+    }
+  }
+`
+
+const CREATE_LINK_USER_TO_LIBRARY = gql`
+  mutation (
+      $libraryId: ID!,
+      $userId: ID!
+      ){
+        createLibraryUser(
+          libraryId:$libraryId,
+          userId:$userId
+        ) {
+          hasCreatedLibraryUser
+          userId
+          libraryId
+        }
+      } 
+`
+
+const REMOVE_LINK_USER_TO_LIBRARY = gql`
+  mutation (
+      $libraryId: ID!,
+      $userId: ID!
+      ) {
+        removeLibraryUser(
+            libraryId:$libraryId,
+            userId:$userId
+          ) {
+            ok
+          }
+    }   
+`
 
 export default function Settings() {
+  const user = useSelector((state) => state.user)
   const activeLibrary = useSelector(getActiveLibrary)
   const [settings, setSettings] = useSettings(activeLibrary)
+  const [createLinkUserToLibrary] = useMutation(CREATE_LINK_USER_TO_LIBRARY)
+  const [removeLinkUserToLibrary] = useMutation(REMOVE_LINK_USER_TO_LIBRARY)
+
+  const [checkedUser, setCheckedUser] = useState({})
   const availableSettings = [
     // {
     //   key: 'sourceDirs',
@@ -60,6 +116,43 @@ export default function Settings() {
       label: 'Run object detection on photos?',
     },
   ]
+
+  // Use to fetch all users/profiles.
+  const {
+    loading: allProfileLoading,
+    error: allProfileError,
+    data: allProfileData,
+  } = useQuery(GET_ALL_PROFILE, { skip: !user })
+  
+  // Use to fetch current profile.
+  const {
+    loading: profileLoading,
+    error: profileError,
+    data: profileData,
+  } = useQuery(GET_PROFILE, { skip: !user })
+
+  //  Use to link and remove the user with active library.
+  const linkUser = (event, profileId) => {  
+    if (profileId != profileData?.profile.id &&  !Object.values(checkedUser)[0]){
+      createLinkUserToLibrary({
+        variables:{
+          libraryId:activeLibrary?.id,
+          userId:profileId
+        }
+      }).catch((e) => {})
+      // updating an single checkbox/switch value.
+      setCheckedUser({...checkedUser, [event.target.id] : event.target.checked });
+    }else if (Object.values(checkedUser)[0]){
+      removeLinkUserToLibrary({
+        variables:{
+          libraryId:activeLibrary?.id,
+          userId:profileId
+        }
+      }).catch((e) => {})
+      // updating an single checkbox/switch value.
+      setCheckedUser({...checkedUser, [event.target.id] : event.target.checked });
+    }
+  } 
 
   function toggleBooleanSetting(key) {
     let newSettings = { ...settings }
@@ -174,6 +267,48 @@ export default function Settings() {
           )
         })}
       </Stack>
+      {allProfileData ? 
+      <div style={{ marginTop: '30px' }}>      
+      <h1>User</h1>
+      <table className="profile-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Last login</th>
+            <th>Library access</th>
+            {/* <th></th> */}
+          </tr>
+        </thead>
+        {allProfileData.allProfile.map((profile) => (
+          <tr key={profile.id}>
+            <td>{profile.username}</td>
+            <td>{profile.lastLogin}</td>
+            <td>
+                <Switch
+                  key={profile.id}
+                  id={profile.id}
+                  isChecked={profile.id === profileData?.profile.id?  true : checkedUser[profile.id]}
+                  onChange={(e) => linkUser(e, profile.id)}
+                  variantColor="cyan"
+                />
+            </td>
+            <td>
+              <Link to='/account' style={{ color: '#FFF' }}>
+                Edit
+              </Link>
+            </td>
+          </tr>
+        ))}
+      </table>
+      </div> : ""
+      }
+      {profileData && profileData.profile?
+        <Link to='/onboarding' style={{ color: '#FFF' }}>
+          Add new
+        </Link> : ""
+      }
+
+
     </Modal>
   )
 }
