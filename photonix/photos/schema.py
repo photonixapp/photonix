@@ -70,6 +70,7 @@ class PhotoNode(DjangoObjectType):
     photo_file = graphene.List(PhotoFileType)
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
+    download_url = graphene.String()
 
     class Meta:
         model = Photo
@@ -113,6 +114,9 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_base_file_id(self, info):
         return self.base_file.id
+
+    def resolve_download_url(self, info):
+        return self.download_url
 
 
 class PhotoFilter(django_filters.FilterSet):

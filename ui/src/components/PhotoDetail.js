@@ -15,7 +15,6 @@ import { ReactComponent as ArrowLeftIcon } from '../static/images/arrow_left.svg
 import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.svg'
 import { ReactComponent as InfoIcon } from '../static/images/info.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
-import axios from 'axios';
 
 // const I_KEY = 73
 const LEFT_KEY = 37
@@ -178,25 +177,6 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
       sizeY: objectTag.sizeY,
     }
   })
-  
-  // Use to download an image when user click on download button.
-  const downloadImage = () => {
-    axios({
-      url: `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`,
-      method: "GET",
-      responseType: "blob" // important
-  }).then(response => {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-          "download",
-          `${photo.baseFilePath.split(/[\\\/]/).pop()}`
-      );
-      document.body.appendChild(link);
-      link.click();
-  });
-  }
 
   return (
     <Container>
@@ -273,14 +253,16 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           // title="Press [I] key to show/hide photo details"
         />
       )}
-      <DownloadIcon 
-        className="showDownloadIcon"
-        height="30"
-        width="30"
-        onClick={downloadImage}
-        style={{ marginTop: safeArea.top }}
-      />
-
+      {photo?.downloadUrl && (
+        <a href={`${photo.downloadUrl}`} download>
+          <DownloadIcon
+            className="showDownloadIcon"
+            height="30"
+            width="30"
+            style={{ marginTop: safeArea.top, padding: 3 }}
+          />
+        </a>
+      )}
     </Container>
   )
 }
