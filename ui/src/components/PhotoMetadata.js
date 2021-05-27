@@ -275,7 +275,7 @@ const PhotoMetadata = ({
             )}
           </ul>
         </div>
-        {photo.locationTags.length ? (
+        {photo.locationTags.length && (
           <div className={`box box${boxCount++}`}>
             <h2>Locations</h2>
             <HierarchicalTagsContainer
@@ -286,20 +286,16 @@ const PhotoMetadata = ({
               })}
             />
           </div>
-        ) : (
-          ''
         )}
-        {photo.location ? (
+        {photo.location && (
           <div className={`box box${boxCount++}`}>
             <h2>Map</h2>
             <div className="map">
               {<MapView location={location} hideAttribution={true} zoom={6} />}
             </div>
           </div>
-        ) : (
-          ''
         )}
-        {photo.colorTags.length ? (
+        {photo.colorTags.length && (
           <div className={`box box${boxCount++}`}>
             <h2>Colors</h2>
             <ColorTags
@@ -309,10 +305,25 @@ const PhotoMetadata = ({
               }))}
             />
           </div>
-        ) : (
-          ''
         )}
-        {photo.objectTags.length ? (
+        {photo.personTags.length && (
+          <div className={`box box${boxCount++}`}>
+            <h2>
+              People
+              {showBoundingBox ? (
+                <VisibilityIcon onClick={() => setShowBoundingBox(false)} />
+              ) : (
+                <VisibilityOffIcon onClick={() => setShowBoundingBox(true)} />
+              )}
+            </h2>
+            <ul>
+              {photo.personTags.map((photoTag, index) => (
+                <li key={index}>{photoTag.tag.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {photo.objectTags.length && (
           <div className={`box box${boxCount++}`}>
             <h2>
               Objects
@@ -328,10 +339,8 @@ const PhotoMetadata = ({
               ))}
             </ul>
           </div>
-        ) : (
-          ''
         )}
-        {photo.styleTags.length ? (
+        {photo.styleTags.length && (
           <div className={`box box${boxCount++}`}>
             <h2>Styles</h2>
             <ul>
@@ -340,8 +349,6 @@ const PhotoMetadata = ({
               ))}
             </ul>
           </div>
-        ) : (
-          ''
         )}
         <div className={`box box${boxCount++}`}>
           <h2>
