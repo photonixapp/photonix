@@ -206,7 +206,7 @@ class MTCNN(object):
 
             inter = w * h
 
-            if method is 'Min':
+            if method == 'Min':
                 o = inter / np.minimum(area[i], area[idx])
             else:
                 o = inter / (area[i] + area[idx] - inter)
