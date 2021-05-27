@@ -27,7 +27,7 @@ const Step1AdminUser = ({ history }) => {
     <Modal
       height={700}
       topAccent={true}
-      allowClose={false}
+      // allowClose={false}
       className="Onboarding"
     >
       <ModalForm
