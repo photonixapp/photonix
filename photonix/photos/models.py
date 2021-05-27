@@ -37,6 +37,9 @@ class Library(UUIDModel, VersionedModel):
         for library_path in self.paths:
             library_path.rescan()
 
+    def get_library_path_store(self):
+        return self.paths.filter(type='St')[0]
+
 
 LIBRARY_PATH_TYPE_CHOICES = (
     ('St', 'Store'),
@@ -128,7 +131,9 @@ class Photo(UUIDModel, VersionedModel):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     altitude = models.DecimalField(max_digits=6, decimal_places=1, null=True)
     star_rating = models.PositiveIntegerField(
-        help_text='assign rating to photo', verbose_name="Rating", null=True, blank=True) 
+        help_text='assign rating to photo', verbose_name="Rating", null=True, blank=True)
+    preferred_photo_file = models.ForeignKey('PhotoFile', related_name='+', null=True, on_delete=models.SET_NULL)  # File selected by the user that is the best version to be used
+    thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
 
     class Meta:
         ordering = ['-taken_at']
@@ -144,18 +149,15 @@ class Photo(UUIDModel, VersionedModel):
         return '/thumbnails/{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.id)
 
     def thumbnail_path(self, thumbnail):
-        return str(Path(settings.THUMBNAIL_ROOT) / '{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.id))
+        return str(Path(settings.THUMBNAIL_ROOT) / 'photofile' / '{}x{}_{}_q{}/{}.jpg'.format(thumbnail[0], thumbnail[1], thumbnail[2], thumbnail[3], self.base_file.id))
 
     @property
     def base_file(self):
-        preferred_files = self.files.filter(preferred=True)
+        preferred_files = []
+        if self.preferred_photo_file:
+            preferred_files = [self.preferred_photo_file]
         if not preferred_files:
-            preferred_files = self.files.filter(raw_processed=True)
-        if not preferred_files:
-            preferred_files = self.files.filter(
-                mimetype='image/jpeg').order_by('-created_at')
-        if not preferred_files:
-            preferred_files = self.files.all().order_by('-created_at')
+            preferred_files = self.files.all().order_by('-file_modified_at')
         if preferred_files:
             return preferred_files[0]
         return None
@@ -165,11 +167,21 @@ class Photo(UUIDModel, VersionedModel):
         return self.base_file.base_image_path
 
     @property
+    def download_url(self):
+        library_url = self.library.get_library_path_store().url
+        library_path = self.library.get_library_path_store().path
+        return self.base_file.path.replace(library_path, library_url)
+
+    @property
     def dimensions(self):
         file = self.base_file
         if file:
             return (file.width, file.height)
         return (None, None)
+
+    @property
+    def has_photo_files(self):
+        return self.files.all().count() == 0
 
     def clear_tags(self, source, type):
         self.photo_tags.filter(tag__source=source, tag__type=type).delete()
@@ -183,7 +195,7 @@ class PhotoFile(UUIDModel, VersionedModel):
     mimetype = models.CharField(max_length=32, blank=True, null=True)
     file_modified_at = models.DateTimeField()
     bytes = models.PositiveIntegerField()
-    preferred = models.BooleanField(default=False)
+    thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
     raw_processed = models.BooleanField(default=False)
     raw_version = models.PositiveIntegerField(null=True)
     raw_external_params = models.CharField(max_length=16, blank=True, null=True)
@@ -198,7 +210,9 @@ class PhotoFile(UUIDModel, VersionedModel):
 
     @property
     def base_image_path(self):
-        if self.raw_processed:
+        from photonix.photos.utils.raw import NON_RAW_MIMETYPES
+
+        if self.mimetype not in NON_RAW_MIMETYPES:
             return str(Path(settings.PHOTO_RAW_PROCESSED_DIR) / str('{}.jpg'.format(self.id)))
         return self.path
 
@@ -213,6 +227,7 @@ TAG_TYPE_CHOICES = (
     ('F', 'Face'),
     ('C', 'Color'),
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
+    ('G', 'Generic'),  # Tags created by user
 )
 
 
@@ -222,9 +237,10 @@ class Tag(UUIDModel, VersionedModel):
     parent = models.ForeignKey('Tag', related_name='+', null=True, on_delete=models.CASCADE)
     type = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True)
     source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
+    ordering = models.FloatField(null=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['ordering', 'name']
         unique_together = [['library', 'name', 'type', 'source']]
 
     def __str__(self):
@@ -232,10 +248,10 @@ class Tag(UUIDModel, VersionedModel):
 
 
 class PhotoTag(UUIDModel, VersionedModel):
-    photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE)
+    photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE, null=True)
     tag = models.ForeignKey(Tag, related_name='photo_tags', on_delete=models.CASCADE)
     source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
-    model_version = models.PositiveIntegerField(null=True)
+    model_version = models.PositiveIntegerField(default=0)
     confidence = models.FloatField()
     significance = models.FloatField(null=True)
     verified = models.BooleanField(default=False)
@@ -271,6 +287,7 @@ class Task(UUIDModel, VersionedModel):
     finished_at = models.DateTimeField(null=True)
     parent = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)
     complete_with_children = models.BooleanField(default=False)
+    library = models.ForeignKey(Library, related_name='task_library', on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         ordering = ['created_at']
@@ -291,7 +308,7 @@ class Task(UUIDModel, VersionedModel):
 
         # Create next task in the chain if there should be one
         if not self.parent and next_type:
-            Task(type=next_type, subject_id=next_subject_id).save()
+            Task(type=next_type, subject_id=next_subject_id, library=self.library).save()
 
         if self.parent and self.parent.complete_with_children:
             # If all siblings are complete, we should mark our parent as complete

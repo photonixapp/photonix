@@ -25,7 +25,7 @@ def test_color_predict():
     model = ColorModel()
     snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
     result = model.predict(snow)
-    expected = [('Violet', '0.094'), ('Gray', '0.018'), ('Black', '0.006'), ('White', '0.005'), ('Pale pink', '0.001'), ('Dark orange', '0.000'), ('Dark lime green', '0.000')]
+    expected = [('Azure', '0.891'), ('White', '0.032'), ('Gray', '0.021'), ('Red', '0.018'), ('Magenta', '0.014'), ('Purple', '0.009'), ('Turquoise', '0.008'), ('Orchid', '0.008')]
     actual = [(x, '{:.3f}'.format(y)) for x, y in result]
     assert expected == actual
 

@@ -1,33 +1,140 @@
-import inotify.adapters
+import asyncio
+import imghdr
+import subprocess
 from pathlib import Path
+from time import sleep
 
+from asgiref.sync import sync_to_async
+from asyncinotify import Inotify, Mask
+from typing import Generator, AsyncGenerator
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from photonix.photos.utils.db import record_photo
+from photonix.photos.utils.db import record_photo, move_or_rename_photo, delete_child_dir_all_photos
 from photonix.photos.models import LibraryPath
 
 
 class Command(BaseCommand):
+    """Management command to watch photo directory and create photo records in database."""
+
     help = 'Watches photo directories and creates relevant database records for all photos that are added or modified.'
 
     def watch_photos(self):
-        library_paths = LibraryPath.objects.filter(type='St', backend_type='Lo')
+        """Management command to watch photo directory and create photo records in database."""
+        watching_libraries = {}
 
-        for library_path in library_paths:
-            print(f'Watching path for changes {library_path.path}')
+        with Inotify() as inotify:
 
-            # TODO: Work out how to watch multiple paths at once
-            i = inotify.adapters.InotifyTree(library_path.path)
+            @sync_to_async
+            def get_libraries():
+                return {l.path: l.library_id for l in LibraryPath.objects.filter(type='St', backend_type='Lo')}
 
-            for event in i.event_gen():
-                if event is not None:
-                    (header, type_names, watch_path, filename) = event
-                    # if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_FROM', 'IN_MOVED_TO']):  # TODO: Make moving photos really efficient by using the 'from' path
-                    if set(type_names).intersection(['IN_CLOSE_WRITE', 'IN_DELETE', 'IN_MOVED_TO']):
-                        photo_path = Path(watch_path, filename)
-                        print(f'Recording photo "{photo_path}" to library "{library_path.library}"')
-                        record_photo(photo_path, library_path.library)
+            @sync_to_async
+            def record_photo_async(photo_path, library_id, event_mask):
+                record_photo(photo_path, library_id, event_mask)
+
+            @sync_to_async
+            def move_or_rename_photo_async(photo_old_path, photo_new_path, library_id):
+                move_or_rename_photo(photo_old_path, photo_new_path, library_id)
+
+            @sync_to_async
+            def delete_child_dir_all_photos_async(photo_path, library_id):
+                delete_child_dir_all_photos(photo_path, library_id)
+
+            def get_directories_recursive(path: Path) -> Generator[Path, None, None]:
+                """ Recursively list all directories under path, including path itself, if
+                it's a directory.
+
+                The path itself is always yielded before its children are iterated, so you
+                can pre-process a path (by watching it with inotify) before you get the
+                directory listing.
+
+                Passing a non-directory won't raise an error or anything, it'll just yield
+                nothing.
+                """
+
+                if path.is_dir():
+                    yield path
+                    for child in path.iterdir():
+                        yield from get_directories_recursive(child)
+
+            async def check_libraries():
+                while True:
+                    await asyncio.sleep(1)
+
+                    current_libraries = await get_libraries()
+
+                    for path, id in current_libraries.items():
+                        if path not in watching_libraries:
+                            for directory in get_directories_recursive(Path(path)):
+                                print('Watching new path:', directory)
+                                watch = inotify.add_watch(directory, Mask.MODIFY | Mask.CREATE | Mask.DELETE | Mask.CLOSE | Mask.MOVE)
+                                watching_libraries[path] = (id, watch)
+
+                    for path, (id, watch) in watching_libraries.items():
+                        if path not in current_libraries:
+                            print('Removing old path:', path)
+                            inotify.rm_watch(watch)
+
+                    await asyncio.sleep(4)
+
+            async def handle_inotify_events():
+                async for event in inotify:
+                    if 'moved_from_attr_dict' in locals() and moved_from_attr_dict:
+                        for potential_library_path, (potential_library_id, _) in watching_libraries.items():
+                            if str(event.path).startswith(potential_library_path):
+                                library_id = potential_library_id
+                        photo_moved_from_path = moved_from_attr_dict.get('moved_from_path')
+                        photo_moved_from_cookie = moved_from_attr_dict.get('moved_from_cookie')
+                        moved_from_attr_dict = {}
+                        if event.mask.name == 'MOVED_TO' and photo_moved_from_cookie == event.cookie:
+                            print(f'Moving or renaming the photo "{str(event.path)}" from library "{library_id}"')
+                            await move_or_rename_photo_async(photo_moved_from_path, event.path, library_id)
+                        else:
+                            print(f'Removing photo "{str(photo_moved_from_path)}" from library "{library_id}"')
+                            await record_photo_async(photo_moved_from_path, library_id, 'MOVED_FROM')
+                    elif Mask.CREATE in event.mask and event.path is not None and event.path.is_dir():
+                        current_libraries = await get_libraries()
+                        for path, id in current_libraries.items():
+                            for directory in get_directories_recursive(event.path):
+                                print('Watching newly created child directory:', directory)
+                                watch = inotify.add_watch(directory, Mask.MODIFY | Mask.CREATE | Mask.DELETE | Mask.CLOSE | Mask.MOVE)
+                                watching_libraries[path] = (id, watch)
+
+                    elif event.mask in [Mask.CLOSE_WRITE, Mask.MOVED_TO, Mask.DELETE, Mask.MOVED_FROM] or event.mask.value == 1073741888:
+                        photo_path = event.path
+                        library_id = None
+                        for potential_library_path, (potential_library_id, _) in watching_libraries.items():
+                            if str(photo_path).startswith(potential_library_path):
+                                library_id = potential_library_id
+                        if event.mask in [Mask.DELETE, Mask.MOVED_FROM]:
+                            if event.mask.name == 'MOVED_FROM':
+                                moved_from_attr_dict = {
+                                    'moved_from_path': event.path,
+                                    'moved_from_cookie': event.cookie}
+                            else:
+                                print(f'Removing photo "{photo_path}" from library "{library_id}"')
+                                await record_photo_async(photo_path, library_id, event.mask.name)
+                        elif event.mask.value == 1073741888:
+                            print(f'Delete child directory with its all photos "{photo_path}" to library "{library_id}"')
+                            await delete_child_dir_all_photos_async(photo_path, library_id)
+                        else:
+                            if imghdr.what(photo_path) or not subprocess.run(['dcraw', '-i', photo_path]).returncode:
+                                print(f'Adding photo "{photo_path}" to library "{library_id}"')
+                                await record_photo_async(photo_path, library_id, event.mask.name)
+
+            loop = asyncio.get_event_loop()
+            loop.create_task(check_libraries())
+            loop.create_task(handle_inotify_events())
+
+            try:
+                loop.run_forever()
+            except KeyboardInterrupt:
+                print('Shutting down')
+            finally:
+                loop.run_until_complete(loop.shutdown_asyncgens())
+                loop.close()
+
 
     def handle(self, *args, **options):
         try:

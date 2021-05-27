@@ -1,17 +1,59 @@
 import React from 'react'
-import { useMutation, useQuery } from '@apollo/react-hooks'
+import { useMutation, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
+import styled from '@emotion/styled'
 import gql from 'graphql-tag'
-import {SIGN_IN} from '../graphql/onboarding'
+
+import { SIGN_IN } from '../graphql/onboarding'
 import { logIn, scheduleTokenRefresh } from '../auth'
-import '../static/css/Login.css'
+
+const Container = styled('div')`
+  background: #292929;
+  width: 400px;
+  margin: 80px auto;
+  padding: 40px;
+
+  button {
+    background: #484848;
+    color: #fff;
+    border: 0;
+    padding: 11px 13px 9px 13px;
+    display: block;
+    width: 100%;
+    font-weight: 300;
+    margin-top: 20px;
+  }
+
+  @media all and (max-width: 500px) {
+    width: 100%;
+  }
+`
+
+const Row = styled('div')`
+  display: flex;
+  align-items: baseline;
+
+  label {
+    min-width: 80px;
+    display: inline-block;
+  }
+
+  input {
+    flex: 1;
+    background: #484848;
+    color: #fff;
+    border: 0;
+    padding: 11px 13px 9px 13px;
+    margin-bottom: 10px;
+  }
+`
 
 const ENVIRONMENT = gql`
   {
     environment {
       demo
       firstRun
-      form 
+      form
       userId
       libraryId
       libraryPathId
@@ -27,80 +69,89 @@ const AUTH_USER = gql`
   }
 `
 
-const Login = props => {
+const Login = (props) => {
   let inputUsername, inputPassword
   const { data: envData } = useQuery(ENVIRONMENT)
-  const { data: signInData,error:signInError } = useQuery(SIGN_IN)
-  if(signInError) {
-    console.log("signInError")
+  const { data: signInData, error: signInError } = useQuery(SIGN_IN)
+  if (signInError) {
+    console.log('signInError')
   }
-  const [authUser, { data: authData, loading: authLoading, error: authError }] = useMutation(AUTH_USER)
-  if (envData && envData.environment.form === "has_config_persional_info") {
+  const [
+    authUser,
+    { data: authData, loading: authLoading, error: authError },
+  ] = useMutation(AUTH_USER)
+  if (envData && envData.environment.form === 'has_config_persional_info') {
     return <Redirect to="/onboarding" />
   }
-  if (envData && envData.environment.form === "has_created_library") {
+  if (envData && envData.environment.form === 'has_created_library') {
     return <Redirect to="/onboarding/step3" />
   }
-  if (envData && envData.environment.form === "has_configured_importing") {
+  if (envData && envData.environment.form === 'has_configured_importing') {
     return <Redirect to="/onboarding/step4" />
   }
-  if (envData && envData.environment.form === "has_configured_image_analysis") {
+  if (envData && envData.environment.form === 'has_configured_image_analysis') {
     return <Redirect to="/onboarding/step5" />
   }
 
-  if ((authData && authData.tokenAuth)) {
+  if (authData && authData.tokenAuth) {
     logIn(authData.tokenAuth.refreshToken)
     scheduleTokenRefresh() // We don't have the token expiry from the tokenAuth mutation but this will start the refresh cycle off in a few seconds
     return <Redirect to="/" />
   }
-  if(localStorage.getItem("isSignin") === "true" && signInData && signInData.afterSignup.token ) {
-    localStorage.setItem("isSignin", true);
+  if (
+    localStorage.getItem('isSignin') === 'true' &&
+    signInData &&
+    signInData.afterSignup.token
+  ) {
+    localStorage.setItem('isSignin', true)
     logIn(signInData.afterSignup.refreshToken)
     scheduleTokenRefresh() // We don't have the token expiry from the tokenAuth mutation but this will start the refresh cycle off in a few seconds
     return <Redirect to="/" />
   }
 
   return (
-    <>
-      <div className="LoginForm">
-        {authLoading && <p>Loading...</p>}
-        {authError && <p>{authError.message}</p>}
-        {authData && authData.errors && <p>{authData.errors}</p>}
-        <form
-          onSubmit={e => {
-            e.preventDefault()
-            authUser({
-              variables: {
-                username: inputUsername.value,
-                password: inputPassword.value,
-              },
-            }).catch(e => {})
-            inputUsername.value = ''
-            inputPassword.value = ''
-          }}
-        >
+    <Container>
+      {authLoading && <p>Loading...</p>}
+      {authError && <p>{authError.message}</p>}
+      {authData && authData.errors && <p>{authData.errors}</p>}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          authUser({
+            variables: {
+              username: inputUsername.value,
+              password: inputPassword.value,
+            },
+          }).catch((e) => {})
+          inputUsername.value = ''
+          inputPassword.value = ''
+        }}
+      >
+        <Row>
           <label>Username: </label>
           <input
             type="text"
-            ref={node => {
+            ref={(node) => {
               inputUsername = node
             }}
-            defaultValue={envData && envData.environment.demo ? 'demo' : '' }
+            defaultValue={envData && envData.environment.demo ? 'demo' : ''}
           />
+        </Row>
+        <Row>
           <label>Password: </label>
           <input
             type="password"
-            ref={node => {
+            ref={(node) => {
               inputPassword = node
             }}
-            defaultValue={envData && envData.environment.demo ? 'demo' : '' }
+            defaultValue={envData && envData.environment.demo ? 'demo' : ''}
           />
-          <button type="submit" style={{ cursor: 'pointer' }}>
-            Login
-          </button>
-        </form>
-      </div>
-    </>
+        </Row>
+        <button type="submit" style={{ cursor: 'pointer' }}>
+          Login
+        </button>
+      </form>
+    </Container>
   )
 }
 

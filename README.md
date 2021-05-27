@@ -13,7 +13,7 @@ This project is currently in development and not feature complete for a version 
 Please join in the discussion and help us gain visibility by following us on social media. Much appreciated :)
 
 - [Gitter live chat](https://gitter.im/photonixapp/community)
-- [Docker Hub](https://hub.docker.com/r/damianmoore/photonix/)
+- [Docker Hub](https://hub.docker.com/r/photonixapp/photonix/)
 - [Twitter](https://twitter.com/photonixapp)
 - [Instagram](https://www.instagram.com/photonixapp/)
 - [LinkedIn](https://www.linkedin.com/company/photonixapp/)
@@ -27,7 +27,7 @@ Create a new directory to run inside and download the example Docker Compose fil
 
     mkdir photonix
     cd photonix
-    curl https://raw.githubusercontent.com/damianmoore/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
+    curl https://raw.githubusercontent.com/photonixapp/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
 
 Make volume directories for data stored outside the container.
 

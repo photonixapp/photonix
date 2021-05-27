@@ -1,18 +1,3 @@
-.Settings {
-  width: 600px;
-  height: 500px;
-  background: #1d1d1d;
-  padding: 40px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  position: relative;
-  cursor: auto;
-}
-.isMobileApp .Settings {
-  padding-top: 40px;
-}
-.Settings h2 {
-  margin: 0 0 40px;
-}
 .Settings ul {
   padding: 0;
   list-style: none;
@@ -27,16 +12,6 @@
 .Settings img {
   filter: invert(0.9);
 }
-.Settings .closeIcon {
-  filter: invert(0.9);
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-}
-.isMobileApp .Settings .closeIcon {
-  top: 40px;
-}
 .Settings input {
   background: #484848;
   color: #fff;
@@ -49,11 +24,9 @@
   margin: 5px 0 0 20px;
   vertical-align: middle;
 }
-
-@media all and (max-width: 700px) {
-  .Settings {
-    width: 100vw;
-    height: 100vh;
-    padding: 20px;
-  }
+.heading {
+  margin-bottom: 15px !important;
+}
+.subHeading {
+  margin: 0 0 40px 0 !important;
 }

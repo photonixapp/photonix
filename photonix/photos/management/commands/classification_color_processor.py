@@ -5,7 +5,7 @@ from photonix.photos.models import Task
 from photonix.photos.utils.classification import ThreadedQueueProcessor
 
 
-print('Loading style color model')
+print('Loading color model')
 model = ColorModel()
 
 
@@ -13,7 +13,7 @@ class Command(BaseCommand):
     help = 'Runs the workers with the color classification model.'
 
     def run_processors(self):
-        num_workers = 4
+        num_workers = 1
         batch_size = 64
         threaded_queue_processor = ThreadedQueueProcessor(model, 'classify.color', run_on_photo, num_workers, batch_size)
         threaded_queue_processor.run()

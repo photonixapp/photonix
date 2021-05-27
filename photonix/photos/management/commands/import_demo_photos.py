@@ -42,15 +42,17 @@ class Command(BaseCommand):
             user.save()
         except IntegrityError:
             user = User.objects.get(username='demo')
-
         # Create Library
         library, _ = Library.objects.get_or_create(
             name='Demo Library',
-            # base_thumbnail_path='/data/cache/thumbnails/',
-            # base_thumbnail_url='/thumbnails/'
+            classification_color_enabled=True,
+            classification_location_enabled=True,
+            classification_style_enabled=True,
+            classification_object_enabled=True,
+            setup_stage_completed='Th'
         )
         # LibraryPath as locally mounted volume
-        library_path, _ = LibraryPath.objects.get_or_create(
+        LibraryPath.objects.get_or_create(
             library=library,
             type='St',
             backend_type='Lo',
@@ -62,7 +64,7 @@ class Command(BaseCommand):
         # In dev environment user needs to be owner to access all functionality
         # but demo.photonix.org this could lead to the system being messed up
         owner = os.environ.get('ENV') == 'dev'
-        library_user, _ = LibraryUser.objects.get_or_create(
+        LibraryUser.objects.get_or_create(
             library=library,
             user=user,
             owner=owner

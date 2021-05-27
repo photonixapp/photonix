@@ -1,20 +1,19 @@
-const USER_CHANGED = 'USER_CHANGED'
+const SET_USER = 'SET_USER'
 
-export function userChanged(user) {
-  return {
-    type: USER_CHANGED,
-    user,
-  }
+const initialState = {
+  user: null,
 }
 
-const defaultUser = null
+const setUser = (state, payload) => {
+  return { ...state, user: payload.user }
+}
 
-const user = (state=defaultUser, action) => {
+const user = (state = initialState, action = {}) => {
   switch (action.type) {
-    case USER_CHANGED:
-      return action.user
+    case SET_USER:
+      return setUser(state, action.payload)
     default:
-      return state;
+      return state
   }
 }
 

@@ -1,23 +1,23 @@
 import React from 'react'
+import styled from '@emotion/styled'
 
-import Thumbnails from './Thumbnails/index.js'
-import Histogram from './Histogram'
-import '../static/css/PhotoList.css'
+import Thumbnails from './Thumbnails'
+import useInfiniteScroll from './InfiniteScroll'
 
+const Container = styled('div')`
+  height: 100%;
+  overflow-y: auto;
+`
 
-const PhotoList = ({ photoSections, onScroll, onMouseDown, onTouchStart, onHistogramClick, containerRef, scrollbarHandleRef, displayScrollbar, selectedSection }) => (
+const PhotoList = ({ photoSections, refetchPhotos }) => {
+  const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
 
-  <div className="PhotoList">
-    <div className="PhotoListScroller" ref={containerRef} onScroll={onScroll}>
+  return (
+    <Container ref={scrollerRef} onScroll={handleScroll}>
       <Thumbnails photoSections={photoSections} />
-    </div>
-    <div className="Scrollbar" ref={scrollbarHandleRef} style={{opacity: displayScrollbar ? 1 : null}} onMouseDown={onMouseDown} onTouchStart={onTouchStart}></div>
-    {
-      photoSections.length >= 5 ?
-      <Histogram photoSections={photoSections} selectedSection={selectedSection} onClick={onHistogramClick} />
-      : null
-    }
-  </div>
-)
+      {/* #TODO: Add the DateHistogram feature back here */}
+    </Container>
+  )
+}
 
 export default PhotoList

@@ -11,6 +11,8 @@ from photonix.photos.utils.fs import (determine_destination,
                                       find_new_file_name, mkdir_p)
 from photonix.photos.utils.metadata import get_datetime
 
+SYNOLOGY_THUMBNAILS_DIR_NAME = '/@eaDir'
+
 
 class FileHashCache(object):
     '''
@@ -96,6 +98,8 @@ def import_photos_from_dir(orig, move=False):
     were_bad = 0
 
     for r, d, f in os.walk(orig):
+        if SYNOLOGY_THUMBNAILS_DIR_NAME in r:
+            continue
         for fn in sorted(f):
             filepath = os.path.join(r, fn)
             dest = determine_destination(filepath)
@@ -105,12 +109,6 @@ def import_photos_from_dir(orig, move=False):
             elif not dest:
                 # No filters match this file type
                 pass
-            elif os.path.getsize(filepath) < 102400:
-                print('FILE VERY SMALL (<100k - PROBABLY THUMBNAIL), NOT IMPORTING {}'.format(filepath))
-                were_bad += 1
-            elif os.path.getsize(filepath) > 1073741824:
-                print('FILE VERY LARGE (>1G - PROBABLY VIDEO), NOT IMPORTING {}'.format(filepath))
-                were_bad += 1
             else:
                 t = get_datetime(filepath)
                 if t:
@@ -162,16 +160,12 @@ def import_photos_in_place(library_path):
     were_bad = 0
 
     for r, d, f in os.walk(orig):
+        if SYNOLOGY_THUMBNAILS_DIR_NAME in r:
+            continue
         for fn in sorted(f):
             filepath = os.path.join(r, fn)
             if blacklisted_type(fn):
                 # Blacklisted type
-                were_bad += 1
-            elif os.path.getsize(filepath) < 102400:
-                print('FILE VERY SMALL (<100k - PROBABLY THUMBNAIL), NOT IMPORTING {}'.format(filepath))
-                were_bad += 1
-            elif os.path.getsize(filepath) > 1073741824:
-                print('FILE VERY LARGE (>1G - PROBABLY VIDEO), NOT IMPORTING {}'.format(filepath))
                 were_bad += 1
             else:
                 modified = record_photo(filepath, library_path.library)
