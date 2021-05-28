@@ -64,7 +64,7 @@ def find_closest_face_tag(library_id, source_embedding):
         try:
             tag_embedding = json.loads(photo_tag.extra_data)['facenet_embedding']
             representations.append((str(photo_tag.tag.id), tag_embedding))
-        except KeyError:
+        except (KeyError, json.decoder.JSONDecodeError):
             pass
 
     # Calculate Euclidean distances
@@ -137,6 +137,8 @@ def run_on_photo(photo_id):
         photo.classifier_color_completed_at = timezone.now()
         photo.classifier_color_version = getattr(model, 'version', 0)
         photo.save()
+
+    print('Finished')
 
     return photo, results
 
