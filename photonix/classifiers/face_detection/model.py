@@ -97,7 +97,12 @@ def run_on_photo(photo_id):
     for result in results:
         # Crop individual face + 30% extra in each direction
         box = result['box']
-        face_image = image_data.crop([box[0]-int(box[2]*0.3), box[1]-int(box[3]*0.3), box[0]+box[2]+int(box[2]*0.3), box[1]+box[3]+int(box[3]*0.3)])
+        face_image = image_data.crop([
+            max(box[0]-int(box[2]*0.3), 0),
+            max(box[1]-int(box[3]*0.3), 0),
+            min(box[0]+box[2]+int(box[2]*0.3), image_data.width),
+            min(box[1]+box[3]+int(box[3]*0.3), image_data.height)
+        ])
         # Generate embedding with Facenet
         try:
             embedding = DeepFace.represent(np.asarray(face_image), model_name='Facenet')
