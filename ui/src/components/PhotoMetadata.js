@@ -275,7 +275,7 @@ const PhotoMetadata = ({
             )}
           </ul>
         </div>
-        {photo.locationTags.length && (
+        {photo.locationTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>Locations</h2>
             <HierarchicalTagsContainer
@@ -295,7 +295,7 @@ const PhotoMetadata = ({
             </div>
           </div>
         )}
-        {photo.colorTags.length && (
+        {photo.colorTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>Colors</h2>
             <ColorTags
@@ -306,7 +306,7 @@ const PhotoMetadata = ({
             />
           </div>
         )}
-        {photo.personTags.length && (
+        {photo.personTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>
               People
@@ -323,7 +323,7 @@ const PhotoMetadata = ({
             </ul>
           </div>
         )}
-        {photo.objectTags.length && (
+        {photo.objectTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>
               Objects
@@ -340,7 +340,7 @@ const PhotoMetadata = ({
             </ul>
           </div>
         )}
-        {photo.styleTags.length && (
+        {photo.styleTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>Styles</h2>
             <ul>
