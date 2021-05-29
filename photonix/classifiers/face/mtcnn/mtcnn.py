@@ -79,7 +79,7 @@ class MTCNN(object):
             steps_threshold = [0.6, 0.7, 0.7]
 
         if weights_file is None:
-            weights_file = '/data/models/face_detection/mtcnn_weights.npy'
+            weights_file = '/data/models/face/mtcnn_weights.npy'
 
         self._min_face_size = min_face_size
         self._steps_threshold = steps_threshold

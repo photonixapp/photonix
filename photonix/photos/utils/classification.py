@@ -13,7 +13,7 @@ CLASSIFIERS = [
     'location',
     'object',
     'style',
-    'face_detection',
+    'face',
 ]
 
 

@@ -1,26 +1,26 @@
 import json
-import operator
 import os
 import sys
 from pathlib import Path
 from random import randint
 
-from deepface import DeepFace
 import numpy as np
 from PIL import Image
 import redis
 from redis_lock import Lock
 
 from photonix.classifiers.base_model import BaseModel
-from photonix.classifiers.face_detection.mtcnn import MTCNN
-from photonix.photos.models import Tag, PhotoTag
+from photonix.classifiers.face.deepface import DeepFace
+from photonix.classifiers.face.mtcnn import MTCNN
+from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance
 
 
-GRAPH_FILE = os.path.join('face_detection', 'mtcnn_weights.npy')
+GRAPH_FILE = os.path.join('face', 'mtcnn_weights.npy')
+
 
 class FaceDetectionModel(BaseModel):
-    name = 'face_detection'
-    version = 20210120
+    name = 'face'
+    version = 20210528
     approx_ram_mb = 1000
     max_num_workers = 1
 
@@ -50,15 +50,9 @@ class FaceDetectionModel(BaseModel):
         return list(filter(lambda f: f['confidence'] > min_score, results))
 
 
-def calculate_euclidian_distance(source_representation, test_representation):
-    euclidean_distance = np.array(source_representation) - np.array(test_representation)
-    euclidean_distance = np.sum(np.multiply(euclidean_distance, euclidean_distance))
-    euclidean_distance = np.sqrt(euclidean_distance)
-    return euclidean_distance
-
-
 def find_closest_face_tag(library_id, source_embedding):
     # Collect all previously generated embeddings
+    from photonix.photos.models import PhotoTag
     representations = []
     for photo_tag in PhotoTag.objects.filter(photo__library_id=library_id, tag__type='F'):
         try:
@@ -70,7 +64,7 @@ def find_closest_face_tag(library_id, source_embedding):
     # Calculate Euclidean distances
     distances = []
     for (_, target_embedding) in representations:
-        distance = calculate_euclidian_distance(source_embedding, target_embedding)
+        distance = findEuclideanDistance(source_embedding, target_embedding)
         distances.append(distance)
 
     # Return closest match and distance value
@@ -120,7 +114,7 @@ def run_on_photo(photo_id):
 
     if photo:
         from django.utils import timezone
-        from photonix.photos.models import PhotoTag
+        from photonix.photos.models import Tag, PhotoTag
         photo.clear_tags(source='C', type='F')
         for result in results:
             if result.get('closest_distance', 999) < 14:
