@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from random import randint
 
+from annoy import AnnoyIndex
 import numpy as np
 from PIL import Image
 import redis
@@ -16,6 +17,7 @@ from photonix.classifiers.face.deepface.commons.distance import findEuclideanDis
 
 
 GRAPH_FILE = os.path.join('face', 'mtcnn_weights.npy')
+DISTANCE_THRESHOLD = 14
 
 
 class FaceDetectionModel(BaseModel):
@@ -51,6 +53,19 @@ class FaceDetectionModel(BaseModel):
 
 
 def find_closest_face_tag(library_id, source_embedding):
+    # Use ANN index to do quick serach if it has been trained
+    from django.conf import settings
+    ann_path = Path(settings.MODEL_DIR) / 'face' / 'faces.ann'
+    tag_ids_path = Path(settings.MODEL_DIR) / 'face' / 'faces_tag_ids.json'
+    if os.path.exists(ann_path) and os.path.exists(tag_ids_path):
+        embedding_size = 128  # FaceNet output size
+        t = AnnoyIndex(embedding_size, 'euclidean')
+        t.load(str(ann_path))
+        with open(tag_ids_path) as f:
+            tag_ids = json.loads(f.read())
+        nearest = t.get_nns_by_vector(source_embedding, 1, include_distances=True)
+        return tag_ids[nearest[0][0]], nearest[1][0]
+
     # Collect all previously generated embeddings
     from photonix.photos.models import PhotoTag
     representations = []
@@ -117,11 +132,11 @@ def run_on_photo(photo_id):
         from photonix.photos.models import Tag, PhotoTag
         photo.clear_tags(source='C', type='F')
         for result in results:
-            if result.get('closest_distance', 999) < 14:
+            if result.get('closest_distance', 999) < DISTANCE_THRESHOLD:
                 tag = Tag.objects.get(id=result['closest_tag'], library=photo.library, type='F')
                 print(f'MATCHED {tag.name}')
             else:
-                tag = get_or_create_tag(library=photo.library, name=f'Unknown person {randint(0, 999999):06f}', type='F', source='C')
+                tag = get_or_create_tag(library=photo.library, name=f'Unknown person {randint(0, 999999):06d}', type='F', source='C')
             x = (result['box'][0] + (result['box'][2] / 2)) / photo.base_file.width
             y = (result['box'][1] + (result['box'][3] / 2)) / photo.base_file.height
             width = result['box'][2] / photo.base_file.width

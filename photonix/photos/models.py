@@ -121,7 +121,7 @@ class Photo(UUIDModel, VersionedModel):
     exposure = models.CharField(max_length=8, blank=True, null=True)
     iso_speed = models.PositiveIntegerField(null=True)
     focal_length = models.DecimalField(max_digits=4, decimal_places=1, null=True)
-    flash = models.NullBooleanField()
+    flash = models.BooleanField(null=True)
     metering_mode = models.CharField(max_length=32, null=True)
     drive_mode = models.CharField(max_length=32, null=True)
     shooting_mode = models.CharField(max_length=32, null=True)
