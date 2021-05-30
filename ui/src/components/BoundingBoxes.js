@@ -9,6 +9,7 @@ const Container = styled('div')`
   .FeatureBox {
     border: 3px solid rgba(255, 0, 0, 0.75);
     position: absolute;
+    border-radius: 6px;
     .FeatureLabel {
       color: #fff;
       font-size: 14px;
@@ -16,16 +17,24 @@ const Container = styled('div')`
       display: inline-block;
       overflow: hidden;
       max-width: 100%;
-      padding: 0 5px 2px 2px;
+      padding: 0 7px 2px 4px;
       float: left;
       text-align: left;
       white-space: nowrap;
+      pointer-events: all;
+      &:hover {
+        overflow: visible;
+        text-shadow: 0 0 2px #f00;
+      }
     }
     &.face {
       border-color: rgba(255, 255, 0, 0.75);
       .FeatureLabel {
         color: #000;
         background-color: rgba(255, 255, 0, 0.75);
+        &:hover {
+          text-shadow: 0 0 2px #ff0;
+        }
       }
     }
   }

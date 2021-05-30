@@ -129,10 +129,6 @@ const FiltersContainer = ({
       const locationsTags = getFilterdData('Locations', data.allLocationTags)
       filterData.push(createFilterSelection('Locations', locationsTags))
     }
-    if (data.allPersonTags.length) {
-      const peopleTags = getFilterdData('People', data.allPersonTags)
-      filterData.push(createFilterSelection('People', peopleTags))
-    }
     if (data.allColorTags.length) {
       const colorsTags = getFilterdData('Colors', data.allColorTags)
       filterData.push(createFilterSelection('Colors', colorsTags))
@@ -140,6 +136,10 @@ const FiltersContainer = ({
     if (data.allStyleTags.length) {
       const stylesTags = getFilterdData('Styles', data.allStyleTags)
       filterData.push(createFilterSelection('Styles', stylesTags))
+    }
+    if (data.allPersonTags.length) {
+      const peopleTags = getFilterdData('People', data.allPersonTags)
+      filterData.push(createFilterSelection('People', peopleTags))
     }
     if (data.allCameras.length) {
       filterData.push({

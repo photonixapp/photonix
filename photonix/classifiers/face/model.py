@@ -21,7 +21,7 @@ GRAPH_FILE = os.path.join('face', 'mtcnn_weights.npy')
 class FaceDetectionModel(BaseModel):
     name = 'face'
     version = 20210528
-    approx_ram_mb = 1000
+    approx_ram_mb = 600
     max_num_workers = 1
 
     def __init__(self, model_dir=None, graph_file=GRAPH_FILE, lock_name=None):
@@ -121,7 +121,7 @@ def run_on_photo(photo_id):
                 tag = Tag.objects.get(id=result['closest_tag'], library=photo.library, type='F')
                 print(f'MATCHED {tag.name}')
             else:
-                tag = get_or_create_tag(library=photo.library, name=f'Unknown face {randint(1,1000000)}', type='F', source='C')
+                tag = get_or_create_tag(library=photo.library, name=f'Unknown person {randint(0, 999999):06f}', type='F', source='C')
             x = (result['box'][0] + (result['box'][2] / 2)) / photo.base_file.width
             y = (result['box'][1] + (result['box'][3] / 2)) / photo.base_file.height
             width = result['box'][2] / photo.base_file.width

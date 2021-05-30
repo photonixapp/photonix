@@ -338,8 +338,8 @@ class Query(graphene.ObjectType):
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P', photo_tags__photo__in=photos_list).distinct()
-        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P')
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__photo__in=photos_list).distinct()
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F')
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
