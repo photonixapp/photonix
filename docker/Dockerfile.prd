@@ -94,11 +94,13 @@ RUN rm -rf \
 FROM ${ARCH}python:3.8.9-slim-buster
 
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
+        cron \
         dcraw \
         libatlas3-base \
         libfreetype6 \
         libfreetype6-dev \
+        libglib2.0-dev \
         libimage-exiftool-perl \
         libpq-dev \
         libtiff5-dev \

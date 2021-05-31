@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 import sys
@@ -5,6 +6,7 @@ from pathlib import Path
 from random import randint
 
 from annoy import AnnoyIndex
+from django.utils import timezone
 import numpy as np
 from PIL import Image
 import redis
@@ -53,16 +55,20 @@ class FaceDetectionModel(BaseModel):
 
 
 def find_closest_face_tag(library_id, source_embedding):
-    # Use ANN index to do quick serach if it has been trained
+    # Use ANN index to do quick serach if it has been trained by retrain_face_similarity_index
     from django.conf import settings
     ann_path = Path(settings.MODEL_DIR) / 'face' / 'faces.ann'
     tag_ids_path = Path(settings.MODEL_DIR) / 'face' / 'faces_tag_ids.json'
+
     if os.path.exists(ann_path) and os.path.exists(tag_ids_path):
         embedding_size = 128  # FaceNet output size
         t = AnnoyIndex(embedding_size, 'euclidean')
-        t.load(str(ann_path))
-        with open(tag_ids_path) as f:
-            tag_ids = json.loads(f.read())
+        # Ensure ANN index, tag IDs and version files can't be updated while we are reading
+        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
+        with Lock(r, 'face_model_retrain'):
+            t.load(str(ann_path))
+            with open(tag_ids_path) as f:
+                tag_ids = json.loads(f.read())
         nearest = t.get_nns_by_vector(source_embedding, 1, include_distances=True)
         return tag_ids[nearest[0][0]], nearest[1][0]
 
@@ -87,6 +93,18 @@ def find_closest_face_tag(library_id, source_embedding):
         return (None, 999)
     candidate_idx = np.argmin(distances)
     return (representations[candidate_idx][0], distance)
+
+
+def get_retrained_model_version():
+    from django.conf import settings
+    version_file = Path(settings.MODEL_DIR) / 'face' / 'retrained_version.txt'
+    version_date = None
+    if os.path.exists(version_file):
+        with open(version_file) as f:
+            contents = f.read().strip()
+            version_date = datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
+            return int(version_date.strftime('%Y%m%d%H%M%S'))
+    return 0
 
 
 def run_on_photo(photo_id):
@@ -147,7 +165,7 @@ def run_on_photo(photo_id):
             if 'embedding' in result:
                 extra_data = json.dumps({'facenet_embedding': result['embedding']})
 
-            PhotoTag(photo=photo, tag=tag, source='F', confidence=score, significance=score, position_x=x, position_y=y, size_x=width, size_y=height, extra_data=extra_data).save()
+            PhotoTag(photo=photo, tag=tag, source='F', confidence=score, significance=score, position_x=x, position_y=y, size_x=width, size_y=height, model_version=model.version, retrained_model_version=get_retrained_model_version(), extra_data=extra_data).save()
         photo.classifier_color_completed_at = timezone.now()
         photo.classifier_color_version = getattr(model, 'version', 0)
         photo.save()
