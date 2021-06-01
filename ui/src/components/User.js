@@ -10,6 +10,7 @@ import arrowDown from '../static/images/arrow_down.svg'
 import library from '../static/images/library.svg'
 import settings from '../static/images/settings.svg'
 import logout from '../static/images/logout.svg'
+import uploadIcon from '../static/images/upload_icon.svg'
 
 const Container = styled('div')`
   width: 84px;
@@ -192,6 +193,12 @@ const User = ({ profile, libraries }) => {
               </li>
             ))
           : null}
+        <Link to="/upload">
+          <li>
+            <img src={uploadIcon} alt="Upload" />
+            <div className="text">Upload</div>
+          </li>
+        </Link>  
         <Link to="/settings">
           <li>
             <img src={settings} alt="Settings" />

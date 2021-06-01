@@ -17,6 +17,7 @@ import history from '../history'
 import '../static/css/App.css'
 import '../static/css/typography.css'
 import ZoomTest from './ZoomTest'
+import Dropzone from '../components/DropZone'
 
 if (Cookies.get('refreshToken')) {
   logIn()
@@ -65,6 +66,7 @@ const App = ({
         parentPath="/"
         component={PhotoDetailContainer}
       />
+      <ModalRoute path="/upload" parentPath="/" component={Dropzone} />
     </Switch>
   </>
 )
