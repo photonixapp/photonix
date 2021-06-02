@@ -1,1 +1,1 @@
-from .model import FaceDetectionModel, run_on_photo
+from .model import FaceModel, run_on_photo

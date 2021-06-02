@@ -1,11 +1,10 @@
 from django.core.management.base import BaseCommand
 # Pre-load the model graphs so it doesn't have to be done for each job
-from photonix.classifiers.face import FaceDetectionModel, run_on_photo
+from photonix.classifiers.face import run_on_photo
 from photonix.photos.utils.classification import ThreadedQueueProcessor
 
 
-print('Loading face model')
-model = FaceDetectionModel()
+model = None
 
 
 class Command(BaseCommand):

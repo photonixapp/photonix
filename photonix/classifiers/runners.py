@@ -1,5 +1,6 @@
 import os
 import re
+from time import sleep
 from uuid import UUID
 
 
@@ -18,7 +19,7 @@ def get_or_create_tag(library, name, type, source, parent=None, ordering=None):
     return tag
 
 
-def results_for_model_on_photo(model, photo_id):
+def get_photo_by_any_type(photo_id):
     is_photo_instance = False
     photo = None
 
@@ -29,8 +30,6 @@ def results_for_model_on_photo(model, photo_id):
             is_photo_instance = True
     elif hasattr(photo_id, 'id'):
         photo = photo_id
-
-    # import pdb; pdb.set_trace()
 
     # Is an individual filename so return the prediction
     if not is_photo_instance:
@@ -47,6 +46,10 @@ def results_for_model_on_photo(model, photo_id):
         from photonix.photos.models import Photo
         photo = Photo.objects.get(id=photo_id)
 
-    results = model.predict(photo.base_image_path)
+    return is_photo_instance and photo or None
 
-    return is_photo_instance and photo or None, results
+
+def results_for_model_on_photo(model, photo_id):
+    photo = get_photo_by_any_type(photo_id)
+    results = model.predict(photo.base_image_path)
+    return photo, results

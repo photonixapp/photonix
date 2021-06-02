@@ -22,6 +22,7 @@ const Container = styled('div')`
       text-align: left;
       white-space: nowrap;
       pointer-events: all;
+      border-radius: 3px 3px 0 0;
       &:hover {
         overflow: visible;
         text-shadow: 0 0 2px #f00;
@@ -45,6 +46,7 @@ const Container = styled('div')`
       .FeatureLabel {
         font-size: 8px;
         padding: 0 3px 1px 3px;
+        border-radius: 5px 5px 0 0;
       }
     }
   }
