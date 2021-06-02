@@ -19,7 +19,7 @@ from photonix.classifiers.face.deepface.commons.distance import findEuclideanDis
 
 
 GRAPH_FILE = os.path.join('face', 'mtcnn_weights.npy')
-DISTANCE_THRESHOLD = 14
+DISTANCE_THRESHOLD = 10
 
 
 class FaceDetectionModel(BaseModel):
@@ -92,7 +92,7 @@ def find_closest_face_tag(library_id, source_embedding):
     if not distances:  # First face has nothing to compare to
         return (None, 999)
     candidate_idx = np.argmin(distances)
-    return (representations[candidate_idx][0], distance)
+    return (representations[candidate_idx][0], distances[candidate_idx])
 
 
 def get_retrained_model_version():
