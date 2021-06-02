@@ -105,12 +105,11 @@ class FaceModel(BaseModel):
                 with open(tag_ids_path) as f:
                     tag_ids = json.loads(f.read())
             nearest = t.get_nns_by_vector(source_embedding, 1, include_distances=True)
-            # import pdb; pdb.set_trace()
             return tag_ids[nearest[0][0]], nearest[1][0]
 
-        return (None, None)
+        return (None, 999)
 
-    def find_closest_face_tag_by_brute_force(self, source_embedding, target_data=None):
+    def find_closest_face_tag_by_brute_force(self, source_embedding, oldest_date=None, target_data=None):
         if not self.library_id and not target_data:
             raise ValueError('No Library ID is set')
 
@@ -121,7 +120,10 @@ class FaceModel(BaseModel):
         else:
             # Collect all previously generated embeddings
             from photonix.photos.models import PhotoTag
-            for photo_tag in PhotoTag.objects.filter(photo__library_id=self.library_id, tag__type='F'):
+            photo_tags = PhotoTag.objects.filter(photo__library_id=self.library_id, tag__type='F')
+            if oldest_date:
+                photo_tags = photo_tags.filter(created_at__gt=oldest_date)
+            for photo_tag in photo_tags:
                 try:
                     tag_embedding = json.loads(photo_tag.extra_data)['facenet_embedding']
                     representations.append((str(photo_tag.tag.id), tag_embedding))
@@ -137,19 +139,25 @@ class FaceModel(BaseModel):
         # Return closest match and distance value
         if not distances:  # First face added has nothing to compare to
             return (None, 999)
-        candidate_idx = np.argmin(distances)
-        return (representations[candidate_idx][0], distances[candidate_idx])
+        index = np.argmin(distances)
+        return (representations[index][0], distances[index])
 
     def find_closest_face_tag(self, source_embedding):
         if not self.library_id:
             raise ValueError('No Library ID is set')
 
         ann_nearest, ann_distance = self.find_closest_face_tag_by_ann(source_embedding)
-        if ann_nearest:
-            return ann_nearest, ann_distance
 
-        brute_force_nearest, brute_force_distance = self.find_closest_face_tag_by_brute_force(source_embedding)
-        return brute_force_nearest, brute_force_distance
+        oldest_date = None
+        if self.retrained_version:
+            oldest_date = datetime.strptime(str(self.retrained_version), '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
+
+        brute_force_nearest, brute_force_distance = self.find_closest_face_tag_by_brute_force(source_embedding, oldest_date=oldest_date)
+
+        if ann_nearest and ann_distance < brute_force_distance:
+            return ann_nearest, ann_distance
+        else:
+            return brute_force_nearest, brute_force_distance
 
     def retrain_face_similarity_index(self, training_data=None):
         if not self.library_id and not training_data:
@@ -251,13 +259,17 @@ def run_on_photo(photo_id):
     if photo:
         from django.utils import timezone
         from photonix.photos.models import Tag, PhotoTag
+
         photo.clear_tags(source='C', type='F')
         for result in results:
+            # Use matched tag if within distance threshold
             if result.get('closest_distance', 999) < DISTANCE_THRESHOLD:
                 tag = Tag.objects.get(id=result['closest_tag'], library=photo.library, type='F')
                 print(f'MATCHED {tag.name}')
+            # Otherwise create new tag
             else:
                 tag = get_or_create_tag(library=photo.library, name=f'Unknown person {randint(0, 999999):06d}', type='F', source='C')
+
             x = (result['box'][0] + (result['box'][2] / 2)) / photo.base_file.width
             y = (result['box'][1] + (result['box'][3] / 2)) / photo.base_file.height
             width = result['box'][2] / photo.base_file.width
