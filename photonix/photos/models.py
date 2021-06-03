@@ -169,7 +169,11 @@ class Photo(UUIDModel, VersionedModel):
     @property
     def download_url(self):
         library_url = self.library.get_library_path_store().url
+        if not library_url:
+            library_url = '/photos/'
         library_path = self.library.get_library_path_store().path
+        if not library_path:
+            library_path = '/data/photos/'
         return self.base_file.path.replace(library_path, library_url)
 
     @property
