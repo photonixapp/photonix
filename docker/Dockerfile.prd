@@ -86,7 +86,6 @@ RUN rm -rf \
     /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/sample_data \
     /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/images \
     /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/stylelib \
-    /usr/local/lib/python3.8/site-packages/h5py \
     /usr/local/lib/python3.8/site-packages/tensorboard \
     /usr/local/lib/python3.8/site-packages/tensorboard_plugin_wit
 
@@ -100,6 +99,7 @@ RUN apt-get update && \
         libatlas3-base \
         libfreetype6 \
         libfreetype6-dev \
+        libgl1 \
         libglib2.0-dev \
         libimage-exiftool-perl \
         libpq-dev \
@@ -107,6 +107,7 @@ RUN apt-get update && \
         netcat \
         nginx-light \
         supervisor \
+        xz-utils \
     && \
         apt-get clean && \
             rm -rf /var/lib/apt/lists/* \

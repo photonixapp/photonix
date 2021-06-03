@@ -91,8 +91,8 @@ class FaceModel(BaseModel):
     def find_closest_face_tag_by_ann(self, source_embedding):
         # Use ANN index to do quick serach if it has been trained by retrain_face_similarity_index
         from django.conf import settings
-        ann_path = Path(settings.MODEL_DIR) / 'face' / f'faces_{self.library_id}.ann'
-        tag_ids_path = Path(settings.MODEL_DIR) / 'face' / f'faces_tag_ids_{self.library_id}.json'
+        ann_path = Path(settings.MODEL_DIR) / 'face' / f'{self.library_id}_faces.ann'
+        tag_ids_path = Path(settings.MODEL_DIR) / 'face' / f'{self.library_id}_faces_tag_ids.json'
 
         if os.path.exists(ann_path) and os.path.exists(tag_ids_path):
             embedding_size = 128  # FaceNet output size
@@ -165,9 +165,9 @@ class FaceModel(BaseModel):
 
         from django.conf import settings
         from photonix.photos.models import PhotoTag
-        ann_path = Path(settings.MODEL_DIR) / 'face' / f'faces_{self.library_id}.ann'
-        tag_ids_path = Path(settings.MODEL_DIR) / 'face' / f'faces_tag_ids_{self.library_id}.json'
-        version_file = Path(settings.MODEL_DIR) / 'face' / f'retrained_version_{self.library_id}.txt'
+        ann_path = Path(settings.MODEL_DIR) / 'face' / f'{self.library_id}_faces.ann'
+        tag_ids_path = Path(settings.MODEL_DIR) / 'face' / f'{self.library_id}_faces_tag_ids.json'
+        version_file = Path(settings.MODEL_DIR) / 'face' / f'{self.library_id}_retrained_version.txt'
 
         embedding_size = 128  # FaceNet output size
         t = AnnoyIndex(embedding_size, 'euclidean')
@@ -208,7 +208,7 @@ class FaceModel(BaseModel):
     def reload_retrained_model_version(self):
         if self.library_id:
             from django.conf import settings
-            version_file = Path(settings.MODEL_DIR) / 'face' / f'retrained_version_{self.library_id}.txt'
+            version_file = Path(settings.MODEL_DIR) / 'face' / f'{self.library_id}_retrained_version.txt'
             version_date = None
             if os.path.exists(version_file):
                 with open(version_file) as f:
