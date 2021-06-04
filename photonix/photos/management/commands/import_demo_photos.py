@@ -42,15 +42,23 @@ class Command(BaseCommand):
             user.save()
         except IntegrityError:
             user = User.objects.get(username='demo')
+
         # Create Library
-        library, _ = Library.objects.get_or_create(
-            name='Demo Library',
-            classification_color_enabled=True,
-            classification_location_enabled=True,
-            classification_style_enabled=True,
-            classification_object_enabled=True,
-            setup_stage_completed='Th'
-        )
+        try:
+            library = Library.objects.get(
+                name='Demo Library',
+            )
+        except Library.DoesNotExist:
+            library = Library(
+                name='Demo Library',
+                classification_color_enabled=True,
+                classification_location_enabled=True,
+                classification_style_enabled=True,
+                classification_object_enabled=True,
+                setup_stage_completed='Th'
+            )
+            library.save()
+
         # LibraryPath as locally mounted volume
         LibraryPath.objects.get_or_create(
             library=library,

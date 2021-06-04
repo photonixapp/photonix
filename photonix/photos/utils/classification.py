@@ -9,6 +9,7 @@ from photonix.photos.utils.tasks import requeue_stuck_tasks
 
 CLASSIFIERS = [
     'color',
+    'event',
     'location',
     'object',
     'style',

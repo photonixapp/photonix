@@ -40,10 +40,11 @@ def record_photo(path, library, inotify_event_type=None):
             break
 
     camera = None
-    camera_make = metadata.get('Make', '')
+    camera_make = metadata.get('Make', '')[:Camera.make.field.max_length]
     camera_model = metadata.get('Camera Model Name', '')
     if camera_model:
         camera_model = camera_model.replace(camera_make, '').strip()
+    camera_model = camera_model[:Camera.model.field.max_length]
     if camera_make and camera_model:
         try:
             camera = Camera.objects.get(library_id=library_id, make=camera_make, model=camera_model)
@@ -108,15 +109,15 @@ def record_photo(path, library, inotify_event_type=None):
         photo = Photo(
             library_id=library_id,
             taken_at=date_taken,
-            taken_by=metadata.get('Artist') or None,
+            taken_by=metadata.get('Artist', '')[:Photo.taken_by.field.max_length] or None,
             aperture=aperture,
-            exposure=metadata.get('Exposure Time') or None,
+            exposure=metadata.get('Exposure Time', '')[:Photo.exposure.field.max_length] or None,
             iso_speed=iso_speed,
             focal_length=metadata.get('Focal Length') and metadata.get('Focal Length').split(' ', 1)[0] or None,
             flash=metadata.get('Flash') and 'on' in metadata.get('Flash').lower() or False,
-            metering_mode=metadata.get('Metering Mode') or None,
-            drive_mode=metadata.get('Drive Mode') or None,
-            shooting_mode=metadata.get('Shooting Mode') or None,
+            metering_mode=metadata.get('Metering Mode', '')[:Photo.metering_mode.field.max_length] or None,
+            drive_mode=metadata.get('Drive Mode', '')[:Photo.drive_mode.field.max_length] or None,
+            shooting_mode=metadata.get('Shooting Mode', '')[:Photo.shooting_mode.field.max_length] or None,
             camera=camera,
             lens=lens,
             latitude=latitude,

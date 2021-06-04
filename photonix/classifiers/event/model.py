@@ -1,23 +1,13 @@
-import operator
 import sys
 from pathlib import Path
 from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime)
 import datetime
 
 
-
 class EventModel:
     version = 20210505
     approx_ram_mb = 120
     max_num_workers = 2
-
-    def __init__(self):
-        self.events = {
-            'Christmas Day': '25 December',
-            'New Year': '31st December 12:00PM to 1st January 12:00PM',
-            'Halloween': '31st October',
-            "Valentine's Day": '14th February',
-        }
 
     def predict(self, image_file):
         metadata = PhotoMetadata(image_file)
@@ -28,10 +18,10 @@ class EventModel:
             if date_taken:
                 events = {
                     datetime.date(date_taken.year, 12, 25): "Christmas Day",
-                    datetime.date(date_taken.year, 10, 31):"Halloween",
-                    datetime.date(date_taken.year, 2, 14):"Valentine's Day",
+                    datetime.date(date_taken.year, 10, 31): "Halloween",
+                    datetime.date(date_taken.year, 2, 14): "Valentine's Day",
                     datetime.date(date_taken.year, 12, 31): "New Year Start",
-                    datetime.date(date_taken.year, 1, 1):"New Year End",
+                    datetime.date(date_taken.year, 1, 1): "New Year End",
                 }
                 date_taken = datetime.datetime(date_taken.year, 12, 31, 2, 30)
                 if events.get(date_taken.date()):
@@ -39,25 +29,22 @@ class EventModel:
                         start_of_day = datetime.datetime.combine(datetime.date(date_taken.year, 12, 31), datetime.datetime.min.time())
                         end_of_day = start_of_day + datetime.timedelta(days=1)
                         if start_of_day <= date_taken.replace(tzinfo=None) <= end_of_day:
-                            return "New Year"
-                    return events.get(date_taken.date())
-            return date_taken
+                            return ['New Year']
+                    return [events.get(date_taken.date())]
+        return []
 
 def run_on_photo(photo_id):
     model = EventModel()
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
+
     photo, results = results_for_model_on_photo(model, photo_id)
     if photo:
-        from django.utils import timezone
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='E')
         for name in results:
-            tag = get_or_create_tag(library=photo.library, name=name, type='C', source='C', ordering=model.colors[name][1])
-            PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
-        photo.classifier_color_completed_at = timezone.now()
-        photo.classifier_color_version = getattr(model, 'version', 0)
-        photo.save()
+            tag = get_or_create_tag(library=photo.library, name=name, type='E', source='C')
+            PhotoTag(photo=photo, tag=tag, source='C', confidence=0.5, significance=0.5).save()
 
     return photo, results
 

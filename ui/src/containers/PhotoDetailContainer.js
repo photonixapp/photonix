@@ -61,6 +61,13 @@ const GET_PHOTO = gql`
         }
         significance
       }
+      eventTags {
+        id
+        tag {
+          name
+        }
+        significance
+      }
       styleTags {
         id
         tag {

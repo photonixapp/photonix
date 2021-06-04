@@ -122,9 +122,9 @@ class Photo(UUIDModel, VersionedModel):
     iso_speed = models.PositiveIntegerField(null=True)
     focal_length = models.DecimalField(max_digits=4, decimal_places=1, null=True)
     flash = models.NullBooleanField()
-    metering_mode = models.CharField(max_length=32, null=True)
-    drive_mode = models.CharField(max_length=32, null=True)
-    shooting_mode = models.CharField(max_length=32, null=True)
+    metering_mode = models.CharField(max_length=64, null=True)
+    drive_mode = models.CharField(max_length=64, null=True)
+    shooting_mode = models.CharField(max_length=64, null=True)
     camera = models.ForeignKey(Camera, related_name='photos', null=True, on_delete=models.CASCADE)
     lens = models.ForeignKey(Lens, related_name='photos', null=True, on_delete=models.CASCADE)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
@@ -240,8 +240,8 @@ class Tag(UUIDModel, VersionedModel):
     library = models.ForeignKey(Library, related_name='tags', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     parent = models.ForeignKey('Tag', related_name='+', null=True, on_delete=models.CASCADE)
-    type = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True)
-    source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
+    type = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True, db_index=True)
+    source = models.CharField(max_length=1, choices=SOURCE_CHOICES, db_index=True)
     ordering = models.FloatField(null=True)
 
     class Meta:
@@ -255,7 +255,7 @@ class Tag(UUIDModel, VersionedModel):
 class PhotoTag(UUIDModel, VersionedModel):
     photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE, null=True)
     tag = models.ForeignKey(Tag, related_name='photo_tags', on_delete=models.CASCADE)
-    source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
+    source = models.CharField(max_length=1, choices=SOURCE_CHOICES, db_index=True)
     model_version = models.PositiveIntegerField(default=0)
     confidence = models.FloatField()
     significance = models.FloatField(null=True)
@@ -285,7 +285,7 @@ TASK_STATUS_CHOICES = (
 class Task(UUIDModel, VersionedModel):
     type = models.CharField(max_length=128, db_index=True)
     subject_id = models.UUIDField(db_index=True)
-    status = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, default='P', db_index=True)
+    status = models.CharField(max_length=1, choices=TASK_STATUS_CHOICES, default='P', db_index=True)
     started_at = models.DateTimeField(null=True)
     finished_at = models.DateTimeField(null=True)
     parent = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)

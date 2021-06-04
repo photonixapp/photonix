@@ -343,6 +343,18 @@ const PhotoMetadata = ({
         ) : (
           ''
         )}
+        {photo.eventTags.length ? (
+          <div className={`box box${boxCount++}`}>
+            <h2>Events</h2>
+            <ul>
+              {photo.eventTags.map((photoTag, index) => (
+                <li key={index}>{photoTag.tag.name}</li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          ''
+        )}
         <div className={`box box${boxCount++}`}>
           <h2>
             Tags

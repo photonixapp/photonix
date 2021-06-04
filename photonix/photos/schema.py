@@ -60,10 +60,6 @@ class PhotoInterface(graphene.Interface):
 class PhotoNode(DjangoObjectType):
     url = graphene.String()
     location = graphene.String()
-    location_tags = graphene.List(PhotoTagType)
-    object_tags = graphene.List(PhotoTagType)
-    color_tags = graphene.List(PhotoTagType)
-    style_tags = graphene.List(PhotoTagType)
     width = graphene.Int()
     height = graphene.Int()
     generic_tags = graphene.List(PhotoTagType)
@@ -71,6 +67,12 @@ class PhotoNode(DjangoObjectType):
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
     download_url = graphene.String()
+
+    color_tags = graphene.List(PhotoTagType)
+    event_tags = graphene.List(PhotoTagType)
+    location_tags = graphene.List(PhotoTagType)
+    object_tags = graphene.List(PhotoTagType)
+    style_tags = graphene.List(PhotoTagType)
 
     class Meta:
         model = Photo
@@ -84,18 +86,6 @@ class PhotoNode(DjangoObjectType):
     def resolve_url(self, info):
         size = settings.THUMBNAIL_SIZES[-1]
         return self.thumbnail_url(size)
-
-    def resolve_location_tags(self, info):
-        return self.photo_tags.filter(tag__type='L')
-
-    def resolve_object_tags(self, info):
-        return self.photo_tags.filter(tag__type='O')
-
-    def resolve_color_tags(self, info):
-        return self.photo_tags.filter(tag__type='C')
-
-    def resolve_style_tags(self, info):
-        return self.photo_tags.filter(tag__type='S')
 
     def resolve_width(self, info):
         return self.dimensions[0]
@@ -117,6 +107,21 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_download_url(self, info):
         return self.download_url
+
+    def resolve_location_tags(self, info):
+        return self.photo_tags.filter(tag__type='L')
+
+    def resolve_object_tags(self, info):
+        return self.photo_tags.filter(tag__type='O')
+
+    def resolve_color_tags(self, info):
+        return self.photo_tags.filter(tag__type='C')
+
+    def resolve_event_tags(self, info):
+        return self.photo_tags.filter(tag__type='E')
+
+    def resolve_style_tags(self, info):
+        return self.photo_tags.filter(tag__type='S')
 
 
 class PhotoFilter(django_filters.FilterSet):
