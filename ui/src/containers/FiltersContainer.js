@@ -31,6 +31,10 @@ const GET_FILTERS = gql`
       id
       name
     }
+    allEventTags(libraryId: $libraryId, multiFilter: $multiFilter) {
+      id
+      name
+    }
     allCameras(libraryId: $libraryId) {
       id
       make
@@ -135,6 +139,10 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle, searchAreaExpand })
     if (data.allStyleTags.length) {
       const stylesTags = getFilterdData('Styles', data.allStyleTags)
       filterData.push(createFilterSelection('Styles', stylesTags))
+    }
+    if (data.allEventTags.length) {
+      const eventsTags = getFilterdData('Events', data.allEventTags)
+      filterData.push(createFilterSelection('Events', eventsTags))
     }
     if (data.allCameras.length) {
       filterData.push({

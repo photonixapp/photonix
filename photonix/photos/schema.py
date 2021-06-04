@@ -180,6 +180,11 @@ class StyleTagType(DjangoObjectType):
         model = Tag
 
 
+class EventTagType(DjangoObjectType):
+    class Meta:
+        model = Tag
+
+
 class LibrarySetting(graphene.ObjectType):
     """To pass fields for library settingg query api."""
 
@@ -218,6 +223,7 @@ class Query(graphene.ObjectType):
     all_person_tags = graphene.List(PersonTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_color_tags = graphene.List(ColorTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
+    all_event_tags = graphene.List(EventTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
     photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_id=graphene.UUID())
@@ -365,6 +371,18 @@ class Query(graphene.ObjectType):
                 kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S')
+
+    def resolve_all_event_tags(self, info, **kwargs):
+        user = info.context.user
+        if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
+            filters = kwargs.get('multi_filter').split(' ')
+            photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                kwargs.get('library_id'))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='E', photo_tags__photo__in=photos_list).distinct()
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='E')
 
     def resolve_all_generic_tags(self, info, **kwargs):
         user = info.context.user
