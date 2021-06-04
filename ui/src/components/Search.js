@@ -25,6 +25,7 @@ const Search = ({
   onClearFilters,
   search,
   updateSearchText,
+  searchAreaExpand
 }) => {
   return (
     <Container>
@@ -38,6 +39,7 @@ const Search = ({
       <FiltersContainer
         selectedFilters={selectedFilters}
         onFilterToggle={onFilterToggle}
+        searchAreaExpand={searchAreaExpand}
       />
     </Container>
   )

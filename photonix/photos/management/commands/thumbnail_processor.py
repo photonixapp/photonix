@@ -28,7 +28,7 @@ class Command(BaseCommand):
     help = 'Processes full-sized photos into thumbnails of various sizes.'
 
     def run_processors(self):
-        num_workers = cpu_count()
+        num_workers = max(int(cpu_count() / 4), 1)
         threads = []
 
         print('Starting {} thumbnail processor workers\n'.format(num_workers))

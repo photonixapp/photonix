@@ -70,6 +70,7 @@ class PhotoNode(DjangoObjectType):
     photo_file = graphene.List(PhotoFileType)
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
+    download_url = graphene.String()
 
     class Meta:
         model = Photo
@@ -113,6 +114,9 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_base_file_id(self, info):
         return self.base_file.id
+
+    def resolve_download_url(self, info):
+        return self.download_url
 
 
 class PhotoFilter(django_filters.FilterSet):
@@ -201,7 +205,7 @@ class Query(graphene.ObjectType):
     all_shooting_modes = graphene.List(graphene.String, library_id=graphene.UUID())
 
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
-    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
+    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter, max_limit=None)
     map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
     all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())

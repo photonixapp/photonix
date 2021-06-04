@@ -13,7 +13,7 @@ This project is currently in development and not feature complete for a version 
 Please join in the discussion and help us gain visibility by following us on social media. Much appreciated :)
 
 - [Gitter live chat](https://gitter.im/photonixapp/community)
-- [Docker Hub](https://hub.docker.com/r/damianmoore/photonix/)
+- [Docker Hub](https://hub.docker.com/r/photonixapp/photonix/)
 - [Twitter](https://twitter.com/photonixapp)
 - [Instagram](https://www.instagram.com/photonixapp/)
 - [LinkedIn](https://www.linkedin.com/company/photonixapp/)
@@ -75,7 +75,3 @@ If you want to access the Bash or Python shells for development, you can use the
 PyTest is used as a test runner and for creating fixtures. The easiest way to run the tests is within the Docker container like this:
 
     make test
-
-## Building for multiple architectures
-
-    docker buildx build --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag damianmoore/photonix-multiarch --push -f docker/Dockerfile.multiarch --build-arg PYPI_UPLOAD_USERNAME=username --build-arg PYPI_UPLOAD_PASSWORD=password .

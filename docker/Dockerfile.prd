@@ -130,7 +130,7 @@ COPY system/supervisord.conf /etc/supervisord.conf
 
 ENV PYTHONPATH /srv
 
-RUN python photonix/manage.py collectstatic --noinput --link
+RUN DJANGO_SECRET_KEY=test python photonix/manage.py collectstatic --noinput --link
 
 CMD ./system/run.sh
 
