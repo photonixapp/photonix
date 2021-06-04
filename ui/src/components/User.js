@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import PropTypes from 'prop-types'
@@ -11,6 +11,7 @@ import library from '../static/images/library.svg'
 import settings from '../static/images/settings.svg'
 import logout from '../static/images/logout.svg'
 import uploadIcon from '../static/images/upload_icon.svg'
+import { useComponentVisible } from './Header'
 
 const Container = styled('div')`
   width: 84px;
@@ -109,33 +110,7 @@ const Container = styled('div')`
   }
 `
 
-function useComponentVisible(initialIsVisible) {
-  const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible)
-  const ref = useRef(null)
-
-  const handleHideDropdown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      setIsComponentVisible(false)
-    }
-  }
-
-  const handleClickOutside = (event) => {
-    if (ref.current && !ref.current.contains(event.target)) {
-      setIsComponentVisible(false)
-    }
-  }
-  useEffect(() => {
-    document.addEventListener('keydown', handleHideDropdown, false)
-    document.addEventListener('click', handleClickOutside, false)
-    return () => {
-      document.removeEventListener('keydown', handleHideDropdown, true)
-      document.removeEventListener('click', handleClickOutside, true)
-    }
-  })
-
-  return { ref, isComponentVisible, setIsComponentVisible }
-}
-const User = ({ profile, libraries }) => {
+const User = ({ profile, libraries, showUserMenu ,setShowUserMenu, setShowNotification }) => {
   const dispatch = useDispatch()
   const activeLibrary = useSelector(getActiveLibrary)
   const {
@@ -156,14 +131,20 @@ const User = ({ profile, libraries }) => {
   }
   const handleShowMenu = () => {
     setIsComponentVisible(true)
+    setShowUserMenu(true)
+    setShowNotification(false)
   }
+  useEffect(() => {
+    if (!isComponentVisible)
+    setShowUserMenu(false)
+  }, [isComponentVisible, setShowUserMenu])
   return (
     <Container ref={ref} onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
       <img src={accountCircle} alt="User account" />
       <img src={arrowDown} className="arrowDown" alt="" />
       <ul
         className="userMenu"
-        style={{ display: isComponentVisible ? 'block' : 'none' }}
+        style={{ display: showUserMenu ? 'block' : 'none' }}
       >
         {profile ? (
           <Link to="/account">

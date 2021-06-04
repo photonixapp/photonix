@@ -8,9 +8,9 @@ import {
   Flex,
   Stack,
   FormLabel,
-  Input,
-  InputGroup,
-  IconButton,
+  // Input,
+  // InputGroup,
+  // IconButton,
 } from '@chakra-ui/core'
 
 import Modal from './Modal'
@@ -19,13 +19,14 @@ import {
   SETTINGS_COLOR,
   SETTINGS_LOCATION,
   SETTINGS_OBJECT,
-  SETTINGS_SOURCE_FOLDER,
+  // SETTINGS_SOURCE_FOLDER,
   GET_SETTINGS,
 } from '../graphql/settings'
 // import folder from '../static/images/folder.svg'
 import '../static/css/Settings.css'
 
 export default function Settings() {
+  
   const activeLibrary = useSelector(getActiveLibrary)
   const [settings, setSettings] = useSettings(activeLibrary)
   const availableSettings = [
@@ -72,7 +73,7 @@ export default function Settings() {
             classificationStyleEnabled: newSettings.classificationStyleEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationLocationEnabled':
         settingUpdateLocation({
@@ -81,7 +82,7 @@ export default function Settings() {
               newSettings.classificationLocationEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationObjectEnabled':
         settingUpdateObject({
@@ -90,7 +91,7 @@ export default function Settings() {
               newSettings.classificationObjectEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationColorEnabled':
         settingUpdateColor({
@@ -98,36 +99,38 @@ export default function Settings() {
             classificationColorEnabled: newSettings.classificationColorEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       default:
         return null
     }
   }
 
-  function onSelectSourceDir() {
-    if (window.sendSyncToElectron) {
-      let dirs = window.sendSyncToElectron('select-dir')
-      setSettings({ sourceDirs: dirs })
-    }
-  }
+  // TODO: Re-implement desktop app settings integration
+  // function onSelectSourceDir() {
+  //   if (window.sendSyncToElectron) {
+  //     let dirs = window.sendSyncToElectron('select-dir')
+  //     setSettings({ sourceDirs: dirs })
+  //   }
+  // }
 
-  function onChangeSourceDir(e) {
-    let newSettings = { ...settings }
-    newSettings.sourceDirs = e.currentTarget.value
-    setSettings(newSettings)
-    settingUpdateSourceFolder({
-      variables: {
-        sourceFolder: newSettings.sourceDirs,
-        libraryId: activeLibrary?.id,
-      },
-    }).catch((e) => {})
-  }
+  // function onChangeSourceDir(e) {
+  //   let newSettings = { ...settings }
+  //   newSettings.sourceDirs = e.currentTarget.value
+  //   setSettings(newSettings)
+  //   settingUpdateSourceFolder({
+  //     variables: {
+  //       sourceFolder: newSettings.sourceDirs,
+  //       libraryId: activeLibrary?.id,
+  //     },
+  //   }).catch((e) => {})
+  // }
+
   const [settingUpdateStyle] = useMutation(SETTINGS_STYLE)
   const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
-  const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
+  // const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
 
   return (
     <Modal className="Settings" topAccent={true}>
@@ -139,20 +142,20 @@ export default function Settings() {
 
           if (settings) {
             if (item.type === 'path') {
-              field = (
-                <InputGroup size="sm">
-                  <Input
-                    rounded="0"
-                    value={settings ? settings[item.key] : 'empty'}
-                    onChange={onChangeSourceDir}
-                  />
-                  <IconButton
-                    aria-label="Select source folder"
-                    icon="search"
-                    onClick={onSelectSourceDir}
-                  />
-                </InputGroup>
-              )
+              // field = (
+              //   <InputGroup size="sm">
+              //     <Input
+              //       rounded="0"
+              //       value={settings ? settings[item.key] : 'empty'}
+              //       onChange={onChangeSourceDir}
+              //     />
+              //     <IconButton
+              //       aria-label="Select source folder"
+              //       icon="search"
+              //       onClick={onSelectSourceDir}
+              //     />
+              //   </InputGroup>
+              // )
             } else if (item.type === 'boolean') {
               field = (
                 <Switch
@@ -178,40 +181,42 @@ export default function Settings() {
   )
 }
 
-const useSettings = (activeLibrary) => {
+export const useSettings = (activeLibrary) => {
   const [existingSettings, setSettings] = useState({})
   const { loading, data, refetch } = useQuery(GET_SETTINGS, {
     variables: { libraryId: activeLibrary?.id },
   })
+
   const isInitialMount = useRef(true)
 
   useEffect(() => {
-    refetch()
-  }, [activeLibrary, refetch])
+    if (activeLibrary && !loading) {
+      refetch()
+    }
+  }, [activeLibrary, loading, refetch])
 
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false
-    } else {
-      if (!loading && data) {
-        let setting = { ...data.librarySetting.library }
-        setting.sourceDirs = data.librarySetting.sourceFolder
-        setSettings(setting)
-      }
+    // if (isInitialMount.current) {
+    //   isInitialMount.current = false
+    // } else {
+    if (!loading && data) {
+      let setting = { ...data.librarySetting.library }
+      setting.sourceDirs = data.librarySetting.sourceFolder
+      setSettings(setting)
     }
-    // TODO: Re-sync with desktop app
-    // if (window.sendSyncToElectron) {
-    //   let result = window.sendSyncToElectron('get-settings')
-    //   setSettings(result)
     // }
   }, [data, loading])
+  // TODO: Re-sync with desktop app
+  // if (window.sendSyncToElectron) {
+  //   let result = window.sendSyncToElectron('get-settings')
+  //   setSettings(result)
+  // }
 
   function setAndSaveSettings(newSettings) {
-    if (window.sendSyncToElectron) {
-      window.sendSyncToElectron('set-settings', newSettings)
-    }
+    // if (window.sendSyncToElectron) {
+    //   window.sendSyncToElectron('set-settings', newSettings)
+    // }
     setSettings(newSettings)
   }
-
   return [existingSettings, setAndSaveSettings]
 }
