@@ -1,8 +1,10 @@
-import React, {useCallback, useMemo} from 'react'
-import {useDropzone} from 'react-dropzone'
-import { useSelector } from 'react-redux'
+import React, { useCallback, useMemo } from 'react';
+import { useDropzone } from 'react-dropzone';
+import axios from "axios"
+import { useSelector, useDispatch } from 'react-redux'
 import uploadIcon from '../static/images/upload_icon.svg'
 import { getActiveLibrary } from '../stores/libraries/selector'
+import history from "../history";
 
 const baseStyle = {
   display: 'flex',
@@ -30,37 +32,46 @@ const rejectStyle = {
 };
 
 const Dropzone = () => {
-	const activeLibrary = useSelector(getActiveLibrary)
-	const onDrop = useCallback(acceptedFiles => {
-    // Do something with the files
+  const activeLibrary = useSelector(getActiveLibrary)
+  const dispatch = useDispatch()
+  const onDrop = useCallback(acceptedFiles => {
     const formData = new FormData();
     acceptedFiles.map((file, index) => {
       formData.append(index, file);
     })
-    fetch(`http://localhost:8888/upload/?library_id=${activeLibrary.id}`, { 
-      method: 'POST',
-      // headers: {
-      //   //"Content-Disposition": "attachment; name='file'; filename='xml2.txt'",
-      //   "Content-Type": "multipart/form-data; boundary=BbC04y " //"multipart/mixed;boundary=gc0p4Jq0M2Yt08jU534c0p" //  ή // multipart/form-data 
-      // },
-      body: formData // This is your file object
-    }).then(
-      response => response.json() // if the response is a JSON object
-    ).then(
-      success => console.log(success) // Handle the success response object
-    ).catch(
-      error => console.log(error) // Handle the error response object
-    );
-	}, [])
+    dispatch({ type: 'UPLOADING', loading: true})
+    axios.post(`/upload/?library_id=${activeLibrary.id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: data => {
+        //Set the progress value to show the progress bar
+        dispatch({
+          type: 'PROGRESS',
+          progressVal: Math.round((100 * data.loaded) / data.total) })
+      },
+    }).then(res => {
+      setTimeout(
+        function () {
+          dispatch({ type: 'UPLOADING', loading: false })
+        },
+        5000);
+      !res.data.ok&& window.alert(res.data.message) 
+      history.push('/');
+    }).catch(err => {
+      console.log(err);
+      window.alert("Something went Wrong!")
+    })
+  }, [])
 
-	const {
+  const {
     getRootProps,
     getInputProps,
     isDragActive,
     isDragAccept,
     isDragReject
-  } = useDropzone({onDrop, accept:'image/*'})
-	
+  } = useDropzone({ onDrop, accept: 'image/*' })
+
   const style = useMemo(() => ({
     ...baseStyle,
     ...(isDragActive ? activeStyle : {}),
@@ -72,19 +83,19 @@ const Dropzone = () => {
     isDragAccept
   ]);
 
-	return (
-		<div {...getRootProps({style})}>
-		  <input {...getInputProps()} />
+  return (
+    <div {...getRootProps({ style })}>
+      <input {...getInputProps()} />
       {
-        isDragActive?
-        <div style={{textAlign: 'center'}}>
-        <img src={uploadIcon} alt="Upload" style={{filter: 'invert(0.9)', height: '100px', width: '100px'}} />
-        <p style={{color:'white', fontWeight: 'bold', fontSize:'large'}}>Upload to {activeLibrary.name}</p>
-      </div>	: <button style={{fontWeight: 'bold', fontSize:'large', backgroundColor:'transparent', color: 'azure', textTransform: 'uppercase'}} >Select or Drop <br/> Photo</button>
+        isDragActive ?
+          <div style={{ textAlign: 'center' }}>
+            <img src={uploadIcon} alt="Upload" style={{ filter: 'invert(0.9)', height: '100px', width: '100px' }} />
+            <p style={{ color: 'white', fontWeight: 'bold', fontSize: 'large' }}>Upload to {activeLibrary.name}</p>
+          </div> : <button style={{ fontWeight: 'bold', fontSize: 'large', backgroundColor: 'transparent', color: 'azure', textTransform: 'uppercase' }} >Select or Drop <br /> Photo</button>
       }
-      
-		</div>
-	)
+
+    </div>
+  )
 }
 
 export default Dropzone;

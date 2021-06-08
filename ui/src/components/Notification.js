@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import { Progress, Box, Flex } from '@chakra-ui/core'
 import { useQuery, useMutation } from '@apollo/client'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 
 import notifications from '../static/images/notifications.svg'
 import play from '../static/images/play.svg'
@@ -76,8 +76,10 @@ const Container = styled('div')`
 `
 const Notification = (props) => {
   const activeLibrary = useSelector(getActiveLibrary)
+  const {loading,progressVal} = useSelector(state => state.photoUploading)
   const [settings, setSettings] = useSettings(activeLibrary)
   const [showNotificationIcon, setShowNotificationIcon] = useState(true)
+  const dispatch = useDispatch()
   const {
     ref,
     isComponentVisible,
@@ -165,6 +167,10 @@ const Notification = (props) => {
     }
   })
 
+  useEffect(() => {
+    loading ? setShowNotification(true) : setShowNotification(false);
+  },[loading])
+
   const getNotificationKeys = (data) => {
     const keys = getKeys(data)
     const remaining = keys.filter((k) => data.taskProgress[k].remaining > 0)
@@ -210,7 +216,7 @@ const Notification = (props) => {
             classificationStyleEnabled: newSettings.classificationStyleEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationLocationEnabled':
         settingUpdateLocation({
@@ -219,7 +225,7 @@ const Notification = (props) => {
               newSettings.classificationLocationEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationObjectEnabled':
         settingUpdateObject({
@@ -228,7 +234,7 @@ const Notification = (props) => {
               newSettings.classificationObjectEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationColorEnabled':
         settingUpdateColor({
@@ -236,13 +242,12 @@ const Notification = (props) => {
             classificationColorEnabled: newSettings.classificationColorEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       default:
         return null
     }
   }
-
   return (
     <>
       {showNotificationIcon ? (
@@ -255,48 +260,67 @@ const Notification = (props) => {
           <ul
             className="notificationMenu"
             style={{ display: showNotification ? 'block' : 'none' }}
-          >
+            >
+            {loading &&
+              <li>
+                <Flex color="white" align="center">
+                  <Box flex="1">
+                    <Flex mb="1">
+                      <Box flex="1">Photo Uploading</Box>
+                      <Box width="80px" textAlign="right">{progressVal}%</Box>
+                    </Flex>
+                    <Progress
+                      value={progressVal}
+                      color="teal"
+                      height="6px"
+                      roundedRight="6px"
+                    />
+                  </Box>
+                  <Box ml="2" width="35px">
+                  </Box>
+                </Flex>
+              </li>}
             {data
               ? getNotificationKeys(data).map((key, index) => (
-                  <li key={index}>
-                    <Flex color="white" align="center">
-                      <Box flex="1">
-                        <Flex mb="1">
-                          <Box flex="1">{getTitle(key)}</Box>
-                          <Box width="80px" textAlign="right">
-                            {window.sessionStorage.getItem(key) -
-                              data.taskProgress[key]?.remaining}
+                <li key={index}>
+                  <Flex color="white" align="center">
+                    <Box flex="1">
+                      <Flex mb="1">
+                        <Box flex="1">{getTitle(key)}</Box>
+                        <Box width="80px" textAlign="right">
+                          {window.sessionStorage.getItem(key) -
+                            data.taskProgress[key]?.remaining}
                             /{window.sessionStorage.getItem(key)}
-                          </Box>
-                        </Flex>
-                        <Progress
-                          value={getProgressPercent(key)}
-                          color="teal"
-                          height="6px"
-                          roundedRight="6px"
-                        />
-                      </Box>
-                      <Box ml="2" width="35px">
-                        {key !== 'generateThumbnails' &&
+                        </Box>
+                      </Flex>
+                      <Progress
+                        value={getProgressPercent(key)}
+                        color="teal"
+                        height="6px"
+                        roundedRight="6px"
+                      />
+                    </Box>
+                    <Box ml="2" width="35px">
+                      {key !== 'generateThumbnails' &&
                         key !== 'processRaw' ? (
-                          settings[getSettingsKey(key)] ? (
-                            <img
-                              src={pause}
-                              onClick={() => toggleBooleanSetting(key)}
-                              alt="pause"
-                            />
-                          ) : (
-                            <img
-                              src={play}
-                              onClick={() => toggleBooleanSetting(key)}
-                              alt="play"
-                            />
-                          )
-                        ) : null}
-                      </Box>
-                    </Flex>
-                  </li>
-                ))
+                        settings[getSettingsKey(key)] ? (
+                          <img
+                            src={pause}
+                            onClick={() => toggleBooleanSetting(key)}
+                            alt="pause"
+                          />
+                        ) : (
+                          <img
+                            src={play}
+                            onClick={() => toggleBooleanSetting(key)}
+                            alt="play"
+                          />
+                        )
+                      ) : null}
+                    </Box>
+                  </Flex>
+                </li>
+              ))
               : null}
           </ul>
         </Container>

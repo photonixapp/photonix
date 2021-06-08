@@ -11,6 +11,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "apollo-link-retry": "^2.2.15",
+    "axios": "^0.21.1",
     "emotion-theming": "^10.0.27",
     "graphql": "^15.5.0",
     "history": "^4.10.1",
