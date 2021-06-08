@@ -105,7 +105,8 @@ class FaceModel(BaseModel):
                 with open(tag_ids_path) as f:
                     tag_ids = json.loads(f.read())
             nearest = t.get_nns_by_vector(source_embedding, 1, include_distances=True)
-            return tag_ids[nearest[0][0]], nearest[1][0]
+            if nearest[0]:
+                return tag_ids[nearest[0][0]], nearest[1][0]
 
         return (None, 999)
 
