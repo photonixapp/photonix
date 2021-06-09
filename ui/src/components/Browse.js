@@ -2,6 +2,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { Link } from 'react-router-dom'
 import useLocalStorageState from 'use-local-storage-state'
+import { useSwipeable } from 'react-swipeable'
 
 import Header from './Header'
 import SearchContainer from '../containers/SearchContainer'
@@ -56,7 +57,7 @@ const Container = styled('div')`
   }
 
   .expandCollapse {
-    width: 24px;
+    width: calc(100% - 202px);
     height: 24px;
     position: absolute;
     bottom: 10px;
@@ -75,6 +76,11 @@ const Container = styled('div')`
   .main {
     overflow: hidden;
     height: 100%;
+  }
+  .tabContainer {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
   }
 
   @media all and (max-width: 700px) {
@@ -105,18 +111,22 @@ const Browse = ({
   updateSearchText,
   setIsMapShowing,
   mapPhotos,
+  refetchPhotos,
 }) => {
   const [expanded, setExpanded] = useLocalStorageState(
     'searchExpanded',
     window.innerHeight > 850 ? true : false
   )
-
   let content =
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
     ) : (
-      <PhotoList photoSections={photoSections} />
+      <PhotoList photoSections={photoSections} refetchPhotos={refetchPhotos} />
     )
+  const handlers = useSwipeable({
+    onSwipedDown: () => setExpanded(!expanded),
+    onSwipedUp: () => setExpanded(!expanded),
+  })
 
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
@@ -131,7 +141,21 @@ const Browse = ({
           onFilterToggle={onFilterToggle}
           onClearFilters={onClearFilters}
           updateSearchText={updateSearchText}
+          searchAreaExpand={expanded}
         />
+      </div>
+      <div
+        className={
+          expanded ? ` tabContainer expanded` : `tabContainer collapsed`
+        }
+      >
+        <div
+          {...handlers}
+          className="expandCollapse"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <img src={arrowDown} alt="" />
+        </div>
         <ul className="tabs">
           <Link to="?mode=timeline" onClick={() => setIsMapShowing(false)}>
             <li>Timeline</li>
@@ -140,9 +164,6 @@ const Browse = ({
             <li>Map</li>
           </Link>
         </ul>
-        <div className="expandCollapse" onClick={() => setExpanded(!expanded)}>
-          <img src={arrowDown} alt="" />
-        </div>
       </div>
       <div className="main">{content}</div>
     </Container>

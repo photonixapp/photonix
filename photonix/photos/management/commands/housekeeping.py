@@ -15,11 +15,14 @@ class Command(BaseCommand):
 
     def housekeeping(self):
         # Remove old cache directories
-        for directory in os.listdir(settings.THUMBNAIL_ROOT):
-            if directory not in ['photofile']:
-                path = Path(settings.THUMBNAIL_ROOT) / directory
-                print(f'Removing old cache directory {path}')
-                rmtree(path)
+        try:
+            for directory in os.listdir(settings.THUMBNAIL_ROOT):
+                if directory not in ['photofile']:
+                    path = Path(settings.THUMBNAIL_ROOT) / directory
+                    print(f'Removing old cache directory {path}')
+                    rmtree(path)
+        except FileNotFoundError:  # In case thumbnail dir hasn't been created yet
+            pass
 
         # Regenerate any outdated thumbnails
         photos = Photo.objects.filter(thumbnailed_version__lt=THUMBNAILER_VERSION)

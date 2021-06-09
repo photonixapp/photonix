@@ -1,5 +1,5 @@
 import React from 'react'
-import { useMutation, useQuery } from '@apollo/react-hooks'
+import { useMutation, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import styled from '@emotion/styled'
 import gql from 'graphql-tag'

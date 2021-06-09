@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { useMutation } from '@apollo/react-hooks'
+import { useMutation } from '@apollo/client'
+import { useSelector } from 'react-redux'
 import styled from '@emotion/styled'
-import { Collapse, Select } from "@chakra-ui/core"
+import { Collapse, Select } from '@chakra-ui/core'
 
 import MapView from '../components/MapView'
 import ColorTags from './ColorTags'
@@ -10,10 +11,12 @@ import EditableTags from '../components/EditableTags'
 import ImageHistogram from '../components/ImageHistogram'
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
+import { getSafeArea } from '../stores/layout/selector'
+
 import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as VisibilityIcon } from '../static/images/visibility.svg'
 import { ReactComponent as VisibilityOffIcon } from '../static/images/visibility_off.svg'
-import PhotoExtraDataContainer from '../containers/PhotoExtraDataContainer'
+import PhotoExtraData from '../components/PhotoExtraData'
 
 const Container = styled('div')`
   position: absolute;
@@ -67,9 +70,20 @@ const Container = styled('div')`
         padding: 0;
         list-style: none;
         margin: 0;
+        color: #ccc;
+        user-select: text;
         li.link {
           cursor: pointer;
           text-decoration: underline;
+          color: #fff;
+          font-weight: 400;
+        }
+        li .key {
+          color: #fff;
+          font-weight: 400;
+        }
+        &.metadata {
+          word-wrap: anywhere;
         }
       }
       h2 svg {
@@ -125,12 +139,14 @@ const PhotoMetadata = ({
   refetch,
   showBoundingBox,
   setShowBoundingBox,
-  updataPhotoFile
+  updatePhotoFile,
 }) => {
+  const safeArea = useSelector(getSafeArea)
   const [starRating, updateStarRating] = useState(photo.starRating)
   const [editorMode, setEditorMode] = useState(false)
   const [metadataShow, setMetadataShow] = useState(false)
   const [updatePhoto] = useMutation(PHOTO_UPDATE)
+  let boxCount = 1
 
   let date = null
   if (photo.takenAt) {
@@ -172,13 +188,13 @@ const PhotoMetadata = ({
 
   const getFileName = (path) => {
     const arr = path.split('/')
-    return arr[arr.length-1]
+    return arr[arr.length - 1]
   }
 
   return (
     <Container className={show && 'showing'}>
-      <div className="boxes">
-        <div className="box box1">
+      <div className="boxes" style={{ marginTop: safeArea.top }}>
+        <div className={`box box${boxCount++}`}>
           <StarRating
             starRating={starRating}
             onStarClick={onStarClick}
@@ -191,47 +207,80 @@ const PhotoMetadata = ({
             />
           </div>
         </div>
-        <div className="box box2">
-          <h2>Camera</h2>
-          <ul>
+        <div className={`box box${boxCount++}`}>
+          <h2>Metadata</h2>
+          <ul className="metadata">
             {photo.camera ? (
               <li>
-                {photo.camera.make} {photo.camera.model}
+                <span className="key">Camera:</span> {photo.camera.make}{' '}
+                {photo.camera.model}
               </li>
             ) : (
               ''
             )}
-            {date ? <li>Date: {date}</li> : ''}
-            <li>Aperture: {photo.aperture}</li>
-            <li>Exposure: {photo.exposure}</li>
-            <li>ISO speed: {photo.isoSpeed}</li>
-            <li>Focal length: {photo.focalLength}</li>
-            <li>Flash: {photo.flash ? 'ON' : 'OFF'}</li>
-            <li>Metering mode: {photo.meteringMode}</li>
-            {photo.driveMode ? <li>Drive mode: {photo.driveMode}</li> : ''}
-            {photo.shootingMode ? (
-              <li>Shooting mode: {photo.shootingMode}</li>
+            {date ? (
+              <li>
+                <span className="key">Date:</span> {date}
+              </li>
             ) : (
               ''
             )}
-            {!metadataShow &&
-              <li className="link" onClick={handleToggle}>Show More</li>
-            }
+            <li>
+              <span className="key">Path:</span> {photo?.photoFile[0]?.path}
+            </li>
+            <li>
+              <span className="key">Aperture:</span> {photo.aperture}
+            </li>
+            <li>
+              <span className="key">Exposure:</span> {photo.exposure}
+            </li>
+            <li>
+              <span className="key">ISO speed:</span> {photo.isoSpeed}
+            </li>
+            <li>
+              <span className="key">Focal length:</span> {photo.focalLength}
+            </li>
+            <li>
+              <span className="key">Flash:</span> {photo.flash ? 'ON' : 'OFF'}
+            </li>
+            <li>
+              <span className="key">Metering mode:</span> {photo.meteringMode}
+            </li>
+            {photo.driveMode ? (
+              <li>
+                <span className="key">Drive mode:</span> {photo.driveMode}
+              </li>
+            ) : (
+              ''
+            )}
+            {photo.shootingMode ? (
+              <li>
+                <span className="key">Shooting mode:</span> {photo.shootingMode}
+              </li>
+            ) : (
+              ''
+            )}
+            {!metadataShow && (
+              <li className="link" onClick={handleToggle}>
+                Show all
+              </li>
+            )}
             <Collapse isOpen={metadataShow}>
-              <PhotoExtraDataContainer id={photo?.photoFile[0]?.id} />
+              <PhotoExtraData id={photo?.photoFile[0]?.id} />
             </Collapse>
-            {metadataShow &&
-              <li className="link" onClick={handleToggle}>Hide</li>
-            }
+            {metadataShow && (
+              <li className="link" onClick={handleToggle}>
+                Hide
+              </li>
+            )}
           </ul>
-          
         </div>
         {photo.locationTags.length ? (
-          <div className="box box3">
+          <div className={`box box${boxCount++}`}>
             <h2>Locations</h2>
             <HierarchicalTagsContainer
               tags={photo.locationTags.map((item) => {
-                let newItem = item.tag
+                let newItem = { ...item.tag }
                 newItem.parent = item.parent
                 return newItem
               })}
@@ -241,7 +290,7 @@ const PhotoMetadata = ({
           ''
         )}
         {photo.location ? (
-          <div className="box box4">
+          <div className={`box box${boxCount++}`}>
             <h2>Map</h2>
             <div className="map">
               {<MapView location={location} hideAttribution={true} zoom={6} />}
@@ -251,7 +300,7 @@ const PhotoMetadata = ({
           ''
         )}
         {photo.colorTags.length ? (
-          <div className="box box5">
+          <div className={`box box${boxCount++}`}>
             <h2>Colors</h2>
             <ColorTags
               tags={photo.colorTags.map((item) => ({
@@ -264,7 +313,7 @@ const PhotoMetadata = ({
           ''
         )}
         {photo.objectTags.length ? (
-          <div className="box box6">
+          <div className={`box box${boxCount++}`}>
             <h2>
               Objects
               {showBoundingBox ? (
@@ -283,7 +332,7 @@ const PhotoMetadata = ({
           ''
         )}
         {photo.styleTags.length ? (
-          <div className="box box7">
+          <div className={`box box${boxCount++}`}>
             <h2>Styles</h2>
             <ul>
               {photo.styleTags.map((photoTag, index) => (
@@ -294,7 +343,19 @@ const PhotoMetadata = ({
         ) : (
           ''
         )}
-        <div className="box box8">
+        {photo.eventTags.length ? (
+          <div className={`box box${boxCount++}`}>
+            <h2>Events</h2>
+            <ul>
+              {photo.eventTags.map((photoTag, index) => (
+                <li key={index}>{photoTag.tag.name}</li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          ''
+        )}
+        <div className={`box box${boxCount++}`}>
           <h2>
             Tags
             <EditIcon alt="Edit" onClick={() => setEditorMode(!editorMode)} />
@@ -306,22 +367,21 @@ const PhotoMetadata = ({
             refetch={refetch}
           />
         </div>
-        <div className="box box9">
-          <h2>
-            Path
-          </h2>
-          <p>{photo?.baseFilePath}</p>
-        </div>
-        {photo.photoFile.length > 1 &&
-          <div className="box box10">
+        {photo.photoFile.length > 1 && (
+          <div className={`box box${boxCount++}`}>
             <h2>Versions</h2>
-            <Select defaultValue={photo.baseFileId} onChange={(e) => updataPhotoFile(e.target.value)}>
-              {photo.photoFile.map(file => (
-                <option key={file.id} value={file.id}>{getFileName(file.path)}</option>
+            <Select
+              defaultValue={photo.baseFileId}
+              onChange={(e) => updatePhotoFile(e.target.value)}
+            >
+              {photo.photoFile.map((file) => (
+                <option key={file.id} value={file.id}>
+                  {getFileName(file.path)}
+                </option>
               ))}
             </Select>
           </div>
-        }
+        )}
       </div>
     </Container>
   )

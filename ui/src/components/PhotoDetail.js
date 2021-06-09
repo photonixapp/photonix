@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
 import { useSelector } from 'react-redux'
 import useLocalStorageState from 'use-local-storage-state'
@@ -6,8 +6,10 @@ import useLocalStorageState from 'use-local-storage-state'
 import history from '../history'
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
+import { getSafeArea } from '../stores/layout/selector'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
+import { ReactComponent as DownloadIcon } from '../static/images/download_arrow.svg'
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as ArrowLeftIcon } from '../static/images/arrow_left.svg'
 import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.svg'
@@ -85,6 +87,15 @@ const Container = styled('div')`
   .rotateLeft {
     right: 40px;
   }
+  .showDownloadIcon {
+    position: absolute;
+    right: 50px;
+    top: 10px;
+    filter: invert(0.9);
+    cursor: pointer;
+    z-index: 10;
+  }
+
   /* When two boxes can no longer fit next to each other */
   @media all and (max-width: 500px) {
     .metadata .boxes .box {
@@ -99,7 +110,14 @@ const Container = styled('div')`
   }
 `
 
-const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile, saveRotation }) => {
+const PhotoDetail = ({
+  photoId,
+  photo,
+  refetch,
+  updataPhotoFile,
+  saveRotation,
+}) => {
+  const safeArea = useSelector(getSafeArea)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
     true
@@ -110,6 +128,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile, saveRotation })
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
+  const [numHistoryPushes, setNumHistoryPushes] = useState(0)
 
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
@@ -130,14 +149,20 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile, saveRotation })
   //   }
   // }, [showMetadata])
 
-  const prevPhoto = () => {
+  const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
-    id && history.push(`/photo/${id}`)
-  }
-  const nextPhoto = () => {
+    if (id) {
+      history.push(`/photo/${id}`)
+      setNumHistoryPushes(numHistoryPushes + 1)
+    }
+  }, [prevNextPhotos, numHistoryPushes])
+  const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
-    id && history.push(`/photo/${id}`)
-  }
+    if (id) {
+      history.push(`/photo/${id}`)
+      setNumHistoryPushes(numHistoryPushes + 1)
+    }
+  }, [prevNextPhotos, numHistoryPushes])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -158,7 +183,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile, saveRotation })
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [photoId, prevNextPhotos])
+  }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
   useEffect(() => {
     setRotation(Number(photo?.baseFileRotate))
@@ -174,22 +199,39 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile, saveRotation })
     }
   })
   const rotate = (direction) => {
-    let newRotation = (direction === 'right') ? rotation + 90 : rotation - 90
+    let newRotation = direction === 'right' ? rotation + 90 : rotation - 90
     if (newRotation >= 360 || newRotation === -360) newRotation = 0
     setRotation(newRotation)
     saveRotation(newRotation)
   }
 
-  const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
-
   return (
     <Container>
-      <ZoomableImage url={url} boxes={showBoundingBox && boxes} rotation={rotation} />
+      <ZoomableImage
+        photoId={photoId}
+        boxes={showBoundingBox && boxes}
+        next={nextPhoto}
+        prev={prevPhoto}
+        rotation={rotation}
+      />
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
+        style={{ marginTop: safeArea.top }}
       >
-        <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
+        <ArrowBackIcon
+          alt="Close"
+          onClick={() => {
+            if (
+              history.length - numHistoryPushes > 2 ||
+              document.referrer !== ''
+            ) {
+              history.go(-(numHistoryPushes + 1))
+            } else {
+              history.push('/')
+            }
+          }}
+        />
       </div>
       <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
         <ArrowLeftIcon
@@ -216,27 +258,16 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile, saveRotation })
           refetch={refetch}
           showBoundingBox={showBoundingBox}
           setShowBoundingBox={setShowBoundingBox}
-          updataPhotoFile={updataPhotoFile}
+          updatePhotoFile={updatePhotoFile}
         />
       )}
-      <RotateRightIcon
-        className="icon rotateRight"
-        height="30"
-        width="30"
-        onClick={() => rotate('right')}
-      />
-      <RotateLeftIcon
-        className="icon rotateLeft"
-        height="30"
-        width="30"
-        onClick={() => rotate('left')}
-      />
       {!showMetadata ? (
         <InfoIcon
           className="icon showDetailIcon"
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
+          style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
       ) : (
@@ -245,8 +276,19 @@ const PhotoDetail = ({ photoId, photo, refetch, updataPhotoFile, saveRotation })
           height="30"
           width="30"
           onClick={() => setShowMetadata(!showMetadata)}
+          style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
+      )}
+      {photo?.downloadUrl && (
+        <a href={`${photo.downloadUrl}`} download>
+          <DownloadIcon
+            className="showDownloadIcon"
+            height="30"
+            width="30"
+            style={{ marginTop: safeArea.top, padding: 3 }}
+          />
+        </a>
       )}
     </Container>
   )

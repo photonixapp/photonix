@@ -10,7 +10,10 @@ from django.utils.timezone import utc
 class PhotoMetadata(object):
     def __init__(self, path):
         self.data = {}
-        result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
+        try:
+            result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
+        except UnicodeDecodeError:
+            result = ''
         for line in str(result).split('\n'):
             if line:
                 try:
@@ -19,8 +22,11 @@ class PhotoMetadata(object):
                 except ValueError:
                     pass
 
-    def get(self, attribute):
-        return self.data.get(attribute)
+    def get(self, attribute, default=None):
+        return self.data.get(attribute, default)
+
+    def get_all(self):
+        return self.data
 
 
 def parse_datetime(date_str):
@@ -72,7 +78,6 @@ def get_datetime(path):
     if not matched:
         matched = re.search(r'\D((19|20)[0-9]{2})([0-9]{2})([0-9]{2})\D', fn)
     if matched:
-        # import pdb; pdb.set_trace()
         date_str = '{}-{}-{}'.format(matched.group(1), matched.group(3), matched.group(4))
         return datetime.strptime(date_str, '%Y-%m-%d')
     return None

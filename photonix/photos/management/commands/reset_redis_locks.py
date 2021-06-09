@@ -1,9 +1,8 @@
 import os
 
-import redis_lock
-
 from django.core.management.base import BaseCommand
 import redis
+import redis_lock
 
 
 r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))

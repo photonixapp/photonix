@@ -14,22 +14,21 @@ from datetime import timedelta
 import os
 from pathlib import Path
 
+from .utils import get_secret_key
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
+SECRET_KEY = get_secret_key()
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'r*z#sh2aqb!zjz#s7h@5&toyx@t_r4nfrgwg%r$4)2@d@8ypyb'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('ENV', 'prd') != 'prd'
 
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',')
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Application definition
 

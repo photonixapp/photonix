@@ -7,6 +7,7 @@ import { ReactComponent as ObjectsIcon } from '../static/images/label.svg'
 import { ReactComponent as LocationsIcon } from '../static/images/location_on.svg'
 import { ReactComponent as ColorsIcon } from '../static/images/color_lens.svg'
 import { ReactComponent as StylesIcon } from '../static/images/style.svg'
+import { ReactComponent as EventsIcon } from '../static/images/event.svg'
 import { ReactComponent as CamerasIcon } from '../static/images/photo_camera.svg'
 import { ReactComponent as StarIcon } from '../static/images/star_outline.svg'
 
@@ -16,6 +17,7 @@ const GROUP_ICONS = {
   Locations: LocationsIcon,
   Colors: ColorsIcon,
   Styles: StylesIcon,
+  Events: EventsIcon,
   Cameras: CamerasIcon,
   Lenses: CamerasIcon,
   Aperture: CamerasIcon,

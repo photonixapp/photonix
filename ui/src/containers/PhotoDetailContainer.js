@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useQuery, useMutation } from '@apollo/react-hooks'
+import { useQuery, useMutation } from '@apollo/client'
 import gql from 'graphql-tag'
 
 import history from '../history'
@@ -61,6 +61,13 @@ const GET_PHOTO = gql`
         }
         significance
       }
+      eventTags {
+        id
+        tag {
+          name
+        }
+        significance
+      }
       styleTags {
         id
         tag {
@@ -74,13 +81,14 @@ const GET_PHOTO = gql`
           name
         }
       }
-      photoFile{
+      photoFile {
         id
         path
       }
       baseFileId
       baseFilePath
       baseFileRotate
+      downloadUrl
       width
       height
     }
@@ -95,7 +103,7 @@ const UPDATE_PREFERRED_PHOTOFILE = gql`
 `
 const SAVE_PHOTOFILE_ROTATION = gql`
   mutation savePhotoFileRotation($id: ID!, $rotation: String!) {
-    savePhotofileRotation(photoFileId:$id,rotationValue:$rotation){
+    savePhotofileRotation(photoFileId: $id, rotationValue: $rotation) {
       ok
       rotationValue
     }
@@ -103,7 +111,7 @@ const SAVE_PHOTOFILE_ROTATION = gql`
 `
 
 const PhotoDetailContainer = (props) => {
-  const { loading, data, refetch } = useQuery(GET_PHOTO, {
+  const { data, refetch } = useQuery(GET_PHOTO, {
     variables: {
       id: props.match.params.photoId,
     },
@@ -128,30 +136,27 @@ const PhotoDetailContainer = (props) => {
     }
   }, [])
 
-  useEffect(() => {
-    refetch()
-  }, [data, loading, refetch])
-
-  const updataPhotoFile = (id) => {
+  const updatePhotoFile = (id) => {
     updataPreferredPhotoFile({
-      variables: { id }
+      variables: { id },
     })
-    .then((res) => {
-      if (res.data.changePreferredPhotoFile.ok) {
-        window.location.reload()
-      }
-    })
-    .catch((e) => {})
+      .then((res) => {
+        if (res.data.changePreferredPhotoFile.ok) {
+          window.location.reload()
+        }
+      })
+      .catch((e) => {})
   }
   const saveRotation = (rotation) => {
     const id = data?.photo.baseFileId
     saveRotationValue({
       variables: {
         id: id,
-        rotation: rotation
-      }
+        rotation: rotation,
+      },
+    }).catch((e) => {
+      console.log(e)
     })
-    .catch((e) => { console.log(e)})
   }
 
   return (

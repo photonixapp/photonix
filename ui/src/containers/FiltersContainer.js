@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import Filters from '../components/Filters'
@@ -28,6 +28,10 @@ const GET_FILTERS = gql`
       name
     }
     allStyleTags(libraryId: $libraryId, multiFilter: $multiFilter) {
+      id
+      name
+    }
+    allEventTags(libraryId: $libraryId, multiFilter: $multiFilter) {
       id
       name
     }
@@ -72,7 +76,7 @@ function createFilterSelection(sectionName, data, prefix = 'tag') {
   }
 }
 
-const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
+const FiltersContainer = ({ selectedFilters, onFilterToggle, searchAreaExpand }) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
   let filtersStr = ''
@@ -91,6 +95,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   )
   useEffect(() => {
     refetch()
+
   }, [activeLibrary, refetch])
 
   const getFilterdData = (type, array) => {
@@ -105,7 +110,6 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
     }
     return data
   }
-
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
@@ -135,6 +139,10 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
     if (data.allStyleTags.length) {
       const stylesTags = getFilterdData('Styles', data.allStyleTags)
       filterData.push(createFilterSelection('Styles', stylesTags))
+    }
+    if (data.allEventTags.length) {
+      const eventsTags = getFilterdData('Events', data.allEventTags)
+      filterData.push(createFilterSelection('Events', eventsTags))
     }
     if (data.allCameras.length) {
       filterData.push({
@@ -216,6 +224,7 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle }) => {
   return (
     <Filters
       data={filterData}
+      searchAreaExpand={searchAreaExpand}
       selectedFilters={selectedFilters}
       onToggle={onFilterToggle}
     />

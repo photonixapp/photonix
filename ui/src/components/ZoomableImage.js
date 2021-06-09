@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import { useSwipeable } from 'react-swipeable'
+import { useSelector } from 'react-redux'
 
 import BoundingBoxes from './BoundingBoxes'
 import Spinner from './Spinner'
+import { getPrevNextPhotos } from '../stores/photos/selector'
 
 const Container = styled('div')`
   width: 100vw;
@@ -75,16 +78,49 @@ const Container = styled('div')`
   }
 `
 
-const ZoomableImage = ({ url, boxes, rotation}) => {
+const ZoomableImage = ({ photoId, boxes, next, prev, rotation }) => {
   const [scale, setScale] = useState(1)
+  const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
+
+  const prevNextPhotos = useSelector((state) =>
+    getPrevNextPhotos(state, photoId)
+  )
+  const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
+
+  const prevPhoto = useCallback(() => {
+    if (!zoom) prev()
+  }, [zoom, prev])
+
+  const nextPhoto = useCallback(() => {
+    if (!zoom) next()
+  }, [zoom, next])
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => nextPhoto(),
+    onSwipedRight: () => prevPhoto(),
+  })
+
+  const loadNextPrevImages = () => {
+    let prevId = prevNextPhotos.prev[0]
+    let nextId = prevNextPhotos.next[0]
+    if (prevId) {
+      const prevImg = new Image()
+      prevImg.src = `/thumbnailer/photo/3840x3840_contain_q75/${prevId}/`
+    }
+    if (nextId) {
+      const nextImg = new Image()
+      nextImg.src = `/thumbnailer/photo/3840x3840_contain_q75/${nextId}/`
+    }
+  }
 
   const handleImageLoaded = () => {
     if (loading) {
       setLoading(false)
       setTimeout(() => {
         setDisplayImage(true)
+        loadNextPrevImages()
       }, 250)
     }
   }
@@ -95,31 +131,41 @@ const ZoomableImage = ({ url, boxes, rotation}) => {
     setScale(1)
   }, [url])
 
+  const handleZoom = (e) => {
+    if (e.scale === 1 && zoom) {
+      setZoom(false)
+    } else if (e.scale > 1 && !zoom) {
+      setZoom(true)
+    }
+  }
+
   return (
     <Container>
       <TransformWrapper
+        key={url}
         wheel={{
           limitsOnWheel: false,
           step: 75,
         }}
-        onPanningStop={({ scale }) => setScale(scale)}
         doubleClick={{
           mode: scale < 5 ? 'zoomIn' : 'reset',
         }}
-        key={url}
+        pan={{ lockAxisY: !zoom }}
+        onZoomChange={handleZoom}
+        onPanningStop={({ scale }) => setScale(scale)}
       >
         {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
           <>
             <TransformComponent>
               <div className="pinchArea">
-                <div className="imageFlex">
+                <div {...swipeHandlers} className="imageFlex">
                   <div className="imageWrapper">
                     <img
                       src={url}
                       alt=""
                       onLoad={handleImageLoaded}
                       className={displayImage ? 'display' : undefined}
-                      style={{transform: `rotate(${rotation}deg)`}}
+                      style={{ transform: `rotate(${rotation}deg)` }}
                     />
                     <span className={displayImage ? ' display' : undefined}>
                       {boxes && <BoundingBoxes boxes={boxes} />}
@@ -142,7 +188,7 @@ const ZoomableImage = ({ url, boxes, rotation}) => {
 }
 
 ZoomableImage.propTypes = {
-  url: PropTypes.string,
+  photoId: PropTypes.string,
   boxes: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string,

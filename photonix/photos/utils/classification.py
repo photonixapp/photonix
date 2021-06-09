@@ -9,6 +9,7 @@ from photonix.photos.utils.tasks import requeue_stuck_tasks
 
 CLASSIFIERS = [
     'color',
+    'event',
     'location',
     'object',
     'style',
@@ -59,7 +60,7 @@ class ThreadedQueueProcessor:
 
     def __process_task(self, task):
         try:
-            print('running task')
+            print(f'Running task: {task.type} - {task.subject_id}')
             task.start()
             self.runner(task.subject_id)
             task.complete()
@@ -95,7 +96,7 @@ class ThreadedQueueProcessor:
                     task_queryset = Task.objects.filter(library__classification_style_enabled=True, type=self.task_type, status='P')
                 else:
                     task_queryset = Task.objects.filter(type=self.task_type, status='P')
-                for task in task_queryset[:64]:
+                for task in task_queryset[:8]:
                     if self.num_workers > 1:
                         print('putting task')
                         self.queue.put(task)

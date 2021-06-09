@@ -116,15 +116,11 @@ def run_on_photo(photo_id):
     photo, results = results_for_model_on_photo(model, photo_id)
 
     if photo:
-        from django.utils import timezone
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='S')
         for name, score in results:
             tag = get_or_create_tag(library=photo.library, name=name, type='S', source='C')
             PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
-        photo.classifier_style_completed_at = timezone.now()
-        photo.classifier_style_version = getattr(model, 'version', 0)
-        photo.save()
 
     return photo, results
 
