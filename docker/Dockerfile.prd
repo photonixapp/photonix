@@ -120,6 +120,7 @@ WORKDIR /srv
 
 # Copy over the code
 COPY photonix /srv/photonix
+COPY manage.py /srv/manage.py
 COPY test.py /srv/test.py
 COPY tests /srv/tests
 COPY ui/public /srv/ui/public

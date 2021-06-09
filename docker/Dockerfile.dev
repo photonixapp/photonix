@@ -66,6 +66,7 @@ RUN cd /srv/ui && yarn install
 # Copy over the code
 COPY photonix /srv/photonix
 COPY test.py /srv/test.py
+COPY manage.py /srv/manage.py
 COPY tests /srv/tests
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
