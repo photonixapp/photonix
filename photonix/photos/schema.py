@@ -66,7 +66,7 @@ class PhotoNode(DjangoObjectType):
     photo_file = graphene.List(PhotoFileType)
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
-    base_file_rotate = graphene.String()
+    rotation = graphene.String()
     download_url = graphene.String()
 
     color_tags = graphene.List(PhotoTagType)
@@ -106,8 +106,8 @@ class PhotoNode(DjangoObjectType):
     def resolve_base_file_id(self, info):
         return self.base_file.id
 
-    def resolve_base_file_rotate(self, info):
-        return self.base_file.rotate
+    def resolve_rotation(self, info):
+        return self.base_file.rotation
 
     def resolve_download_url(self, info):
         return self.download_url
@@ -832,7 +832,7 @@ class SavePhotoFileRotation(graphene.Mutation):
         """Mutation to save photoFile rotation."""
         if photo_file_id and rotation_value in ['0', '90', '180', '270']:
             photofile_obj = PhotoFile.objects.get(id=photo_file_id)
-            photofile_obj.rotate = rotation_value
+            photofile_obj.rotation = rotation_value
             photofile_obj.save()
             Task(
                 type='generate_thumbnails', subject_id=photofile_obj.photo.id,

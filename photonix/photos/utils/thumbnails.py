@@ -92,7 +92,7 @@ def get_thumbnail(photo_file=None, photo=None, width=256, height=256, crop='cove
 
     # Perform rotations if decalared in metadata
     if force_regenerate:
-        im = im.rotate(photo_file.rotate, expand=True)
+        im = im.rotate(photo_file.rotation, expand=True)
     elif metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
         im = im.rotate(-90, expand=True)
     elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:

@@ -36,17 +36,6 @@ const Container = styled('div')`
     top: 0;
     left: 0;
   }
-
-  .backIcon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    cursor: pointer;
-    z-index: 10;
-    svg {
-      filter: invert(0.9);
-    }
-  }
   .prevNextIcons {
     position: absolute;
     top: 0;
@@ -71,29 +60,26 @@ const Container = styled('div')`
       }
     }
   }
-  .showDetailIcon {
-    right: 10px;
-  }
-  .icon {
-    position: absolute;
-    filter: invert(0.9);
-    cursor: pointer;
+  .topIcons {
     z-index: 10;
-    top: 10px;
-  }
-  .rotateRight {
-    right: 70px;
-  }
-  .rotateLeft {
-    right: 40px;
-  }
-  .showDownloadIcon {
     position: absolute;
-    right: 50px;
-    top: 10px;
-    filter: invert(0.9);
-    cursor: pointer;
-    z-index: 10;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    .icon {
+      filter: invert(0.9);
+      cursor: pointer;
+      padding: 3px;
+    }
+    .icon:hover {
+      filter: invert(1);
+    }
+    .icon.metadata {
+      padding: 0;
+      margin-left: 10px;
+    }
   }
 
   /* When two boxes can no longer fit next to each other */
@@ -114,7 +100,7 @@ const PhotoDetail = ({
   photoId,
   photo,
   refetch,
-  updataPhotoFile,
+  updatePhotoFile,
   saveRotation,
 }) => {
   const safeArea = useSelector(getSafeArea)
@@ -186,7 +172,7 @@ const PhotoDetail = ({
   }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
   useEffect(() => {
-    setRotation(Number(photo?.baseFileRotate))
+    setRotation(Number(photo?.rotation))
   }, [photo])
 
   let boxes = photo?.objectTags.map((objectTag) => {
@@ -214,25 +200,6 @@ const PhotoDetail = ({
         prev={prevPhoto}
         rotation={rotation}
       />
-      <div
-        className="backIcon"
-        title="Press [Esc] key to go back to photo list"
-        style={{ marginTop: safeArea.top }}
-      >
-        <ArrowBackIcon
-          alt="Close"
-          onClick={() => {
-            if (
-              history.length - numHistoryPushes > 2 ||
-              document.referrer !== ''
-            ) {
-              history.go(-(numHistoryPushes + 1))
-            } else {
-              history.push('/')
-            }
-          }}
-        />
-      </div>
       <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
         <ArrowLeftIcon
           alt="Previous"
@@ -261,35 +228,63 @@ const PhotoDetail = ({
           updatePhotoFile={updatePhotoFile}
         />
       )}
-      {!showMetadata ? (
-        <InfoIcon
-          className="icon showDetailIcon"
-          height="30"
-          width="30"
-          onClick={() => setShowMetadata(!showMetadata)}
-          style={{ marginTop: safeArea.top }}
-          // title="Press [I] key to show/hide photo details"
-        />
-      ) : (
-        <CloseIcon
-          className="icon showDetailIcon"
-          height="30"
-          width="30"
-          onClick={() => setShowMetadata(!showMetadata)}
-          style={{ marginTop: safeArea.top }}
-          // title="Press [I] key to show/hide photo details"
-        />
-      )}
-      {photo?.downloadUrl && (
-        <a href={`${photo.downloadUrl}`} download>
-          <DownloadIcon
-            className="showDownloadIcon"
+      <div className="topIcons" style={{ marginTop: safeArea.top }}>
+        <div>
+          <ArrowBackIcon
+            className="icon"
             height="30"
             width="30"
-            style={{ marginTop: safeArea.top, padding: 3 }}
+            alt="Close"
+            title="Press [Esc] key to go back to photo list"
+            onClick={() => {
+              if (
+                history.length - numHistoryPushes > 2 ||
+                document.referrer !== ''
+              ) {
+                history.go(-(numHistoryPushes + 1))
+              } else {
+                history.push('/')
+              }
+            }}
           />
-        </a>
-      )}
+        </div>
+        <div>
+          <RotateRightIcon
+            className="icon"
+            height="30"
+            width="30"
+            onClick={() => rotate('right')}
+          />
+          <RotateLeftIcon
+            className="icon"
+            height="30"
+            width="30"
+            onClick={() => rotate('left')}
+          />
+          {photo?.downloadUrl && (
+            <a href={`${photo.downloadUrl}`} download>
+              <DownloadIcon className="icon" height="30" width="30" />
+            </a>
+          )}
+          {!showMetadata ? (
+            <InfoIcon
+              className="icon metadata"
+              height="30"
+              width="30"
+              onClick={() => setShowMetadata(!showMetadata)}
+              // title="Press [I] key to show/hide photo details"
+            />
+          ) : (
+            <CloseIcon
+              className="icon metadata"
+              height="30"
+              width="30"
+              onClick={() => setShowMetadata(!showMetadata)}
+              // title="Press [I] key to show/hide photo details"
+            />
+          )}
+        </div>
+      </div>
     </Container>
   )
 }

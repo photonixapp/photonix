@@ -87,7 +87,7 @@ const GET_PHOTO = gql`
       }
       baseFileId
       baseFilePath
-      baseFileRotate
+      rotation
       downloadUrl
       width
       height
@@ -164,7 +164,7 @@ const PhotoDetailContainer = (props) => {
       photoId={props.match.params.photoId}
       photo={data?.photo}
       refetch={refetch}
-      updataPhotoFile={updataPhotoFile}
+      updatePhotoFile={updatePhotoFile}
       saveRotation={saveRotation}
     />
   )
