@@ -12,6 +12,7 @@ const Container = styled('div')`
     border: 3px solid rgba(255, 0, 0, 0.75);
     position: absolute;
     border-radius: 6px;
+    overflow: hidden;
     .FeatureLabel {
       color: #fff;
       font-size: 14px;
@@ -19,12 +20,11 @@ const Container = styled('div')`
       display: inline-block;
       overflow: hidden;
       max-width: 100%;
-      padding: 0 7px 2px 4px;
+      padding: 1px 7px 2px 4px;
       float: left;
       text-align: left;
       white-space: nowrap;
       pointer-events: all;
-      border-radius: 3px 3px 0 0;
       &:hover {
         overflow: visible;
         text-shadow: 0 0 2px #f00;
@@ -39,12 +39,12 @@ const Container = styled('div')`
           text-shadow: 0 0 2px #ff0;
         }
       }
-      .FeatureIconEdit{ 
+      .FeatureIconEdit {
         position: absolute;
         bottom: 0px;
         right: 3px;
       }
-      .FeatureIconDelete{ 
+      .FeatureIconDelete {
         position: absolute;
         bottom: 0px;
         right: 30px;
@@ -58,7 +58,6 @@ const Container = styled('div')`
       .FeatureLabel {
         font-size: 8px;
         padding: 0 3px 1px 3px;
-        border-radius: 5px 5px 0 0;
       }
     }
   }
@@ -83,10 +82,20 @@ const BoundingBoxes = ({ boxes, className }) => {
               {console.log(editMode)}
               {box.name}
             </div>
-            {className === "face" && <>
-              <EditIcon alt="Edit" className="FeatureIconEdit" onClick={() => setEditMode(!editMode)} />
-              <BlockIcon alt="Block" className="FeatureIconDelete" onClick={() => setEditMode(!editMode)} />
-            </>}
+            {className === 'face' && (
+              <>
+                <EditIcon
+                  alt="Edit"
+                  className="FeatureIconEdit"
+                  onClick={() => setEditMode(!editMode)}
+                />
+                <BlockIcon
+                  alt="Block"
+                  className="FeatureIconDelete"
+                  onClick={() => setEditMode(!editMode)}
+                />
+              </>
+            )}
           </div>
         )
       })}

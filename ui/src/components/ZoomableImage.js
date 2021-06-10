@@ -171,7 +171,6 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
                         <span
                           className={displayImage ? ' display' : undefined}
                           key={index}
-                          style={{ pointerEvents: 'none' }}
                         >
                           <BoundingBoxes boxes={boxes[key]} className={key} />
                         </span>
