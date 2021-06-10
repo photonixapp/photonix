@@ -407,6 +407,7 @@ class LibraryInput(graphene.InputObjectType):
     classification_location_enabled = graphene.Boolean()
     classification_style_enabled = graphene.Boolean()
     classification_object_enabled = graphene.Boolean()
+    classification_face_enabled = graphene.Boolean()
     source_folder = graphene.String(required=False)
     user_id = graphene.ID()
     library_id = graphene.ID()
@@ -534,6 +535,37 @@ class UpdateLibraryObjectEnabled(graphene.Mutation):
             raise Exception('User is not the owner of library!')
         else:
             return UpdateLibraryObjectEnabled(ok=ok, classification_object_enabled=None)
+
+
+class UpdateLibraryFaceEnabled(graphene.Mutation):
+    """To update data in database that will be passed from frontend FaceEnabled api."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=False)
+
+    ok = graphene.Boolean()
+    classification_face_enabled = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data for FaceEnabled api."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and str(input.get('classification_face_enabled')) != 'None':
+            library_obj = libraries[0]
+            library_obj.classification_face_enabled = input.classification_face_enabled
+            library_obj.save()
+            ok = True
+            return UpdateLibraryFaceEnabled(
+                ok=ok,
+                classification_face_enabled=library_obj.classification_face_enabled)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibraryFaceEnabled(ok=ok, classification_face_enabled=None)
 
 
 class UpdateLibrarySourceFolder(graphene.Mutation):
@@ -681,6 +713,7 @@ class ImageAnalysis(graphene.Mutation):
         library_obj.classification_location_enabled = input.classification_location_enabled
         library_obj.classification_style_enabled = input.classification_style_enabled
         library_obj.classification_object_enabled = input.classification_object_enabled
+        library_obj.classification_face_enabled = input.classification_face_enabled
         library_obj.save()
         user = User.objects.get(pk=input.user_id)
         user.has_configured_image_analysis = True
@@ -798,6 +831,7 @@ class Mutation(graphene.ObjectType):
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
     update_style_enabled = UpdateLibraryStyleEnabled.Field()
     update_object_enabled = UpdateLibraryObjectEnabled.Field()
+    update_face_enabled = UpdateLibraryFaceEnabled.Field()
     update_source_folder = UpdateLibrarySourceFolder.Field()
     create_library = CreateLibrary.Field()
     Photo_importing = PhotoImporting.Field()

@@ -96,6 +96,18 @@ const Step5Search = ({ history }) => {
                 : true
             }
           />
+          <ModalField
+            name="classificationFaceEnabled"
+            type="boolean"
+            label="Face detection (medium)"
+            register={register}
+            errors={errors}
+            defaultValue={
+              state?.data?.classificationFaceEnabled
+                ? state.data.classificationFaceEnabled
+                : true
+            }
+          />
         </Stack>
       </ModalForm>
     </Modal>

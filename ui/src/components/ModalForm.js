@@ -134,6 +134,7 @@ const ModalForm = ({
           classificationStyleEnabled: data.classificationStyleEnabled,
           classificationObjectEnabled: data.classificationObjectEnabled,
           classificationLocationEnabled: data.classificationLocationEnabled,
+          classificationFaceEnabled: data.classificationFaceEnabled,
           userId: envData.environment.userId,
           libraryId: LibraryId ? LibraryId : envData.environment.libraryId,
         },

@@ -25,6 +25,7 @@ class Library(UUIDModel, VersionedModel):
     classification_location_enabled = models.BooleanField(default=False, help_text='Run location detection on photos?')
     classification_style_enabled = models.BooleanField(default=False, help_text='Run style classification on photos?')
     classification_object_enabled = models.BooleanField(default=False, help_text='Run object detection on photos?')
+    classification_face_enabled = models.BooleanField(default=False, help_text='Run face detection on photos?')
     setup_stage_completed = models.CharField(max_length=2, choices=LIBRARY_SETUP_STAGE_COMPLETED_CHOICES, blank=True, null=True, help_text='Where the user got to during onboarding setup')
 
     class Meta:

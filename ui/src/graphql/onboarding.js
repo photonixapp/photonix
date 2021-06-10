@@ -127,6 +127,7 @@ mutation (
     $classificationStyleEnabled: Boolean!,
     $classificationObjectEnabled: Boolean!,
     $classificationLocationEnabled: Boolean!,
+    $classificationFaceEnabled: Boolean!,
     $userId: ID!,
     $libraryId: ID!,
     ) {
@@ -135,6 +136,7 @@ mutation (
             classificationStyleEnabled:$classificationStyleEnabled,
             classificationObjectEnabled:$classificationObjectEnabled,
             classificationLocationEnabled:$classificationLocationEnabled,
+            classificationFaceEnabled:$classificationFaceEnabled,
             userId:$userId,
             libraryId:$libraryId,
         }) {

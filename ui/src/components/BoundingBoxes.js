@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from '@emotion/styled'
+import { ReactComponent as EditIcon } from '../static/images/edit_white.svg'
+import { ReactComponent as BlockIcon } from '../static/images/block_white.svg'
 
 const Container = styled('div')`
   width: 100%;
@@ -37,6 +39,16 @@ const Container = styled('div')`
           text-shadow: 0 0 2px #ff0;
         }
       }
+      .FeatureIconEdit{ 
+        position: absolute;
+        bottom: 0px;
+        right: 3px;
+      }
+      .FeatureIconDelete{ 
+        position: absolute;
+        bottom: 0px;
+        right: 30px;
+      }
     }
   }
 
@@ -53,6 +65,7 @@ const Container = styled('div')`
 `
 
 const BoundingBoxes = ({ boxes, className }) => {
+  const [editMode, setEditMode] = useState(false)
   return (
     <Container>
       {boxes?.map((box, index) => {
@@ -67,8 +80,13 @@ const BoundingBoxes = ({ boxes, className }) => {
             style={{ left: left, top: top, width: width, height: height }}
           >
             <div className="FeatureLabel" key={index}>
+              {console.log(editMode)}
               {box.name}
             </div>
+            {className === "face" && <>
+              <EditIcon alt="Edit" className="FeatureIconEdit" onClick={() => setEditMode(!editMode)} />
+              <BlockIcon alt="Block" className="FeatureIconDelete" onClick={() => setEditMode(!editMode)} />
+            </>}
           </div>
         )
       })}

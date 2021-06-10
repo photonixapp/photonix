@@ -49,6 +49,7 @@ class Command(BaseCommand):
             classification_location_enabled=True,
             classification_style_enabled=True,
             classification_object_enabled=True,
+            classification_face_enabled=True,
             setup_stage_completed='Th'
         )
         # LibraryPath as locally mounted volume

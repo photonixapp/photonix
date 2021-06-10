@@ -19,6 +19,7 @@ import {
   SETTINGS_COLOR,
   SETTINGS_LOCATION,
   SETTINGS_OBJECT,
+  SETTINGS_FACE,
   SETTINGS_SOURCE_FOLDER,
   GET_SETTINGS,
 } from '../graphql/settings'
@@ -59,6 +60,11 @@ export default function Settings() {
       type: 'boolean',
       label: 'Run object detection on photos?',
     },
+    {
+      key: 'classificationFaceEnabled',
+      type: 'boolean',
+      label: 'Run face detection on photos?',
+    },
   ]
 
   function toggleBooleanSetting(key) {
@@ -72,7 +78,7 @@ export default function Settings() {
             classificationStyleEnabled: newSettings.classificationStyleEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationLocationEnabled':
         settingUpdateLocation({
@@ -81,7 +87,7 @@ export default function Settings() {
               newSettings.classificationLocationEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationObjectEnabled':
         settingUpdateObject({
@@ -90,7 +96,7 @@ export default function Settings() {
               newSettings.classificationObjectEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
         return key
       case 'classificationColorEnabled':
         settingUpdateColor({
@@ -98,7 +104,16 @@ export default function Settings() {
             classificationColorEnabled: newSettings.classificationColorEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
+        return key
+      case 'classificationFaceEnabled':
+        settingUpdateFace({
+          variables: {
+            classificationFaceEnabled:
+              newSettings.classificationFaceEnabled,
+            libraryId: activeLibrary?.id,
+          },
+        }).catch((e) => { })
         return key
       default:
         return null
@@ -121,12 +136,13 @@ export default function Settings() {
         sourceFolder: newSettings.sourceDirs,
         libraryId: activeLibrary?.id,
       },
-    }).catch((e) => {})
+    }).catch((e) => { })
   }
   const [settingUpdateStyle] = useMutation(SETTINGS_STYLE)
   const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
+  const [settingUpdateFace] = useMutation(SETTINGS_FACE)
   const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
 
   return (
