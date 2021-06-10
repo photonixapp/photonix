@@ -3,7 +3,7 @@ scipy==1.4.1
 matplotlib==3.1.2
 tensorflow==2.4.1
 
-Django==3.0.14
+Django==3.1.12
 django-cors-headers==3.2.1
 django-filter==2.2.0
 PyJWT==1.7.1
