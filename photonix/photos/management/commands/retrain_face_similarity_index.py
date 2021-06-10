@@ -27,8 +27,12 @@ class Command(BaseCommand):
         for library in Library.objects.all():
             start = time()
             print(f'Updating ANN index for Library {library.id}')
-            if version_date and PhotoTag.objects.filter(updated_at__gt=version_date).count() == 0:
-                print('    No new PhotoTags in Library so no point in updating face ANN index')
+
+            if PhotoTag.objects.filter(tag__type='F').count() == 0:
+                print('    No Face PhotoTags in Library so no point in creating face ANN index yet')
+                return
+            if version_date and PhotoTag.objects.filter(updated_at__gt=version_date, tag__type='F').count() == 0:
+                print('    No new Face PhotoTags in Library so no point in updating face ANN index')
                 return
 
             FaceModel(library_id=library.id).retrain_face_similarity_index()
