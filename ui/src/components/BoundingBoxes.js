@@ -6,8 +6,7 @@ import { ReactComponent as EditIcon } from '../static/images/edit.svg'
 import { ReactComponent as BlockIcon } from '../static/images/block_black.svg'
 import { ReactComponent as DoneIcon } from '../static/images/done_black.svg'
 import { EDIT_FACE_TAG, BLOCK_FACE_TAG, VERIFY_FACE_TAG } from '../graphql/tag'
-import { isTagUpdated } from "../stores/tag/selector";
-
+import { isTagUpdated } from '../stores/tag/selector'
 
 const Container = styled('div')`
   width: 100%;
@@ -31,61 +30,50 @@ const Container = styled('div')`
       text-align: left;
       white-space: nowrap;
       pointer-events: all;
-      &:hover {
-        overflow: visible;
-        text-shadow: 0 0 2px #f00;
-      }
     }
     &.face {
-      &.yellowBox{
+      &.yellowBox {
         border-color: rgba(255, 255, 0, 0.75);
         .FeatureLabel {
           color: #000;
           background-color: rgba(255, 255, 0, 0.75);
-          &:hover {
-            text-shadow: 0 0 2px #ff0;
-          }
         }
       }
-      &.greenBox{
-        border-color: rgba(9, 119, 56, 0.9);
+      &.greenBox {
+        border-color: rgba(0, 255, 0, 0.75);
         .FeatureLabel {
           color: #000;
-          background-color : rgba(9, 119, 56, 0.9);
-          &:hover {
-            text-shadow: 0 0 2px #ff0;
-          }
+          background-color: rgba(0, 255, 0, 0.75);
         }
       }
-      &.whiteBox{
-        border-color: rgba(202, 202, 191, 0.95);
+      &.whiteBox {
+        border-color: rgba(202, 202, 191, 0.5);
       }
-      .FeatureEditText{
-        color:#000 !important;
+      .FeatureEditText {
+        color: #000 !important;
+        width: 100%;
+        border: 0;
       }
-      .icons{
+      .icons {
         position: absolute;
-        bottom: 0px;
-        right:0;
+        bottom: 0;
+        right: 5px;
 
-      .FeatureIconEdit {
-        background: #fff;
-        border-radius: 50%; 
-        padding: 3px;
-        margin: 0 1px;
-      }
-      .FeatureIconDelete {
-        background: red;
-        border-radius: 50%;
-        padding: 3px;  
-        margin: 0 1px;            
-      }
-      .FeatureIconDone {
-        background: #2ff16df0;
-        border-radius: 50%;
-        padding: 3px;
-        margin: 0 1px;
-      }
+        svg {
+          background: #fff;
+          border-radius: 50%;
+          padding: 3px;
+          margin: 0 1px;
+          cursor: pointer;
+          &.FeatureIconEdit {
+          }
+          &.FeatureIconDelete {
+            background: #f00;
+          }
+          &.FeatureIconDone {
+            background: #0f0;
+          }
+        }
       }
     }
   }
@@ -109,22 +97,23 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
   const [blockFaceTag] = useMutation(BLOCK_FACE_TAG)
   const [verifyPhoto] = useMutation(VERIFY_FACE_TAG)
   const tagUpdated = useSelector(isTagUpdated)
-  
+
   const onHandleBlock = (photoTagId) => {
     blockFaceTag({
       variables: {
-        photoTagId: photoTagId
+        photoTagId: photoTagId,
       },
     })
-    .then((res) => {
-      if (res.data.blockFaceTag.ok){ 
-        refetch()
-        dispatch({
-          type: 'IS_TAG_UPDATE',
-          payload: {updated:!tagUpdated},
-        })
-      }
-    }).catch((e) => { })
+      .then((res) => {
+        if (res.data.blockFaceTag.ok) {
+          refetch()
+          dispatch({
+            type: 'IS_TAG_UPDATE',
+            payload: { updated: !tagUpdated },
+          })
+        }
+      })
+      .catch((e) => {})
   }
 
   const onSaveLable = (photoTagId) => {
@@ -134,21 +123,21 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
         newName: tagName,
       },
     })
-    .then((res) => {
-      setEditLableId('')
-      setTagName(null)
-      if (res.data.editFaceTag.ok) {
-        refetch()
-        dispatch({
-          type: 'IS_TAG_UPDATE',
-          payload: {updated:!tagUpdated},
-        })
-      }
-    })
-    .catch((e) => {
-      setEditLableId('')
-      setTagName(null)
-    })
+      .then((res) => {
+        setEditLableId('')
+        setTagName(null)
+        if (res.data.editFaceTag.ok) {
+          refetch()
+          dispatch({
+            type: 'IS_TAG_UPDATE',
+            payload: { updated: !tagUpdated },
+          })
+        }
+      })
+      .catch((e) => {
+        setEditLableId('')
+        setTagName(null)
+      })
   }
 
   const onChangeLable = (event, photoTagId) => {
@@ -156,8 +145,7 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
     if (event.keyCode === 13) {
       if (tagName) {
         onSaveLable(photoTagId)
-      }
-      else {
+      } else {
         setEditLableId('')
         setTagName(null)
       }
@@ -167,13 +155,13 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
   const setVerifyPhoto = (photoTagId) => {
     verifyPhoto({
       variables: {
-        photoTagId: photoTagId
+        photoTagId: photoTagId,
       },
     })
-    .then((res) => {
-      if (res.data.verifyPhoto.ok) refetch()
-    })
-    .catch((e) => { })
+      .then((res) => {
+        if (res.data.verifyPhoto.ok) refetch()
+      })
+      .catch((e) => {})
   }
 
   useEffect(() => {
@@ -195,8 +183,8 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
             key={index}
             style={{ left: left, top: top, width: width, height: height }}
           >
-            {
-              !box.deleted ? editLableId == box.id  ?
+            {!box.deleted ? (
+              editLableId == box.id ? (
                 <input
                   type="text"
                   name="tagName"
@@ -204,44 +192,44 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
                   onKeyUp={(e) => onChangeLable(e, box.id)}
                   ref={ref}
                 />
-                :
+              ) : (
                 <div className="FeatureLabel" key={index}>
                   {box.name}
-                </div> : null
-            }
+                </div>
+              )
+            ) : null}
             {className === 'face' && !box.deleted && (
               <div className="icons">
-                {
-                  editLableId == box.id ?
-                    <DoneIcon
-                      alt="Done"
-                      className="FeatureIconDone"
-                      onClick={() => onSaveLable(box.id)}
-                    />
-                    :
-                    <>
-                      { !box.verified && (
-                        <BlockIcon
+                {editLableId == box.id ? (
+                  <DoneIcon
+                    alt="Done"
+                    className="FeatureIconDone"
+                    onClick={() => onSaveLable(box.id)}
+                  />
+                ) : (
+                  <>
+                    {!box.verified && (
+                      <BlockIcon
                         alt="Block"
                         className="FeatureIconDelete"
                         onClick={() => onHandleBlock(box.id)}
-                        />
-                      )}
-                      { box.showVerifyIcon && (
-                        <DoneIcon 
+                      />
+                    )}
+                    {box.showVerifyIcon && (
+                      <DoneIcon
                         alt="Done"
                         className="FeatureIconDone"
                         onClick={() => setVerifyPhoto(box.id)}
                       />
-                      )} 
-                      <EditIcon
-                        alt="Edit"
-                        className="FeatureIconEdit"
-                        onClick={() => setEditLableId(box.id)}
-                      />
-                    </>
-                  }
-            </div>
+                    )}
+                    <EditIcon
+                      alt="Edit"
+                      className="FeatureIconEdit"
+                      onClick={() => setEditLableId(box.id)}
+                    />
+                  </>
+                )}
+              </div>
             )}
           </div>
         )
