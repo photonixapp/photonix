@@ -56,8 +56,8 @@ const Container = styled('div')`
       }
       .icons {
         position: absolute;
-        bottom: 0;
-        right: 5px;
+        bottom: -3px;
+        right: 2px;
 
         svg {
           background: #fff;
