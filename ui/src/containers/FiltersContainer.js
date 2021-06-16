@@ -5,6 +5,7 @@ import gql from 'graphql-tag'
 import Filters from '../components/Filters'
 import Spinner from '../components/Spinner'
 import { getActiveLibrary } from '../stores/libraries/selector'
+import { isTagUpdated } from "../stores/tag/selector";
 
 const GET_FILTERS = gql`
   query AllFilters($libraryId: UUID, $multiFilter: String) {
@@ -79,11 +80,11 @@ const FiltersContainer = ({
 }) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
+  const tagUpdated = useSelector(isTagUpdated)
   let filtersStr = ''
   if (activeLibrary) {
     filtersStr = `${selectedFilters.map((filter) => filter.id).join(' ')}`
   }
-
   let variables = {}
   variables = { libraryId: activeLibrary?.id, multiFilter: filtersStr }
   const { loading, error, data, refetch } = useQuery(
@@ -95,7 +96,7 @@ const FiltersContainer = ({
   )
   useEffect(() => {
     refetch()
-  }, [activeLibrary, refetch])
+  }, [activeLibrary, refetch, tagUpdated])
 
   const getFilterdData = (type, array) => {
     const filterArr = selectedFilters.filter((s) => s.group === type)

@@ -191,6 +191,9 @@ const PhotoMetadata = ({
     return arr[arr.length - 1]
   }
 
+  // To show people tag list without having any blocked tag.
+  const personTagsList = photo.personTags.filter(personTags => !personTags.deleted);
+
   return (
     <Container className={show && 'showing'}>
       <div className="boxes" style={{ marginTop: safeArea.top }}>
@@ -306,7 +309,7 @@ const PhotoMetadata = ({
             />
           </div>
         )}
-        {photo.personTags.length > 0 && (
+        {personTagsList.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>
               People
@@ -317,7 +320,7 @@ const PhotoMetadata = ({
               )}
             </h2>
             <ul>
-              {photo.personTags.map((photoTag, index) => (
+              {personTagsList.map((photoTag, index) => (
                 <li key={index}>{photoTag.tag.name}</li>
               ))}
             </ul>

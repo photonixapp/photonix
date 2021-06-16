@@ -1,7 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import styled from '@emotion/styled'
-import { ReactComponent as EditIcon } from '../static/images/edit_white.svg'
-import { ReactComponent as BlockIcon } from '../static/images/block_white.svg'
+import { useMutation } from '@apollo/client'
+import { useDispatch, useSelector } from 'react-redux'
+import { ReactComponent as EditIcon } from '../static/images/edit.svg'
+import { ReactComponent as BlockIcon } from '../static/images/block_black.svg'
+import { ReactComponent as DoneIcon } from '../static/images/done_black.svg'
+import { EDIT_FACE_TAG, BLOCK_FACE_TAG, VERIFY_FACE_TAG } from '../graphql/tag'
+import { isTagUpdated } from "../stores/tag/selector";
+
 
 const Container = styled('div')`
   width: 100%;
@@ -31,23 +37,55 @@ const Container = styled('div')`
       }
     }
     &.face {
-      border-color: rgba(255, 255, 0, 0.75);
-      .FeatureLabel {
-        color: #000;
-        background-color: rgba(255, 255, 0, 0.75);
-        &:hover {
-          text-shadow: 0 0 2px #ff0;
+      &.yellowBox{
+        border-color: rgba(255, 255, 0, 0.75);
+        .FeatureLabel {
+          color: #000;
+          background-color: rgba(255, 255, 0, 0.75);
+          &:hover {
+            text-shadow: 0 0 2px #ff0;
+          }
         }
       }
-      .FeatureIconEdit {
+      &.greenBox{
+        border-color: rgba(9, 119, 56, 0.9);
+        .FeatureLabel {
+          color: #000;
+          background-color : rgba(9, 119, 56, 0.9);
+          &:hover {
+            text-shadow: 0 0 2px #ff0;
+          }
+        }
+      }
+      &.whiteBox{
+        border-color: rgba(202, 202, 191, 0.95);
+      }
+      .FeatureEditText{
+        color:#000 !important;
+      }
+      .icons{
         position: absolute;
         bottom: 0px;
-        right: 3px;
+        right:0;
+
+      .FeatureIconEdit {
+        background: #fff;
+        border-radius: 50%; 
+        padding: 3px;
+        margin: 0 1px;
       }
       .FeatureIconDelete {
-        position: absolute;
-        bottom: 0px;
-        right: 30px;
+        background: red;
+        border-radius: 50%;
+        padding: 3px;  
+        margin: 0 1px;            
+      }
+      .FeatureIconDone {
+        background: #2ff16df0;
+        border-radius: 50%;
+        padding: 3px;
+        margin: 0 1px;
+      }
       }
     }
   }
@@ -62,9 +100,88 @@ const Container = styled('div')`
     }
   }
 `
+const BoundingBoxes = ({ boxes, className, refetch }) => {
+  const dispatch = useDispatch()
+  const ref = useRef(null)
+  const [editLableId, setEditLableId] = useState('')
+  const [tagName, setTagName] = useState(null)
+  const [editFaceTag] = useMutation(EDIT_FACE_TAG)
+  const [blockFaceTag] = useMutation(BLOCK_FACE_TAG)
+  const [verifyPhoto] = useMutation(VERIFY_FACE_TAG)
+  const tagUpdated = useSelector(isTagUpdated)
+  
+  const onHandleBlock = (photoTagId) => {
+    blockFaceTag({
+      variables: {
+        photoTagId: photoTagId
+      },
+    })
+    .then((res) => {
+      if (res.data.blockFaceTag.ok){ 
+        refetch()
+        dispatch({
+          type: 'IS_TAG_UPDATE',
+          payload: {updated:!tagUpdated},
+        })
+      }
+    }).catch((e) => { })
+  }
 
-const BoundingBoxes = ({ boxes, className }) => {
-  const [editMode, setEditMode] = useState(false)
+  const onSaveLable = (photoTagId) => {
+    editFaceTag({
+      variables: {
+        photoTagId: photoTagId,
+        newName: tagName,
+      },
+    })
+    .then((res) => {
+      setEditLableId('')
+      setTagName(null)
+      if (res.data.editFaceTag.ok) {
+        refetch()
+        dispatch({
+          type: 'IS_TAG_UPDATE',
+          payload: {updated:!tagUpdated},
+        })
+      }
+    })
+    .catch((e) => {
+      setEditLableId('')
+      setTagName(null)
+    })
+  }
+
+  const onChangeLable = (event, photoTagId) => {
+    setTagName(event.target.value)
+    if (event.keyCode === 13) {
+      if (tagName) {
+        onSaveLable(photoTagId)
+      }
+      else {
+        setEditLableId('')
+        setTagName(null)
+      }
+    }
+  }
+
+  const setVerifyPhoto = (photoTagId) => {
+    verifyPhoto({
+      variables: {
+        photoTagId: photoTagId
+      },
+    })
+    .then((res) => {
+      if (res.data.verifyPhoto.ok) refetch()
+    })
+    .catch((e) => { })
+  }
+
+  useEffect(() => {
+    if (ref?.current) {
+      ref.current.focus()
+    }
+  }, [editLableId])
+
   return (
     <Container>
       {boxes?.map((box, index) => {
@@ -74,27 +191,57 @@ const BoundingBoxes = ({ boxes, className }) => {
         let height = box.sizeY * 100 + '%'
         return (
           <div
-            className={`FeatureBox ${className}`}
+            className={`FeatureBox ${className} ${box.boxColorClass}`}
             key={index}
             style={{ left: left, top: top, width: width, height: height }}
           >
-            <div className="FeatureLabel" key={index}>
-              {console.log(editMode)}
-              {box.name}
+            {
+              !box.deleted ? editLableId == box.id  ?
+                <input
+                  type="text"
+                  name="tagName"
+                  className="FeatureEditText"
+                  onKeyUp={(e) => onChangeLable(e, box.id)}
+                  ref={ref}
+                />
+                :
+                <div className="FeatureLabel" key={index}>
+                  {box.name}
+                </div> : null
+            }
+            {className === 'face' && !box.deleted && (
+              <div className="icons">
+                {
+                  editLableId == box.id ?
+                    <DoneIcon
+                      alt="Done"
+                      className="FeatureIconDone"
+                      onClick={() => onSaveLable(box.id)}
+                    />
+                    :
+                    <>
+                      { !box.verified && (
+                        <BlockIcon
+                        alt="Block"
+                        className="FeatureIconDelete"
+                        onClick={() => onHandleBlock(box.id)}
+                        />
+                      )}
+                      { box.showVerifyIcon && (
+                        <DoneIcon 
+                        alt="Done"
+                        className="FeatureIconDone"
+                        onClick={() => setVerifyPhoto(box.id)}
+                      />
+                      )} 
+                      <EditIcon
+                        alt="Edit"
+                        className="FeatureIconEdit"
+                        onClick={() => setEditLableId(box.id)}
+                      />
+                    </>
+                  }
             </div>
-            {className === 'face' && (
-              <>
-                <EditIcon
-                  alt="Edit"
-                  className="FeatureIconEdit"
-                  onClick={() => setEditMode(!editMode)}
-                />
-                <BlockIcon
-                  alt="Block"
-                  className="FeatureIconDelete"
-                  onClick={() => setEditMode(!editMode)}
-                />
-              </>
             )}
           </div>
         )

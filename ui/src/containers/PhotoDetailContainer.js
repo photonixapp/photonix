@@ -63,6 +63,9 @@ const GET_PHOTO = gql`
         positionY
         sizeX
         sizeY
+        verified
+        deleted
+        showVerifyIcon
       }
       colorTags {
         id

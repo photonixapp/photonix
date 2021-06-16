@@ -5,7 +5,7 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { useSwipeable } from 'react-swipeable'
 import { useSelector } from 'react-redux'
 
-import BoundingBoxes from './BoundingBoxes'
+import  BoundingBoxes  from './BoundingBoxes'
 import Spinner from './Spinner'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
@@ -78,7 +78,7 @@ const Container = styled('div')`
   }
 `
 
-const ZoomableImage = ({ photoId, boxes, next, prev }) => {
+const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
   const [scale, setScale] = useState(1)
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -172,7 +172,7 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
                           className={displayImage ? ' display' : undefined}
                           key={index}
                         >
-                          <BoundingBoxes boxes={boxes[key]} className={key} />
+                          <BoundingBoxes boxes={boxes[key]} className={key} refetch={refetch}/>
                         </span>
                       ))}
                   </div>
@@ -206,14 +206,20 @@ ZoomableImage.propTypes = {
     ),
     face: PropTypes.arrayOf(
       PropTypes.shape({
+        id: PropTypes.string,
         name: PropTypes.string,
         positionX: PropTypes.number,
         positionY: PropTypes.number,
         sizeX: PropTypes.number,
         sizeY: PropTypes.number,
+        verified: PropTypes.bool,
+        deleted: PropTypes.bool,
+        boxColorClass: PropTypes.string,   
+        showVerifyIcon: PropTypes.bool,
       })
     ),
   }),
+  refetch: PropTypes.func,
 }
 
 export default ZoomableImage
