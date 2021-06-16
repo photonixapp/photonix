@@ -46,6 +46,10 @@ const MapView = ({
         localStorage.setItem('lat', mapEvents.getCenter().lat)
         localStorage.setItem('lng', mapEvents.getCenter().lng)
       },
+      dragend: () => {
+        localStorage.setItem('lat', mapEvents.getCenter().lat)
+        localStorage.setItem('lng', mapEvents.getCenter().lng)
+      },
   });
   const position = [latState? latState : mapEvents.getCenter().lat, lngState? lngState : mapEvents.getCenter().lng]
   const zoom = zoomState? zoomState : mapEvents.getZoom()
