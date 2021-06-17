@@ -32,6 +32,7 @@ const Container = styled('div')`
       pointer-events: all;
     }
     &.face {
+      cursor: default;
       &.yellowBox {
         border-color: rgba(255, 255, 0, 0.75);
         .FeatureLabel {
@@ -53,6 +54,7 @@ const Container = styled('div')`
         color: #000 !important;
         width: 100%;
         border: 0;
+        padding: 2px 4px;
       }
       .icons {
         position: absolute;
@@ -213,6 +215,7 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
                         alt="Block"
                         className="FeatureIconDelete"
                         onClick={() => onHandleBlock(box.id)}
+                        title="Reject automatic face tag"
                       />
                     )}
                     {box.showVerifyIcon && (
@@ -220,12 +223,14 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
                         alt="Done"
                         className="FeatureIconDone"
                         onClick={() => setVerifyPhoto(box.id)}
+                        title="Approve automatic face tag"
                       />
                     )}
                     <EditIcon
                       alt="Edit"
                       className="FeatureIconEdit"
                       onClick={() => setEditLableId(box.id)}
+                      title="Edit person’s name"
                     />
                   </>
                 )}
