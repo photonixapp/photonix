@@ -5,6 +5,7 @@ import gql from 'graphql-tag'
 import Filters from '../components/Filters'
 import Spinner from '../components/Spinner'
 import { getActiveLibrary } from '../stores/libraries/selector'
+import { isTagUpdated } from '../stores/tag/selector'
 
 const GET_FILTERS = gql`
   query AllFilters($libraryId: UUID, $multiFilter: String) {
@@ -76,14 +77,18 @@ function createFilterSelection(sectionName, data, prefix = 'tag') {
   }
 }
 
-const FiltersContainer = ({ selectedFilters, onFilterToggle, searchAreaExpand }) => {
+const FiltersContainer = ({
+  selectedFilters,
+  onFilterToggle,
+  searchAreaExpand,
+}) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
   const activeLibrary = useSelector(getActiveLibrary)
+  const tagUpdated = useSelector(isTagUpdated)
   let filtersStr = ''
   if (activeLibrary) {
     filtersStr = `${selectedFilters.map((filter) => filter.id).join(' ')}`
   }
-
   let variables = {}
   variables = { libraryId: activeLibrary?.id, multiFilter: filtersStr }
   const { loading, error, data, refetch } = useQuery(
@@ -95,14 +100,15 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle, searchAreaExpand })
   )
   useEffect(() => {
     refetch()
-
-  }, [activeLibrary, refetch])
+  }, [activeLibrary, refetch, tagUpdated])
 
   const getFilterdData = (type, array) => {
     const filterArr = selectedFilters.filter((s) => s.group === type)
     let data = []
     if (type === 'Locations' && filterArr.length > 0) {
-      const id = array.filter((c) => filterArr.find((rm) => rm.name === c.name))[0].id
+      const id = array.filter((c) =>
+        filterArr.find((rm) => rm.name === c.name)
+      )[0].id
       data = array.filter((c) => !filterArr.find((rm) => rm.name === c.name))
       data = data.filter((d) => d?.parent?.id !== id)
     } else {
@@ -128,10 +134,6 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle, searchAreaExpand })
       const locationsTags = getFilterdData('Locations', data.allLocationTags)
       filterData.push(createFilterSelection('Locations', locationsTags))
     }
-    if (data.allPersonTags.length) {
-      const peopleTags = getFilterdData('People', data.allPersonTags)
-      filterData.push(createFilterSelection('People', peopleTags))
-    }
     if (data.allColorTags.length) {
       const colorsTags = getFilterdData('Colors', data.allColorTags)
       filterData.push(createFilterSelection('Colors', colorsTags))
@@ -143,6 +145,10 @@ const FiltersContainer = ({ selectedFilters, onFilterToggle, searchAreaExpand })
     if (data.allEventTags.length) {
       const eventsTags = getFilterdData('Events', data.allEventTags)
       filterData.push(createFilterSelection('Events', eventsTags))
+    }
+    if (data.allPersonTags.length) {
+      const peopleTags = getFilterdData('People', data.allPersonTags)
+      filterData.push(createFilterSelection('People', peopleTags))
     }
     if (data.allCameras.length) {
       filterData.push({

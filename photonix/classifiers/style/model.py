@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 
 import redis
-import tensorflow as tf
 from redis_lock import Lock
+import tensorflow as tf
 
 from photonix.classifiers.base_model import BaseModel
 

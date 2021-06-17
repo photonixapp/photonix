@@ -54,6 +54,19 @@ const GET_PHOTO = gql`
         sizeX
         sizeY
       }
+      personTags {
+        id
+        tag {
+          name
+        }
+        positionX
+        positionY
+        sizeX
+        sizeY
+        verified
+        deleted
+        showVerifyIcon
+      }
       colorTags {
         id
         tag {

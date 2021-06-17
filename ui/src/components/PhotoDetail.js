@@ -168,15 +168,35 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     }
   }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
-  let boxes = photo?.objectTags.map((objectTag) => {
-    return {
-      name: objectTag.tag.name,
-      positionX: objectTag.positionX,
-      positionY: objectTag.positionY,
-      sizeX: objectTag.sizeX,
-      sizeY: objectTag.sizeY,
-    }
-  })
+  const setBoxColorClass = (tag) => {
+    return tag.deleted ? 'whiteBox' : tag.verified ? 'greenBox' : 'yellowBox'; 
+  }
+
+  let boxes = {
+    object: photo?.objectTags.map((objectTag) => {
+      return {
+        name: objectTag.tag.name,
+        positionX: objectTag.positionX,
+        positionY: objectTag.positionY,
+        sizeX: objectTag.sizeX,
+        sizeY: objectTag.sizeY,
+      }
+    }),
+    face: photo?.personTags.map((tag) => {
+      return {
+        id: tag.id,
+        name: tag.tag.name,
+        positionX: tag.positionX,
+        positionY: tag.positionY,
+        sizeX: tag.sizeX,
+        sizeY: tag.sizeY,
+        verified: tag.verified,
+        deleted: tag.deleted,
+        boxColorClass: setBoxColorClass(tag), 
+        showVerifyIcon: tag.showVerifyIcon,       
+      }
+    }),
+  }
 
   return (
     <Container>
@@ -185,6 +205,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
         boxes={showBoundingBox && boxes}
         next={nextPhoto}
         prev={prevPhoto}
+        refetch={refetch}
       />
       <div
         className="backIcon"

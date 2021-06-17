@@ -7,6 +7,7 @@ import { ReactComponent as ObjectsIcon } from '../static/images/label.svg'
 import { ReactComponent as LocationsIcon } from '../static/images/location_on.svg'
 import { ReactComponent as ColorsIcon } from '../static/images/color_lens.svg'
 import { ReactComponent as StylesIcon } from '../static/images/style.svg'
+import { ReactComponent as PeopleIcon } from '../static/images/person.svg'
 import { ReactComponent as EventsIcon } from '../static/images/event.svg'
 import { ReactComponent as CamerasIcon } from '../static/images/photo_camera.svg'
 import { ReactComponent as StarIcon } from '../static/images/star_outline.svg'
@@ -15,6 +16,7 @@ const GROUP_ICONS = {
   'Generic Tags': ObjectsIcon,
   Objects: ObjectsIcon,
   Locations: LocationsIcon,
+  People: PeopleIcon,
   Colors: ColorsIcon,
   Styles: StylesIcon,
   Events: EventsIcon,
@@ -42,7 +44,11 @@ const SearchInput = ({
     <div className="SearchInput">
       <ul>
         {selectedFilters.map((filter) => {
-          let icon = React.createElement(GROUP_ICONS[filter.group], {
+          let icon = ObjectsIcon
+          if (GROUP_ICONS[filter.group]) {
+            icon = GROUP_ICONS[filter.group]
+          }
+          icon = React.createElement(icon, {
             className: 'groupIcon',
             alt: filter.group,
           })

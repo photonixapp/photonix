@@ -1,7 +1,8 @@
 CLASSIFIERS = [
     'color',
     'location',
-    'object',
+    'face',
     'style',
+    'object',
     'event',
 ]

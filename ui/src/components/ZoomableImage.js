@@ -5,7 +5,7 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { useSwipeable } from 'react-swipeable'
 import { useSelector } from 'react-redux'
 
-import BoundingBoxes from './BoundingBoxes'
+import  BoundingBoxes  from './BoundingBoxes'
 import Spinner from './Spinner'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
@@ -78,12 +78,12 @@ const Container = styled('div')`
   }
 `
 
-const ZoomableImage = ({ photoId, boxes, next, prev }) => {
+const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
   const [scale, setScale] = useState(1)
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
-  
+
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
@@ -99,7 +99,7 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => nextPhoto(),
-    onSwipedRight: () => prevPhoto()
+    onSwipedRight: () => prevPhoto(),
   })
 
   const loadNextPrevImages = () => {
@@ -134,7 +134,7 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
   const handleZoom = (e) => {
     if (e.scale === 1 && zoom) {
       setZoom(false)
-    } else if(e.scale > 1 && !zoom) {
+    } else if (e.scale > 1 && !zoom) {
       setZoom(true)
     }
   }
@@ -159,7 +159,6 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
             <TransformComponent>
               <div className="pinchArea">
                 <div {...swipeHandlers} className="imageFlex">
-                  
                   <div className="imageWrapper">
                     <img
                       src={url}
@@ -167,9 +166,15 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
                       onLoad={handleImageLoaded}
                       className={displayImage ? 'display' : undefined}
                     />
-                    <span className={displayImage ? ' display' : undefined}>
-                      {boxes && <BoundingBoxes boxes={boxes} />}
-                    </span>
+                    {boxes &&
+                      Object.keys(boxes).map((key, index) => (
+                        <span
+                          className={displayImage ? ' display' : undefined}
+                          key={index}
+                        >
+                          <BoundingBoxes boxes={boxes[key]} className={key} refetch={refetch}/>
+                        </span>
+                      ))}
                   </div>
                 </div>
               </div>
@@ -189,15 +194,32 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
 
 ZoomableImage.propTypes = {
   photoId: PropTypes.string,
-  boxes: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string,
-      positionX: PropTypes.number,
-      positionY: PropTypes.number,
-      sizeX: PropTypes.number,
-      sizeY: PropTypes.number,
-    })
-  ),
+  boxes: PropTypes.shape({
+    object: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string,
+        positionX: PropTypes.number,
+        positionY: PropTypes.number,
+        sizeX: PropTypes.number,
+        sizeY: PropTypes.number,
+      })
+    ),
+    face: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string,
+        name: PropTypes.string,
+        positionX: PropTypes.number,
+        positionY: PropTypes.number,
+        sizeX: PropTypes.number,
+        sizeY: PropTypes.number,
+        verified: PropTypes.bool,
+        deleted: PropTypes.bool,
+        boxColorClass: PropTypes.string,   
+        showVerifyIcon: PropTypes.bool,
+      })
+    ),
+  }),
+  refetch: PropTypes.func,
 }
 
 export default ZoomableImage
