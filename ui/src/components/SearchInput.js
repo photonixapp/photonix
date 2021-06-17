@@ -71,9 +71,15 @@ const SearchInput = ({
 
   const onKeyDown = (e) => {
     if (e.keyCode === 13) {
-      onSearchTextChange(filteredOptions[activeOption].name)
+      // onSearchTextChange(filteredOptions[activeOption].name)
+      onSearchTextChange('')
       setActiveOption(0)
       setShowOptions(false)
+      onFilterToggle(
+        filteredOptions[activeOption].id,
+        filteredOptions[activeOption].type,
+        filteredOptions[activeOption].name
+      )
     } else if (e.keyCode === 38) {
       if (activeOption === 0) return
       setActiveOption(activeOption - 1)
@@ -87,7 +93,13 @@ const SearchInput = ({
     setActiveOption(0)
     setFilteredOptions([])
     setShowOptions(false)
-    onSearchTextChange(filteredOptions[index].name)
+    // onSearchTextChange(filteredOptions[index].name)
+    onSearchTextChange('')
+    onFilterToggle(
+      filteredOptions[index].id,
+      filteredOptions[index].type,
+      filteredOptions[index].name
+    )
   }
 
   let optionList;
