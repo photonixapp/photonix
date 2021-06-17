@@ -186,7 +186,7 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
             style={{ left: left, top: top, width: width, height: height }}
           >
             {!box.deleted ? (
-              editLableId == box.id ? (
+              editLableId === box.id ? (
                 <input
                   type="text"
                   name="tagName"
@@ -202,7 +202,7 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
             ) : null}
             {className === 'face' && !box.deleted && (
               <div className="icons">
-                {editLableId == box.id ? (
+                {editLableId === box.id ? (
                   <DoneIcon
                     alt="Done"
                     className="FeatureIconDone"

@@ -51,6 +51,11 @@ export default function Settings() {
       label: 'Run location detection on photos?',
     },
     {
+      key: 'classificationFaceEnabled',
+      type: 'boolean',
+      label: 'Run face recognition on photos?',
+    },
+    {
       key: 'classificationStyleEnabled',
       type: 'boolean',
       label: 'Run style classification on photos?',
@@ -59,11 +64,6 @@ export default function Settings() {
       key: 'classificationObjectEnabled',
       type: 'boolean',
       label: 'Run object detection on photos?',
-    },
-    {
-      key: 'classificationFaceEnabled',
-      type: 'boolean',
-      label: 'Run face detection on photos?',
     },
   ]
 
@@ -78,7 +78,7 @@ export default function Settings() {
             classificationStyleEnabled: newSettings.classificationStyleEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => { })
+        }).catch((e) => {})
         return key
       case 'classificationLocationEnabled':
         settingUpdateLocation({
@@ -87,7 +87,7 @@ export default function Settings() {
               newSettings.classificationLocationEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => { })
+        }).catch((e) => {})
         return key
       case 'classificationObjectEnabled':
         settingUpdateObject({
@@ -96,7 +96,7 @@ export default function Settings() {
               newSettings.classificationObjectEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => { })
+        }).catch((e) => {})
         return key
       case 'classificationColorEnabled':
         settingUpdateColor({
@@ -104,16 +104,15 @@ export default function Settings() {
             classificationColorEnabled: newSettings.classificationColorEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => { })
+        }).catch((e) => {})
         return key
       case 'classificationFaceEnabled':
         settingUpdateFace({
           variables: {
-            classificationFaceEnabled:
-              newSettings.classificationFaceEnabled,
+            classificationFaceEnabled: newSettings.classificationFaceEnabled,
             libraryId: activeLibrary?.id,
           },
-        }).catch((e) => { })
+        }).catch((e) => {})
         return key
       default:
         return null
@@ -136,7 +135,7 @@ export default function Settings() {
         sourceFolder: newSettings.sourceDirs,
         libraryId: activeLibrary?.id,
       },
-    }).catch((e) => { })
+    }).catch((e) => {})
   }
   const [settingUpdateStyle] = useMutation(SETTINGS_STYLE)
   const [settingUpdateColor] = useMutation(SETTINGS_COLOR)

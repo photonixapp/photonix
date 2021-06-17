@@ -73,6 +73,18 @@ const Step5Search = ({ history }) => {
             }
           />
           <ModalField
+            name="classificationFaceEnabled"
+            type="boolean"
+            label="Face recognition (medium)"
+            register={register}
+            errors={errors}
+            defaultValue={
+              state?.data?.classificationFaceEnabled
+                ? state.data.classificationFaceEnabled
+                : true
+            }
+          />
+          <ModalField
             name="classificationStyleEnabled"
             type="boolean"
             label="Style recognition (medium)"
@@ -93,18 +105,6 @@ const Step5Search = ({ history }) => {
             defaultValue={
               state?.data?.classificationObjectEnabled
                 ? state.data.classificationObjectEnabled
-                : true
-            }
-          />
-          <ModalField
-            name="classificationFaceEnabled"
-            type="boolean"
-            label="Face detection (medium)"
-            register={register}
-            errors={errors}
-            defaultValue={
-              state?.data?.classificationFaceEnabled
-                ? state.data.classificationFaceEnabled
                 : true
             }
           />

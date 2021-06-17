@@ -11,9 +11,9 @@ from photonix.photos.utils.tasks import requeue_stuck_tasks
 CLASSIFIERS = [
     'color',
     'location',
-    'object',
-    'style',
     'face',
+    'style',
+    'object',
 ]
 
 
@@ -92,10 +92,12 @@ class ThreadedQueueProcessor:
                     task_queryset = Task.objects.filter(library__classification_color_enabled=True, type=self.task_type, status='P')
                 elif self.task_type == 'classify.location':
                     task_queryset = Task.objects.filter(library__classification_location_enabled=True, type=self.task_type, status='P')
-                elif self.task_type == 'classify.object':
-                    task_queryset = Task.objects.filter(library__classification_object_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.face':
+                    task_queryset = Task.objects.filter(library__classification_face_enabled=True, type=self.task_type, status='P')
                 elif self.task_type == 'classify.style':
                     task_queryset = Task.objects.filter(library__classification_style_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.object':
+                    task_queryset = Task.objects.filter(library__classification_object_enabled=True, type=self.task_type, status='P')
                 else:
                     task_queryset = Task.objects.filter(type=self.task_type, status='P')
                 for task in task_queryset[:8]:
