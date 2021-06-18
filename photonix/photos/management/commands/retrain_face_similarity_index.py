@@ -16,15 +16,15 @@ class Command(BaseCommand):
     help = 'Creates Approximate Nearest Neighbour (ANN) search index for quickly finding closest face without having to compare one-by-one.'
 
     def retrain_face_similarity_index(self):
-        version_file = Path(settings.MODEL_DIR) / 'face' / 'retrained_version.txt'
-        version_date = None
-
-        if os.path.exists(version_file):
-            with open(version_file) as f:
-                contents = f.read().strip()
-                version_date = datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
-
         for library in Library.objects.all():
+            version_file = Path(settings.MODEL_DIR) / 'face' / f'{library.id}_retrained_version.txt'
+            version_date = None
+
+            if os.path.exists(version_file):
+                with open(version_file) as f:
+                    contents = f.read().strip()
+                    version_date = datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
+
             start = time()
             print(f'Updating ANN index for Library {library.id}')
 
