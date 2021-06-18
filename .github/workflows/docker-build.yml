@@ -20,8 +20,8 @@ jobs:
           images: photonixapp/photonix
           tags: |
             type=semver,pattern={{major}}
-            type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}}
       -
         name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v1

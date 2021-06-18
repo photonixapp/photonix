@@ -9,6 +9,7 @@ import PhotoMetadata from './PhotoMetadata'
 import { getSafeArea } from '../stores/layout/selector'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
+import { ReactComponent as DownloadIcon } from '../static/images/download_arrow.svg'
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as ArrowLeftIcon } from '../static/images/arrow_left.svg'
 import { ReactComponent as ArrowRightIcon } from '../static/images/arrow_right.svg'
@@ -76,6 +77,14 @@ const Container = styled('div')`
     cursor: pointer;
     z-index: 10;
   }
+  .showDownloadIcon {
+    position: absolute;
+    right: 50px;
+    top: 10px;
+    filter: invert(0.9);
+    cursor: pointer;
+    z-index: 10;
+  }
 
   /* When two boxes can no longer fit next to each other */
   @media all and (max-width: 500px) {
@@ -102,7 +111,8 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
-
+  const [numHistoryPushes, setNumHistoryPushes] = useState(0)
+  
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
   //   const handleKeyDown = (event) => {
@@ -124,12 +134,18 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
 
   const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
-    id && history.push(`/photo/${id}`)
-  }, [prevNextPhotos])
+    if (id) {
+      history.push(`/photo/${id}`)
+      setNumHistoryPushes(numHistoryPushes + 1)
+    }
+  }, [prevNextPhotos, numHistoryPushes])
   const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
-    id && history.push(`/photo/${id}`)
-  }, [prevNextPhotos])
+    if (id) {
+      history.push(`/photo/${id}`)
+      setNumHistoryPushes(numHistoryPushes + 1)
+    }
+  }, [prevNextPhotos, numHistoryPushes])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -152,15 +168,35 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     }
   }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
-  let boxes = photo?.objectTags.map((objectTag) => {
-    return {
-      name: objectTag.tag.name,
-      positionX: objectTag.positionX,
-      positionY: objectTag.positionY,
-      sizeX: objectTag.sizeX,
-      sizeY: objectTag.sizeY,
-    }
-  })
+  const setBoxColorClass = (tag) => {
+    return tag.deleted ? 'whiteBox' : tag.verified ? 'greenBox' : 'yellowBox'; 
+  }
+
+  let boxes = {
+    object: photo?.objectTags.map((objectTag) => {
+      return {
+        name: objectTag.tag.name,
+        positionX: objectTag.positionX,
+        positionY: objectTag.positionY,
+        sizeX: objectTag.sizeX,
+        sizeY: objectTag.sizeY,
+      }
+    }),
+    face: photo?.personTags.map((tag) => {
+      return {
+        id: tag.id,
+        name: tag.tag.name,
+        positionX: tag.positionX,
+        positionY: tag.positionY,
+        sizeX: tag.sizeX,
+        sizeY: tag.sizeY,
+        verified: tag.verified,
+        deleted: tag.deleted,
+        boxColorClass: setBoxColorClass(tag), 
+        showVerifyIcon: tag.showVerifyIcon,       
+      }
+    }),
+  }
 
   return (
     <Container>
@@ -169,13 +205,27 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
         boxes={showBoundingBox && boxes}
         next={nextPhoto}
         prev={prevPhoto}
+        refetch={refetch}
       />
       <div
         className="backIcon"
         title="Press [Esc] key to go back to photo list"
         style={{ marginTop: safeArea.top }}
       >
-        <ArrowBackIcon alt="Close" onClick={() => history.push('/')} />
+        <ArrowBackIcon
+          alt="Close"
+          onClick={() => {
+            if (
+              history.length - numHistoryPushes > 2 ||
+              document.referrer !== ''
+            ) {
+              history.goBack()
+              // history.go(-(numHistoryPushes + 1))
+            } else {
+              history.push('/')
+            }
+          }}
+        />
       </div>
       <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
         <ArrowLeftIcon
@@ -205,6 +255,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           updatePhotoFile={updatePhotoFile}
         />
       )}
+
       {!showMetadata ? (
         <InfoIcon
           className="showDetailIcon"
@@ -223,6 +274,16 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           style={{ marginTop: safeArea.top }}
           // title="Press [I] key to show/hide photo details"
         />
+      )}
+      {photo?.downloadUrl && (
+        <a href={`${photo.downloadUrl}`} download>
+          <DownloadIcon
+            className="showDownloadIcon"
+            height="30"
+            width="30"
+            style={{ marginTop: safeArea.top, padding: 3 }}
+          />
+        </a>
       )}
     </Container>
   )

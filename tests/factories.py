@@ -26,6 +26,7 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: f'Test Library {n}')
     classification_location_enabled = True
     classification_object_enabled = True
+    classification_face_enabled = True
 
 class LibraryUserFactory(factory.django.DjangoModelFactory):
     class Meta:

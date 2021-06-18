@@ -60,6 +60,21 @@ export const SETTINGS_OBJECT = gql`
     }
   }
 `
+export const SETTINGS_FACE = gql`
+  mutation updateFaceEnabled(
+    $classificationFaceEnabled: Boolean!
+    $libraryId: ID
+  ) {
+    updateFaceEnabled(
+      input: {
+        classificationFaceEnabled: $classificationFaceEnabled
+        libraryId: $libraryId
+      }
+    ) {
+      classificationFaceEnabled
+    }
+  }
+`
 export const SETTINGS_SOURCE_FOLDER = gql`
   mutation updateSourceFolder($sourceFolder: String!, $libraryId: ID) {
     updateSourceFolder(
@@ -79,6 +94,7 @@ export const GET_SETTINGS = gql`
         classificationStyleEnabled
         classificationObjectEnabled
         classificationLocationEnabled
+        classificationFaceEnabled
       }
       sourceFolder
     }

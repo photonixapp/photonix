@@ -688,6 +688,10 @@ class TestGraphQL(unittest.TestCase):
                   id
                   name
                 }
+                allEventTags(libraryId: $libraryId, multiFilter: $multiFilter) {
+                  id
+                  name
+                }
                 allCameras(libraryId: $libraryId) {
                   id
                   make

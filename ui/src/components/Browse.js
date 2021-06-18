@@ -2,7 +2,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 import { Link } from 'react-router-dom'
 import useLocalStorageState from 'use-local-storage-state'
-import { useSwipeable } from "react-swipeable"
+import { useSwipeable } from 'react-swipeable'
 
 import Header from './Header'
 import SearchContainer from '../containers/SearchContainer'
@@ -111,23 +111,23 @@ const Browse = ({
   updateSearchText,
   setIsMapShowing,
   mapPhotos,
+  refetchPhotos,
 }) => {
   const [expanded, setExpanded] = useLocalStorageState(
     'searchExpanded',
     window.innerHeight > 850 ? true : false
   )
-
   let content =
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
     ) : (
-      <PhotoList photoSections={photoSections} />
+      <PhotoList photoSections={photoSections} refetchPhotos={refetchPhotos} />
     )
   const handlers = useSwipeable({
     onSwipedDown: () => setExpanded(!expanded),
-    onSwipedUp: () => setExpanded(!expanded)
+    onSwipedUp: () => setExpanded(!expanded),
   })
-  
+
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
 
@@ -141,11 +141,19 @@ const Browse = ({
           onFilterToggle={onFilterToggle}
           onClearFilters={onClearFilters}
           updateSearchText={updateSearchText}
+          searchAreaExpand={expanded}
         />
-        
       </div>
-      <div className={expanded ? ` tabContainer expanded` : `tabContainer collapsed`}>
-        <div {...handlers} className="expandCollapse" onClick={() => setExpanded(!expanded)}>
+      <div
+        className={
+          expanded ? ` tabContainer expanded` : `tabContainer collapsed`
+        }
+      >
+        <div
+          {...handlers}
+          className="expandCollapse"
+          onClick={() => setExpanded(!expanded)}
+        >
           <img src={arrowDown} alt="" />
         </div>
         <ul className="tabs">
@@ -156,7 +164,6 @@ const Browse = ({
             <li>Map</li>
           </Link>
         </ul>
-        
       </div>
       <div className="main">{content}</div>
     </Container>

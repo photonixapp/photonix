@@ -25,6 +25,7 @@ const Search = ({
   onClearFilters,
   search,
   updateSearchText,
+  searchAreaExpand
 }) => {
   const [filters, setFilters] = useState([])
   return (
@@ -41,6 +42,7 @@ const Search = ({
         selectedFilters={selectedFilters}
         onFilterToggle={onFilterToggle}
         setFilters={setFilters}
+        searchAreaExpand={searchAreaExpand}
       />
     </Container>
   )

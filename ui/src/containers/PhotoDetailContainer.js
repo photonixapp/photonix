@@ -54,7 +54,27 @@ const GET_PHOTO = gql`
         sizeX
         sizeY
       }
+      personTags {
+        id
+        tag {
+          name
+        }
+        positionX
+        positionY
+        sizeX
+        sizeY
+        verified
+        deleted
+        showVerifyIcon
+      }
       colorTags {
+        id
+        tag {
+          name
+        }
+        significance
+      }
+      eventTags {
         id
         tag {
           name
@@ -74,12 +94,13 @@ const GET_PHOTO = gql`
           name
         }
       }
-      photoFile{
+      photoFile {
         id
         path
       }
       baseFileId
       baseFilePath
+      downloadUrl
       width
       height
     }
@@ -94,7 +115,7 @@ const UPDATE_PREFERRED_PHOTOFILE = gql`
 `
 
 const PhotoDetailContainer = (props) => {
-  const { loading, data, refetch } = useQuery(GET_PHOTO, {
+  const { data, refetch } = useQuery(GET_PHOTO, {
     variables: {
       id: props.match.params.photoId,
     },
@@ -120,14 +141,14 @@ const PhotoDetailContainer = (props) => {
 
   const updatePhotoFile = (id) => {
     updataPreferredPhotoFile({
-      variables: { id }
+      variables: { id },
     })
-    .then((res) => {
-      if (res.data.changePreferredPhotoFile.ok) {
-        window.location.reload()
-      }
-    })
-    .catch((e) => {})
+      .then((res) => {
+        if (res.data.changePreferredPhotoFile.ok) {
+          window.location.reload()
+        }
+      })
+      .catch((e) => {})
   }
 
   return (

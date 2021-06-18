@@ -34,9 +34,15 @@ class LensType(DjangoObjectType):
 
 
 class PhotoTagType(DjangoObjectType):
+    show_verify_icon = graphene.Boolean()
+
     class Meta:
         model = PhotoTag
 
+    def resolve_show_verify_icon(self, info):
+        if self.tag.type == 'F' and not self.verified and self.tag.photo_tags.filter(verified=True).exists():
+            return True
+        return False
 
 class PhotoFileType(DjangoObjectType):
     class Meta:
@@ -60,16 +66,20 @@ class PhotoInterface(graphene.Interface):
 class PhotoNode(DjangoObjectType):
     url = graphene.String()
     location = graphene.String()
-    location_tags = graphene.List(PhotoTagType)
-    object_tags = graphene.List(PhotoTagType)
-    color_tags = graphene.List(PhotoTagType)
-    style_tags = graphene.List(PhotoTagType)
     width = graphene.Int()
     height = graphene.Int()
     generic_tags = graphene.List(PhotoTagType)
     photo_file = graphene.List(PhotoFileType)
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
+    download_url = graphene.String()
+
+    color_tags = graphene.List(PhotoTagType)
+    location_tags = graphene.List(PhotoTagType)
+    person_tags = graphene.List(PhotoTagType)
+    style_tags = graphene.List(PhotoTagType)
+    object_tags = graphene.List(PhotoTagType)
+    event_tags = graphene.List(PhotoTagType)
 
     class Meta:
         model = Photo
@@ -83,18 +93,6 @@ class PhotoNode(DjangoObjectType):
     def resolve_url(self, info):
         size = settings.THUMBNAIL_SIZES[-1]
         return self.thumbnail_url(size)
-
-    def resolve_location_tags(self, info):
-        return self.photo_tags.filter(tag__type='L')
-
-    def resolve_object_tags(self, info):
-        return self.photo_tags.filter(tag__type='O')
-
-    def resolve_color_tags(self, info):
-        return self.photo_tags.filter(tag__type='C')
-
-    def resolve_style_tags(self, info):
-        return self.photo_tags.filter(tag__type='S')
 
     def resolve_width(self, info):
         return self.dimensions[0]
@@ -113,6 +111,27 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_base_file_id(self, info):
         return self.base_file.id
+
+    def resolve_download_url(self, info):
+        return self.download_url
+
+    def resolve_color_tags(self, info):
+        return self.photo_tags.filter(tag__type='C')
+
+    def resolve_location_tags(self, info):
+        return self.photo_tags.filter(tag__type='L')
+
+    def resolve_person_tags(self, info):
+        return self.photo_tags.filter(tag__type='F')
+
+    def resolve_style_tags(self, info):
+        return self.photo_tags.filter(tag__type='S')
+
+    def resolve_object_tags(self, info):
+        return self.photo_tags.filter(tag__type='O')
+
+    def resolve_event_tags(self, info):
+        return self.photo_tags.filter(tag__type='E')
 
 
 class PhotoFilter(django_filters.FilterSet):
@@ -171,12 +190,16 @@ class StyleTagType(DjangoObjectType):
         model = Tag
 
 
+class EventTagType(DjangoObjectType):
+    class Meta:
+        model = Tag
+
+
 class LibrarySetting(graphene.ObjectType):
-    """To pass fields for library settingg query api."""
+    """To pass fields for library setting query api."""
 
     library = graphene.Field(LibraryType)
     source_folder = graphene.String()
-
 
 class PhotoMetadataFields(graphene.ObjectType):
     """ Metadata about photo as extracted by exiftool """
@@ -201,7 +224,7 @@ class Query(graphene.ObjectType):
     all_shooting_modes = graphene.List(graphene.String, library_id=graphene.UUID())
 
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
-    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
+    all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter, max_limit=None)
     map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
 
     all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
@@ -209,6 +232,7 @@ class Query(graphene.ObjectType):
     all_person_tags = graphene.List(PersonTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_color_tags = graphene.List(ColorTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_style_tags = graphene.List(StyleTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
+    all_event_tags = graphene.List(EventTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
     photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_id=graphene.UUID())
@@ -330,8 +354,8 @@ class Query(graphene.ObjectType):
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P', photo_tags__photo__in=photos_list).distinct()
-        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='P')
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__photo__in=photos_list).distinct()
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__deleted=False).distinct()
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
@@ -356,6 +380,18 @@ class Query(graphene.ObjectType):
                 kwargs.get('library_id'))
             return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S', photo_tags__photo__in=photos_list).distinct()
         return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='S')
+
+    def resolve_all_event_tags(self, info, **kwargs):
+        user = info.context.user
+        if kwargs.get('multi_filter'):
+            if not kwargs.get('library_id'):
+                raise GraphQLError('library_id not supplied!')
+            filters = kwargs.get('multi_filter').split(' ')
+            photos_list = filter_photos_queryset(
+                filters, Photo.objects.filter(library__users__user=user),
+                kwargs.get('library_id'))
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='E', photo_tags__photo__in=photos_list).distinct()
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='E')
 
     def resolve_all_generic_tags(self, info, **kwargs):
         user = info.context.user
@@ -399,6 +435,7 @@ class LibraryInput(graphene.InputObjectType):
     classification_location_enabled = graphene.Boolean()
     classification_style_enabled = graphene.Boolean()
     classification_object_enabled = graphene.Boolean()
+    classification_face_enabled = graphene.Boolean()
     source_folder = graphene.String(required=False)
     user_id = graphene.ID()
     library_id = graphene.ID()
@@ -526,6 +563,37 @@ class UpdateLibraryObjectEnabled(graphene.Mutation):
             raise Exception('User is not the owner of library!')
         else:
             return UpdateLibraryObjectEnabled(ok=ok, classification_object_enabled=None)
+
+
+class UpdateLibraryFaceEnabled(graphene.Mutation):
+    """To update data in database that will be passed from frontend FaceEnabled api."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=False)
+
+    ok = graphene.Boolean()
+    classification_face_enabled = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data for FaceEnabled api."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and str(input.get('classification_face_enabled')) != 'None':
+            library_obj = libraries[0]
+            library_obj.classification_face_enabled = input.classification_face_enabled
+            library_obj.save()
+            ok = True
+            return UpdateLibraryFaceEnabled(
+                ok=ok,
+                classification_face_enabled=library_obj.classification_face_enabled)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibraryFaceEnabled(ok=ok, classification_face_enabled=None)
 
 
 class UpdateLibrarySourceFolder(graphene.Mutation):
@@ -673,6 +741,7 @@ class ImageAnalysis(graphene.Mutation):
         library_obj.classification_location_enabled = input.classification_location_enabled
         library_obj.classification_style_enabled = input.classification_style_enabled
         library_obj.classification_object_enabled = input.classification_object_enabled
+        library_obj.classification_face_enabled = input.classification_face_enabled
         library_obj.save()
         user = User.objects.get(pk=input.user_id)
         user.has_configured_image_analysis = True
@@ -785,11 +854,83 @@ class ChangePreferredPhotoFile(graphene.Mutation):
         return ChangePreferredPhotoFile(ok=True)
 
 
+class EditFaceTag(graphene.Mutation):
+    """Face tagging for face Detection."""
+
+    class Arguments:
+        """Input arguments which will pass from frontend."""
+
+        photo_tag_id = graphene.ID()
+        new_name = graphene.String()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, photo_tag_id=None, new_name=None):
+        """Mutation to create or update face tags and assign them to photoTag."""
+        obj = Tag.objects.filter(name=new_name, type='F').first()
+        photo_tag = PhotoTag.objects.get(id=photo_tag_id)
+        already_assigned_tag = photo_tag.tag
+        if obj:
+            photo_tag.tag = obj
+            photo_tag.save()
+            already_assigned_tag.photo_tags.all().count() or already_assigned_tag.delete()
+        else:
+            already_assigned_tag.name = new_name
+            already_assigned_tag.save()
+        photo_tag.verified = True
+        photo_tag.confidence = 1
+        photo_tag.save()
+        return EditFaceTag(ok=True)
+
+
+class BlockFaceTag(graphene.Mutation):
+    """Face tagging for face Detection."""
+
+    class Arguments:
+        """Input arguments which will pass from frontend."""
+
+        photo_tag_id = graphene.ID()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, photo_tag_id=None, new_name=None):
+        """Mutation to block a face 'F' type photoTag."""
+        photo_tag = PhotoTag.objects.get(id=photo_tag_id)
+        photo_tag.deleted = True
+        photo_tag.verified = False
+        photo_tag.confidence = 0
+        photo_tag.save()
+        return BlockFaceTag(ok=True)
+
+
+class VerifyPhoto(graphene.Mutation):
+    """Face tagging for face Detection."""
+
+    class Arguments:
+        """Input arguments which will pass from frontend."""
+
+        photo_tag_id = graphene.ID()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, photo_tag_id=None, new_name=None):
+        """Mutation to set verify a face 'F' type photoTag."""
+        photo_tag = PhotoTag.objects.get(id=photo_tag_id)
+        photo_tag.verified = True
+        photo_tag.confidence = 1
+        photo_tag.save()
+        return VerifyPhoto(ok=True)
+
+
 class Mutation(graphene.ObjectType):
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
     update_style_enabled = UpdateLibraryStyleEnabled.Field()
     update_object_enabled = UpdateLibraryObjectEnabled.Field()
+    update_face_enabled = UpdateLibraryFaceEnabled.Field()
     update_source_folder = UpdateLibrarySourceFolder.Field()
     create_library = CreateLibrary.Field()
     Photo_importing = PhotoImporting.Field()
@@ -798,3 +939,6 @@ class Mutation(graphene.ObjectType):
     create_generic_tag = CreateGenricTag.Field()
     remove_generic_tag = RemoveGenericTag.Field()
     change_preferred_photo_file = ChangePreferredPhotoFile.Field()
+    edit_face_tag = EditFaceTag.Field()
+    block_face_tag = BlockFaceTag.Field()
+    verify_photo = VerifyPhoto.Field()

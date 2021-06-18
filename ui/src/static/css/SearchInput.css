@@ -75,11 +75,10 @@ ul.options {
   left: 0;
   width: 100%;
   padding: 0;
-  background:#484848;
+  background: #484848;
   opacity: 0.9;
   /*max-height: 200px;*/
-  overflow: auto;
-  overflow-y: scroll;
+  overflow-y: auto;
   z-index: 2;
 }
 

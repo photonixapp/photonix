@@ -19,6 +19,7 @@ import {
   SETTINGS_COLOR,
   SETTINGS_LOCATION,
   SETTINGS_OBJECT,
+  SETTINGS_FACE,
   SETTINGS_SOURCE_FOLDER,
   GET_SETTINGS,
 } from '../graphql/settings'
@@ -42,22 +43,27 @@ export default function Settings() {
     {
       key: 'classificationColorEnabled',
       type: 'boolean',
-      label: 'Run color analysis on photos?',
+      label: 'Run color analysis on photos',
     },
     {
       key: 'classificationLocationEnabled',
       type: 'boolean',
-      label: 'Run location detection on photos?',
+      label: 'Run location detection on photos',
+    },
+    {
+      key: 'classificationFaceEnabled',
+      type: 'boolean',
+      label: 'Run face recognition on photos',
     },
     {
       key: 'classificationStyleEnabled',
       type: 'boolean',
-      label: 'Run style classification on photos?',
+      label: 'Run style classification on photos',
     },
     {
       key: 'classificationObjectEnabled',
       type: 'boolean',
-      label: 'Run object detection on photos?',
+      label: 'Run object detection on photos',
     },
   ]
 
@@ -100,6 +106,14 @@ export default function Settings() {
           },
         }).catch((e) => {})
         return key
+      case 'classificationFaceEnabled':
+        settingUpdateFace({
+          variables: {
+            classificationFaceEnabled: newSettings.classificationFaceEnabled,
+            libraryId: activeLibrary?.id,
+          },
+        }).catch((e) => {})
+        return key
       default:
         return null
     }
@@ -127,6 +141,7 @@ export default function Settings() {
   const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
+  const [settingUpdateFace] = useMutation(SETTINGS_FACE)
   const [settingUpdateSourceFolder] = useMutation(SETTINGS_SOURCE_FOLDER)
 
   return (
@@ -180,14 +195,14 @@ export default function Settings() {
 
 const useSettings = (activeLibrary) => {
   const [existingSettings, setSettings] = useState({})
-  const { loading, error, data, refetch } = useQuery(GET_SETTINGS, {
+  const { loading, data, refetch } = useQuery(GET_SETTINGS, {
     variables: { libraryId: activeLibrary?.id },
   })
   const isInitialMount = useRef(true)
 
   useEffect(() => {
     refetch()
-  }, [activeLibrary])
+  }, [activeLibrary, refetch])
 
   useEffect(() => {
     if (isInitialMount.current) {

@@ -23,3 +23,31 @@ export const REMOVE_TAG = gql`
     }
   }
 `
+export const EDIT_FACE_TAG = gql`
+  mutation editFaceTag(
+    $photoTagId: ID!,
+    $newName: String!,
+  ) {
+    editFaceTag(photoTagId:$photoTagId, newName:$newName) {
+      ok
+    }
+  }
+`
+export const BLOCK_FACE_TAG = gql`
+  mutation blockFaceTag(
+    $photoTagId: ID!,
+  ) {
+    blockFaceTag(photoTagId:$photoTagId) {
+      ok
+    }
+  }
+`
+export const VERIFY_FACE_TAG = gql`
+  mutation verifyPhoto(
+    $photoTagId: ID!,
+  ) {
+    verifyPhoto(photoTagId:$photoTagId) {
+      ok
+    }
+  }
+`
