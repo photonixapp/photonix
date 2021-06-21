@@ -78,11 +78,21 @@ const Container = styled('div')`
   }
 `
 
-const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
+const ZoomableImage = ({
+  photoId,
+  boxes,
+  next,
+  prev,
+  refetch,
+  showBoundingBox,
+  showFaceIcons,
+  setShowFaceIcons,
+}) => {
   const [scale, setScale] = useState(1)
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
+  let clickTimeOut = null;
 
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
@@ -139,6 +149,19 @@ const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
     }
   }
 
+  // To handle icon show hide on single click.
+  const showHideIcons = (event) => {
+    if(clickTimeOut !== null){
+      clearTimeout(clickTimeOut)
+    }else{
+      clickTimeOut =  setTimeout(()=>{
+        setShowFaceIcons(!showFaceIcons)
+        clearTimeout(clickTimeOut)
+        clickTimeOut=null
+      },300)
+    }  
+  }
+
   return (
     <Container>
       <TransformWrapper
@@ -159,7 +182,7 @@ const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
             <TransformComponent>
               <div className="pinchArea">
                 <div {...swipeHandlers} className="imageFlex">
-                  <div className="imageWrapper">
+                  <div className="imageWrapper" onClick={showHideIcons}>
                     <img
                       src={url}
                       alt=""
@@ -172,7 +195,12 @@ const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
                           className={displayImage ? ' display' : undefined}
                           key={index}
                         >
-                          <BoundingBoxes boxes={boxes[key]} className={key} refetch={refetch}/>
+                          <BoundingBoxes
+                            boxes={boxes[key]} 
+                            className={key}
+                            refetch={refetch}
+                            showBoundingBox={showBoundingBox}
+                          />
                         </span>
                       ))}
                   </div>

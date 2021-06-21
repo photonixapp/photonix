@@ -102,6 +102,7 @@ const Container = styled('div')`
 
 const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   const safeArea = useSelector(getSafeArea)
+  const [showFaceIcons, setShowFaceIcons] = useState(true)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
     true
@@ -202,7 +203,10 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     <Container>
       <ZoomableImage
         photoId={photoId}
-        boxes={showBoundingBox && boxes}
+        boxes={showFaceIcons && boxes}
+        showBoundingBox={showBoundingBox}
+        showFaceIcons={showFaceIcons}
+        setShowFaceIcons={setShowFaceIcons}
         next={nextPhoto}
         prev={prevPhoto}
         refetch={refetch}

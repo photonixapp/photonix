@@ -78,6 +78,9 @@ const Container = styled('div')`
         }
       }
     }
+    &.hideBox {
+      border: none;
+    }
   }
 
   @media all and (max-width: 1000px) {
@@ -90,7 +93,7 @@ const Container = styled('div')`
     }
   }
 `
-const BoundingBoxes = ({ boxes, className, refetch }) => {
+const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
   const dispatch = useDispatch()
   const ref = useRef(null)
   const [editLableId, setEditLableId] = useState('')
@@ -100,7 +103,8 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
   const [verifyPhoto] = useMutation(VERIFY_FACE_TAG)
   const tagUpdated = useSelector(isTagUpdated)
 
-  const onHandleBlock = (photoTagId) => {
+  const onHandleBlock = (event, photoTagId) => {
+    event.stopPropagation();
     blockFaceTag({
       variables: {
         photoTagId: photoTagId,
@@ -118,7 +122,8 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
       .catch((e) => {})
   }
 
-  const onSaveLable = (photoTagId) => {
+  const onSaveLable = (event, photoTagId) => {
+    event.stopPropagation();
     editFaceTag({
       variables: {
         photoTagId: photoTagId,
@@ -142,11 +147,11 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
       })
   }
 
-  const onChangeLable = (event, photoTagId) => {
+  const onChangeLable = (event, photoTagId) => { 
     setTagName(event.target.value)
     if (event.keyCode === 13) {
       if (tagName) {
-        onSaveLable(photoTagId)
+        onSaveLable(event,photoTagId)
       } else {
         setEditLableId('')
         setTagName(null)
@@ -154,7 +159,8 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
     }
   }
 
-  const setVerifyPhoto = (photoTagId) => {
+  const setVerifyPhoto = (event, photoTagId) => {
+    event.stopPropagation(); 
     verifyPhoto({
       variables: {
         photoTagId: photoTagId,
@@ -172,6 +178,11 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
     }
   }, [editLableId])
 
+  const updateEditState = (event, boxId) => {
+    event.stopPropagation();  
+    setEditLableId(boxId)
+  }
+
   return (
     <Container>
       {boxes?.map((box, index) => {
@@ -181,32 +192,33 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
         let height = box.sizeY * 100 + '%'
         return (
           <div
-            className={`FeatureBox ${className} ${box.boxColorClass}`}
+            className={`FeatureBox ${className} ${showBoundingBox?box.boxColorClass:'hideBox'}`}
             key={index}
             style={{ left: left, top: top, width: width, height: height }}
           >
-            {!box.deleted ? (
-              editLableId === box.id ? (
-                <input
-                  type="text"
-                  name="tagName"
-                  className="FeatureEditText"
-                  onKeyUp={(e) => onChangeLable(e, box.id)}
-                  ref={ref}
-                />
-              ) : (
-                <div className="FeatureLabel" key={index}>
-                  {box.name}
-                </div>
+            {showBoundingBox && !box.deleted && (
+                editLableId === box.id ? (
+                  <input
+                    type="text"
+                    name="tagName"
+                    className="FeatureEditText"
+                    onKeyUp={(e) => onChangeLable(e, box.id)}
+                    ref={ref}
+                  />
+                ) : (
+                  <div className="FeatureLabel" key={index}>
+                    {box.name}
+                  </div>
+                )
               )
-            ) : null}
+            }
             {className === 'face' && !box.deleted && (
               <div className="icons">
                 {editLableId === box.id ? (
                   <DoneIcon
                     alt="Done"
                     className="FeatureIconDone"
-                    onClick={() => onSaveLable(box.id)}
+                    onClick={(e) => onSaveLable(e, box.id)}
                   />
                 ) : (
                   <>
@@ -214,7 +226,7 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
                       <BlockIcon
                         alt="Block"
                         className="FeatureIconDelete"
-                        onClick={() => onHandleBlock(box.id)}
+                        onClick={(e) => onHandleBlock(e, box.id)}
                         title="Reject automatic face tag"
                       />
                     )}
@@ -222,14 +234,14 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
                       <DoneIcon
                         alt="Done"
                         className="FeatureIconDone"
-                        onClick={() => setVerifyPhoto(box.id)}
+                        onClick={(e) => setVerifyPhoto(e, box.id)}
                         title="Approve automatic face tag"
                       />
                     )}
                     <EditIcon
                       alt="Edit"
                       className="FeatureIconEdit"
-                      onClick={() => setEditLableId(box.id)}
+                      onClick={(e) => updateEditState(e, box.id)}
                       title="Edit person’s name"
                     />
                   </>
