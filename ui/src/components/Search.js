@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from '@emotion/styled'
 
 import FiltersContainer from '../containers/FiltersContainer'
@@ -27,6 +27,7 @@ const Search = ({
   updateSearchText,
   searchAreaExpand
 }) => {
+  const [filters, setFilters] = useState([])
   return (
     <Container>
       <SearchInputContainer
@@ -35,10 +36,12 @@ const Search = ({
         onClearFilters={onClearFilters}
         search={search}
         updateSearchText={updateSearchText}
+        filters={filters}
       />
       <FiltersContainer
         selectedFilters={selectedFilters}
         onFilterToggle={onFilterToggle}
+        setFilters={setFilters}
         searchAreaExpand={searchAreaExpand}
       />
     </Container>

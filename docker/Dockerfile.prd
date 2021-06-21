@@ -5,6 +5,7 @@ FROM ${ARCH}python:3.8.9-slim-buster as builder
 RUN apt-get update && \
     apt-get install -y \
         build-essential \
+        cmake \
         curl \
         gfortran \
         gnupg \
@@ -18,6 +19,7 @@ RUN apt-get update && \
         liblapack-dev \
         liblapack3 \
         libpq-dev \
+        libssl-dev \
         libtiff5-dev \
     && \
         apt-get clean && \

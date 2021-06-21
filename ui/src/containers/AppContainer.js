@@ -75,8 +75,8 @@ export default class AppContainer extends React.Component {
     })
   }
 
-  updateSearchText = (event) => {
-    this.setState({ search: event.target.value })
+  updateSearchText = (value) => {
+    this.setState({ search: value })
   }
 
   render = () => {

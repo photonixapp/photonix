@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import gql from 'graphql-tag'
@@ -77,18 +77,31 @@ function createFilterSelection(sectionName, data, prefix = 'tag') {
   }
 }
 
+const REMOVABLE_TAGS = [
+  'Aperture',
+  'Exposure',
+  'ISO Speed',
+  'Focal Length',
+  'Rating',
+  'Flash',
+]
+
 const FiltersContainer = ({
   selectedFilters,
   onFilterToggle,
   searchAreaExpand,
+  setFilters,
 }) => {
   const user = useSelector((state) => state.user) // Using user here from Redux store so we can wait for any JWT tokens to be refreshed before running GraphQL queries that require authentication
+  const [isFiltersAvail, setIsFiltersAvail] = useState(false)
   const activeLibrary = useSelector(getActiveLibrary)
+  let filterData = []
   const tagUpdated = useSelector(isTagUpdated)
   let filtersStr = ''
   if (activeLibrary) {
     filtersStr = `${selectedFilters.map((filter) => filter.id).join(' ')}`
   }
+
   let variables = {}
   variables = { libraryId: activeLibrary?.id, multiFilter: filtersStr }
   const { loading, error, data, refetch } = useQuery(
@@ -98,9 +111,20 @@ const FiltersContainer = ({
     },
     { skip: !user }
   )
+
   useEffect(() => {
     refetch()
   }, [activeLibrary, refetch, tagUpdated])
+
+  useEffect(() => {
+    if (isFiltersAvail && filterData.length) {
+      console.log(REMOVABLE_TAGS)
+      const autoSuggestionFilters = filterData.filter((f) => {
+        return REMOVABLE_TAGS.indexOf(f.name) === -1
+      })
+      setFilters(autoSuggestionFilters)
+    } // eslint-disable-next-line
+  }, [isFiltersAvail, setFilters])
 
   const getFilterdData = (type, array) => {
     const filterArr = selectedFilters.filter((s) => s.group === type)
@@ -119,7 +143,6 @@ const FiltersContainer = ({
   if (loading) return <Spinner />
   if (error) return `Error! ${error.message}`
 
-  let filterData = []
   if (data) {
     if (data.allGenericTags.length) {
       filterData.push(
@@ -226,7 +249,9 @@ const FiltersContainer = ({
         )
       )
     }
+    if (!isFiltersAvail) setIsFiltersAvail(true)
   }
+
   return (
     <Filters
       data={filterData}
