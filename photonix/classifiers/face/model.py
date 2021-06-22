@@ -267,9 +267,17 @@ def run_on_photo(photo_id):
             if result.get('closest_distance', 999) < DISTANCE_THRESHOLD:
                 tag = Tag.objects.get(id=result['closest_tag'], library=photo.library, type='F')
                 print(f'MATCHED {tag.name}')
+
             # Otherwise create new tag
             else:
-                tag = get_or_create_tag(library=photo.library, name=f'Unknown person {randint(0, 999999):06d}', type='F', source='C')
+                while True:
+                    random_name = f'Unknown person {randint(0, 999999):06d}'
+                    try:
+                        Tag.objects.get(library=photo.library, name=random_name, type='F', source='C')
+                    except Tag.DoesNotExist:
+                        tag = Tag(library=photo.library, name=random_name, type='F', source='C')
+                        tag.save()
+                        break
 
             x = (result['box'][0] + (result['box'][2] / 2)) / photo.base_file.width
             y = (result['box'][1] + (result['box'][3] / 2)) / photo.base_file.height
