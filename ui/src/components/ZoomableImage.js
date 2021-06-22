@@ -135,7 +135,10 @@ const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
     if (e.scale === 1 && zoom) {
       setZoom(false)
     } else if (e.scale > 1 && !zoom) {
-      setZoom(true)
+      // setZoom(true)
+      setTimeout(() => {
+        setZoom(true);
+      }, 200);
     }
   }
 
