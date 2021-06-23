@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
-import { Link, useHistory } from 'react-router-dom'
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+import { useHistory } from 'react-router-dom'
+import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 import {useMapEvent} from "react-leaflet";
+import L from "leaflet";
 import '../static/css/Map.css'
 import 'react-leaflet-markercluster/dist/styles.min.css' // sass
 
@@ -57,23 +58,27 @@ const MapView = ({
   return null
   }
   
+  const getMarkerIcon = (photoThumbnail) => {
+    return new L.Icon({
+      iconUrl: photoThumbnail,
+      iconSize: new L.Point(60, 75),
+      className: "leaflet-custom-icon"
+    });
+  }
+
   if (photos) {
     markers = photos.map((photo, idx) =>
       photo.location ? (
         <Marker
           key={`marker-${photo.id}`}
+          icon={getMarkerIcon(photo.thumbnail)}
           position={[photo.location[0], photo.location[1]]}
-        >
-          <Popup>
-            <Link to={`/photo/${photo.id}`} key={photo.id}>
-              <img
-                src={photo.thumbnail}
-                style={{ width: 128, height: 128 }}
-                alt="marker popup"
-              />
-            </Link>
-          </Popup>
-        </Marker>
+          eventHandlers={{
+            click: () => {
+              history.push(`/photo/${photo.id}`);
+            },
+          }}
+        />
       ) : null
     )
     return (
