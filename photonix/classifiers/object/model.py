@@ -5,14 +5,14 @@ from pathlib import Path
 from django.utils import timezone
 import numpy as np
 from PIL import Image
-import redis
 from redis_lock import Lock
 import tensorflow as tf
 
 from photonix.classifiers.object.utils import label_map_util
 from photonix.classifiers.base_model import BaseModel
+from photonix.photos.utils.redis import redis_connection
 
-r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
+
 GRAPH_FILE = os.path.join('object', 'ssd_mobilenet_v2_oid_v4_2018_12_12_frozen_inference_graph.pb')
 LABEL_FILE = os.path.join('object', 'oid_v4_label_map.pbtxt')
 
@@ -33,7 +33,7 @@ class ObjectModel(BaseModel):
             self.labels = self.load_labels(label_file)
 
     def load_graph(self, graph_file):
-        with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
+        with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]
 

@@ -1,8 +1,9 @@
 import os
 
 from django.core.management import utils
-import redis
 from redis_lock import Lock
+
+from photonix.photos.utils.redis import redis_connection
 
 
 def get_secret_key():
@@ -16,17 +17,16 @@ def get_secret_key():
     if 'DJANGO_SECRET_KEY' in os.environ:
         secret_key = os.environ.get('DJANGO_SECRET_KEY')
     else:
-        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-        if r.exists('django_secret_key'):
-            secret_key = r.get('django_secret_key').decode('utf-8')
+        if redis_connection.exists('django_secret_key'):
+            secret_key = redis_connection.get('django_secret_key').decode('utf-8')
         else:
             # Make sure only first worker generates the key and others get from Redis
-            with Lock(r, 'django_secret_key_generation_lock'):
-                if r.exists('django_secret_key'):
-                    secret_key = r.get('django_secret_key').decode('utf-8')
+            with Lock(redis_connection, 'django_secret_key_generation_lock'):
+                if redis_connection.exists('django_secret_key'):
+                    secret_key = redis_connection.get('django_secret_key').decode('utf-8')
                 else:
                     secret_key = utils.get_random_secret_key()
-                    r.set('django_secret_key', secret_key.encode('utf-8'))
+                    redis_connection.set('django_secret_key', secret_key.encode('utf-8'))
 
     if not secret_key:
         raise EnvironmentError('No secret key available')

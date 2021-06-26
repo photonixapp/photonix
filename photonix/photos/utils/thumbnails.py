@@ -8,7 +8,6 @@ from PIL import Image, ImageOps
 import numpy as np
 
 from django.conf import settings
-from django.utils import timezone
 from photonix.photos.models import Photo, PhotoFile, Task
 from photonix.photos.utils.metadata import PhotoMetadata
 
