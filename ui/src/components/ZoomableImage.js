@@ -92,6 +92,8 @@ const ZoomableImage = ({
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
+  const [editLableId, setEditLableId] = useState('')
+  const [tagName, setTagName] = useState(null)
   let clickTimeOut = null;
 
   const prevNextPhotos = useSelector((state) =>
@@ -151,15 +153,24 @@ const ZoomableImage = ({
 
   // To handle icon show hide on single click.
   const showHideIcons = (event) => {
-    if(clickTimeOut !== null){
-      clearTimeout(clickTimeOut)
-    }else{
-      clickTimeOut =  setTimeout(()=>{
-        setShowFaceIcons(!showFaceIcons)
+    if (!editLableId){
+      if(clickTimeOut !== null){
         clearTimeout(clickTimeOut)
-        clickTimeOut=null
-      },300)
-    }  
+      }else{
+        clickTimeOut =  setTimeout(()=>{
+          setShowFaceIcons(!showFaceIcons)
+          clearTimeout(clickTimeOut)
+          clickTimeOut=null
+        },300)
+      }  
+    }else{
+      cancelTagEditing()
+    }
+  }
+
+  const cancelTagEditing = (e) => {
+    setEditLableId('')
+    setTagName(null)
   }
 
   return (
@@ -200,6 +211,11 @@ const ZoomableImage = ({
                             className={key}
                             refetch={refetch}
                             showBoundingBox={showBoundingBox}
+                            editLableId={editLableId}
+                            setEditLableId={setEditLableId}
+                            tagName={tagName}
+                            setTagName={setTagName}
+                            cancelTagEditing={cancelTagEditing}
                           />
                         </span>
                       ))}

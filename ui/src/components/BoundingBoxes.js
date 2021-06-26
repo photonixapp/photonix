@@ -50,6 +50,10 @@ const Container = styled('div')`
       }
       &.whiteBox {
         border-color: rgba(202, 202, 191, 0.5);
+        .FeatureLabel {
+          color: #000;
+          background-color: rgba(202, 202, 191, 0.5);
+        }
       }
       .FeatureEditText {
         color: #000 !important;
@@ -95,11 +99,19 @@ const Container = styled('div')`
     }
   }
 `
-const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
+const BoundingBoxes = ({ 
+boxes,
+className,
+refetch,
+showBoundingBox,
+editLableId,
+setEditLableId,
+tagName,
+setTagName,
+cancelTagEditing,
+}) => {
   const dispatch = useDispatch()
   const ref = useRef(null)
-  const [editLableId, setEditLableId] = useState('')
-  const [tagName, setTagName] = useState(null)
   const [editFaceTag] = useMutation(EDIT_FACE_TAG)
   const [blockFaceTag] = useMutation(BLOCK_FACE_TAG)
   const [verifyPhoto] = useMutation(VERIFY_FACE_TAG)
@@ -133,8 +145,7 @@ const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
       },
     })
       .then((res) => {
-        setEditLableId('')
-        setTagName(null)
+        cancelTagEditing()
         if (res.data.editFaceTag.ok) {
           refetch()
           dispatch({
@@ -144,8 +155,7 @@ const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
         }
       })
       .catch((e) => {
-        setEditLableId('')
-        setTagName(null)
+        cancelTagEditing()
       })
   }
 
@@ -155,8 +165,7 @@ const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
       if (tagName) {
         onSaveLable(event,photoTagId)
       } else {
-        setEditLableId('')
-        setTagName(null)
+        cancelTagEditing()
       }
     }
   }
@@ -198,7 +207,7 @@ const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
             key={index}
             style={{ left: left, top: top, width: width, height: height }}
           >
-            {showBoundingBox && !box.deleted && (
+            {showBoundingBox && (
                 editLableId === box.id ? (
                   <input
                     type="text"
@@ -214,7 +223,7 @@ const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
                 )
               )
             }
-            {className === 'face' && !box.deleted && (
+            {className === 'face' && (
               <div className="icons">
                 {editLableId === box.id ? (
                   <DoneIcon
@@ -224,7 +233,7 @@ const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
                   />
                 ) : (
                   <>
-                    {!box.verified && (
+                    {!box.verified && !box.deleted && (
                       <BlockIcon
                         alt="Block"
                         className="FeatureIconDelete"
@@ -232,7 +241,7 @@ const BoundingBoxes = ({ boxes, className, refetch, showBoundingBox }) => {
                         title="Reject automatic face tag"
                       />
                     )}
-                    {box.showVerifyIcon && (
+                    {box.showVerifyIcon && !box.deleted && (
                       <DoneIcon
                         alt="Done"
                         className="FeatureIconDone"

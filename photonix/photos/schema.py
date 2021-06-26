@@ -354,8 +354,8 @@ class Query(graphene.ObjectType):
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__photo__in=photos_list).distinct()
-        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__deleted=False).distinct()
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__photo__in=photos_list).order_by('-name').distinct()
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__deleted=False).order_by('-name').distinct()
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
@@ -880,6 +880,7 @@ class EditFaceTag(graphene.Mutation):
             already_assigned_tag.save()
         photo_tag.verified = True
         photo_tag.confidence = 1
+        photo_tag.deleted = False
         photo_tag.save()
         return EditFaceTag(ok=True)
 
