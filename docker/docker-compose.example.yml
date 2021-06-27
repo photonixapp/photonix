@@ -27,6 +27,7 @@ services:
       POSTGRES_PASSWORD: password
       REDIS_HOST: redis
       ALLOWED_HOSTS: '*'
+      # More configuration options here: https://photonix.org/docs/configuration/
     volumes:
       - ./data/photos:/data/photos
       - ./data/raw-photos-processed:/data/raw-photos-processed

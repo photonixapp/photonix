@@ -9,7 +9,6 @@ from annoy import AnnoyIndex
 from django.utils import timezone
 import numpy as np
 from PIL import Image
-import redis
 from redis_lock import Lock
 
 from photonix.classifiers.base_model import BaseModel
@@ -17,6 +16,7 @@ from photonix.classifiers.face.deepface import DeepFace
 from photonix.classifiers.face.mtcnn import MTCNN
 from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance
 from photonix.classifiers.face.deepface.DeepFace import build_model
+from photonix.photos.utils.redis import redis_connection
 
 
 GRAPH_FILE = os.path.join('face', 'mtcnn_weights.npy')
@@ -42,8 +42,7 @@ class FaceModel(BaseModel):
 
 
     def load_graph(self, graph_file):
-        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-        with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
+        with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             # Load MTCNN
             mtcnn_graph = None
             mtcnn_key = '{self.graph_cache_key}:mtcnn'
@@ -98,8 +97,7 @@ class FaceModel(BaseModel):
             embedding_size = 128  # FaceNet output size
             t = AnnoyIndex(embedding_size, 'euclidean')
             # Ensure ANN index, tag IDs and version files can't be updated while we are reading
-            r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-            with Lock(r, 'face_model_retrain'):
+            with Lock(redis_connection, 'face_model_retrain'):
                 self.reload_retrained_model_version()
                 t.load(str(ann_path))
                 with open(tag_ids_path) as f:
@@ -193,8 +191,7 @@ class FaceModel(BaseModel):
         t.build(3)  # Number of random forest trees
 
         # Aquire lock to save ANN, tag IDs and version files atomically
-        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-        with Lock(r, 'face_model_retrain'):
+        with Lock(redis_connection, 'face_model_retrain'):
             # Save ANN index
             t.save(str(ann_path))
 
