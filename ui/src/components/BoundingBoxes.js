@@ -99,6 +99,9 @@ const Container = styled('div')`
     }
   }
 `
+const ENTER_KEY = 13
+const ESCAPE_KEY = 27
+
 const BoundingBoxes = ({ 
 boxes,
 className,
@@ -106,9 +109,6 @@ refetch,
 showBoundingBox,
 editLableId,
 setEditLableId,
-tagName,
-setTagName,
-cancelTagEditing,
 }) => {
   const dispatch = useDispatch()
   const ref = useRef(null)
@@ -118,7 +118,7 @@ cancelTagEditing,
   const tagUpdated = useSelector(isTagUpdated)
 
   const onHandleBlock = (event, photoTagId) => {
-    event.stopPropagation();
+    stopParentEventBehavior(event)
     blockFaceTag({
       variables: {
         photoTagId: photoTagId,
@@ -137,15 +137,15 @@ cancelTagEditing,
   }
 
   const onSaveLable = (event, photoTagId) => {
-    event.stopPropagation();
+    stopParentEventBehavior(event)
     editFaceTag({
       variables: {
         photoTagId: photoTagId,
-        newName: tagName,
+        newName: ref.current.value,
       },
     })
       .then((res) => {
-        cancelTagEditing()
+        setEditLableId('')
         if (res.data.editFaceTag.ok) {
           refetch()
           dispatch({
@@ -155,23 +155,16 @@ cancelTagEditing,
         }
       })
       .catch((e) => {
-        cancelTagEditing()
+        setEditLableId('')
       })
   }
 
   const onChangeLable = (event, photoTagId) => { 
-    setTagName(event.target.value)
-    if (event.keyCode === 13) {
-      if (tagName) {
-        onSaveLable(event,photoTagId)
-      } else {
-        cancelTagEditing()
-      }
-    }
+    (event.keyCode === ENTER_KEY && ref.current.value && onSaveLable(event,photoTagId)) || (event.keyCode === ESCAPE_KEY && setEditLableId(''))
   }
 
   const setVerifyPhoto = (event, photoTagId) => {
-    event.stopPropagation(); 
+    stopParentEventBehavior(event)
     verifyPhoto({
       variables: {
         photoTagId: photoTagId,
@@ -190,8 +183,12 @@ cancelTagEditing,
   }, [editLableId])
 
   const updateEditState = (event, boxId) => {
-    event.stopPropagation();  
+    stopParentEventBehavior(event)
     setEditLableId(boxId)
+  }
+
+  const stopParentEventBehavior = (event) => {
+    event.stopPropagation();
   }
 
   return (
@@ -213,8 +210,10 @@ cancelTagEditing,
                     type="text"
                     name="tagName"
                     className="FeatureEditText"
-                    onKeyUp={(e) => onChangeLable(e, box.id)}
+                    onKeyDown={(e) => onChangeLable(e, box.id)}
                     ref={ref}
+                    onMouseDown={(e) => stopParentEventBehavior(e) }
+                    onClick={(e) => stopParentEventBehavior(e) }
                   />
                 ) : (
                   <div className="FeatureLabel" key={index}>

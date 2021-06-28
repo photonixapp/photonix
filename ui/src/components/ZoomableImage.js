@@ -93,7 +93,6 @@ const ZoomableImage = ({
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
   const [editLableId, setEditLableId] = useState('')
-  const [tagName, setTagName] = useState(null)
   let clickTimeOut = null;
 
   const prevNextPhotos = useSelector((state) =>
@@ -167,15 +166,10 @@ const ZoomableImage = ({
         },300)
       }  
     }else{
-      cancelTagEditing()
+      setEditLableId('')
     }
   }
-
-  const cancelTagEditing = (e) => {
-    setEditLableId('')
-    setTagName(null)
-  }
-
+  
   return (
     <Container>
       <TransformWrapper
@@ -216,9 +210,6 @@ const ZoomableImage = ({
                             showBoundingBox={showBoundingBox}
                             editLableId={editLableId}
                             setEditLableId={setEditLableId}
-                            tagName={tagName}
-                            setTagName={setTagName}
-                            cancelTagEditing={cancelTagEditing}
                           />
                         </span>
                       ))}

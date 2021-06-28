@@ -13,7 +13,7 @@ import graphene
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile, Task
 from photonix.photos.utils.filter_photos import filter_photos_queryset, sort_photos_exposure
 from photonix.photos.utils.metadata import PhotoMetadata
-
+from django.db.models.functions import Lower
 
 User = get_user_model()
 
@@ -354,8 +354,8 @@ class Query(graphene.ObjectType):
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__photo__in=photos_list).order_by('-name').distinct()
-        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__deleted=False).order_by('-name').distinct()
+            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__photo__in=photos_list).order_by(Lower('name')).distinct()
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__deleted=False).order_by(Lower('name')).distinct()
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
