@@ -1,21 +1,14 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useHistory } from 'react-router-dom'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
-import {useMapEvent} from "react-leaflet";
-import L from "leaflet";
+import { useMapEvent } from 'react-leaflet'
+import L from 'leaflet'
 import '../static/css/Map.css'
 import 'react-leaflet-markercluster/dist/styles.min.css' // sass
 
-const MapView = ({
-  photos,
-  bounds,
-  location,
-  // zoom,
-  maxZoom,
-  hideAttribution,
-}) => {
+const MapView = ({ photos, bounds, location, maxZoom, hideAttribution }) => {
   let markers = []
   let tileUrl =
     'https://{s}.basemaps.cartocdn.com/spotify_dark/{z}/{x}/{y}{r}.png'
@@ -27,17 +20,17 @@ const MapView = ({
   const [latState, setLatState] = useState(30)
   const [lngState, setLngState] = useState(0)
   const [zoomState, setZoomState] = useState(2)
-  const [map, setMap] = useState(null);
+  const [map, setMap] = useState(null)
   const history = useHistory()
 
   // Use to check the component comes back from next page or not and setStates.
   useEffect(() => {
-    if (history.action === "POP"){
+    if (history.action === 'POP') {
       setZoomState(parseInt(localStorage.getItem('mapZoom')))
       setLatState(localStorage.getItem('lat'))
       setLngState(localStorage.getItem('lng'))
     }
-  }, [history]);
+  }, [history])
 
   // Use to handle map events and set new position and zoom value to map.
   const MapEvents = () => {
@@ -51,19 +44,22 @@ const MapView = ({
         localStorage.setItem('lat', mapEvents.getCenter().lat)
         localStorage.setItem('lng', mapEvents.getCenter().lng)
       },
-  });
-  const position = [latState? latState : mapEvents.getCenter().lat, lngState? lngState : mapEvents.getCenter().lng]
-  const zoom = zoomState? zoomState : mapEvents.getZoom()
-  if(map) map.setView(position, zoom);
-  return null
+    })
+    const position = [
+      latState ? latState : mapEvents.getCenter().lat,
+      lngState ? lngState : mapEvents.getCenter().lng,
+    ]
+    const zoom = zoomState ? zoomState : mapEvents.getZoom()
+    if (map) map.setView(position, zoom)
+    return null
   }
-  
+
   const getMarkerIcon = (photoThumbnail) => {
     return new L.Icon({
       iconUrl: photoThumbnail,
-      iconSize: new L.Point(60, 75),
-      className: "leaflet-custom-icon"
-    });
+      iconSize: new L.Point(50, 50),
+      className: 'leaflet-custom-icon',
+    })
   }
 
   if (photos) {
@@ -75,7 +71,7 @@ const MapView = ({
           position={[photo.location[0], photo.location[1]]}
           eventHandlers={{
             click: () => {
-              history.push(`/photo/${photo.id}`);
+              history.push(`/photo/${photo.id}`)
             },
           }}
         />
@@ -88,7 +84,9 @@ const MapView = ({
           boundsOptions={{ padding: [100, 100], maxZoom: maxZoom }}
           zoom={zoomState}
           center={[latState, lngState]}
-          whenCreated={map => {setMap(map)}}
+          whenCreated={(map) => {
+            setMap(map)
+          }}
         >
           {tileLayer}
           <MapEvents />
@@ -114,13 +112,11 @@ MapView.propTypes = {
   photos: PropTypes.array,
   bounds: PropTypes.func,
   location: PropTypes.array,
-  // zoom: PropTypes.number,
   maxZoom: PropTypes.number,
   hideAttribution: PropTypes.bool,
 }
 
 MapView.defaultProps = {
-  // zoom: 2,
   maxZoom: 15,
 }
 
