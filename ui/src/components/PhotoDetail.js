@@ -113,7 +113,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     getPrevNextPhotos(state, photoId)
   )
   const [numHistoryPushes, setNumHistoryPushes] = useState(0)
-  
+
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
   //   const handleKeyDown = (event) => {
@@ -170,7 +170,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
   const setBoxColorClass = (tag) => {
-    return tag.deleted ? 'whiteBox' : tag.verified ? 'greenBox' : 'yellowBox'; 
+    return tag.deleted ? 'whiteBox' : tag.verified ? 'greenBox' : 'yellowBox'
   }
 
   let boxes = {
@@ -193,8 +193,8 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
         sizeY: tag.sizeY,
         verified: tag.verified,
         deleted: tag.deleted,
-        boxColorClass: setBoxColorClass(tag), 
-        showVerifyIcon: tag.showVerifyIcon,       
+        boxColorClass: setBoxColorClass(tag),
+        showVerifyIcon: tag.showVerifyIcon,
       }
     }),
   }

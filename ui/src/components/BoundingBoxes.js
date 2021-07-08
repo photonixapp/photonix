@@ -102,13 +102,13 @@ const Container = styled('div')`
 const ENTER_KEY = 13
 const ESCAPE_KEY = 27
 
-const BoundingBoxes = ({ 
-boxes,
-className,
-refetch,
-showBoundingBox,
-editLableId,
-setEditLableId,
+const BoundingBoxes = ({
+  boxes,
+  className,
+  refetch,
+  showBoundingBox,
+  editLableId,
+  setEditLableId,
 }) => {
   const dispatch = useDispatch()
   const ref = useRef(null)
@@ -159,8 +159,11 @@ setEditLableId,
       })
   }
 
-  const onChangeLable = (event, photoTagId) => { 
-    (event.keyCode === ENTER_KEY && ref.current.value && onSaveLable(event,photoTagId)) || (event.keyCode === ESCAPE_KEY && setEditLableId(''))
+  const onChangeLable = (event, photoTagId) => {
+    ;(event.keyCode === ENTER_KEY &&
+      ref.current.value &&
+      onSaveLable(event, photoTagId)) ||
+      (event.keyCode === ESCAPE_KEY && setEditLableId(''))
   }
 
   const setVerifyPhoto = (event, photoTagId) => {
@@ -188,7 +191,7 @@ setEditLableId,
   }
 
   const stopParentEventBehavior = (event) => {
-    event.stopPropagation();
+    event.stopPropagation()
   }
 
   return (
@@ -198,30 +201,33 @@ setEditLableId,
         let top = (box.positionY - box.sizeY / 2) * 100 + '%'
         let width = box.sizeX * 100 + '%'
         let height = box.sizeY * 100 + '%'
+        console.log(box)
         return (
           <div
-            className={`FeatureBox ${className} ${showBoundingBox?box.boxColorClass:'hideBox'}`}
+            className={`FeatureBox ${className} ${
+              showBoundingBox ? box.boxColorClass : 'hideBox'
+            }`}
             key={index}
             style={{ left: left, top: top, width: width, height: height }}
           >
-            {showBoundingBox && (
-                editLableId === box.id ? (
-                  <input
-                    type="text"
-                    name="tagName"
-                    className="FeatureEditText"
-                    onKeyDown={(e) => onChangeLable(e, box.id)}
-                    ref={ref}
-                    onMouseDown={(e) => stopParentEventBehavior(e) }
-                    onClick={(e) => stopParentEventBehavior(e) }
-                  />
-                ) : (
+            {showBoundingBox &&
+              (editLableId === box.id ? (
+                <input
+                  type="text"
+                  name="tagName"
+                  className="FeatureEditText"
+                  onKeyDown={(e) => onChangeLable(e, box.id)}
+                  ref={ref}
+                  onMouseDown={(e) => stopParentEventBehavior(e)}
+                  onClick={(e) => stopParentEventBehavior(e)}
+                />
+              ) : (
+                !box.deleted && (
                   <div className="FeatureLabel" key={index}>
                     {box.name}
                   </div>
                 )
-              )
-            }
+              ))}
             {className === 'face' && (
               <div className="icons">
                 {editLableId === box.id ? (
