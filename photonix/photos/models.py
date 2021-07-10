@@ -203,8 +203,8 @@ class PhotoFile(UUIDModel, VersionedModel):
     thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
     raw_processed = models.BooleanField(default=False)
     raw_version = models.PositiveIntegerField(null=True)
-    raw_external_params = models.CharField(max_length=16, blank=True, null=True)
-    raw_external_version = models.CharField(max_length=16, blank=True, null=True)
+    raw_external_params = models.CharField(max_length=32, blank=True, null=True)
+    raw_external_version = models.CharField(max_length=32, blank=True, null=True)
 
     def __str__(self):
         return str(self.path)

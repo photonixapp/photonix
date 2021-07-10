@@ -152,6 +152,26 @@ def __dcraw_version():
                 return
 
 
+def __heif_convert_version():
+    output = subprocess.Popen(['dpkg', '-s', 'libheif-examples'], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0].decode('utf-8')
+    for line in output.split('\n'):
+        if 'Version: ' in line:
+            try:
+                return re.search(r'([0-9]+.[0-9]+.[0-9]+)', line).group(1)
+            except AttributeError:
+                return
+
+
+def __exiftool_version():
+    output = subprocess.Popen(['dpkg', '-s', 'libimage-exiftool-perl'], stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0].decode('utf-8')
+    for line in output.split('\n'):
+        if 'Version: ' in line:
+            try:
+                return re.search(r'([0-9]+.[0-9]+.[0-9]+)', line).group(1)
+            except AttributeError:
+                return
+
+
 def generate_jpeg(path):
     basename = os.path.basename(path)
     temp_dir = tempfile.mkdtemp()
@@ -160,6 +180,7 @@ def generate_jpeg(path):
 
     valid_image = False
     process_params = None
+    external_version = None
 
     # Handle Canon's CR3 format since their thumbnails are proprietary.
     mimetype = get_mimetype(temp_input_path)
@@ -180,16 +201,24 @@ def generate_jpeg(path):
             temp_output_path = exiftool_output['output']
         else:
             temp_output_path = None
+        process_params = 'exiftool -b -JpgFromRaw'
+        external_version = __exiftool_version()
+    elif mimetype == 'image/heif':
+        temp_output_path = Path(temp_dir) / 'out.jpg'
+        subprocess.run(['heif-convert', '-q', '90', temp_input_path, temp_output_path])
+        process_params = 'heif-convert -q 90'
+        external_version = __heif_convert_version()
     else:
-        # First try to extract the JPEG that might be inside the raw file
+        # Try to extract the JPEG that might be inside the raw file
         subprocess.run(['dcraw', '-e', temp_input_path])
         temp_output_path = __get_generated_image(temp_dir, basename)
+        process_params = 'dcraw -e'
+        external_version = __dcraw_version()
 
     # Check the JPEGs dimensions are close enough to the raw's dimensions
     if temp_output_path:
         if __has_acceptable_dimensions(temp_input_path, temp_output_path):
             valid_image = True
-            process_params = 'dcraw -e'
         else:
             os.remove(temp_output_path)
 
@@ -238,5 +267,5 @@ def generate_jpeg(path):
     shutil.rmtree(temp_dir)
 
     if valid_image:
-        return (final_path, RAW_PROCESS_VERSION, process_params, __dcraw_version())
+        return (final_path, RAW_PROCESS_VERSION, process_params, external_version)
     return (None, RAW_PROCESS_VERSION, None, None)

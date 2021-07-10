@@ -148,12 +148,21 @@ def record_photo(path, library, inotify_event_type=None):
         width = height
         height = old_width
 
+    mimetype = mimetypes.guess_type(path)[0]
+    # HEIF-based images don't get guessed by mimetypes lib so we use the extension if blank
+    if not mimetype:
+        ext = os.path.splitext(path)[1].lower()
+        if ext == '.heic':
+            mimetype = 'image/heic'
+        if ext == '.heics':
+            mimetype = 'image/heic-sequence'
+
     # Save PhotoFile
     photo_file.photo = photo
     photo_file.path = path
     photo_file.width = width
     photo_file.height = height
-    photo_file.mimetype = mimetypes.guess_type(path)[0]
+    photo_file.mimetype = mimetype
     photo_file.file_modified_at = file_modified_at
     photo_file.bytes = os.stat(path).st_size
     photo_file.preferred = False  # TODO
