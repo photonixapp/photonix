@@ -114,7 +114,7 @@ def __has_acceptable_dimensions(original_image_path, new_image_path, accept_empt
             return False
 
     # Embedded image can't be the full resolution
-    if new_image_dimensions[0] < 512 or new_image_dimensions[1] < 512:
+    if not new_image_dimensions[0] or new_image_dimensions[1] or new_image_dimensions[0] < 512 or new_image_dimensions[1] < 512:
         return False
 
     # Embedded image is exactly the same dimensions
@@ -203,7 +203,7 @@ def generate_jpeg(path):
             temp_output_path = None
         process_params = 'exiftool -b -JpgFromRaw'
         external_version = __exiftool_version()
-    elif mimetype == 'image/heif':
+    elif mimetype in ['image/heif', 'image/heic']:
         temp_output_path = Path(temp_dir) / 'out.jpg'
         subprocess.run(['heif-convert', '-q', '90', temp_input_path, temp_output_path])
         process_params = 'heif-convert -q 90'
