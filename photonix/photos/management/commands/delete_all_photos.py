@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Tag
+from photonix.web.utils import logger
 
 
 class Command(BaseCommand):
@@ -19,7 +20,7 @@ class Command(BaseCommand):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                print(e)
+                logger.error(e)
 
     def delete_all_photos(self):
         Camera.objects.all().delete()

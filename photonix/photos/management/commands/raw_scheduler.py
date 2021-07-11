@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 
 from photonix.photos.models import Task
 from photonix.photos.utils.raw import ensure_raw_processing_tasks
+from photonix.web.utils import logger
 
 
 class Command(BaseCommand):
@@ -13,9 +14,9 @@ class Command(BaseCommand):
         while True:
             num_remaining = Task.objects.filter(type='ensure_raw_processed', status='P').count()
             if num_remaining:
-                print('{} tasks remaining for raw process scheduling'.format(num_remaining))
+                logger.info(f'{num_remaining} tasks remaining for raw process scheduling')
                 ensure_raw_processing_tasks()
-                print('Finished raw process scheduling')
+                logger.info('Finished raw process scheduling')
             sleep(1)
 
     def handle(self, *args, **options):

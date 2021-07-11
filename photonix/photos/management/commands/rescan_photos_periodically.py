@@ -7,6 +7,7 @@ from redis_lock import Lock
 from photonix.photos.utils.organise import rescan_photo_libraries
 from photonix.photos.utils.system import missing_system_dependencies
 from photonix.photos.utils.redis import redis_connection
+from photonix.web.utils import logger
 
 
 class Command(BaseCommand):
@@ -18,11 +19,11 @@ class Command(BaseCommand):
     def rescan_photos(self, paths):
         missing = missing_system_dependencies(['exiftool', ])
         if missing:
-            print('Missing dependencies: {}'.format(missing))
+            logger.critical(f'Missing dependencies: {missing}')
             exit(1)
 
         rescan_photo_libraries(paths)
-        print('Rescan complete')
+        logger.info('Rescan complete')
 
     def handle(self, *args, **options):
         try:

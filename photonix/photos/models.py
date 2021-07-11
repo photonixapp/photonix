@@ -7,6 +7,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from photonix.common.models import UUIDModel, VersionedModel
+from photonix.web.utils import logger
 
 
 User = get_user_model()
@@ -327,7 +328,10 @@ class Task(UUIDModel, VersionedModel):
                     self.parent.complete(
                         next_type=next_type, next_subject_id=next_subject_id)
 
-    def failed(self):
+    def failed(self, error=None, traceback=None):
         self.status = 'F'
         self.finished_at = timezone.now()
         self.save()
+
+        if error:
+            logger.error(error)

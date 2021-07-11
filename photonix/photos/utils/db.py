@@ -1,16 +1,38 @@
+from datetime import datetime
+from decimal import Decimal
+import imghdr
 import mimetypes
 import os
 import re
-from datetime import datetime
-from decimal import Decimal
+import subprocess
 
 from django.utils.timezone import utc
 
 from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task, Library, Tag, PhotoTag
-from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime, parse_gps_location)
+from photonix.photos.utils.metadata import PhotoMetadata, parse_datetime, parse_gps_location, get_mimetype
+from photonix.web.utils import logger
+
+
+MIMETYPE_WHITELIST = [
+    # This list is in addition to the filetypes detected by imghdr and 'dcraw -i'
+    'image/heif',
+    'image/heif-sequence',
+    'image/heic',
+    'image/heic-sequence',
+    'image/avif',
+    'image/avif-sequence',
+]
 
 
 def record_photo(path, library, inotify_event_type=None):
+    logger.info(f'Recording photo {path}')
+
+    mimetype = get_mimetype(path)
+
+    if not imghdr.what(path) and not mimetype in MIMETYPE_WHITELIST and subprocess.run(['dcraw', '-i', path]).returncode:
+        logger.error(f'File is not a supported type: {path} ({mimetype})')
+        return None
+
     if type(library) == Library:
         library_id = library.id
     else:
@@ -147,15 +169,6 @@ def record_photo(path, library, inotify_event_type=None):
         old_width = width
         width = height
         height = old_width
-
-    mimetype = mimetypes.guess_type(path)[0]
-    # HEIF-based images don't get guessed by mimetypes lib so we use the extension if blank
-    if not mimetype:
-        ext = os.path.splitext(path)[1].lower()
-        if ext == '.heic':
-            mimetype = 'image/heic'
-        if ext == '.heics':
-            mimetype = 'image/heic-sequence'
 
     # Save PhotoFile
     photo_file.photo = photo

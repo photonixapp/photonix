@@ -1,9 +1,13 @@
+import logging
 import os
 
 from django.core.management import utils
 from redis_lock import Lock
 
 from photonix.photos.utils.redis import redis_connection
+
+
+logger = logging.getLogger('photonix')
 
 
 def get_secret_key():
