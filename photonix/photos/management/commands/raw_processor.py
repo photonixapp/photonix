@@ -30,7 +30,7 @@ class Command(BaseCommand):
     help = 'Processes raw photos into a JPEG we can use elsewhere.'
 
     def run_processors(self):
-        num_workers = cpu_count()
+        num_workers = max(int(cpu_count() / 4), 1)
         threads = []
 
         logger.info(f'Starting {num_workers} raw processor workers')
