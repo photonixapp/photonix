@@ -33,6 +33,7 @@ const Container = styled('div')`
     }
     &.face {
       cursor: default;
+      overflow: visible;
       &.yellowBox {
         border-color: rgba(255, 255, 0, 0.75);
         .FeatureLabel {
@@ -58,8 +59,9 @@ const Container = styled('div')`
       }
       .icons {
         position: absolute;
-        bottom: -3px;
+        bottom: -2px;
         right: 2px;
+        width: max-content;
 
         svg {
           background: #fff;

@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from photonix.photos.models import Library, PhotoTag
 from photonix.classifiers.face.model import FaceModel
+from photonix.web.utils import logger
 
 
 class Command(BaseCommand):
@@ -26,18 +27,18 @@ class Command(BaseCommand):
                     version_date = datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
 
             start = time()
-            print(f'Updating ANN index for Library {library.id}')
+            logger.info(f'Updating ANN index for Library {library.id}')
 
             if PhotoTag.objects.filter(tag__type='F').count() == 0:
-                print('    No Face PhotoTags in Library so no point in creating face ANN index yet')
+                logger.info('    No Face PhotoTags in Library so no point in creating face ANN index yet')
                 return
             if version_date and PhotoTag.objects.filter(updated_at__gt=version_date, tag__type='F').count() == 0:
-                print('    No new Face PhotoTags in Library so no point in updating face ANN index')
+                logger.info('    No new Face PhotoTags in Library so no point in updating face ANN index')
                 return
 
             FaceModel(library_id=library.id).retrain_face_similarity_index()
 
-            print(f'    Completed in {(time() - start):.3f}s')
+            logger.info(f'    Completed in {(time() - start):.3f}s')
 
     def handle(self, *args, **options):
         self.retrain_face_similarity_index()
