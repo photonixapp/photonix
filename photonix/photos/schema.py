@@ -355,26 +355,32 @@ class Query(graphene.ObjectType):
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 kwargs.get('library_id'))
-            # return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__photo__in=photos_list).order_by(Lower('name')).distinct()
+            # Sort Person tags but keep "Unknown..." ones at the end
             return Tag.objects.filter(
                 library__users__user=user,
                 library__id=kwargs.get('library_id'),
                 type='F',
                 photo_tags__photo__in=photos_list
-                ).annotate(unknown_tag=Case(
+            ).annotate(
+                unknown_tag=Case(
                     When(name__startswith='Unknown', then=Value(1)),
                     default=Value(2),
-                    output_field=IntegerField(),)).order_by("-unknown_tag",Lower('name')).distinct()
-        # return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__deleted=False).order_by(Lower('name')).distinct()
+                    output_field=IntegerField(),
+                )
+            ).order_by("-unknown_tag", Lower('name')).distinct()
+        # Sort Person tags but keep "Unknown..." ones at the end
         return Tag.objects.filter(
             library__users__user=user,
             library__id=kwargs.get('library_id'),
             type='F',
             photo_tags__deleted=False
-            ).annotate(unknown_tag=Case(
-                    When(name__startswith='Unknown', then=Value(1)),
-                    default=Value(2),
-                    output_field=IntegerField(),)).order_by("-unknown_tag",Lower('name')).distinct()
+        ).annotate(
+            unknown_tag=Case(
+                When(name__startswith='Unknown', then=Value(1)),
+                default=Value(2),
+                output_field=IntegerField(),
+            )
+        ).order_by("-unknown_tag", Lower('name')).distinct()
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
