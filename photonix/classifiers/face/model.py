@@ -291,8 +291,6 @@ def run_on_photo(photo_id):
         photo.classifier_color_version = getattr(model, 'version', 0)
         photo.save()
 
-    print('Finished')
-
     return photo, results
 
 

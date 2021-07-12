@@ -98,11 +98,13 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         cron \
         dcraw \
+        file \
         libatlas3-base \
         libfreetype6 \
         libfreetype6-dev \
         libgl1 \
         libglib2.0-dev \
+        libheif-examples \
         libimage-exiftool-perl \
         libpq-dev \
         libtiff5-dev \
@@ -139,6 +141,7 @@ COPY system/cron.d /etc/cron.d/
 RUN chmod 0644 /etc/cron.d/*
 
 ENV PYTHONPATH /srv
+ENV TF_CPP_MIN_LOG_LEVEL 3
 
 RUN DJANGO_SECRET_KEY=test python photonix/manage.py collectstatic --noinput --link
 

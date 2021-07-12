@@ -39,6 +39,7 @@ services:
       POSTGRES_PASSWORD: password
       REDIS_HOST: redis
       ALLOWED_HOSTS: '*'
+      LOG_LEVEL: DEBUG
     volumes:
       - ../photonix:/srv/photonix
       - ../system:/srv/system

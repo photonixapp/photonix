@@ -28,7 +28,7 @@ def generate_thumbnails_for_photo(photo, task):
         try:
             photo = Photo.objects.get(id=photo)
         except Photo.DoesNotExist:
-            task.failed()
+            task.failed(f'Photo instance does not exist with id={photo}')
             return
 
     for thumbnail in settings.THUMBNAIL_SIZES:

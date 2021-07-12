@@ -5,7 +5,7 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { useSwipeable } from 'react-swipeable'
 import { useSelector } from 'react-redux'
 
-import  BoundingBoxes  from './BoundingBoxes'
+import BoundingBoxes from './BoundingBoxes'
 import Spinner from './Spinner'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
@@ -146,10 +146,9 @@ const ZoomableImage = ({
     if (e.scale === 1 && zoom) {
       setZoom(false)
     } else if (e.scale > 1 && !zoom) {
-      // setZoom(true)
       setTimeout(() => {
-        setZoom(true);
-      }, 200);
+        setZoom(true)
+      }, 200)
     }
   }
 
@@ -252,7 +251,7 @@ ZoomableImage.propTypes = {
         sizeY: PropTypes.number,
         verified: PropTypes.bool,
         deleted: PropTypes.bool,
-        boxColorClass: PropTypes.string,   
+        boxColorClass: PropTypes.string,
         showVerifyIcon: PropTypes.bool,
       })
     ),

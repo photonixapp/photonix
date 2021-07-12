@@ -11,6 +11,7 @@ from photonix.photos.utils.fs import (determine_destination,
                                       find_new_file_name, mkdir_p)
 from photonix.photos.utils.metadata import get_datetime
 
+
 SYNOLOGY_THUMBNAILS_DIR_NAME = '/@eaDir'
 
 
