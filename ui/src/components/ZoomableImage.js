@@ -85,8 +85,13 @@ const ZoomableImage = ({
   prev,
   refetch,
   showBoundingBox,
-  showFaceIcons,
-  setShowFaceIcons,
+  // showFaceIcons,
+  // setShowFaceIcons,
+  setShowBoundingBox,
+  setShowMetadata,
+  showMetadata,
+  showTopIcons,
+  setShowTopIcons,
 }) => {
   const [scale, setScale] = useState(1)
   const [zoom, setZoom] = useState(false)
@@ -153,13 +158,18 @@ const ZoomableImage = ({
 
   // To handle icon show hide on single click.
   const showHideIcons = (event) => {
-    if(clickTimeOut !== null){
+    if (clickTimeOut !== null) {
       clearTimeout(clickTimeOut)
-    }else{
-      clickTimeOut =  setTimeout(()=>{
-        setShowFaceIcons(!showFaceIcons)
+    } else {
+      clickTimeOut =  setTimeout(() => {
+        if (showMetadata) {
+          setShowMetadata(!showMetadata)
+        } else {
+          setShowBoundingBox(!showBoundingBox) 
+          setShowTopIcons(!showTopIcons)
+        }
         clearTimeout(clickTimeOut)
-        clickTimeOut=null
+        clickTimeOut = null
       },300)
     }  
   }
