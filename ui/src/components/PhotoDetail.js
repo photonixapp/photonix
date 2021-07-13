@@ -102,7 +102,6 @@ const Container = styled('div')`
 
 const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   const safeArea = useSelector(getSafeArea)
-  const [showFaceIcons, setShowFaceIcons] = useState(true)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
     true
@@ -113,7 +112,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     getPrevNextPhotos(state, photoId)
   )
   const [numHistoryPushes, setNumHistoryPushes] = useState(0)
-
+  const [showTopIcons, setShowTopIcons] = useState(true)
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
   //   const handleKeyDown = (event) => {
@@ -203,34 +202,39 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     <Container>
       <ZoomableImage
         photoId={photoId}
-        boxes={showFaceIcons && boxes}
+        boxes={showBoundingBox && boxes}
         showBoundingBox={showBoundingBox}
-        showFaceIcons={showFaceIcons}
-        setShowFaceIcons={setShowFaceIcons}
+        setShowBoundingBox={setShowBoundingBox}
+        showMetadata={showMetadata}
+        setShowMetadata={setShowMetadata}
+        showTopIcons={showTopIcons}
+        setShowTopIcons={setShowTopIcons}
         next={nextPhoto}
         prev={prevPhoto}
         refetch={refetch}
       />
-      <div
-        className="backIcon"
-        title="Press [Esc] key to go back to photo list"
-        style={{ marginTop: safeArea.top }}
-      >
-        <ArrowBackIcon
-          alt="Close"
-          onClick={() => {
-            if (
-              history.length - numHistoryPushes > 2 ||
-              document.referrer !== ''
-            ) {
-              history.goBack()
-              // history.go(-(numHistoryPushes + 1))
-            } else {
-              history.push('/')
-            }
-          }}
-        />
-      </div>
+      {showTopIcons && (
+        <div
+          className="backIcon"
+          title="Press [Esc] key to go back to photo list"
+          style={{ marginTop: safeArea.top }}
+        >
+          <ArrowBackIcon
+            alt="Close"
+            onClick={() => {
+              if (
+                history.length - numHistoryPushes > 2 ||
+                document.referrer !== ''
+              ) {
+                history.goBack()
+                // history.go(-(numHistoryPushes + 1))
+              } else {
+                history.push('/')
+              }
+            }}
+          />
+        </div>
+      )}
       <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
         <ArrowLeftIcon
           alt="Previous"
@@ -260,26 +264,27 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
         />
       )}
 
-      {!showMetadata ? (
-        <InfoIcon
-          className="showDetailIcon"
-          height="30"
-          width="30"
-          onClick={() => setShowMetadata(!showMetadata)}
-          style={{ marginTop: safeArea.top }}
-          // title="Press [I] key to show/hide photo details"
-        />
-      ) : (
-        <CloseIcon
-          className="showDetailIcon"
-          height="30"
-          width="30"
-          onClick={() => setShowMetadata(!showMetadata)}
-          style={{ marginTop: safeArea.top }}
-          // title="Press [I] key to show/hide photo details"
-        />
-      )}
-      {photo?.downloadUrl && (
+      {showTopIcons &&
+        (!showMetadata ? (
+          <InfoIcon
+            className="showDetailIcon"
+            height="30"
+            width="30"
+            onClick={() => setShowMetadata(!showMetadata)}
+            style={{ marginTop: safeArea.top }}
+            // title="Press [I] key to show/hide photo details"
+          />
+        ) : (
+          <CloseIcon
+            className="showDetailIcon"
+            height="30"
+            width="30"
+            onClick={() => setShowMetadata(!showMetadata)}
+            style={{ marginTop: safeArea.top }}
+            // title="Press [I] key to show/hide photo details"
+          />
+        ))}
+      {showTopIcons && photo?.downloadUrl && (
         <a href={`${photo.downloadUrl}`} download>
           <DownloadIcon
             className="showDownloadIcon"

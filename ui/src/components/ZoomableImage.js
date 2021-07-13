@@ -85,15 +85,18 @@ const ZoomableImage = ({
   prev,
   refetch,
   showBoundingBox,
-  showFaceIcons,
-  setShowFaceIcons,
+  setShowBoundingBox,
+  setShowMetadata,
+  showMetadata,
+  showTopIcons,
+  setShowTopIcons,
 }) => {
   const [scale, setScale] = useState(1)
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
   const [editLableId, setEditLableId] = useState('')
-  let clickTimeOut = null;
+  let clickTimeOut = null
 
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
@@ -154,21 +157,26 @@ const ZoomableImage = ({
 
   // To handle icon show hide on single click.
   const showHideIcons = (event) => {
-    if (!editLableId){
-      if(clickTimeOut !== null){
+    if (!editLableId) {
+      if (clickTimeOut !== null) {
         clearTimeout(clickTimeOut)
-      }else{
-        clickTimeOut =  setTimeout(()=>{
-          setShowFaceIcons(!showFaceIcons)
+      } else {
+        clickTimeOut = setTimeout(() => {
+          // setShowFaceIcons(!showFaceIcons)
+          if (showMetadata) {
+            setShowMetadata(!showMetadata)
+          } else {
+            setShowTopIcons(!showTopIcons)
+          }
           clearTimeout(clickTimeOut)
-          clickTimeOut=null
-        },300)
-      }  
-    }else{
+          clickTimeOut = null
+        }, 300)
+      }
+    } else {
       setEditLableId('')
     }
   }
-  
+
   return (
     <Container>
       <TransformWrapper
@@ -197,13 +205,14 @@ const ZoomableImage = ({
                       className={displayImage ? 'display' : undefined}
                     />
                     {boxes &&
+                      showTopIcons &&
                       Object.keys(boxes).map((key, index) => (
                         <span
                           className={displayImage ? ' display' : undefined}
                           key={index}
                         >
                           <BoundingBoxes
-                            boxes={boxes[key]} 
+                            boxes={boxes[key]}
                             className={key}
                             refetch={refetch}
                             showBoundingBox={showBoundingBox}
