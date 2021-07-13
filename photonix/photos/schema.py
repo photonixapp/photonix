@@ -1,19 +1,20 @@
+import os
 
 from django.conf import settings
+from django.contrib.auth import get_user_model, load_backend, login
 import django_filters
 from django_filters import CharFilter
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
-from django.db.models import Q
-from django.contrib.auth import get_user_model
+from django.db.models import Case, When, Value, IntegerField
+import graphene
+
 from .models import Library, Camera, Lens, Photo, Tag, PhotoTag, LibraryPath, LibraryUser, PhotoFile, Task
-from django.contrib.auth import load_backend, login
 from photonix.photos.utils.filter_photos import filter_photos_queryset, sort_photos_exposure
 from photonix.photos.utils.metadata import PhotoMetadata
-import os
-import graphene
+from django.db.models.functions import Lower
 
 User = get_user_model()
 
@@ -314,7 +315,7 @@ class Query(graphene.ObjectType):
     @login_required
     def resolve_all_photos(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user)
+        return Photo.objects.filter(library__users__user=user, thumbnailed_version__isnull=False)
 
     @login_required
     def resolve_map_photos(self, info, **kwargs):
@@ -354,8 +355,32 @@ class Query(graphene.ObjectType):
             photos_list = filter_photos_queryset(
                 filters, Photo.objects.filter(library__users__user=user),
                 kwargs.get('library_id'))
-            return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__photo__in=photos_list).distinct()
-        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'),  type='F', photo_tags__deleted=False).distinct()
+            # Sort Person tags but keep "Unknown..." ones at the end
+            return Tag.objects.filter(
+                library__users__user=user,
+                library__id=kwargs.get('library_id'),
+                type='F',
+                photo_tags__photo__in=photos_list
+            ).annotate(
+                unknown_tag=Case(
+                    When(name__startswith='Unknown', then=Value(1)),
+                    default=Value(2),
+                    output_field=IntegerField(),
+                )
+            ).order_by("-unknown_tag", Lower('name')).distinct()
+        # Sort Person tags but keep "Unknown..." ones at the end
+        return Tag.objects.filter(
+            library__users__user=user,
+            library__id=kwargs.get('library_id'),
+            type='F',
+            photo_tags__deleted=False
+        ).annotate(
+            unknown_tag=Case(
+                When(name__startswith='Unknown', then=Value(1)),
+                default=Value(2),
+                output_field=IntegerField(),
+            )
+        ).order_by("-unknown_tag", Lower('name')).distinct()
 
     def resolve_all_color_tags(self, info, **kwargs):
         user = info.context.user
@@ -880,6 +905,7 @@ class EditFaceTag(graphene.Mutation):
             already_assigned_tag.save()
         photo_tag.verified = True
         photo_tag.confidence = 1
+        photo_tag.deleted = False
         photo_tag.save()
         return EditFaceTag(ok=True)
 

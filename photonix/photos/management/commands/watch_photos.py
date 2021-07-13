@@ -1,6 +1,4 @@
 import asyncio
-import imghdr
-import subprocess
 from pathlib import Path
 from time import sleep
 
@@ -12,6 +10,7 @@ from django.core.management.base import BaseCommand
 
 from photonix.photos.utils.db import record_photo, move_or_rename_photo, delete_child_dir_all_photos
 from photonix.photos.models import LibraryPath
+from photonix.web.utils import logger
 
 
 class Command(BaseCommand):
@@ -67,13 +66,13 @@ class Command(BaseCommand):
                     for path, id in current_libraries.items():
                         if path not in watching_libraries:
                             for directory in get_directories_recursive(Path(path)):
-                                print('Watching new path:', directory)
+                                logger.info(f'Watching new path: {directory}')
                                 watch = inotify.add_watch(directory, Mask.MODIFY | Mask.CREATE | Mask.DELETE | Mask.CLOSE | Mask.MOVE)
                                 watching_libraries[path] = (id, watch)
 
                     for path, (id, watch) in watching_libraries.items():
                         if path not in current_libraries:
-                            print('Removing old path:', path)
+                            logger.info(f'Removing old path: {path}')
                             inotify.rm_watch(watch)
 
                     await asyncio.sleep(4)
@@ -88,16 +87,16 @@ class Command(BaseCommand):
                         photo_moved_from_cookie = moved_from_attr_dict.get('moved_from_cookie')
                         moved_from_attr_dict = {}
                         if event.mask.name == 'MOVED_TO' and photo_moved_from_cookie == event.cookie:
-                            print(f'Moving or renaming the photo "{str(event.path)}" from library "{library_id}"')
+                            logger.info(f'Moving or renaming the photo "{str(event.path)}" from library "{library_id}"')
                             await move_or_rename_photo_async(photo_moved_from_path, event.path, library_id)
                         else:
-                            print(f'Removing photo "{str(photo_moved_from_path)}" from library "{library_id}"')
+                            logger.info(f'Removing photo "{str(photo_moved_from_path)}" from library "{library_id}"')
                             await record_photo_async(photo_moved_from_path, library_id, 'MOVED_FROM')
                     elif Mask.CREATE in event.mask and event.path is not None and event.path.is_dir():
                         current_libraries = await get_libraries()
                         for path, id in current_libraries.items():
                             for directory in get_directories_recursive(event.path):
-                                print('Watching newly created child directory:', directory)
+                                logger.info(f'Watching newly created child directory: {directory}')
                                 watch = inotify.add_watch(directory, Mask.MODIFY | Mask.CREATE | Mask.DELETE | Mask.CLOSE | Mask.MOVE)
                                 watching_libraries[path] = (id, watch)
 
@@ -113,15 +112,14 @@ class Command(BaseCommand):
                                     'moved_from_path': event.path,
                                     'moved_from_cookie': event.cookie}
                             else:
-                                print(f'Removing photo "{photo_path}" from library "{library_id}"')
+                                logger.info(f'Removing photo "{photo_path}" from library "{library_id}"')
                                 await record_photo_async(photo_path, library_id, event.mask.name)
                         elif event.mask.value == 1073741888:
-                            print(f'Delete child directory with its all photos "{photo_path}" to library "{library_id}"')
+                            logger.info(f'Delete child directory with its all photos "{photo_path}" to library "{library_id}"')
                             await delete_child_dir_all_photos_async(photo_path, library_id)
                         else:
-                            if imghdr.what(photo_path) or not subprocess.run(['dcraw', '-i', photo_path]).returncode:
-                                print(f'Adding photo "{photo_path}" to library "{library_id}"')
-                                await record_photo_async(photo_path, library_id, event.mask.name)
+                            logger.info(f'Adding photo "{photo_path}" to library "{library_id}"')
+                            await record_photo_async(photo_path, library_id, event.mask.name)
 
             loop = asyncio.get_event_loop()
             loop.create_task(check_libraries())
@@ -130,7 +128,7 @@ class Command(BaseCommand):
             try:
                 loop.run_forever()
             except KeyboardInterrupt:
-                print('Shutting down')
+                logger.info('Shutting down')
             finally:
                 loop.run_until_complete(loop.shutdown_asyncgens())
                 loop.close()

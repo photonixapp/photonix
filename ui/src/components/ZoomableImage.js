@@ -5,7 +5,7 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { useSwipeable } from 'react-swipeable'
 import { useSelector } from 'react-redux'
 
-import  BoundingBoxes  from './BoundingBoxes'
+import BoundingBoxes from './BoundingBoxes'
 import Spinner from './Spinner'
 import { getPrevNextPhotos } from '../stores/photos/selector'
 
@@ -78,11 +78,25 @@ const Container = styled('div')`
   }
 `
 
-const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
+const ZoomableImage = ({
+  photoId,
+  boxes,
+  next,
+  prev,
+  refetch,
+  showBoundingBox,
+  setShowBoundingBox,
+  setShowMetadata,
+  showMetadata,
+  showTopIcons,
+  setShowTopIcons,
+}) => {
   const [scale, setScale] = useState(1)
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
+  const [editLableId, setEditLableId] = useState('')
+  let clickTimeOut = null
 
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
@@ -135,7 +149,31 @@ const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
     if (e.scale === 1 && zoom) {
       setZoom(false)
     } else if (e.scale > 1 && !zoom) {
-      setZoom(true)
+      setTimeout(() => {
+        setZoom(true)
+      }, 200)
+    }
+  }
+
+  // To handle icon show hide on single click.
+  const showHideIcons = (event) => {
+    if (!editLableId) {
+      if (clickTimeOut !== null) {
+        clearTimeout(clickTimeOut)
+      } else {
+        clickTimeOut = setTimeout(() => {
+          // setShowFaceIcons(!showFaceIcons)
+          if (showMetadata) {
+            setShowMetadata(!showMetadata)
+          } else {
+            setShowTopIcons(!showTopIcons)
+          }
+          clearTimeout(clickTimeOut)
+          clickTimeOut = null
+        }, 300)
+      }
+    } else {
+      setEditLableId('')
     }
   }
 
@@ -159,7 +197,7 @@ const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
             <TransformComponent>
               <div className="pinchArea">
                 <div {...swipeHandlers} className="imageFlex">
-                  <div className="imageWrapper">
+                  <div className="imageWrapper" onClick={showHideIcons}>
                     <img
                       src={url}
                       alt=""
@@ -167,12 +205,20 @@ const ZoomableImage = ({ photoId, boxes, next, prev, refetch}) => {
                       className={displayImage ? 'display' : undefined}
                     />
                     {boxes &&
+                      showTopIcons &&
                       Object.keys(boxes).map((key, index) => (
                         <span
                           className={displayImage ? ' display' : undefined}
                           key={index}
                         >
-                          <BoundingBoxes boxes={boxes[key]} className={key} refetch={refetch}/>
+                          <BoundingBoxes
+                            boxes={boxes[key]}
+                            className={key}
+                            refetch={refetch}
+                            showBoundingBox={showBoundingBox}
+                            editLableId={editLableId}
+                            setEditLableId={setEditLableId}
+                          />
                         </span>
                       ))}
                   </div>
@@ -214,7 +260,7 @@ ZoomableImage.propTypes = {
         sizeY: PropTypes.number,
         verified: PropTypes.bool,
         deleted: PropTypes.bool,
-        boxColorClass: PropTypes.string,   
+        boxColorClass: PropTypes.string,
         showVerifyIcon: PropTypes.bool,
       })
     ),

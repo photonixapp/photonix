@@ -7,6 +7,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from photonix.common.models import UUIDModel, VersionedModel
+from photonix.web.utils import logger
 
 
 User = get_user_model()
@@ -203,8 +204,8 @@ class PhotoFile(UUIDModel, VersionedModel):
     thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
     raw_processed = models.BooleanField(default=False)
     raw_version = models.PositiveIntegerField(null=True)
-    raw_external_params = models.CharField(max_length=16, blank=True, null=True)
-    raw_external_version = models.CharField(max_length=16, blank=True, null=True)
+    raw_external_params = models.CharField(max_length=32, blank=True, null=True)
+    raw_external_version = models.CharField(max_length=32, blank=True, null=True)
 
     def __str__(self):
         return str(self.path)
@@ -327,7 +328,10 @@ class Task(UUIDModel, VersionedModel):
                     self.parent.complete(
                         next_type=next_type, next_subject_id=next_subject_id)
 
-    def failed(self):
+    def failed(self, error=None, traceback=None):
         self.status = 'F'
         self.finished_at = timezone.now()
         self.save()
+
+        if error:
+            logger.error(error)

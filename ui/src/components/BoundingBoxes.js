@@ -50,6 +50,10 @@ const Container = styled('div')`
       }
       &.whiteBox {
         border-color: rgba(202, 202, 191, 0.5);
+        .FeatureLabel {
+          color: #000;
+          background-color: rgba(202, 202, 191, 0.5);
+        }
       }
       .FeatureEditText {
         color: #000 !important;
@@ -80,6 +84,9 @@ const Container = styled('div')`
         }
       }
     }
+    &.hideBox {
+      border: none;
+    }
   }
 
   @media all and (max-width: 1000px) {
@@ -92,17 +99,26 @@ const Container = styled('div')`
     }
   }
 `
-const BoundingBoxes = ({ boxes, className, refetch }) => {
+const ENTER_KEY = 13
+const ESCAPE_KEY = 27
+
+const BoundingBoxes = ({
+  boxes,
+  className,
+  refetch,
+  showBoundingBox,
+  editLableId,
+  setEditLableId,
+}) => {
   const dispatch = useDispatch()
   const ref = useRef(null)
-  const [editLableId, setEditLableId] = useState('')
-  const [tagName, setTagName] = useState(null)
   const [editFaceTag] = useMutation(EDIT_FACE_TAG)
   const [blockFaceTag] = useMutation(BLOCK_FACE_TAG)
   const [verifyPhoto] = useMutation(VERIFY_FACE_TAG)
   const tagUpdated = useSelector(isTagUpdated)
 
-  const onHandleBlock = (photoTagId) => {
+  const onHandleBlock = (event, photoTagId) => {
+    stopParentEventBehavior(event)
     blockFaceTag({
       variables: {
         photoTagId: photoTagId,
@@ -120,16 +136,16 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
       .catch((e) => {})
   }
 
-  const onSaveLable = (photoTagId) => {
+  const onSaveLable = (event, photoTagId) => {
+    stopParentEventBehavior(event)
     editFaceTag({
       variables: {
         photoTagId: photoTagId,
-        newName: tagName,
+        newName: ref.current.value,
       },
     })
       .then((res) => {
         setEditLableId('')
-        setTagName(null)
         if (res.data.editFaceTag.ok) {
           refetch()
           dispatch({
@@ -140,23 +156,18 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
       })
       .catch((e) => {
         setEditLableId('')
-        setTagName(null)
       })
   }
 
   const onChangeLable = (event, photoTagId) => {
-    setTagName(event.target.value)
-    if (event.keyCode === 13) {
-      if (tagName) {
-        onSaveLable(photoTagId)
-      } else {
-        setEditLableId('')
-        setTagName(null)
-      }
-    }
+    ;(event.keyCode === ENTER_KEY &&
+      ref.current.value &&
+      onSaveLable(event, photoTagId)) ||
+      (event.keyCode === ESCAPE_KEY && setEditLableId(''))
   }
 
-  const setVerifyPhoto = (photoTagId) => {
+  const setVerifyPhoto = (event, photoTagId) => {
+    stopParentEventBehavior(event)
     verifyPhoto({
       variables: {
         photoTagId: photoTagId,
@@ -174,6 +185,15 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
     }
   }, [editLableId])
 
+  const updateEditState = (event, boxId) => {
+    stopParentEventBehavior(event)
+    setEditLableId(boxId)
+  }
+
+  const stopParentEventBehavior = (event) => {
+    event.stopPropagation()
+  }
+
   return (
     <Container>
       {boxes?.map((box, index) => {
@@ -181,57 +201,63 @@ const BoundingBoxes = ({ boxes, className, refetch }) => {
         let top = (box.positionY - box.sizeY / 2) * 100 + '%'
         let width = box.sizeX * 100 + '%'
         let height = box.sizeY * 100 + '%'
+        console.log(box)
         return (
           <div
-            className={`FeatureBox ${className} ${box.boxColorClass}`}
+            className={`FeatureBox ${className} ${
+              showBoundingBox ? box.boxColorClass : 'hideBox'
+            }`}
             key={index}
             style={{ left: left, top: top, width: width, height: height }}
           >
-            {!box.deleted ? (
-              editLableId === box.id ? (
+            {showBoundingBox &&
+              (editLableId === box.id ? (
                 <input
                   type="text"
                   name="tagName"
                   className="FeatureEditText"
-                  onKeyUp={(e) => onChangeLable(e, box.id)}
+                  onKeyDown={(e) => onChangeLable(e, box.id)}
                   ref={ref}
+                  onMouseDown={(e) => stopParentEventBehavior(e)}
+                  onClick={(e) => stopParentEventBehavior(e)}
                 />
               ) : (
-                <div className="FeatureLabel" key={index}>
-                  {box.name}
-                </div>
-              )
-            ) : null}
-            {className === 'face' && !box.deleted && (
+                !box.deleted && (
+                  <div className="FeatureLabel" key={index}>
+                    {box.name}
+                  </div>
+                )
+              ))}
+            {className === 'face' && (
               <div className="icons">
                 {editLableId === box.id ? (
                   <DoneIcon
                     alt="Done"
                     className="FeatureIconDone"
-                    onClick={() => onSaveLable(box.id)}
+                    onClick={(e) => onSaveLable(e, box.id)}
                   />
                 ) : (
                   <>
-                    {!box.verified && (
+                    {!box.verified && !box.deleted && (
                       <BlockIcon
                         alt="Block"
                         className="FeatureIconDelete"
-                        onClick={() => onHandleBlock(box.id)}
+                        onClick={(e) => onHandleBlock(e, box.id)}
                         title="Reject automatic face tag"
                       />
                     )}
-                    {box.showVerifyIcon && (
+                    {box.showVerifyIcon && !box.deleted && (
                       <DoneIcon
                         alt="Done"
                         className="FeatureIconDone"
-                        onClick={() => setVerifyPhoto(box.id)}
+                        onClick={(e) => setVerifyPhoto(e, box.id)}
                         title="Approve automatic face tag"
                       />
                     )}
                     <EditIcon
                       alt="Edit"
                       className="FeatureIconEdit"
-                      onClick={() => setEditLableId(box.id)}
+                      onClick={(e) => updateEditState(e, box.id)}
                       title="Edit person’s name"
                     />
                   </>

@@ -9,13 +9,15 @@ from pathlib import Path
 import logging
 
 import requests
-
-import redis
 from redis_lock import Lock
+
+from photonix.photos.utils.redis import redis_connection
+
 
 graph_cache = {}
 
 logger = logging.getLogger(__name__)
+
 
 class BaseModel:
     def __init__(self, model_dir=None):
@@ -50,8 +52,7 @@ class BaseModel:
         if not lock_name:
             lock_name = 'classifier_{}_download'.format(self.name)
 
-        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-        with Lock(r, lock_name):
+        with Lock(redis_connection, lock_name):
             try:
                 with open(version_file) as f:
                     if f.read().strip() == str(self.version):

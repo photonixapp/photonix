@@ -34,3 +34,4 @@ pytest-django==3.8.0
 mock==3.0.5
 factory-boy==2.12.0
 coverage==5.0.3
+colorlog==5.0.1
