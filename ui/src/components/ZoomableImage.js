@@ -85,8 +85,6 @@ const ZoomableImage = ({
   prev,
   refetch,
   showBoundingBox,
-  // showFaceIcons,
-  // setShowFaceIcons,
   setShowBoundingBox,
   setShowMetadata,
   showMetadata,
@@ -97,7 +95,7 @@ const ZoomableImage = ({
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
-  let clickTimeOut = null;
+  let clickTimeOut = null
 
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
@@ -161,17 +159,16 @@ const ZoomableImage = ({
     if (clickTimeOut !== null) {
       clearTimeout(clickTimeOut)
     } else {
-      clickTimeOut =  setTimeout(() => {
+      clickTimeOut = setTimeout(() => {
         if (showMetadata) {
           setShowMetadata(!showMetadata)
         } else {
-          setShowBoundingBox(!showBoundingBox) 
           setShowTopIcons(!showTopIcons)
         }
         clearTimeout(clickTimeOut)
         clickTimeOut = null
-      },300)
-    }  
+      }, 300)
+    }
   }
 
   return (
@@ -202,13 +199,14 @@ const ZoomableImage = ({
                       className={displayImage ? 'display' : undefined}
                     />
                     {boxes &&
+                      showTopIcons &&
                       Object.keys(boxes).map((key, index) => (
                         <span
                           className={displayImage ? ' display' : undefined}
                           key={index}
                         >
                           <BoundingBoxes
-                            boxes={boxes[key]} 
+                            boxes={boxes[key]}
                             className={key}
                             refetch={refetch}
                             showBoundingBox={showBoundingBox}
