@@ -14,7 +14,6 @@ RUN apt-get update && \
         libblas3 \
         libfreetype6 \
         libfreetype6-dev \
-        libhdf5-dev \
         libjpeg-dev \
         liblapack-dev \
         liblapack3 \
@@ -104,6 +103,7 @@ RUN apt-get update && \
         libfreetype6-dev \
         libgl1 \
         libglib2.0-dev \
+        libhdf5-dev \
         libheif-examples \
         libimage-exiftool-perl \
         libpq-dev \
