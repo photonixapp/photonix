@@ -43,10 +43,13 @@ def parse_datetime(date_str):
     try:
         return datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S').replace(tzinfo=utc)
     except ValueError:
-        parsed_date = parse_date(date_str)
-        if not parsed_date.tzinfo:
-            parsed_date = parsed_date.replace(tzinfo=utc)
-        return parsed_date
+        try:
+            parsed_date = parse_date(date_str)
+            if not parsed_date.tzinfo:
+                parsed_date = parsed_date.replace(tzinfo=utc)
+            return parsed_date
+        except ValueError:
+            return None
 
 
 def parse_gps_location(gps_str):
