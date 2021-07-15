@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
+import classNames from 'classnames/bind'
 
 import { ReactComponent as AddIcon } from '../static/images/add.svg'
 
@@ -98,7 +99,7 @@ const FabMenu = ({ options, offsetBottom, offsetRight }) => {
         }}
       >
         {open && <div className="overlay" onClick={() => setOpen(false)}></div>}
-        <div className={open ? 'menuOptions open' : 'menuOptions'}>
+        <div className={classNames('menuOptions', { open: open })}>
           {options.map((option, index) => {
             const angle =
               ((90 - PADDING_ANGLE * 2) / (options.length - 1)) * index +

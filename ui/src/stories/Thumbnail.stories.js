@@ -28,3 +28,20 @@ StarRatedThumbnail.args = {
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12NgWlYGAAHMAR/qx7d1AAAAAElFTkSuQmCC',
   starRating: 3,
 }
+
+export const SelectableThumbnail = Template.bind({})
+SelectableThumbnail.args = {
+  id: 1,
+  imageUrl:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12NgiIoGAAETALbyWPclAAAAAElFTkSuQmCC',
+  selectable: true,
+}
+
+export const SelectedThumbnail = Template.bind({})
+SelectedThumbnail.args = {
+  id: 1,
+  imageUrl:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12NgiIoGAAETALbyWPclAAAAAElFTkSuQmCC',
+  selectable: true,
+  selected: true,
+}
