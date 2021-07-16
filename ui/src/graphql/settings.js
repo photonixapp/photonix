@@ -109,6 +109,7 @@ export const GET_TASK_PROGRESS = gql`
       classifyObject
       classifyLocation
       classifyStyle
+      classifyFace
     }  
   }
 `

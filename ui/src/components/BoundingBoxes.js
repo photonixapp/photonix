@@ -160,7 +160,7 @@ const BoundingBoxes = ({
   }
 
   const onChangeLable = (event, photoTagId) => {
-    ;(event.keyCode === ENTER_KEY &&
+    (event.keyCode === ENTER_KEY &&
       ref.current.value &&
       onSaveLable(event, photoTagId)) ||
       (event.keyCode === ESCAPE_KEY && setEditLableId(''))
@@ -201,7 +201,7 @@ const BoundingBoxes = ({
         let top = (box.positionY - box.sizeY / 2) * 100 + '%'
         let width = box.sizeX * 100 + '%'
         let height = box.sizeY * 100 + '%'
-        console.log(box)
+        // console.log(box)
         return (
           <div
             className={`FeatureBox ${className} ${

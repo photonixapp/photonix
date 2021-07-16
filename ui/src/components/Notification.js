@@ -16,6 +16,7 @@ import {
   SETTINGS_COLOR,
   SETTINGS_LOCATION,
   SETTINGS_OBJECT,
+  SETTINGS_FACE,
   GET_SETTINGS,
 } from '../graphql/settings'
 
@@ -100,6 +101,7 @@ const Notification = (props) => {
   const [settingUpdateColor] = useMutation(SETTINGS_COLOR)
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
+  const [settingUpdateFace] = useMutation(SETTINGS_FACE)
   useEffect(() => {
     if (!isComponentVisible) setShowNotification(false)
   }, [isComponentVisible, setShowNotification])
@@ -117,6 +119,8 @@ const Notification = (props) => {
         return 'Analysing locations'
       case 'classifyStyle':
         return 'Analysing styles'
+      case 'classifyFace':
+        return 'Analysing faces'
       default:
         return ''
     }
@@ -124,13 +128,13 @@ const Notification = (props) => {
 
   const getKeys = (data) => {
     let keys = Object.keys(data.taskProgress)
-    keys.splice(keys.length - 1)
+    // keys.splice(keys.length - 1)
     return keys
   }
 
   useEffect(() => {
     if (data) {
-      console.log(data)
+      // console.log(data)
       getKeys(data).map((key) => {
         let remaining = data.taskProgress[key]?.remaining
         if (remaining === 0) {
@@ -194,6 +198,8 @@ const Notification = (props) => {
         return 'classificationLocationEnabled'
       case 'classifyStyle':
         return 'classificationStyleEnabled'
+      case 'classifyFace':
+        return 'classificationFaceEnabled'
       default:
         return null
     }
@@ -234,6 +240,14 @@ const Notification = (props) => {
         settingUpdateColor({
           variables: {
             classificationColorEnabled: newSettings.classificationColorEnabled,
+            libraryId: activeLibrary?.id,
+          },
+        }).catch((e) => {})
+        return key
+      case 'classificationFaceEnabled':
+        settingUpdateFace({
+          variables: {
+            classificationFaceEnabled:newSettings.classificationFaceEnabled,
             libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})

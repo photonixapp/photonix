@@ -219,6 +219,7 @@ class TaskType(graphene.ObjectType):
     classify_location = graphene.types.generic.GenericScalar()
     classify_object = graphene.types.generic.GenericScalar()
     classify_style = graphene.types.generic.GenericScalar()
+    classify_face = graphene.types.generic.GenericScalar()
 
 
 class Query(graphene.ObjectType):
@@ -474,7 +475,8 @@ class Query(graphene.ObjectType):
             "classify_color": count_remaining_task('classify.color'),
             "classify_location": count_remaining_task('classify.location'),
             "classify_object": count_remaining_task('classify.object'),
-            "classify_style": count_remaining_task('classify.style')}
+            "classify_style": count_remaining_task('classify.style'),
+            "classify_face": count_remaining_task('classify.face')}
 
 
 class LibraryInput(graphene.InputObjectType):
