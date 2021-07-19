@@ -257,6 +257,16 @@ const Notification = (props) => {
     }
   }
 
+  const getRemaining = (remaining, totalRunning) => {
+    return remaining === '0'
+      ? '1'
+      : Math.abs(parseInt(remaining) - parseInt(totalRunning))
+  }
+
+  const getTotalRunning = (remaining, totalRunning) => {
+    return totalRunning === '0' ? remaining : totalRunning
+  }
+
   return (
     <>
       {showNotificationIcon ? (
@@ -278,9 +288,8 @@ const Notification = (props) => {
                         <Flex mb="1">
                           <Box flex="1">{getTitle(key)}</Box>
                           <Box width="80px" textAlign="right">
-                            {window.sessionStorage.getItem(key) -
-                              data.taskProgress[key]?.remaining}
-                            /{window.sessionStorage.getItem(key)}
+                          {getRemaining(data.taskProgress[key]?.remaining, window.sessionStorage.getItem(key))}
+                          /{getTotalRunning(data.taskProgress[key]?.remaining, window.sessionStorage.getItem(key))}
                           </Box>
                         </Flex>
                         <Progress
