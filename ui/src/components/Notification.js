@@ -47,12 +47,7 @@ const Container = styled('div')`
   .notificationMenu li {
     padding: 12px 15px 12px 15px;
     cursor: default;
-    // display: flex;
-    margin-bottom: 20px;
     font-size: 16px;
-  }
-  .notificationMenu li:last-child {
-    margin-bottom: 10px;
   }
   .notificationMenu li:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -78,13 +73,11 @@ const Container = styled('div')`
 const Notification = (props) => {
   const activeLibrary = useSelector(getActiveLibrary)
   const [settings, setSettings] = useSettings(activeLibrary)
-  const [showNotificationIcon, setShowNotificationIcon] = useState(true)
-  const {
-    ref,
-    isComponentVisible,
-    setIsComponentVisible,
-  } = useComponentVisible(false)
+  const [showNotificationIcon, setShowNotificationIcon] = useState(false)
+  const { ref, isComponentVisible, setIsComponentVisible } =
+    useComponentVisible(false)
   const { showNotification, setShowNotification, setShowUserMenu } = props
+
   const handleShowMenu = () => {
     if (!showNotification) {
       setIsComponentVisible(true)
@@ -93,6 +86,7 @@ const Notification = (props) => {
       settingsRefetch()
     }
   }
+
   const { data, refetch } = useQuery(GET_TASK_PROGRESS)
   const { refetch: settingsRefetch } = useQuery(GET_SETTINGS, {
     variables: { libraryId: activeLibrary?.id },
@@ -102,9 +96,34 @@ const Notification = (props) => {
   const [settingUpdateLocation] = useMutation(SETTINGS_LOCATION)
   const [settingUpdateObject] = useMutation(SETTINGS_OBJECT)
   const [settingUpdateFace] = useMutation(SETTINGS_FACE)
+
+  useEffect(() => {
+    const interval = isComponentVisible ? 3000 : 15000
+    let handle = setInterval(refetch, interval)
+    return () => {
+      clearInterval(handle)
+    }
+  })
+
   useEffect(() => {
     if (!isComponentVisible) setShowNotification(false)
   }, [isComponentVisible, setShowNotification])
+
+  useEffect(() => {
+    if (data) {
+      getKeys(data).map((key) => {
+        let remaining = data.taskProgress[key]?.remaining
+        if (remaining === 0) {
+          window.sessionStorage.setItem(key, 0)
+        } else if (remaining > window.sessionStorage.getItem(key)) {
+          window.sessionStorage.setItem(key, remaining)
+          !showNotificationIcon && setShowNotificationIcon(true)
+        }
+        return key
+      })
+    }
+  }, [data, showNotificationIcon])
+
   const getTitle = (key) => {
     switch (key) {
       case 'generateThumbnails':
@@ -112,15 +131,15 @@ const Notification = (props) => {
       case 'processRaw':
         return 'Processing raw files'
       case 'classifyColor':
-        return 'Analysing colors'
+        return 'Analyzing colors'
       case 'classifyObject':
-        return 'Analysing objects'
+        return 'Analyzing objects'
       case 'classifyLocation':
-        return 'Analysing locations'
+        return 'Analyzing locations'
       case 'classifyStyle':
-        return 'Analysing styles'
+        return 'Analyzing styles'
       case 'classifyFace':
-        return 'Analysing faces'
+        return 'Analyzing faces'
       default:
         return ''
     }
@@ -128,46 +147,8 @@ const Notification = (props) => {
 
   const getKeys = (data) => {
     let keys = Object.keys(data.taskProgress)
-    // keys.splice(keys.length - 1)
     return keys
   }
-
-  useEffect(() => {
-    if (data) {
-      // console.log(data)
-      getKeys(data).map((key) => {
-        let remaining = data.taskProgress[key]?.remaining
-        if (remaining === 0) {
-          window.sessionStorage.setItem(key, 0)
-        } else if (remaining > window.sessionStorage.getItem(key)) {
-          window.sessionStorage.setItem(key, remaining)
-        }
-        return key
-      })
-    }
-  }, [data])
-
-  // const refetchTasks = () => {
-  //   refetch()
-  //   if (data) {
-  //     getKeys(data).map((key) => {
-  //       const sessionVal = window.sessionStorage.getItem(key)
-  //       const remaining = data.taskProgress[key]?.remaining
-  //       if (remaining > sessionVal) {
-  //         window.sessionStorage.setItem(key, data.taskProgress[key]?.total)
-  //       } else if (remaining === 0) {
-  //         window.sessionStorage.setItem(key, 0)
-  //       }
-  //       return key
-  //     })
-  //   }
-  // }
-  useEffect(() => {
-    let handle = setInterval(refetch, 15000)
-    return () => {
-      clearInterval(handle)
-    }
-  })
 
   const getNotificationKeys = (data) => {
     const keys = getKeys(data)
@@ -176,6 +157,7 @@ const Notification = (props) => {
       !showNotificationIcon && setShowNotificationIcon(true)
     } else {
       showNotificationIcon && setShowNotificationIcon(false)
+      isComponentVisible && setIsComponentVisible(false)
     }
     return remaining
   }
@@ -188,6 +170,7 @@ const Notification = (props) => {
       100
     )
   }
+
   const getSettingsKey = (key) => {
     switch (key) {
       case 'classifyObject':
@@ -247,7 +230,7 @@ const Notification = (props) => {
       case 'classificationFaceEnabled':
         settingUpdateFace({
           variables: {
-            classificationFaceEnabled:newSettings.classificationFaceEnabled,
+            classificationFaceEnabled: newSettings.classificationFaceEnabled,
             libraryId: activeLibrary?.id,
           },
         }).catch((e) => {})
@@ -288,8 +271,15 @@ const Notification = (props) => {
                         <Flex mb="1">
                           <Box flex="1">{getTitle(key)}</Box>
                           <Box width="80px" textAlign="right">
-                          {getRemaining(data.taskProgress[key]?.remaining, window.sessionStorage.getItem(key))}
-                          /{getTotalRunning(data.taskProgress[key]?.remaining, window.sessionStorage.getItem(key))}
+                            {getRemaining(
+                              data.taskProgress[key]?.remaining,
+                              window.sessionStorage.getItem(key)
+                            )}
+                            /
+                            {getTotalRunning(
+                              data.taskProgress[key]?.remaining,
+                              window.sessionStorage.getItem(key)
+                            )}
                           </Box>
                         </Flex>
                         <Progress

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import { getActiveLibrary } from '../stores/libraries/selector'
@@ -201,8 +201,8 @@ export const useSettings = (activeLibrary) => {
     variables: { libraryId: activeLibrary?.id },
   })
   // console.log(error)
-  const isInitialMount = useRef(true)
-  
+  // const isInitialMount = useRef(true)
+
   // useEffect(() => {
   //   refetch()
   // }, [activeLibrary, refetch])
@@ -221,10 +221,9 @@ export const useSettings = (activeLibrary) => {
       let setting = { ...data.librarySetting.library }
       setting.sourceDirs = data.librarySetting.sourceFolder
       setSettings(setting)
-      }
+    }
   }, [data, loading])
 
-  
   // useEffect(() => {
   //   if (activeLibrary) {
   //     refetch()
@@ -239,7 +238,6 @@ export const useSettings = (activeLibrary) => {
   //     setSettings(result)
   //   }
   // }, [activeLibrary, loading, refetch, data])
-
 
   function setAndSaveSettings(newSettings) {
     // if (window.sendSyncToElectron) {
