@@ -3,7 +3,7 @@ import history from '../history'
 import { Tabs } from '../components/Tabs'
 
 export default {
-  title: 'Photonix/Tabs',
+  title: 'Photonix/Photo List/Tabs',
   component: Tabs,
 }
 
@@ -12,7 +12,8 @@ const Template = (args) => <Tabs {...args} />
 const redirect = (linkTo) => {
   history.push(linkTo)
   for (var tabId in DefaultTabs.args.tabs) {
-    DefaultTabs.args.tabs[tabId].selected = DefaultTabs.args.tabs[tabId].linkTo == linkTo ? true : false
+    DefaultTabs.args.tabs[tabId].selected =
+      DefaultTabs.args.tabs[tabId].linkTo == linkTo ? true : false
   }
 }
 
