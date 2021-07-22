@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from '@emotion/styled'
-import { Link } from 'react-router-dom'
 import useLocalStorageState from 'use-local-storage-state'
 import { useSwipeable } from 'react-swipeable'
 
@@ -10,6 +9,8 @@ import PhotoList from '../components/PhotoList'
 import MapView from '../components/MapView'
 import Spinner from '../components/Spinner'
 import arrowDown from '../static/images/arrow_down.svg'
+import { Tabs } from '../components/Tabs'
+import history from '../history'
 
 const Container = styled('div')`
   height: 100%;
@@ -96,6 +97,28 @@ const Container = styled('div')`
     }
   }
 `
+const redirect = (linkTo, pageRefresh=false) => {
+  !pageRefresh && history.push(linkTo)
+  for (var tabId in tabArgs.tabs) {
+    tabArgs.tabs[tabId].selected = tabArgs.tabs[tabId].linkTo == linkTo ? true : false
+  }
+}
+const tabArgs = {
+  tabs: [
+    {
+      label: 'Timeline',
+      selected: false,
+      redirectTo: redirect,
+      linkTo: '?mode=timeline',
+    },
+    {
+      label: 'Map',
+      selected: false,
+      redirectTo: redirect,
+      linkTo: '?mode=map',
+    },
+  ],
+}
 
 const Browse = ({
   profile,
@@ -109,7 +132,6 @@ const Browse = ({
   onClearFilters,
   search,
   updateSearchText,
-  setIsMapShowing,
   mapPhotos,
   refetchPhotos,
 }) => {
@@ -127,7 +149,7 @@ const Browse = ({
     onSwipedDown: () => setExpanded(!expanded),
     onSwipedUp: () => setExpanded(!expanded),
   })
-
+  mode === 'MAP' ? redirect('?mode=map', true) : redirect('?mode=timeline', true)
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
 
@@ -156,16 +178,11 @@ const Browse = ({
         >
           <img src={arrowDown} alt="" />
         </div>
-        <ul className="tabs">
-          <Link to="?mode=timeline" onClick={() => setIsMapShowing(false)}>
-            <li>Timeline</li>
-          </Link>
-          <Link to="?mode=map" onClick={() => setIsMapShowing(true)}>
-            <li>Map</li>
-          </Link>
-        </ul>
       </div>
-      <div className="main">{content}</div>
+      <div className="main">
+        <Tabs {...tabArgs}/> 
+        {content}
+      </div>
     </Container>
   )
 }
