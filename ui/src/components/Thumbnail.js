@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { Link } from 'react-router-dom'
 import styled from '@emotion/styled'
 import { useMutation } from '@apollo/client'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
@@ -104,7 +103,14 @@ const StarRatingStyled = styled('div')`
   }
 `
 
-const Thumbnail = ({ id, imageUrl, starRating, selectable, selected }) => {
+const Thumbnail = ({
+  id,
+  imageUrl,
+  starRating,
+  selectable,
+  selected,
+  ...rest
+}) => {
   const [newStarRating, updateStarRating] = useState(starRating)
 
   useEffect(() => {
@@ -142,21 +148,21 @@ const Thumbnail = ({ id, imageUrl, starRating, selectable, selected }) => {
   return (
     <Container
       className={classNames({ selectable: selectable, selected: selected })}
+      data-id={id}
+      {...rest}
     >
       <div className="thumbnail-area">
-        <Link to={`/photo/${id}`} key={id}>
-          <LazyLoadImage
-            effect="opacity"
-            src={imageUrl}
-            className="thumbnail"
-            wrapperClassName="thumbnail-wrapper"
-            width="100%"
-            height="100%"
-          />
-          <StarRatingStyled>
-            <StarRating starRating={newStarRating} onStarClick={onStarClick} />
-          </StarRatingStyled>
-        </Link>
+        <LazyLoadImage
+          effect="opacity"
+          src={imageUrl}
+          className="thumbnail"
+          wrapperClassName="thumbnail-wrapper"
+          width="100%"
+          height="100%"
+        />
+        <StarRatingStyled>
+          <StarRating starRating={newStarRating} onStarClick={onStarClick} />
+        </StarRatingStyled>
       </div>
       <div className="selection-indicator">
         <TickIcon />
