@@ -4,6 +4,10 @@ import styled from '@emotion/styled'
 import { useHistory } from 'react-router-dom'
 
 import Thumbnail from './Thumbnail'
+import FabMenu from '../components/FabMenu'
+import { ReactComponent as AlbumIcon } from '../static/images/album_outlined.svg'
+import { ReactComponent as DeleteIcon } from '../static/images/delete_outlined.svg'
+import { ReactComponent as TagIcon } from '../static/images/tag_outlined.svg'
 
 const Container = styled('ul')`
   margin: 0;
@@ -91,33 +95,53 @@ const Thumbnails = ({ photoSections }) => {
   )
 
   return (
-    <Container>
-      {photoSections
-        ? photoSections.map((section) => (
-            <div className="section" id={section.id} key={section.id}>
-              {section.title ? (
-                <SectionHeading>{section.title}</SectionHeading>
-              ) : null}
-              <div className="thumbnails">
-                {section.segments.map((segment) =>
-                  segment.photos.map((photo) => {
-                    return (
-                      <Thumbnail
-                        key={photo.id}
-                        id={photo.id}
-                        imageUrl={photo.thumbnail}
-                        starRating={photo.starRating}
-                        selected={selected.indexOf(photo.id) > -1}
-                        {...bind}
-                      />
-                    )
-                  })
-                )}
+    <>
+      <Container>
+        {photoSections
+          ? photoSections.map((section) => (
+              <div className="section" id={section.id} key={section.id}>
+                {section.title ? (
+                  <SectionHeading>{section.title}</SectionHeading>
+                ) : null}
+                <div className="thumbnails">
+                  {section.segments.map((segment) =>
+                    segment.photos.map((photo) => {
+                      return (
+                        <Thumbnail
+                          key={photo.id}
+                          id={photo.id}
+                          imageUrl={photo.thumbnail}
+                          starRating={photo.starRating}
+                          selected={selected.indexOf(photo.id) > -1}
+                          {...bind}
+                        />
+                      )
+                    })
+                  )}
+                </div>
               </div>
-            </div>
-          ))
-        : null}
-    </Container>
+            ))
+          : null}
+      </Container>
+      {selected.length > 0 && (
+        <FabMenu
+          options={[
+            {
+              label: 'Tag',
+              icon: <TagIcon />,
+            },
+            {
+              label: 'Album',
+              icon: <AlbumIcon />,
+            },
+            {
+              label: 'Delete',
+              icon: <DeleteIcon />,
+            },
+          ]}
+        />
+      )}
+    </>
   )
 }
 
