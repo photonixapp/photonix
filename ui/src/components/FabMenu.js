@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 import classNames from 'classnames/bind'
+import { Link } from 'react-router-dom'
 
 import { ReactComponent as AddIcon } from '../static/images/add.svg'
 
@@ -74,7 +75,7 @@ const Container = styled('div')`
   }
 `
 
-const FabMenu = ({ options, offsetBottom, offsetRight }) => {
+const FabMenu = ({ options, offsetBottom, offsetRight, photoIds }) => {
   const [open, setOpen] = useState(false)
 
   const deg2rad = (degrees) => {
@@ -113,8 +114,19 @@ const FabMenu = ({ options, offsetBottom, offsetRight }) => {
                   top: MENU_WIDTH / 2 + pos[1] * -1,
                 }}
               >
+                {option.label !== 'Delete' &&
+                <Link to={{
+                  pathname:"/addtag",
+                  state:{photoIds:photoIds, tagType:option.label == 'Album' ? 'A' : 'G'}
+                }}>
+                  {option.icon}
+                  {option.label}
+                </Link>}
+                {option.label === 'Delete' && 
+                <>
                 {option.icon}
                 {option.label}
+                </>}
               </div>
             )
           })}
@@ -141,12 +153,14 @@ FabMenu.propTypes = {
   ),
   offsetBottom: PropTypes.string,
   offsetRight: PropTypes.string,
+  photoIds: PropTypes.array,
 }
 
 FabMenu.defaultProps = {
   options: [],
   offsetBottom: '24px',
   offsetRight: '24px',
+  photoIds:[],
 }
 
 export default FabMenu

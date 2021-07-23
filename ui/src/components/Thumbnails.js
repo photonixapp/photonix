@@ -139,6 +139,7 @@ const Thumbnails = ({ photoSections }) => {
               icon: <DeleteIcon />,
             },
           ]}
+          photoIds={selected}
         />
       )}
     </>

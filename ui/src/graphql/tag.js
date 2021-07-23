@@ -51,3 +51,14 @@ export const VERIFY_FACE_TAG = gql`
     }
   }
 `
+export const ASSIGN_TAG_TO_PHOTOS = gql`
+  mutation assignTagToPhotos(
+    $name: String!,
+    $photoIds: String!,
+    $tagType: String!
+  ) {
+    assignTagToPhotos(name: $name, photoIds: $photoIds, tagType: $tagType) {
+      ok
+    }
+  }
+`

@@ -951,6 +951,40 @@ class VerifyPhoto(graphene.Mutation):
         return VerifyPhoto(ok=True)
 
 
+class AssignTagToPhotos(graphene.Mutation):
+    """Create and assign tag to the list of photos."""
+    class Arguments:
+        name = graphene.String()
+        photo_ids = graphene.String()
+        tag_type= graphene.String()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, name, photo_ids, tag_type):
+        try:
+            photo_list = Photo.objects.filter(id__in=photo_ids.split(',')) 
+            tag_obj, created = Tag.objects.get_or_create(
+                library=photo_list[0].library,
+                name=name, type=tag_type, source='H', defaults={})
+            if tag_type == 'G':
+                for photo in photo_list:
+                    if not photo.photo_tags.filter(tag=tag_obj).exists():
+                        photo_tag_obj = PhotoTag.objects.create(
+                            photo=photo,
+                            tag=tag_obj,
+                            confidence=1.0,
+                            significance=1.0,
+                            verified=True,
+                            source='H',
+                        )
+            return AssignTagToPhotos(ok=True)
+        except Exception as e:
+            raise GraphQLError("Something Went wrong!")
+
+
+
+
 class Mutation(graphene.ObjectType):
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
@@ -968,3 +1002,4 @@ class Mutation(graphene.ObjectType):
     edit_face_tag = EditFaceTag.Field()
     block_face_tag = BlockFaceTag.Field()
     verify_photo = VerifyPhoto.Field()
+    assign_tag_to_photos = AssignTagToPhotos.Field()
