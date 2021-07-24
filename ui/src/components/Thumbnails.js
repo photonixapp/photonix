@@ -113,6 +113,7 @@ const Thumbnails = ({ photoSections }) => {
                           imageUrl={photo.thumbnail}
                           starRating={photo.starRating}
                           selected={selected.indexOf(photo.id) > -1}
+                          selectable={selected.length > 0}
                           {...bind}
                         />
                       )
