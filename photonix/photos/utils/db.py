@@ -152,7 +152,7 @@ def record_photo(path, library, inotify_event_type=None):
         for subject in metadata.get('Subject', '').split(','):
             subject = subject.strip()
             if subject:
-                tag = Tag.objects.create(library_id=library_id, name=subject, type="G")
+                tag, _ = Tag.objects.get_or_create(library_id=library_id, name=subject, type="G")
                 PhotoTag.objects.create(
                     photo=photo,
                     tag=tag,
