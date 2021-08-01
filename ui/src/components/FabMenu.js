@@ -20,7 +20,7 @@ const Container = styled('div')`
     height: 100%;
   }
   .menuOptions {
-    background: rgba(0, 84, 97, 0.7);
+    background: rgba(0, 84, 97, 0.8);
     width: 0;
     height: 0;
     left: 0;
@@ -56,9 +56,13 @@ const Container = styled('div')`
     width: 48px;
     height: 48px;
     position: fixed;
-    background: #005461;
+    background: #00a8a1;
     padding: 24px;
     border-radius: 50%;
+    bottom: 72px;
+    right: 24px;
+    box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
+    z-index: 10;
     .button {
       cursor: pointer;
       position: absolute;
@@ -72,9 +76,15 @@ const Container = styled('div')`
       }
     }
   }
+  @media all and (min-width: 700px) {
+    .position {
+      bottom: 24px;
+      right: 24px;
+    }
+  }
 `
 
-const FabMenu = ({ options, offsetBottom, offsetRight }) => {
+const FabMenu = ({ options }) => {
   const [open, setOpen] = useState(false)
 
   const deg2rad = (degrees) => {
@@ -91,13 +101,7 @@ const FabMenu = ({ options, offsetBottom, offsetRight }) => {
 
   return (
     <Container>
-      <div
-        className="position"
-        style={{
-          bottom: offsetBottom,
-          right: offsetRight,
-        }}
-      >
+      <div className="position">
         {open && <div className="overlay" onClick={() => setOpen(false)}></div>}
         <div className={classNames('menuOptions', { open: open })}>
           {options.map((option, index) => {
@@ -139,14 +143,10 @@ FabMenu.propTypes = {
       onclick: PropTypes.func,
     })
   ),
-  offsetBottom: PropTypes.string,
-  offsetRight: PropTypes.string,
 }
 
 FabMenu.defaultProps = {
   options: [],
-  offsetBottom: '24px',
-  offsetRight: '24px',
 }
 
 export default FabMenu
