@@ -130,7 +130,7 @@ const Thumbnail = ({
   // Only allow star ratings to be changed from here if device have hovering device (cursor/mouse/trackpad) to prevent accidentally setting it
   let onStarClick = null
   const canHover = window.matchMedia('(hover: hover)').matches
-  if (canHover) {
+  if (canHover && !selectable) {
     onStarClick = (num, e) => {
       e.preventDefault()
       if (newStarRating === num) {
