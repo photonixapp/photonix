@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
+import useViewport from '../hooks/useViewport'
 import { ReactComponent as SearchIcon } from '../static/images/search.svg'
 import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as ObjectsIcon } from '../static/images/label.svg'
@@ -178,6 +178,7 @@ const SearchInput = ({
   const [options, setOptions] = useState([])
   const container = useRef()
   const input = useRef()
+  const { width: viewportWidth } = useViewport()
 
   const prepareOptions = useCallback(() => {
     let searchOptions = []
@@ -198,8 +199,7 @@ const SearchInput = ({
 
   useEffect(() => {
     minHeightChanged(container.current.offsetHeight + 5)
-  })
-
+  }, [search, selectedFilters, viewportWidth, minHeightChanged])
   const handleOnChange = (e) => {
     onSearchTextChange(e.target.value)
     const userInput = e.currentTarget.value
@@ -215,17 +215,19 @@ const SearchInput = ({
   const onKeyDown = (e) => {
     if (e.keyCode === ENTER_KEY || e.keyCode === TAB_KEY) {
       e.preventDefault()
-      onSearchTextChange('')
-      setActiveOption(0)
-      setShowOptions(false)
-      filteredOptions[activeOption] &&
-        onFilterToggle(
-          filteredOptions[activeOption].id,
-          filteredOptions[activeOption].type,
-          filteredOptions[activeOption].name
-        )
-    } else if (e.keyCode == BACKSPACE_KEY) {
-      search.length == 0 &&
+      if (showOptions) {
+        onSearchTextChange('')
+        setActiveOption(0)
+        setShowOptions(false)
+        filteredOptions[activeOption] &&
+          onFilterToggle(
+            filteredOptions[activeOption].id,
+            filteredOptions[activeOption].type,
+            filteredOptions[activeOption].name
+          )
+      }
+    } else if (e.keyCode === BACKSPACE_KEY) {
+      search.length === 0 &&
         selectedFilters.length > 0 &&
         onFilterToggle(selectedFilters[selectedFilters.length - 1].id)
     } else if (e.keyCode === ESCAPE_KEY) {
@@ -290,10 +292,11 @@ const SearchInput = ({
   }
 
   const hasContent = search || selectedFilters.length > 0
+  const showSearchIcon = !hasContent || window.innerWidth > 700
 
   return (
     <Container ref={container}>
-      <ul style={{ paddingLeft: hasContent ? 0 : null }}>
+      <ul style={{ paddingLeft: !showSearchIcon ? 0 : null }}>
         {selectedFilters.map((filter) => {
           let icon = ObjectsIcon
           if (GROUP_ICONS[filter.group]) {
@@ -323,7 +326,7 @@ const SearchInput = ({
         {optionList}
       </ul>
 
-      {!hasContent && (
+      {showSearchIcon && (
         <SearchIcon className="searchIcon" onClick={focusInput} />
       )}
       {hasContent && (
