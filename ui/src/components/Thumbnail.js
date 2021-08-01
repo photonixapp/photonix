@@ -27,6 +27,7 @@ const Container = styled('li')`
     box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
     background: #292929;
     overflow: hidden;
+    transition: transform 100ms ease-in-out;
   }
 
   img.thumbnail {
@@ -47,13 +48,16 @@ const Container = styled('li')`
 
   .selection-indicator {
     position: absolute;
-    width: 16px;
-    height: 16px;
+    width: 13px;
+    height: 13px;
     bottom: 4px;
     right: 4px;
     border-radius: 50%;
-    border: 2px solid #00a8a1;
+    border: 2px solid rgba(255, 255, 255, 0.7);
     opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     svg {
       filter: invert(0.9);
       display: none;
@@ -66,6 +70,7 @@ const Container = styled('li')`
     opacity: 1;
   }
   &.selected .selection-indicator {
+    border: 0;
     width: 22px;
     height: 22px;
     bottom: 1px;
@@ -73,8 +78,11 @@ const Container = styled('li')`
     opacity: 1;
     background: #00a8a1;
     svg {
-      filter: invert(0.9);
       display: block;
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      filter: invert(1);
     }
   }
 
