@@ -118,7 +118,6 @@ const FiltersContainer = ({
 
   useEffect(() => {
     if (isFiltersAvail && filterData.length) {
-      console.log(REMOVABLE_TAGS)
       const autoSuggestionFilters = filterData.filter((f) => {
         return REMOVABLE_TAGS.indexOf(f.name) === -1
       })

@@ -1,6 +1,5 @@
 import React from 'react'
-import history from '../history'
-import { Tabs } from '../components/Tabs'
+import Tabs from '../components/Tabs'
 
 export default {
   title: 'Photonix/Photo List/Tabs',
@@ -9,34 +8,27 @@ export default {
 
 const Template = (args) => <Tabs {...args} />
 
-const redirect = (linkTo) => {
-  history.push(linkTo)
-  for (var tabId in DefaultTabs.args.tabs) {
-    DefaultTabs.args.tabs[tabId].selected =
-      DefaultTabs.args.tabs[tabId].linkTo == linkTo ? true : false
-  }
-}
-
 export const DefaultTabs = Template.bind({})
 DefaultTabs.args = {
   tabs: [
     {
       label: 'Timeline',
-      selected: false,
-      redirectTo: redirect,
-      linkTo: '?mode=timeline',
+      onClick: () => {
+        console.log('Timeline')
+      },
     },
     {
       label: 'Albums',
-      selected: false,
-      redirectTo: redirect,
-      linkTo: '#',
+      onClick: () => {
+        console.log('Albums')
+      },
     },
     {
       label: 'Map',
-      selected: false,
-      redirectTo: redirect,
-      linkTo: '?mode=map',
+      onClick: () => {
+        console.log('Map')
+      },
     },
   ],
+  initiallySelectedIndex: 0,
 }

@@ -1,15 +1,15 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from '@emotion/styled'
 import useLocalStorageState from 'use-local-storage-state'
 import { useSwipeable } from 'react-swipeable'
 
 import Header from './Header'
-import SearchContainer from '../containers/SearchContainer'
+import Search from './Search'
 import PhotoList from '../components/PhotoList'
 import MapView from '../components/MapView'
 import Spinner from '../components/Spinner'
-import arrowDown from '../static/images/arrow_down.svg'
-import { Tabs } from '../components/Tabs'
+import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
+import Tabs from '../components/Tabs'
 import history from '../history'
 
 const Container = styled('div')`
@@ -20,58 +20,37 @@ const Container = styled('div')`
   display: flex;
   flex-direction: column;
 
-  .tabs {
-    display: inline-block;
-    margin: 0;
-    padding: 0;
-    position: absolute;
-    right: 40px;
-    bottom: 0;
-  }
-  .tabs li {
-    display: inline-block;
-    list-style: none;
-    padding: 8px 20px;
-    background: #1d1d1d;
-    font-weight: 600;
-  }
-  .tabs button {
-    width: 32px;
-  }
-  .tabs a {
-    color: #ddd;
-    margin-left: 10px;
-  }
-
   .searchBar {
-    background: #292929;
+    background: #333;
     position: relative;
-    height: 330px;
-    transition: all 200ms;
+    height: 310px;
+    transition: height 300ms;
     transition-timing-function: ease-in-out;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
   }
   .searchBar.collapsed {
-    height: 140px;
+    height: 0;
     .FiltersContent {
       opacity: 0;
     }
   }
 
   .expandCollapse {
-    width: calc(100% - 202px);
+    width: 24px;
     height: 24px;
     position: absolute;
-    bottom: 10px;
-    left: 40px;
+    top: 16px;
+    right: 13px;
     cursor: pointer;
   }
-  .expandCollapse img {
-    filter: invert(0.9);
-    transition: all 600ms;
+  .expandCollapse svg {
+    filter: invert(0.7);
+    transition: transform 300ms;
     transition-timing-function: ease-in-out;
   }
-  .expanded .expandCollapse img {
-    transform: rotate(-180deg);
+  .expanded .expandCollapse svg {
+    transform: rotate(180deg);
   }
 
   .main {
@@ -84,41 +63,9 @@ const Container = styled('div')`
     position: relative;
   }
 
-  @media all and (max-width: 700px) {
-    .tabs {
-      right: 20px;
-    }
-    .searchBar.collapsed {
-      height: 110px;
-    }
-    .expandCollapse {
-      bottom: 10px;
-      left: 10px;
-    }
+  @media all and (min-width: 700px) {
   }
 `
-const redirect = (linkTo, pageRefresh=false) => {
-  !pageRefresh && history.push(linkTo)
-  for (var tabId in tabArgs.tabs) {
-    tabArgs.tabs[tabId].selected = tabArgs.tabs[tabId].linkTo == linkTo ? true : false
-  }
-}
-const tabArgs = {
-  tabs: [
-    {
-      label: 'Timeline',
-      selected: false,
-      redirectTo: redirect,
-      linkTo: '?mode=timeline',
-    },
-    {
-      label: 'Map',
-      selected: false,
-      redirectTo: redirect,
-      linkTo: '?mode=map',
-    },
-  ],
-}
 
 const Browse = ({
   profile,
@@ -149,38 +96,49 @@ const Browse = ({
     onSwipedDown: () => setExpanded(!expanded),
     onSwipedUp: () => setExpanded(!expanded),
   })
-  mode === 'MAP' ? redirect('?mode=map', true) : redirect('?mode=timeline', true)
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
+
+  const [searchMinHeight, setSearchMinHeight] = useState(0)
 
   return (
     <Container>
       <Header profile={profile} libraries={libraries} />
-      <div className={expanded ? ` searchBar expanded` : `searchBar collapsed`}>
-        <SearchContainer
+      <div
+        className={expanded ? ` searchBar expanded` : `searchBar collapsed`}
+        style={{ height: !expanded && searchMinHeight }}
+      >
+        <Search
           selectedFilters={selectedFilters}
           search={search}
           onFilterToggle={onFilterToggle}
           onClearFilters={onClearFilters}
           updateSearchText={updateSearchText}
           searchAreaExpand={expanded}
+          minHeightChanged={setSearchMinHeight}
         />
-      </div>
-      <div
-        className={
-          expanded ? ` tabContainer expanded` : `tabContainer collapsed`
-        }
-      >
         <div
           {...handlers}
           className="expandCollapse"
           onClick={() => setExpanded(!expanded)}
         >
-          <img src={arrowDown} alt="" />
+          <ArrowDownIcon />
         </div>
       </div>
       <div className="main">
-        <Tabs {...tabArgs}/> 
+        <Tabs
+          tabs={[
+            {
+              label: 'Timeline',
+              onClick: () => history.push('?mode=timeline'),
+            },
+            {
+              label: 'Map',
+              onClick: () => history.push('?mode=map'),
+            },
+          ]}
+          initiallySelectedIndex={mode === 'MAP' ? 1 : 0}
+        />
         {content}
       </div>
     </Container>

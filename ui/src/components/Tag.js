@@ -2,7 +2,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 
 export const TagLi = styled('li')`
-  background: #383838;
+  background: #444;
   color: #ddd;
   display: inline-block;
   margin: 0 10px 10px 0;
@@ -12,8 +12,10 @@ export const TagLi = styled('li')`
   cursor: pointer;
 `
 
-const Tag = ({itemId, itemName, groupName, onToggle}) => (
-  <TagLi key={itemId} onClick={() => onToggle(itemId, groupName, itemName)}>{itemName}</TagLi>
+const Tag = ({ itemId, itemName, groupName, onToggle }) => (
+  <TagLi key={itemId} onClick={() => onToggle(itemId, groupName, itemName)}>
+    {itemName}
+  </TagLi>
 )
 
 export default Tag

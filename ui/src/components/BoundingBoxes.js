@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import styled from '@emotion/styled'
 import { useMutation } from '@apollo/client'
 import { useDispatch, useSelector } from 'react-redux'
@@ -201,7 +201,6 @@ const BoundingBoxes = ({
         let top = (box.positionY - box.sizeY / 2) * 100 + '%'
         let width = box.sizeX * 100 + '%'
         let height = box.sizeY * 100 + '%'
-        console.log(box)
         return (
           <div
             className={`FeatureBox ${className} ${

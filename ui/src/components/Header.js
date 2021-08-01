@@ -4,15 +4,15 @@ import styled from '@emotion/styled'
 
 import User from './User'
 import { getIsMobileApp, getSafeArea } from '../stores/layout/selector'
-import logo from '../static/images/logo.svg'
-import menuIcon from '../static/images/menu.svg'
+import { ReactComponent as Logo } from '../static/images/logo.svg'
+import { ReactComponent as MenuIcon } from '../static/images/menu.svg'
 // import notifications from '../static/images/notifications.svg'
 
 const Container = styled('div')`
   height: 50px;
   flex: none;
   justify-content: space-between;
-  background: #484848;
+  background: #444;
   z-index: 20;
 
   > .logo {
@@ -23,7 +23,7 @@ const Container = styled('div')`
     line-height: 1.2;
     color: #fff;
   }
-  > .logo img.menu {
+  > .logo svg.menu {
     width: 30px;
     height: 30px;
     margin-right: 8px;
@@ -34,7 +34,7 @@ const Container = styled('div')`
     background: none;
     display: none;
   }
-  > .logo img.logo {
+  > .logo svg.logo {
     width: 30px;
     height: 30px;
     margin-right: 8px;
@@ -60,14 +60,13 @@ const Header = ({ profile, libraries }) => {
       style={{ paddingTop: safeArea.top, height: 50 + safeArea.top }}
     >
       <div className="logo">
-        <img
-          src={menuIcon}
+        <MenuIcon
           className="menu"
           alt="menu"
           style={{ display: isMobileApp ? 'inline' : 'none' }}
           onClick={() => window.photonix?.openAppMenu()}
         />
-        <img src={logo} className="logo" alt="Photonix Logo" />
+        <Logo className="logo" alt="Photonix Logo" />
         Photonix
       </div>
       <div className="navigation"></div>
