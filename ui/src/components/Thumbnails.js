@@ -79,10 +79,8 @@ const Thumbnails = ({ photoSections }) => {
     (e) => {
       const id = getNode(e.target).getAttribute('data-id')
       addRemoveItem(id)
-      console.log('Long press!', id)
     },
     {
-      onFinish: () => console.log('Long press finished'),
       onCancel: (e) => {
         const id = getNode(e.target).getAttribute('data-id')
         selected.length > 0 ? addRemoveItem(id) : history.push(`/photo/${id}`)
