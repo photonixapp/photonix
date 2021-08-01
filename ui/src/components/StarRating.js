@@ -38,15 +38,18 @@ const StarRating = ({
     }
   }
   const onStarLeave = useCallback(() => {
+    console.log(onStarClick)
     if (onStarClick) {
       setStarHovering(starRating)
       !alwaysShow && setDisplayStars(starRating > 0)
     }
-  }, [alwaysShow, starRating, onStarClick])
+  }, [alwaysShow, starRating])
+
   useEffect(() => {
     setDisplayStars(true)
     onStarLeave()
   }, [starRating, onStarLeave])
+
   const Stars = large ? StarsLarge : StarsSmall
 
   return (
