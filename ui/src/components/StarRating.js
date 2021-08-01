@@ -38,7 +38,6 @@ const StarRating = ({
     }
   }
   const onStarLeave = useCallback(() => {
-    console.log(onStarClick)
     if (onStarClick) {
       setStarHovering(starRating)
       !alwaysShow && setDisplayStars(starRating > 0)
