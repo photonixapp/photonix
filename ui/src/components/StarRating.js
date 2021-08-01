@@ -32,12 +32,16 @@ const StarRating = ({
   const [starHovering, setStarHovering] = useState(starRating)
 
   const onStarEnter = (num) => {
-    setStarHovering(num)
-    !alwaysShow && setDisplayStars(true)
+    if (onStarClick) {
+      setStarHovering(num)
+      !alwaysShow && setDisplayStars(true)
+    }
   }
   const onStarLeave = useCallback(() => {
-    setStarHovering(starRating)
-    !alwaysShow && setDisplayStars(starRating > 0)
+    if (onStarClick) {
+      setStarHovering(starRating)
+      !alwaysShow && setDisplayStars(starRating > 0)
+    }
   }, [alwaysShow, starRating])
   useEffect(() => {
     setDisplayStars(true)
