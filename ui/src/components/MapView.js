@@ -5,8 +5,9 @@ import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 import { useMapEvent } from 'react-leaflet'
 import L from 'leaflet'
-import '../static/css/Map.css'
 import 'react-leaflet-markercluster/dist/styles.min.css' // sass
+
+import '../static/css/Map.css'
 
 const MapView = ({ photos, bounds, location, maxZoom, hideAttribution }) => {
   let markers = []
