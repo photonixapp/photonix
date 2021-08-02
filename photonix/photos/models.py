@@ -136,6 +136,7 @@ class Photo(UUIDModel, VersionedModel):
         help_text='assign rating to photo', verbose_name="Rating", null=True, blank=True)
     preferred_photo_file = models.ForeignKey('PhotoFile', related_name='+', null=True, on_delete=models.SET_NULL)  # File selected by the user that is the best version to be used
     thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
+    deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-taken_at']

@@ -129,7 +129,7 @@ const BrowseContainer = (props) => {
     loading: photosLoading,
     error: photosError,
     data: photosData,
-    // refetch,
+    refetch,
     fetchMore: fetchMorePhotos,
   } = useQuery(
     GET_PHOTOS,
@@ -265,6 +265,7 @@ const BrowseContainer = (props) => {
           setIsMapShowing={setIsMapShowing}
           mapPhotos={photosWithLocation}
           refetchPhotos={refetchPhotos}
+          refetchPhotoList={refetch}
         />
       )}
     </>

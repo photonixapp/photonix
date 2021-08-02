@@ -57,7 +57,7 @@ const SectionHeading = styled('h2')`
   display: block;
 `
 
-const Thumbnails = ({ photoSections }) => {
+const Thumbnails = ({ photoSections, refetchPhotoList }) => {
   const history = useHistory()
   const [selected, setSelected] = useState([])
 
@@ -138,6 +138,8 @@ const Thumbnails = ({ photoSections }) => {
               icon: <DeleteIcon />,
             },
           ]}
+          photoIds={selected}
+          refetchPhotoList={refetchPhotoList}
         />
       )}
     </>
