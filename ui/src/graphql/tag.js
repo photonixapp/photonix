@@ -62,3 +62,12 @@ export const ASSIGN_TAG_TO_PHOTOS = gql`
     }
   }
 `
+export const SET_PHOTOS_DELETED = gql`
+  mutation setPhotosDeleted(
+    $photoIds: String!,
+  ) {
+    setPhotosDeleted(photoIds: $photoIds) {
+      ok
+    }
+  }
+`

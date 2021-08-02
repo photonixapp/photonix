@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { Alert, AlertIcon, Button, Flex } from '@chakra-ui/core'
 import { useMutation } from '@apollo/client'
-
 import ModalField from './ModalField'
 import Modal from './Modal'
 import { ASSIGN_TAG_TO_PHOTOS } from '../graphql/tag'
+import { isTagUpdated } from '../stores/tag/selector'
 import '../static/css/Account.css'
 import '../static/css/Onboarding.css'
 
@@ -16,6 +17,8 @@ export default function AddTag( props ) {
   const [showAlert, setShowAlert] = useState(false)
   const [assignTagToPhotos] = useMutation(ASSIGN_TAG_TO_PHOTOS)
   const { register, handleSubmit, errors, formState, setError } = useForm()
+  const tagUpdated = useSelector(isTagUpdated)
+  const dispatch = useDispatch()
 
   const onSave = (data) => {
     assignTagToPhotos({
@@ -27,9 +30,13 @@ export default function AddTag( props ) {
     })
       .then((res) => {
         if (!res.data.assignTagToPhotos.ok) {
-          setError('tagName', 'manual', "Tag not created and assigned!")
+          setError('tagName', 'manual', "Something went wrong!")
         } else {
           setShowAlert(true)
+          dispatch({
+            type: 'IS_TAG_UPDATE',
+            payload: { updated: !tagUpdated },
+          })
         }
       })
       .catch((e) => {})

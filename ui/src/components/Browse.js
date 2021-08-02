@@ -112,6 +112,7 @@ const Browse = ({
   setIsMapShowing,
   mapPhotos,
   refetchPhotos,
+  refetchPhotoList,
 }) => {
   const [expanded, setExpanded] = useLocalStorageState(
     'searchExpanded',
@@ -121,7 +122,7 @@ const Browse = ({
     mode === 'MAP' ? (
       <MapView photos={mapPhotos} />
     ) : (
-      <PhotoList photoSections={photoSections} refetchPhotos={refetchPhotos} />
+      <PhotoList photoSections={photoSections} refetchPhotos={refetchPhotos} refetchPhotoList={refetchPhotoList} />
     )
   const handlers = useSwipeable({
     onSwipedDown: () => setExpanded(!expanded),
