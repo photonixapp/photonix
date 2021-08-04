@@ -49,6 +49,7 @@ const Container = styled('div')`
       opacity: 0;
       transition: none;
       text-decoration: none;
+      line-height: 1;
       svg {
         display: block;
         margin: 0 auto 5px;

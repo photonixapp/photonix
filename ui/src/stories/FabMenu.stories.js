@@ -16,12 +16,12 @@ export const DefaultFabMenu = Template.bind({})
 DefaultFabMenu.args = {
   options: [
     {
-      label: 'Album',
-      icon: <AlbumIcon />,
-    },
-    {
       label: 'Tag',
       icon: <TagIcon />,
+    },
+    {
+      label: 'Add to album',
+      icon: <AlbumIcon />,
     },
     {
       label: 'Delete',
