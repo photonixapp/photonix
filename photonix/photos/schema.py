@@ -315,12 +315,12 @@ class Query(graphene.ObjectType):
     @login_required
     def resolve_all_photos(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user, thumbnailed_version__isnull=False)
+        return Photo.objects.filter(library__users__user=user, thumbnailed_version__isnull=False, deleted=False)
 
     @login_required
     def resolve_map_photos(self, info, **kwargs):
         user = info.context.user
-        return Photo.objects.filter(library__users__user=user).exclude(latitude__isnull=True, longitude__isnull=True)
+        return Photo.objects.filter(library__users__user=user, deleted=False).exclude(latitude__isnull=True, longitude__isnull=True)
 
     def resolve_all_location_tags(self, info, **kwargs):
         user = info.context.user
@@ -951,6 +951,60 @@ class VerifyPhoto(graphene.Mutation):
         return VerifyPhoto(ok=True)
 
 
+class AssignTagToPhotos(graphene.Mutation):
+    """Create and assign tag to the list of photos."""
+    class Arguments:
+        name = graphene.String()
+        photo_ids = graphene.String()
+        tag_type= graphene.String()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, name, photo_ids, tag_type):
+        try:
+            photo_list = Photo.objects.filter(id__in=photo_ids.split(',')) 
+            tag_obj, created = Tag.objects.get_or_create(
+                library=photo_list[0].library,
+                name=name, type=tag_type, source='H', defaults={})            
+            for photo in photo_list:
+                if not photo.photo_tags.filter(tag=tag_obj).exists():
+                    photo_tag_obj = PhotoTag.objects.create(
+                        photo=photo,
+                        tag=tag_obj,
+                        confidence=1.0,
+                        significance=1.0,
+                        verified=True,
+                        source='H',
+                    )
+            return AssignTagToPhotos(ok=True)
+        except Exception as e:
+            raise GraphQLError("Something Went wrong!")
+
+
+class SetPhotosDeleted(graphene.Mutation):
+    """Set delete field true for a photo objects."""
+
+    class Arguments:
+        """Input arguments which will pass from frontend."""
+
+        photo_ids = graphene.String()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, photo_ids):
+        """Mutation to set delete field true for a photo objects."""
+        try:
+            photo_list = Photo.objects.filter(id__in=photo_ids.split(','))       
+            for photo in photo_list:
+                photo.deleted = True
+                photo.save() 
+            return SetPhotosDeleted(ok=True)
+        except Exception as e:
+            raise GraphQLError("Something Went wrong!")
+
+
 class Mutation(graphene.ObjectType):
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
@@ -968,3 +1022,5 @@ class Mutation(graphene.ObjectType):
     edit_face_tag = EditFaceTag.Field()
     block_face_tag = BlockFaceTag.Field()
     verify_photo = VerifyPhoto.Field()
+    assign_tag_to_photos = AssignTagToPhotos.Field()
+    set_photos_deleted = SetPhotosDeleted.Field()

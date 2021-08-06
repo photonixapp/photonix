@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
+import { useMutation } from '@apollo/client'
 import styled from '@emotion/styled'
 import classNames from 'classnames/bind'
-
+import { Link } from 'react-router-dom'
 import { ReactComponent as AddIcon } from '../static/images/add.svg'
+import { SET_PHOTOS_DELETED } from '../graphql/tag'
 
 const MENU_WIDTH = 400
 const PADDING_ANGLE = 15
@@ -46,10 +48,15 @@ const Container = styled('div')`
       position: absolute;
       opacity: 0;
       transition: none;
+      text-decoration: none;
       svg {
         display: block;
         margin: 0 auto 5px;
       }
+    }
+    .option .optionsLink {
+      text-decoration: none;
+      color: #FFF;
     }
   }
   .position {
@@ -84,8 +91,9 @@ const Container = styled('div')`
   }
 `
 
-const FabMenu = ({ options }) => {
+const FabMenu = ({ options, offsetBottom, offsetRight, photoIds, refetchPhotoList }) => {
   const [open, setOpen] = useState(false)
+  const [setPhotosDeleted] = useMutation(SET_PHOTOS_DELETED)
 
   const deg2rad = (degrees) => {
     return degrees / (180 / Math.PI)
@@ -97,6 +105,20 @@ const FabMenu = ({ options }) => {
     let y = c * Math.cos(a)
     let x = c * Math.sin(a)
     return [x, y]
+  }
+
+  const setPhotosDeletedTrue = () => {
+    setPhotosDeleted({
+      variables: {
+        photoIds: photoIds.toString(),
+      },
+    })
+      .then((res) => {
+        if (res.data.setPhotosDeleted.ok) {
+          refetchPhotoList()
+        }
+      })
+      .catch((e) => { })
   }
 
   return (
@@ -117,8 +139,21 @@ const FabMenu = ({ options }) => {
                   top: MENU_WIDTH / 2 + pos[1] * -1,
                 }}
               >
-                {option.icon}
-                {option.label}
+                {option.label !== 'Delete' &&
+                  <Link to={{
+                    pathname: "/addtag",
+                    state: { photoIds: photoIds, tagType: option.label == 'Album' ? 'A' : 'G' }
+                  }} className="optionsLink">
+                    {option.icon}
+                    {option.label}
+                  </Link>}
+                {option.label === 'Delete' &&
+                  <>
+                    <div onClick={setPhotosDeletedTrue}>
+                      {option.icon}
+                      {option.label}
+                    </div>
+                  </>}
               </div>
             )
           })}
@@ -143,10 +178,13 @@ FabMenu.propTypes = {
       onclick: PropTypes.func,
     })
   ),
+  photoIds: PropTypes.array,
+  refetchPhotoList: PropTypes.func,
 }
 
 FabMenu.defaultProps = {
   options: [],
+  photoIds: [],
 }
 
 export default FabMenu
