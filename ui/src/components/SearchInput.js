@@ -21,7 +21,7 @@ const Container = styled('div')`
     margin: 0;
     padding: 0;
     list-style: none;
-    padding: 0 0 10px 30px;
+    padding: 0 0 10px 35px;
     display: flex;
     align-items: flex-start;
     flex-wrap: wrap;
@@ -29,7 +29,7 @@ const Container = styled('div')`
   li.filter {
     background: #444;
     border-radius: 30px;
-    margin: 3px 5px 3px 0;
+    margin: 0 5px 6px 0;
     padding: 5px 8px 2px 15px;
     display: inline-block;
     font-size: 14px;
@@ -57,7 +57,7 @@ const Container = styled('div')`
     height: 30px;
     flex: 1;
     font-size: 20px;
-    margin: 6px 0 4px 0;
+    margin: 4px 0 6px 0;
     padding: 0 50px 2px 5px;
     background: none;
     border: 0;
@@ -75,8 +75,8 @@ const Container = styled('div')`
     filter: invert(0.7);
     cursor: pointer;
     position: absolute;
-    left: 5px;
-    bottom: 18px;
+    left: 4px;
+    top: 6px;
   }
   svg.clearAll {
     filter: invert(0.7);
@@ -230,6 +230,7 @@ const SearchInput = ({
       search.length === 0 &&
         selectedFilters.length > 0 &&
         onFilterToggle(selectedFilters[selectedFilters.length - 1].id)
+      focusInput()
     } else if (e.keyCode === ESCAPE_KEY) {
       showOptions && setShowOptions(false)
     } else if (e.keyCode === UP_KEY) {
