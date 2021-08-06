@@ -225,18 +225,18 @@ class PhotoFile(UUIDModel, VersionedModel):
 
 
 SOURCE_CHOICES = (
-    ('H', 'Human'),
     ('C', 'Computer'),
+    ('H', 'Human'),
 )
 TAG_TYPE_CHOICES = (
-    ('L', 'Location'),
-    ('O', 'Object'),
-    ('F', 'Face'),
-    ('C', 'Color'),
+    ('A', 'Album'),  # Assigned to an album by user
+    ('C', 'Color'), # Color detected by classifier
+    ('E', 'Event'),  # Image creation date matches a festival or type of event
+    ('F', 'Face'), # Face detected by classifier
+    ('G', 'Generic'),  # Tags assigned by user
+    ('L', 'Location'), # Location detected using GPS coordinates by classifier
+    ('O', 'Object'), # Object detected by classifier
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
-    ('G', 'Generic'),  # Tags created by user
-    ('E', 'Event'),  # Checked image taken date is any festival date.
-    ('A', 'Album'),
 )
 
 
