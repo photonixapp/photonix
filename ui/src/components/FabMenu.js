@@ -139,6 +139,7 @@ const FabMenu = ({ options, photoIds, refetchPhotoList }) => {
                   left: MENU_WIDTH / 2 + pos[0] * -1,
                   top: MENU_WIDTH / 2 + pos[1] * -1,
                 }}
+                key={option.label}
               >
                 {option.label !== 'Delete' &&
                   <Link to={{
