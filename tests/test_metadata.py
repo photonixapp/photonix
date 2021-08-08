@@ -4,13 +4,19 @@ from photonix.photos.utils.metadata import PhotoMetadata, parse_gps_location, ge
 
 
 def test_metadata():
-    # General exif metadata
+    # General EXIF metadata
     photo_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
     metadata = PhotoMetadata(photo_path)
     assert metadata.get('Image Size') == '800x600'
     assert metadata.get('Date Time') == '2018:02:28 07:16:25'
     assert metadata.get('Make') == 'Xiaomi'
     assert metadata.get('ISO') == '100'
+
+    # Ignore invalid UTF-8 that might be in the metadata
+    photo_path = str(Path(__file__).parent / 'photos' / 'invalid_utf8.jpg')
+    metadata = PhotoMetadata(photo_path)
+    assert len(metadata.get_all().keys()) > 30
+    assert metadata.get('Artist') == ''
 
 
 def test_location():
