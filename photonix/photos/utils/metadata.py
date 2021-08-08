@@ -75,15 +75,19 @@ def get_datetime(path):
     '''
     # TODO: Use 'GPS Date/Time' if available as it's more accurate
 
-    # First try the date in the metadate
+    # First try the date in the metadata
     metadata = PhotoMetadata(path)
     date_str = metadata.get('Date/Time Original')
     if date_str:
-        return parse_datetime(date_str)
+        parsed_datetime = parse_datetime(date_str)
+        if parsed_datetime:
+            return parsed_datetime
 
     date_str = metadata.get('Create Date')
     if date_str:
-        return parse_datetime(date_str)
+        parsed_datetime = parse_datetime(date_str)
+        if parsed_datetime:
+            return parsed_datetime
 
     # If there was not date metadata, try to infer it from filename
     fn = os.path.split(path)[1]
@@ -93,7 +97,12 @@ def get_datetime(path):
     if matched:
         date_str = '{}-{}-{}'.format(matched.group(1), matched.group(3), matched.group(4))
         return datetime.strptime(date_str, '%Y-%m-%d')
-    return None
+
+    # Otherwise get file creation time
+    try:
+        return datetime.fromtimestamp(os.stat(path).st_ctime).replace(tzinfo=utc)
+    except:
+        return None
 
 
 def get_dimensions(path):

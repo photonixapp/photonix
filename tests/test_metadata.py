@@ -37,11 +37,13 @@ def test_datetime():
     parsed_datetime = get_datetime(photo_path)
     assert parsed_datetime.isoformat() == '2010-06-03T00:00:00'
 
+    # Date is parseable but has slashes instead of colons
     photo_path = str(Path(__file__).parent / 'photos' / 'bad_date.jpg')
     parsed_datetime = get_datetime(photo_path)
     assert parsed_datetime.year == 2000
     assert parsed_datetime.isoformat() == '2000-01-01T00:00:00+00:00'
 
+    # Some of the date digits are the letter X so fall back to file creation date
     photo_path = str(Path(__file__).parent / 'photos' / 'unreadable_date.jpg')
     parsed_datetime = get_datetime(photo_path)
-    assert parsed_datetime == None
+    assert parsed_datetime.isoformat() == '2021-08-08T21:11:25.231271+00:00'
