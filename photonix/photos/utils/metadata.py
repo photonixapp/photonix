@@ -78,6 +78,10 @@ def get_datetime(path):
     if date_str:
         return parse_datetime(date_str)
 
+    date_str = metadata.get('Create Date')
+    if date_str:
+        return parse_datetime(date_str)
+
     # If there was not date metadata, try to infer it from filename
     fn = os.path.split(path)[1]
     matched = re.search(r'((19|20)[0-9]{2})-([0-9]{2})-([0-9]{2})\D', fn)

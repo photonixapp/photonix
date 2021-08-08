@@ -36,3 +36,12 @@ def test_datetime():
     photo_path = str(Path(__file__).parent / 'photos' / 'snow-20100603.jpg')
     parsed_datetime = get_datetime(photo_path)
     assert parsed_datetime.isoformat() == '2010-06-03T00:00:00'
+
+    photo_path = str(Path(__file__).parent / 'photos' / 'bad_date.jpg')
+    parsed_datetime = get_datetime(photo_path)
+    assert parsed_datetime.year == 2000
+    assert parsed_datetime.isoformat() == '2000-01-01T00:00:00+00:00'
+
+    photo_path = str(Path(__file__).parent / 'photos' / 'unreadable_date.jpg')
+    parsed_datetime = get_datetime(photo_path)
+    assert parsed_datetime == None
