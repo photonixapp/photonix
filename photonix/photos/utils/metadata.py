@@ -13,7 +13,7 @@ class PhotoMetadata(object):
         self.data = {}
         try:
             # exiftool produces data such as MIME Type for non-photos too
-            result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
+            result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8', 'ignore')
         except UnicodeDecodeError:
             result = ''
         for line in str(result).split('\n'):
