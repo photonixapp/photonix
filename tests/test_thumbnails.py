@@ -59,7 +59,7 @@ def test_view(photo_fixture_snow):
     # Now we should get the actual thumbnail image file
     assert response.status_code == 200
     assert response.content[:10] == b'\xff\xd8\xff\xe0\x00\x10JFIF'
-    assert response._headers['content-type'][1] == 'image/jpeg'
+    assert response.headers['Content-Type'] == 'image/jpeg'
     response_length = len(response.content)
     assert response_length > 5929 * 0.8
     assert response_length < 5929 * 1.2
