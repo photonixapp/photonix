@@ -72,6 +72,8 @@ class FaceModel(BaseModel):
     def predict(self, image_file, min_score=0.99):
         # Detects face bounding boxes
         image = Image.open(image_file)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
         image = np.asarray(image)
         results = self.graph['mtcnn'].detect_faces(image)
         return list(filter(lambda f: f['confidence'] > min_score, results))
