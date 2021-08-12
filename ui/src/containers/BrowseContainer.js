@@ -59,7 +59,29 @@ const GET_MAP_PHOTOS = gql`
     }
   }
 `
-
+const GET_ALBUMS = gql`
+  query AlbumList($libraryId: UUID, $name_Icontains: String, $after: String, $first: Int) {
+    albumList(libraryId: $libraryId, name_Icontains: $name_Icontains, first: $first, after: $after) {
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+      }
+      edges {
+        node {
+          id
+          name
+          photosCount
+          coverImage{
+            id
+            location
+            starRating
+          }
+        }
+      }
+    }
+  }
+`
 const BrowseContainer = (props) => {
   const dispatch = useDispatch()
   const [isLibrarySet, setIsLibrarySet] = useState(false)
@@ -69,11 +91,14 @@ const BrowseContainer = (props) => {
   const [isMapShowing, setIsMapShowing] = useState(false)
   const [searchStr, setSearchStr] = useState('')
   const debounced = useRef(debounce(400, (str) => setSearchStr(str)))
+  const [albumData, setAlbumData] = useState()
 
   const params = new URLSearchParams(window.location.search)
-  const mode = params.get('mode')
-    ? params.get('mode').toUpperCase()
-    : 'TIMELINE'
+  const mode = params.get('album_id')
+    ? 'ALBUM_ID'
+    : params.get('mode')
+      ? params.get('mode').toUpperCase()
+      : 'TIMELINE'
 
   if (mode === 'MAP' && !isMapShowing) setIsMapShowing(true)
 
@@ -111,6 +136,8 @@ const BrowseContainer = (props) => {
 
   let photoSections = []
   let photos = []
+  let albumSections = []
+  let albums = []
   let filtersStr = ''
   if (activeLibrary) {
     filtersStr = `library_id:${activeLibrary.id} ${props.selectedFilters
@@ -125,6 +152,7 @@ const BrowseContainer = (props) => {
       if (filtersStr !== searchStr) setSearchStr(filtersStr)
     }
   }
+  const albumTagFilterStr = params.get('album_id') && `tag:${params.get('album_id')} ${searchStr}`
   const {
     loading: photosLoading,
     error: photosError,
@@ -135,7 +163,7 @@ const BrowseContainer = (props) => {
     GET_PHOTOS,
     {
       variables: {
-        filters: searchStr,
+        filters: albumTagFilterStr || searchStr,
         after: '',
         first: PHOTO_PER_PAGE,
       },
@@ -192,25 +220,71 @@ const BrowseContainer = (props) => {
     }))
   }
 
+  const {
+    loading: albumLoading,
+    error: albumError,
+    data: albumsData,
+    refetch: refetchAlbumList,
+  } = useQuery(
+    GET_ALBUMS,
+    {
+      variables: {
+        libraryId: activeLibrary && activeLibrary.id,
+        name_Icontains: props.search || null,
+        after: '',
+        first: PHOTO_PER_PAGE,
+      },
+    },
+    {
+      skip: !isLibrarySet,
+    }
+  )
+
+  albumError && console.log('albumError', albumError)
+  useEffect(() => {
+    if (albumsData) setAlbumData(albumsData)
+  }, [albumsData])
+
+  if (albumData) {
+    albums = albumData.albumList.edges.reduce(function (result, album) {
+      if (album.node.coverImage) {
+        result.push({
+          id: album.node.coverImage.id,
+          thumbnail: `/thumbnailer/photo/256x256_cover_q50/${album.node.coverImage.id}/`,
+          location: album.node.coverImage.location
+            ? [album.node.coverImage.location.split(',')[0], album.node.coverImage.location.split(',')[1]]
+            : null,
+          starRating: album.node.coverImage.starRating,
+          albumId: album.node.id,
+          albumName: album.node.name,
+          albumPhotosCount: album.node.photosCount,
+        })
+      }
+      return result
+
+    }, [])
+  }
+
   let section = {
     id: 12345,
     title: null,
     segments: [
       {
-        numPhotos: photos.length,
-        photos: photos,
+        numPhotos: mode === 'ALBUMS' ? albums.length : photos.length,
+        photos: mode === 'ALBUMS' ? albums : photos,
       },
     ],
   }
 
   photoSections.push(section)
-
-  let anyLoading = profileLoading || librariesLoading || photosLoading
+  let anyLoading = profileLoading || librariesLoading || photosLoading || albumLoading
   let anyError = profileError
     ? profileError
     : librariesError
-    ? librariesError
-    : photosError
+      ? librariesError
+      : photosError
+        ? photosError
+        : albumError
 
   useEffect(() => {
     if (isMapShowing) mapPhotosRefetch()
@@ -266,6 +340,8 @@ const BrowseContainer = (props) => {
           mapPhotos={photosWithLocation}
           refetchPhotos={refetchPhotos}
           refetchPhotoList={refetch}
+          refetchAlbumList={refetchAlbumList}
+          mapPhotosRefetch={mapPhotosRefetch}
         />
       )}
     </>

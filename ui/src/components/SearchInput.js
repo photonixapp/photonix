@@ -21,7 +21,7 @@ const Container = styled('div')`
     margin: 0;
     padding: 0;
     list-style: none;
-    padding: 0 0 10px 35px;
+    padding: 0 0 10px 30px;
     display: flex;
     align-items: flex-start;
     flex-wrap: wrap;
@@ -29,7 +29,7 @@ const Container = styled('div')`
   li.filter {
     background: #444;
     border-radius: 30px;
-    margin: 0 5px 6px 0;
+    margin: 3px 5px 3px 0;
     padding: 5px 8px 2px 15px;
     display: inline-block;
     font-size: 14px;
@@ -57,7 +57,7 @@ const Container = styled('div')`
     height: 30px;
     flex: 1;
     font-size: 20px;
-    margin: 4px 0 6px 0;
+    margin: 6px 0 4px 0;
     padding: 0 50px 2px 5px;
     background: none;
     border: 0;
@@ -75,8 +75,8 @@ const Container = styled('div')`
     filter: invert(0.7);
     cursor: pointer;
     position: absolute;
-    left: 4px;
-    top: 6px;
+    left: 5px;
+    bottom: 18px;
   }
   svg.clearAll {
     filter: invert(0.7);
@@ -171,6 +171,7 @@ const SearchInput = ({
   onSearchTextChange,
   filters,
   minHeightChanged,
+  mode,
 }) => {
   const [activeOption, setActiveOption] = useState(0)
   const [filteredOptions, setFilteredOptions] = useState([])
@@ -203,13 +204,15 @@ const SearchInput = ({
   const handleOnChange = (e) => {
     onSearchTextChange(e.target.value)
     const userInput = e.currentTarget.value
-    const filteredOptions = options.filter(
-      (optionName) =>
-        optionName.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1
-    )
-    setActiveOption(0)
-    setFilteredOptions(filteredOptions)
-    setShowOptions(true)
+    if (mode !== 'ALBUMS'){
+      const filteredOptions = options.filter(
+        (optionName) =>
+          optionName.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1
+      )
+      setActiveOption(0)
+      setFilteredOptions(filteredOptions)
+      setShowOptions(true)
+    }
   }
 
   const onKeyDown = (e) => {
@@ -294,6 +297,10 @@ const SearchInput = ({
 
   const hasContent = search || selectedFilters.length > 0
   const showSearchIcon = !hasContent || window.innerWidth > 700
+
+  useEffect(() => {
+    setShowOptions(false)
+  }, [mode === 'ALBUMS'])
 
   return (
     <Container ref={container}>

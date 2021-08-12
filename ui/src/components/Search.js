@@ -27,6 +27,7 @@ const Search = ({
   updateSearchText,
   searchAreaExpand,
   minHeightChanged,
+  mode,
 }) => {
   const [filters, setFilters] = useState([])
   return (
@@ -38,7 +39,9 @@ const Search = ({
         search={search}
         onSearchTextChange={updateSearchText}
         filters={filters}
+        setFilters={setFilters}
         minHeightChanged={minHeightChanged}
+        mode={mode}
       />
       <FiltersContainer
         selectedFilters={selectedFilters}

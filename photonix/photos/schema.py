@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 from django.contrib.auth import get_user_model, load_backend, login
 import django_filters
-from django_filters import CharFilter
+from django_filters import CharFilter, OrderingFilter
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 from graphql_jwt.decorators import login_required
@@ -207,6 +207,30 @@ class PhotoMetadataFields(graphene.ObjectType):
     data = graphene.types.generic.GenericScalar()
     ok = graphene.Boolean()
 
+class TagNode(DjangoObjectType):
+
+    photos_count = graphene.Int()
+    cover_image = graphene.Field(PhotoNode)
+
+    class Meta:
+        model = Tag
+        filter_fields = {
+            'name': ['exact', 'icontains', 'istartswith'],
+        }
+        order_by = OrderingFilter(
+            fields=(
+                ('name'),
+            )
+        )
+        interfaces = (CustomNode, PhotoInterface)
+
+    def resolve_photos_count(self, info):
+        return self.photo_tags.all().count()
+
+    def resolve_cover_image(self, info):
+        if self.photo_tags.order_by('-created_at'):
+            return self.photo_tags.order_by('-created_at')[0].photo
+        return None
 
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
@@ -237,6 +261,7 @@ class Query(graphene.ObjectType):
     all_generic_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     library_setting = graphene.Field(LibrarySetting, library_id=graphene.UUID())
     photo_file_metadata = graphene.Field(PhotoMetadataFields, photo_file_id=graphene.UUID())
+    album_list = DjangoFilterConnectionField(TagNode, library_id=graphene.UUID(), max_limit=None)
 
     def resolve_all_libraries(self, info, **kwargs):
         user = info.context.user
@@ -451,6 +476,12 @@ class Query(graphene.ObjectType):
                 'ok': True
             }
         return {'ok': False}
+
+    @login_required
+    def resolve_album_list(self, info, **kwargs):
+        """Show albums list."""
+        user = info.context.user
+        return Tag.objects.filter(library__users__user=user, library__id=kwargs.get('library_id'), type='A').distinct()
 
 
 class LibraryInput(graphene.InputObjectType):
@@ -1005,6 +1036,29 @@ class SetPhotosDeleted(graphene.Mutation):
             raise GraphQLError("Something Went wrong!")
 
 
+class RemovePhotosFromAlbum(graphene.Mutation):
+    """Remove photos from particular album tag."""
+
+    class Arguments:
+        """Input arguments which will pass from frontend."""
+
+        photo_ids = graphene.String()
+        album_id  = graphene.String()
+
+    ok = graphene.Boolean()
+
+    @staticmethod
+    def mutate(self, info, photo_ids, album_id):
+        """Mutation remove photos from particular album tag."""
+        try:
+            for photo_id in photo_ids.split(','):
+                photo_tag = PhotoTag.objects.get(photo__id=photo_id,tag__id=album_id)
+                photo_tag.delete()
+            return RemovePhotosFromAlbum(ok=True)
+        except Exception as e:
+            raise GraphQLError("Something Went wrong!")
+
+
 class Mutation(graphene.ObjectType):
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
@@ -1024,3 +1078,4 @@ class Mutation(graphene.ObjectType):
     verify_photo = VerifyPhoto.Field()
     assign_tag_to_photos = AssignTagToPhotos.Field()
     set_photos_deleted = SetPhotosDeleted.Field()
+    remove_photos_from_album = RemovePhotosFromAlbum.Field()

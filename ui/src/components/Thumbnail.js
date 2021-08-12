@@ -8,8 +8,8 @@ import classNames from 'classnames/bind'
 
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
-
 import { ReactComponent as TickIcon } from '../static/images/done_black.svg'
+import { Link } from 'react-router-dom'
 
 const Container = styled('li')`
   width: 130px;
@@ -85,6 +85,17 @@ const Container = styled('li')`
       filter: invert(1);
     }
   }
+  .album-name {
+    position: absolute;
+    bottom: 27px;
+    color: #fff;
+    font-weight: 600;
+    left: 8px;
+    text-align: left;
+    width: 100%;
+    top: 14px;
+    text-shadow: 1px 1px 5px #000;
+  }
 
   @media all and (max-width: 1920px) {
     width: 100%;
@@ -117,6 +128,10 @@ const Thumbnail = ({
   starRating,
   selectable,
   selected,
+  mode,
+  albumId,
+  albumPhotosCount,
+  albumName,
   ...rest
 }) => {
   const [newStarRating, updateStarRating] = useState(starRating)
@@ -140,7 +155,7 @@ const Thumbnail = ({
             photoId: id,
             starRating: 0,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
       } else {
         updateStarRating(num)
         updatePhoto({
@@ -148,7 +163,7 @@ const Thumbnail = ({
             photoId: id,
             starRating: num,
           },
-        }).catch((e) => {})
+        }).catch((e) => { })
       }
     }
   }
@@ -159,25 +174,52 @@ const Thumbnail = ({
       data-id={id}
       {...rest}
     >
-      <div className="thumbnail-area">
-        <LazyLoadImage
-          effect="opacity"
-          src={imageUrl}
-          className="thumbnail"
-          wrapperClassName="thumbnail-wrapper"
-          width="100%"
-          height="100%"
-        />
-        <StarRatingStyled>
-          <StarRating
-            starRating={newStarRating}
-            onStarClick={!selectable ? onStarClick : null}
-          />
-        </StarRatingStyled>
-      </div>
-      <div className="selection-indicator">
-        <TickIcon />
-      </div>
+      {mode === 'ALBUMS' ? (
+        <Link to={`?mode=albums&album_id=${albumId}`} key={albumId}>
+          <div className="thumbnail-area">
+            <LazyLoadImage
+              effect="opacity"
+              src={imageUrl}
+              className="thumbnail"
+              wrapperClassName="thumbnail-wrapper"
+              width="100%"
+              height="100%"
+            />
+            <StarRatingStyled>
+              <StarRating
+                starRating={newStarRating}
+                onStarClick={!selectable && onStarClick}
+              />
+            </StarRatingStyled>
+          </div>
+          <div className="album-name">
+            {albumName}
+          </div>
+        </Link>)
+        : (
+          <>
+            <div className="thumbnail-area">
+              <LazyLoadImage
+                effect="opacity"
+                src={imageUrl}
+                className="thumbnail"
+                wrapperClassName="thumbnail-wrapper"
+                width="100%"
+                height="100%"
+              />
+              <StarRatingStyled>
+                <StarRating
+                  starRating={newStarRating}
+                  onStarClick={!selectable && onStarClick}
+                />
+              </StarRatingStyled>
+            </div>
+            <div className="selection-indicator">
+              <TickIcon />
+            </div>
+          </>
+        )
+      }
     </Container>
   )
 }

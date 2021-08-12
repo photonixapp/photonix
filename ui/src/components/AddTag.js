@@ -37,6 +37,7 @@ export default function AddTag( props ) {
             type: 'IS_TAG_UPDATE',
             payload: { updated: !tagUpdated },
           })
+          // props.location.state.refetchAlbumList()
         }
       })
       .catch((e) => {})

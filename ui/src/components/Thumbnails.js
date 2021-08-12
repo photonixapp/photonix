@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLongPress, LongPressDetectEvents } from 'use-long-press'
 import styled from '@emotion/styled'
 import { useHistory } from 'react-router-dom'
@@ -57,10 +57,34 @@ const SectionHeading = styled('h2')`
   display: block;
 `
 
-const Thumbnails = ({ photoSections, refetchPhotoList }) => {
+const Thumbnails = ({
+  photoSections,
+  refetchPhotoList,
+  refetchAlbumList,
+  mapPhotosRefetch,
+  mode
+}) => {
   const history = useHistory()
   const [selected, setSelected] = useState([])
-
+  let options = [
+    {
+      label: 'Tag',
+      icon: <TagIcon />,
+    },
+    {
+      label: 'Add to album',
+      icon: <AlbumIcon />,
+    },
+    {
+      label: 'Remove from album',
+      icon: <AlbumIcon />,
+    },
+    {
+      label: 'Delete',
+      icon: <DeleteIcon />,
+    },
+  ]
+  mode !== 'ALBUM_ID' && options.splice(2, 1)
   const getNode = (startEl) => {
     for (let el = startEl; el && el.parentNode; el = el.parentNode) {
       if (el.tagName === 'LI') return el
@@ -92,19 +116,37 @@ const Thumbnails = ({ photoSections, refetchPhotoList }) => {
     }
   )
 
+  useEffect(() => {
+    setSelected([])
+  }, [mode === 'ALBUMS'])
+
   return (
     <>
       <Container>
         {photoSections
           ? photoSections.map((section) => (
-              <div className="section" id={section.id} key={section.id}>
-                {section.title ? (
-                  <SectionHeading>{section.title}</SectionHeading>
-                ) : null}
-                <div className="thumbnails">
-                  {section.segments.map((segment) =>
-                    segment.photos.map((photo) => {
-                      return (
+            <div className="section" id={section.id} key={section.id}>
+              {section.title ? (
+                <SectionHeading>{section.title}</SectionHeading>
+              ) : null}
+              <div className="thumbnails">
+                {section.segments.map((segment) =>
+                  segment.photos.map((photo) => {
+                    return (
+                      mode === 'ALBUMS' ?
+                        <Thumbnail
+                          key={photo.albumId}
+                          id={photo.id}
+                          imageUrl={photo.thumbnail}
+                          starRating={photo.starRating}
+                          selected={selected.indexOf(photo.id) > -1}
+                          selectable={selected.length > 0}
+                          mode={mode}
+                          albumId={photo.albumId}
+                          albumPhotosCount={photo.albumPhotosCount}
+                          albumName={photo.albumName}
+                        />
+                        :
                         <Thumbnail
                           key={photo.id}
                           id={photo.id}
@@ -112,34 +154,24 @@ const Thumbnails = ({ photoSections, refetchPhotoList }) => {
                           starRating={photo.starRating}
                           selected={selected.indexOf(photo.id) > -1}
                           selectable={selected.length > 0}
+                          mode={mode}
                           {...bind}
                         />
-                      )
-                    })
-                  )}
-                </div>
+                    )
+                  })
+                )}
               </div>
-            ))
+            </div>
+          ))
           : null}
       </Container>
       {selected.length > 0 && (
         <FabMenu
-          options={[
-            {
-              label: 'Tag',
-              icon: <TagIcon />,
-            },
-            {
-              label: 'Album',
-              icon: <AlbumIcon />,
-            },
-            {
-              label: 'Delete',
-              icon: <DeleteIcon />,
-            },
-          ]}
+          options={options}
           photoIds={selected}
           refetchPhotoList={refetchPhotoList}
+          refetchAlbumList={refetchAlbumList}
+          mapPhotosRefetch={mapPhotosRefetch}
         />
       )}
     </>

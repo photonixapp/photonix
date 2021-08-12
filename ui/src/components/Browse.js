@@ -11,6 +11,7 @@ import Spinner from '../components/Spinner'
 import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
 import Tabs from '../components/Tabs'
 import history from '../history'
+import AlbumList from '../components/AlbumList'
 
 const Container = styled('div')`
   height: 100%;
@@ -82,17 +83,39 @@ const Browse = ({
   mapPhotos,
   refetchPhotos,
   refetchPhotoList,
+  refetchAlbumList,
+  mapPhotosRefetch,
 }) => {
   const [expanded, setExpanded] = useLocalStorageState(
     'searchExpanded',
     window.innerHeight > 850 ? true : false
   )
-  let content =
-    mode === 'MAP' ? (
-      <MapView photos={mapPhotos} />
-    ) : (
-      <PhotoList photoSections={photoSections} refetchPhotos={refetchPhotos} refetchPhotoList={refetchPhotoList} />
-    )
+  const renderContent = () => {
+    switch(mode) {
+      case 'ALBUM_ID':
+        return <AlbumList
+            photoSections={photoSections}
+            refetchPhotos={refetchPhotos}
+            refetchPhotoList={refetchPhotoList}
+            refetchAlbumList={refetchAlbumList}
+            mapPhotosRefetch={mapPhotosRefetch}
+            setExpanded={setExpanded}
+            mode={mode}
+          />
+      case 'MAP':
+        return <MapView photos={mapPhotos} />
+      default:
+        return <PhotoList
+            photoSections={photoSections}
+            refetchPhotos={refetchPhotos}
+            refetchPhotoList={refetchPhotoList}
+            refetchAlbumList={refetchAlbumList}
+            mapPhotosRefetch={mapPhotosRefetch}
+            mode={mode}
+          />
+    }
+  }
+  let content = renderContent()
   const handlers = useSwipeable({
     onSwipedDown: () => setExpanded(!expanded),
     onSwipedUp: () => setExpanded(!expanded),
@@ -101,7 +124,20 @@ const Browse = ({
   if (error) content = <p>Error :(</p>
 
   const [searchMinHeight, setSearchMinHeight] = useState(0)
-
+  const setInitialIndex = () => {
+    switch(mode) {
+      case 'TIMELINE':
+        return 0
+      case 'ALBUMS':
+        return 1
+      case 'ALBUM_ID':
+        return 1
+      case 'MAP':
+        return 2
+      default:
+        return 0
+    }
+  }
   return (
     <Container>
       <Header profile={profile} libraries={libraries} />
@@ -117,28 +153,47 @@ const Browse = ({
           updateSearchText={updateSearchText}
           searchAreaExpand={expanded}
           minHeightChanged={setSearchMinHeight}
+          mode={mode}
         />
-        <div
-          {...handlers}
-          className="expandCollapse"
-          onClick={() => setExpanded(!expanded)}
-        >
-          <ArrowDownIcon />
-        </div>
+        {
+        mode !== 'ALBUMS' &&
+          <div
+            {...handlers}
+            className="expandCollapse"
+            onClick={() => setExpanded(!expanded)}
+          >
+            <ArrowDownIcon />
+          </div>
+        }
       </div>
       <div className="main">
         <Tabs
           tabs={[
             {
               label: 'Timeline',
-              onClick: () => history.push('?mode=timeline'),
+              onClick: () => {
+                setExpanded(true)
+                mode === 'ALBUMS' && onClearFilters()
+                history.push('?mode=timeline')
+              },
+            },
+            {
+              label: 'Albums',
+              onClick: () => {
+                setExpanded(false)
+                onClearFilters()
+                history.push('?mode=albums')
+              },
             },
             {
               label: 'Map',
-              onClick: () => history.push('?mode=map'),
+              onClick: () => {
+                setExpanded(true)
+                history.push('?mode=map')
+              },
             },
           ]}
-          initiallySelectedIndex={mode === 'MAP' ? 1 : 0}
+          initiallySelectedIndex={setInitialIndex}
         />
         {content}
       </div>

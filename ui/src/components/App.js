@@ -18,6 +18,7 @@ import '../static/css/App.css'
 import '../static/css/typography.css'
 import ZoomTest from './ZoomTest'
 import AddTag from '../components/AddTag'
+import AlbumList from '../components/AlbumList'
 
 if (Cookies.get('refreshToken')) {
   logIn()
@@ -67,6 +68,11 @@ const App = ({
         component={PhotoDetailContainer}
       />
       <ModalRoute path="/addtag" parentPath="/" component={AddTag} />
+      <ModalRoute
+        path="?mode=albums&album_id=:albumId"
+        parentPath="/"
+        component={AlbumList}
+      />
     </Switch>
   </>
 )

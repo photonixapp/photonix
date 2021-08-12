@@ -71,3 +71,13 @@ export const SET_PHOTOS_DELETED = gql`
     }
   }
 `
+export const REMOVE_PHOTOS_FROM_ALBUM = gql`
+  mutation removePhotosFromAlbum(
+    $photoIds: String!,
+    $albumId: String!,
+  ) {
+    removePhotosFromAlbum(photoIds: $photoIds, albumId: $albumId) {
+      ok
+    }
+  }
+`

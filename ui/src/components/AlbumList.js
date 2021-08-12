@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import styled from '@emotion/styled'
 
 import Thumbnails from './Thumbnails'
@@ -9,28 +9,32 @@ const Container = styled('div')`
   overflow-y: auto;
 `
 
-const PhotoList = ({
+const AlbumList = ({ 
   photoSections,
   refetchPhotos,
   refetchPhotoList,
   refetchAlbumList,
   mapPhotosRefetch,
-  mode,
+  setExpanded,
+  mode
 }) => {
   const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
+  useEffect(() => {
+    setExpanded(true)
+  }, []);
 
   return (
     <Container ref={scrollerRef} onScroll={handleScroll}>
-      <Thumbnails
-        photoSections={photoSections}
+      <Thumbnails 
+        photoSections={photoSections} 
         refetchPhotoList={refetchPhotoList}
         refetchAlbumList={refetchAlbumList}
         mapPhotosRefetch={mapPhotosRefetch}
-        mode={mode}
+        mode={mode} 
       />
       {/* #TODO: Add the DateHistogram feature back here */}
     </Container>
   )
 }
 
-export default PhotoList
+export default AlbumList
