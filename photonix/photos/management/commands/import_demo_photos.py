@@ -8,6 +8,7 @@ from django.db.utils import IntegrityError
 from photonix.photos.models import Library, LibraryPath, LibraryUser
 from photonix.photos.utils.db import record_photo
 from photonix.photos.utils.fs import determine_destination, download_file
+from photonix.web.utils import logger
 
 
 User = get_user_model()
@@ -42,15 +43,24 @@ class Command(BaseCommand):
             user.save()
         except IntegrityError:
             user = User.objects.get(username='demo')
+
         # Create Library
-        library, _ = Library.objects.get_or_create(
-            name='Demo Library',
-            classification_color_enabled=True,
-            classification_location_enabled=True,
-            classification_style_enabled=True,
-            classification_object_enabled=True,
-            setup_stage_completed='Th'
-        )
+        try:
+            library = Library.objects.get(
+                name='Demo Library',
+            )
+        except Library.DoesNotExist:
+            library = Library(
+                name='Demo Library',
+                classification_color_enabled=True,
+                classification_location_enabled=True,
+                classification_style_enabled=True,
+                classification_object_enabled=True,
+                classification_face_enabled=True,
+                setup_stage_completed='Th'
+            )
+            library.save()
+
         # LibraryPath as locally mounted volume
         LibraryPath.objects.get_or_create(
             library=library,
@@ -77,7 +87,7 @@ class Command(BaseCommand):
             dest_path = str(Path(dest_dir) / fn)
 
             if not os.path.exists(dest_path):
-                print('Fetching {} -> {}'.format(url, dest_path))
+                logger.info('Fetching {} -> {}'.format(url, dest_path))
                 download_file(url, dest_path)
                 record_photo(dest_path, library)
 

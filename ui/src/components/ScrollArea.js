@@ -1,6 +1,5 @@
 import React from 'react'
 
-
 export default class ScrollArea extends React.Component {
   constructor(props) {
     super(props)
@@ -40,12 +39,17 @@ export default class ScrollArea extends React.Component {
   componentDidUpdate = () => {
     this.init()
 
-    if (!this.initialised && this.containerRef.current && this.scrollbarHandleRef.current) {
+    if (
+      !this.initialised &&
+      this.containerRef.current &&
+      this.scrollbarHandleRef.current
+    ) {
       this.forceUpdate(this.init())
-    }
-    else if (!this.initialised) {
+    } else if (!this.initialised) {
       // Occasionally we get refs before the painting has completed so we have to force an update
-      setTimeout(() => {this.forceUpdate()}, 100)
+      setTimeout(() => {
+        this.forceUpdate()
+      }, 100)
     }
   }
 
@@ -63,11 +67,16 @@ export default class ScrollArea extends React.Component {
     }
 
     if (this.containerRef.current) {
-      this.contentWidth = this.containerRef.current.firstChild.clientWidth + this.padding
-      this.contentViewWidth = this.containerRef.current.clientWidth + (2 * this.padding)
-      this.contentScrollRange = this.contentWidth - this.contentViewWidth + (2 * this.padding)
-      this.scrollbarWidth = this.containerRef.current.parentElement.clientWidth - (2 * this.padding)
-      this.scrollbarScrollRange = this.scrollbarWidth - this.scrollbarHandleWidth
+      this.contentWidth =
+        this.containerRef.current.firstChild.clientWidth + this.padding
+      this.contentViewWidth =
+        this.containerRef.current.clientWidth + 2 * this.padding
+      this.contentScrollRange =
+        this.contentWidth - this.contentViewWidth + 2 * this.padding
+      this.scrollbarWidth =
+        this.containerRef.current.parentElement.clientWidth - 2 * this.padding
+      this.scrollbarScrollRange =
+        this.scrollbarWidth - this.scrollbarHandleWidth
     }
   }
 
@@ -75,16 +84,23 @@ export default class ScrollArea extends React.Component {
     if (this.containerRef.current) {
       this.contentOffset = this.containerRef.current.scrollLeft
       this.scrollProgress = this.contentOffset / this.contentScrollRange
-      this.scrollbarLeft = parseInt((this.padding) + (this.scrollProgress * this.scrollbarScrollRange), 10)
+      this.scrollbarLeft = parseInt(
+        this.padding + this.scrollProgress * this.scrollbarScrollRange,
+        10
+      )
       this.scrollbarHandleRef.current.style.left = this.scrollbarLeft + 'px'
-      this.scrollbarHandleRef.current.style.width = this.scrollbarHandleWidth + 'px'
+      this.scrollbarHandleRef.current.style.width =
+        this.scrollbarHandleWidth + 'px'
       this.initialised = true
     }
   }
 
   positionViewport = () => {
     this.scrollProgress = this.dragOffset / this.scrollbarScrollRange
-    this.contentLeft = parseInt(this.scrollProgress * this.contentScrollRange, 10)
+    this.contentLeft = parseInt(
+      this.scrollProgress * this.contentScrollRange,
+      10
+    )
     this.containerRef.current.scrollLeft = this.contentLeft
     this.positionScrollbar()
   }
@@ -100,7 +116,7 @@ export default class ScrollArea extends React.Component {
     document.onmouseup = this.scrollbarRelease
     document.onmousemove = this.scrollbarDrag
     if (!this.state.displayScrollbar) {
-      this.setState({displayScrollbar: true})
+      this.setState({ displayScrollbar: true })
     }
   }
 
@@ -121,25 +137,45 @@ export default class ScrollArea extends React.Component {
     document.onmousemove = null
     document.ontouchend = null
     document.ontouchmove = null
-    this.setState({displayScrollbar: false})
+    this.setState({ displayScrollbar: false })
   }
 
   scrollbarDrag = (e) => {
     e.preventDefault()
-    this.dragOffset = e.clientX - (this.mouseDownStart - this.scrollbarStart) - this.padding
+    this.dragOffset =
+      e.clientX - (this.mouseDownStart - this.scrollbarStart) - this.padding
     this.positionViewport()
   }
 
   scrollbarDragTouch = (e) => {
-    this.dragOffset = e.touches[0].clientX - (this.mouseDownStart - this.scrollbarStart) - this.padding
+    this.dragOffset =
+      e.touches[0].clientX -
+      (this.mouseDownStart - this.scrollbarStart) -
+      this.padding
     this.positionViewport()
+  }
+
+  // To stop auto scroll animation after one time.
+  stopScrollAnimation = (e) => {
+    localStorage.setItem('filtersPeeked', true)
   }
 
   render = () => (
     <>
-      <section className="Filters" onScroll={this.onScroll} ref={this.containerRef}>
+      <section
+        className="Filters"
+        onScroll={this.onScroll}
+        ref={this.containerRef}
+        onAnimationEnd={this.stopScrollAnimation}
+      >
         {this.props.children}
-        <div className="scrollbar" ref={this.scrollbarHandleRef} style={{opacity: this.displayScrollbar ? 1 : null}} onMouseDown={this.onMouseDown} onTouchStart={this.onTouchStart}></div>
+        <div
+          className="scrollbar"
+          ref={this.scrollbarHandleRef}
+          style={{ opacity: this.displayScrollbar ? 1 : null }}
+          onMouseDown={this.onMouseDown}
+          onTouchStart={this.onTouchStart}
+        ></div>
       </section>
     </>
   )

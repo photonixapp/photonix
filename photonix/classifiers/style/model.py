@@ -4,11 +4,11 @@ from pathlib import Path
 
 import numpy as np
 
-import redis
-import tensorflow as tf
 from redis_lock import Lock
+import tensorflow as tf
 
 from photonix.classifiers.base_model import BaseModel
+from photonix.photos.utils.redis import redis_connection
 
 
 GRAPH_FILE = os.path.join('style', 'graph.pb')
@@ -34,8 +34,7 @@ class StyleModel(BaseModel):
             self.labels = self.load_labels(label_file)
 
     def load_graph(self, graph_file):
-        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-        with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
+        with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]
 
@@ -116,15 +115,11 @@ def run_on_photo(photo_id):
     photo, results = results_for_model_on_photo(model, photo_id)
 
     if photo:
-        from django.utils import timezone
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='S')
         for name, score in results:
             tag = get_or_create_tag(library=photo.library, name=name, type='S', source='C')
             PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
-        photo.classifier_style_completed_at = timezone.now()
-        photo.classifier_style_version = getattr(model, 'version', 0)
-        photo.save()
 
     return photo, results
 

@@ -18,6 +18,7 @@ import '../static/css/App.css'
 import '../static/css/typography.css'
 import ZoomTest from './ZoomTest'
 import Dropzone from '../components/DropZone'
+import AddTag from '../components/AddTag'
 
 if (Cookies.get('refreshToken')) {
   logIn()
@@ -67,6 +68,7 @@ const App = ({
         component={PhotoDetailContainer}
       />
       <ModalRoute path="/upload" parentPath="/" component={Dropzone} />
+      <ModalRoute path="/addtag" parentPath="/" component={AddTag} />
     </Switch>
   </>
 )

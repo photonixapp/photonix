@@ -2,10 +2,12 @@ numpy==1.19.2
 scipy==1.4.1
 matplotlib==3.1.2
 tensorflow==2.4.1
+opencv-python==4.5.1.48
+annoy==1.17.0
 
-Django==3.0.14
+Django==3.2.3
 django-cors-headers==3.2.1
-django-filter==2.2.0
+django-filter==2.4.0
 PyJWT==1.7.1
 django-graphql-jwt==0.3.0
 
@@ -32,3 +34,4 @@ pytest-django==3.8.0
 mock==3.0.5
 factory-boy==2.12.0
 coverage==5.0.3
+colorlog==5.0.1

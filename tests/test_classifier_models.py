@@ -3,6 +3,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from django.conf import settings
+from PIL import Image
+
 
 def test_downloading(tmpdir):
     from photonix.classifiers.style.model import StyleModel
@@ -43,19 +46,19 @@ def test_location_predict():
     assert result['city']['population'] == 7556900
 
     # In the sea near Oia, Santorini, Greece - Country is inferred from city
-    result = model.predict(location=[36.4396445,25.3560936])
+    result = model.predict(location=[36.4396445, 25.3560936])
     assert result['country']['name'] == 'Greece'
     assert result['city']['name'] == 'Oía'
     assert result['city']['distance'] == 3132
     assert result['city']['population'] == 3376
 
     # Too far off the coast of John o' Groats, Scotland, UK - No match
-    result = model.predict(location=[58.6876742,-3.4206862])
+    result = model.predict(location=[58.6876742, -3.4206862])
     assert result['country'] == None
     assert result['city'] == None
 
     # Vernier, Switzerland - Tests country code mainly (CH can be China in some codings)
-    result = model.predict(location=[46.1760906,5.9929043])
+    result = model.predict(location=[46.1760906, 5.9929043])
     assert result['country']['name'] == 'Switzerland'
     assert result['country']['code'] == 'CH'
     assert result['city']['country_name'] == 'Switzerland'
@@ -74,7 +77,6 @@ def test_object_predict():
     model = ObjectModel()
     snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
     result = model.predict(snow)
-#     import pdb; pdb.set_trace()
 
     assert len(result) == 3
 
@@ -105,3 +107,70 @@ def test_style_predict():
     assert len(result) == 1
     assert result[0][0] == 'serene'
     assert '{0:.3f}'.format(result[0][1]) == '0.962'
+
+
+def test_face_predict():
+    from photonix.classifiers.face.model import FaceModel
+    from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance
+
+    TRAIN_FACES = [
+        'Boris_Becker_0003.jpg',
+        'Boris_Becker_0004.jpg',
+        'David_Beckham_0001.jpg',
+        'David_Beckham_0002.jpg',
+    ]
+    TEST_FACES = [
+        # Test image, nearest match in TRAIN_FACES, distance (3DP)
+        ('Boris_Becker_0005.jpg', 0, '9.614'),
+        ('David_Beckham_0010.jpg', 2, '10.956'),
+        ('Barbara_Becker_0001.jpg', 2, '15.736'),
+    ]
+
+    embedding_cache = []
+    model = FaceModel()
+    model.library_id = '00000000-0000-0000-0000-000000000000'
+
+    # Calculate embeddings for training faces
+    for fn in TRAIN_FACES:
+        path = str(Path(__file__).parent / 'photos' / 'faces' / fn)
+        image_data = Image.open(path)
+        embedding = model.get_face_embedding(image_data)
+        embedding_cache.append(embedding)
+
+    training_data = [(i, embedding) for i, embedding in enumerate(embedding_cache)]
+
+    # Compare test faces using brute force Euclidian calculations
+    for fn, expected_nearest, expected_distance in TEST_FACES:
+        path = str(Path(__file__).parent / 'photos' / 'faces' / fn)
+        image_data = Image.open(path)
+        embedding = model.get_face_embedding(image_data)
+        nearest, distance = model.find_closest_face_tag_by_brute_force(embedding, target_data=training_data)
+
+        assert nearest == expected_nearest
+        assert '{:.3f}'.format(distance) == expected_distance
+        assert findEuclideanDistance(embedding, embedding_cache[nearest]) == distance
+
+    # Train ANN index
+    model.retrain_face_similarity_index(training_data=training_data)
+
+    # Compare test faces using ANN trained index
+    for fn, expected_nearest, expected_distance in TEST_FACES:
+        path = str(Path(__file__).parent / 'photos' / 'faces' / fn)
+        image_data = Image.open(path)
+        embedding = model.get_face_embedding(image_data)
+        nearest, distance = model.find_closest_face_tag_by_ann(embedding)
+
+        assert nearest == expected_nearest
+        assert '{:.3f}'.format(distance) == expected_distance
+        assert abs(findEuclideanDistance(embedding, embedding_cache[nearest]) - distance) < 0.000001
+
+    # Tidy up ANN model training
+    for fn in [
+        f'faces_{model.library_id}.ann',
+        f'faces_tag_ids_{model.library_id}.json',
+        f'retrained_version_{model.library_id}.txt',
+    ]:
+        try:
+            os.remove(Path(settings.MODEL_DIR) / 'face' / fn)
+        except:
+            pass

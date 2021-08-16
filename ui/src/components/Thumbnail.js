@@ -1,27 +1,33 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
-
-import StarRating from './StarRating'
-import { PHOTO_UPDATE } from '../graphql/photo'
 import { useMutation } from '@apollo/client'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
 import 'react-lazy-load-image-component/src/effects/opacity.css'
+import classNames from 'classnames/bind'
+
+import StarRating from './StarRating'
+import { PHOTO_UPDATE } from '../graphql/photo'
+
+import { ReactComponent as TickIcon } from '../static/images/done_black.svg'
 
 const Container = styled('li')`
   width: 130px;
   height: 130px;
   line-height: 0;
   vertical-align: bottom;
-  border: 1px solid #888;
   list-style: none;
   margin: 0 20px 20px 0;
   display: inline-block;
-  box-shadow: 0 2px 6px 1px rgba(0, 0, 0, 0.5);
-  background: #292929;
-  overflow: hidden;
   cursor: pointer;
   position: relative;
+
+  .thumbnail-area {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
+    background: #292929;
+    overflow: hidden;
+  }
 
   img.thumbnail {
     width: 100%;
@@ -31,6 +37,45 @@ const Container = styled('li')`
 
   .thumbnail-wrapper {
     display: block !important;
+  }
+
+  &.selectable {
+  }
+  &.selected .thumbnail-area {
+    transform: scale(0.9);
+  }
+
+  .selection-indicator {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    bottom: 4px;
+    right: 4px;
+    border-radius: 50%;
+    border: 2px solid #00a8a1;
+    opacity: 0;
+    svg {
+      filter: invert(0.9);
+      display: none;
+      width: 18px;
+      height: 18px;
+      margin: 0.5px;
+    }
+  }
+  &.selectable .selection-indicator {
+    opacity: 1;
+  }
+  &.selected .selection-indicator {
+    width: 22px;
+    height: 22px;
+    bottom: 1px;
+    right: 1px;
+    opacity: 1;
+    background: #00a8a1;
+    svg {
+      filter: invert(0.9);
+      display: block;
+    }
   }
 
   @media all and (max-width: 1920px) {
@@ -58,7 +103,14 @@ const StarRatingStyled = styled('div')`
   }
 `
 
-const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
+const Thumbnail = ({
+  id,
+  imageUrl,
+  starRating,
+  selectable,
+  selected,
+  ...rest
+}) => {
   const [newStarRating, updateStarRating] = useState(starRating)
 
   useEffect(() => {
@@ -94,8 +146,12 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
   }
 
   return (
-    <Container>
-      <Link to={`/photo/${id}`} key={id}>
+    <Container
+      className={classNames({ selectable: selectable, selected: selected })}
+      data-id={id}
+      {...rest}
+    >
+      <div className="thumbnail-area">
         <LazyLoadImage
           effect="opacity"
           src={imageUrl}
@@ -107,9 +163,20 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
         <StarRatingStyled>
           <StarRating starRating={newStarRating} onStarClick={onStarClick} />
         </StarRatingStyled>
-      </Link>
+      </div>
+      <div className="selection-indicator">
+        <TickIcon />
+      </div>
     </Container>
   )
+}
+
+Thumbnail.propTypes = {
+  id: PropTypes.string,
+  imageUrl: PropTypes.string,
+  starRating: PropTypes.number,
+  selectable: PropTypes.bool,
+  selected: PropTypes.bool,
 }
 
 export default Thumbnail

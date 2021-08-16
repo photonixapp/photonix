@@ -78,12 +78,26 @@ const Container = styled('div')`
   }
 `
 
-const ZoomableImage = ({ photoId, boxes, next, prev }) => {
+const ZoomableImage = ({
+  photoId,
+  boxes,
+  next,
+  prev,
+  refetch,
+  showBoundingBox,
+  setShowBoundingBox,
+  setShowMetadata,
+  showMetadata,
+  showTopIcons,
+  setShowTopIcons,
+}) => {
   const [scale, setScale] = useState(1)
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
   const [displayImage, setDisplayImage] = useState(false)
-  
+  const [editLableId, setEditLableId] = useState('')
+  let clickTimeOut = null
+
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
@@ -99,7 +113,7 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => nextPhoto(),
-    onSwipedRight: () => prevPhoto()
+    onSwipedRight: () => prevPhoto(),
   })
 
   const loadNextPrevImages = () => {
@@ -134,8 +148,32 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
   const handleZoom = (e) => {
     if (e.scale === 1 && zoom) {
       setZoom(false)
-    } else if(e.scale > 1 && !zoom) {
-      setZoom(true)
+    } else if (e.scale > 1 && !zoom) {
+      setTimeout(() => {
+        setZoom(true)
+      }, 200)
+    }
+  }
+
+  // To handle icon show hide on single click.
+  const showHideIcons = (event) => {
+    if (!editLableId) {
+      if (clickTimeOut !== null) {
+        clearTimeout(clickTimeOut)
+      } else {
+        clickTimeOut = setTimeout(() => {
+          // setShowFaceIcons(!showFaceIcons)
+          if (showMetadata) {
+            setShowMetadata(!showMetadata)
+          } else {
+            setShowTopIcons(!showTopIcons)
+          }
+          clearTimeout(clickTimeOut)
+          clickTimeOut = null
+        }, 300)
+      }
+    } else {
+      setEditLableId('')
     }
   }
 
@@ -159,17 +197,30 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
             <TransformComponent>
               <div className="pinchArea">
                 <div {...swipeHandlers} className="imageFlex">
-                  
-                  <div className="imageWrapper">
+                  <div className="imageWrapper" onClick={showHideIcons}>
                     <img
                       src={url}
                       alt=""
                       onLoad={handleImageLoaded}
                       className={displayImage ? 'display' : undefined}
                     />
-                    <span className={displayImage ? ' display' : undefined}>
-                      {boxes && <BoundingBoxes boxes={boxes} />}
-                    </span>
+                    {boxes &&
+                      showTopIcons &&
+                      Object.keys(boxes).map((key, index) => (
+                        <span
+                          className={displayImage ? ' display' : undefined}
+                          key={index}
+                        >
+                          <BoundingBoxes
+                            boxes={boxes[key]}
+                            className={key}
+                            refetch={refetch}
+                            showBoundingBox={showBoundingBox}
+                            editLableId={editLableId}
+                            setEditLableId={setEditLableId}
+                          />
+                        </span>
+                      ))}
                   </div>
                 </div>
               </div>
@@ -189,15 +240,32 @@ const ZoomableImage = ({ photoId, boxes, next, prev }) => {
 
 ZoomableImage.propTypes = {
   photoId: PropTypes.string,
-  boxes: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string,
-      positionX: PropTypes.number,
-      positionY: PropTypes.number,
-      sizeX: PropTypes.number,
-      sizeY: PropTypes.number,
-    })
-  ),
+  boxes: PropTypes.shape({
+    object: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string,
+        positionX: PropTypes.number,
+        positionY: PropTypes.number,
+        sizeX: PropTypes.number,
+        sizeY: PropTypes.number,
+      })
+    ),
+    face: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string,
+        name: PropTypes.string,
+        positionX: PropTypes.number,
+        positionY: PropTypes.number,
+        sizeX: PropTypes.number,
+        sizeY: PropTypes.number,
+        verified: PropTypes.bool,
+        deleted: PropTypes.bool,
+        boxColorClass: PropTypes.string,
+        showVerifyIcon: PropTypes.bool,
+      })
+    ),
+  }),
+  refetch: PropTypes.func,
 }
 
 export default ZoomableImage

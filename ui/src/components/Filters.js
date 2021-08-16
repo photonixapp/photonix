@@ -22,7 +22,7 @@ const railStyle = {
   backgroundColor: '#484848',
 }
 
-const Filters = ({ data, selectedFilters, onToggle }) => {
+const Filters = ({ data, selectedFilters, onToggle, searchAreaExpand }) => {
   const [values, setValues] = useState({
     'ISO Speed': [],
     'Focal Length': [],
@@ -31,7 +31,6 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
     Rating: [],
   })
   const [isDomainAvail, setIsDomainAvail] = useState(false)
-
   useEffect(() => {
     const vals = []
     data.map((group) => {
@@ -109,7 +108,13 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
   return (
     <ScrollArea>
       {isDomainAvail && (
-        <div className="FiltersContent">
+        <div
+          className={`FiltersContent ${
+            !localStorage.getItem('filtersPeeked') &&
+            searchAreaExpand &&
+            'PeekAnimation'
+          }`}
+        >
           {data.map((group) => {
             let items = ''
             let filterGroupExtraStyles = {}
@@ -222,10 +227,7 @@ const Filters = ({ data, selectedFilters, onToggle }) => {
             return (
               <span key={group.name}>
                 {showTagSection(items, group.name) && (
-                  <div
-                    className="FilterGroup"
-                    style={filterGroupExtraStyles}
-                  >
+                  <div className="FilterGroup" style={filterGroupExtraStyles}>
                     <h2>{group.name}</h2>
                     {items}
                   </div>

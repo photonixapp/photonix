@@ -1,8 +1,9 @@
+from datetime import datetime
+from dateutil.parser import parse as parse_date
+import mimetypes
 import os
 import re
 from subprocess import Popen, PIPE
-from datetime import datetime
-from dateutil.parser import parse as parse_date
 
 from django.utils.timezone import utc
 
@@ -11,6 +12,7 @@ class PhotoMetadata(object):
     def __init__(self, path):
         self.data = {}
         try:
+            # exiftool produces data such as MIME Type for non-photos too
             result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
         except UnicodeDecodeError:
             result = ''
@@ -21,6 +23,10 @@ class PhotoMetadata(object):
                     self.data[k.strip()] = v.strip()
                 except ValueError:
                     pass
+
+        # Some file MIME Types can not be identified by exiftool so we fall back to Python's mimetypes library so the get_mimetype() funciton below is universal
+        if not self.data.get('MIME Type'):
+            self.data['MIME Type'] = mimetypes.guess_type(path)[0]
 
     def get(self, attribute, default=None):
         return self.data.get(attribute, default)
@@ -78,7 +84,6 @@ def get_datetime(path):
     if not matched:
         matched = re.search(r'\D((19|20)[0-9]{2})([0-9]{2})([0-9]{2})\D', fn)
     if matched:
-        # import pdb; pdb.set_trace()
         date_str = '{}-{}-{}'.format(matched.group(1), matched.group(3), matched.group(4))
         return datetime.strptime(date_str, '%Y-%m-%d')
     return None
@@ -90,9 +95,8 @@ def get_dimensions(path):
         return (int(metadata.data['Image Width']), int(metadata.data['Image Height']))
     return (None, None)
 
+
 def get_mimetype(path):
-    # Done
-    """Pulls the MIME Type from the given path"""
     metadata = PhotoMetadata(path)
     if metadata.data.get('MIME Type'):
         return metadata.data.get('MIME Type')

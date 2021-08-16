@@ -1,16 +1,38 @@
+from datetime import datetime
+from decimal import Decimal
+import imghdr
 import mimetypes
 import os
 import re
-from datetime import datetime
-from decimal import Decimal
+import subprocess
 
 from django.utils.timezone import utc
 
 from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task, Library, Tag, PhotoTag
-from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime, parse_gps_location)
+from photonix.photos.utils.metadata import PhotoMetadata, parse_datetime, parse_gps_location, get_mimetype
+from photonix.web.utils import logger
+
+
+MIMETYPE_WHITELIST = [
+    # This list is in addition to the filetypes detected by imghdr and 'dcraw -i'
+    'image/heif',
+    'image/heif-sequence',
+    'image/heic',
+    'image/heic-sequence',
+    'image/avif',
+    'image/avif-sequence',
+]
 
 
 def record_photo(path, library, inotify_event_type=None):
+    logger.info(f'Recording photo {path}')
+
+    mimetype = get_mimetype(path)
+
+    if not imghdr.what(path) and not mimetype in MIMETYPE_WHITELIST and subprocess.run(['dcraw', '-i', path]).returncode:
+        logger.error(f'File is not a supported type: {path} ({mimetype})')
+        return None
+
     if type(library) == Library:
         library_id = library.id
     else:
@@ -40,10 +62,11 @@ def record_photo(path, library, inotify_event_type=None):
             break
 
     camera = None
-    camera_make = metadata.get('Make', '')
+    camera_make = metadata.get('Make', '')[:Camera.make.field.max_length]
     camera_model = metadata.get('Camera Model Name', '')
     if camera_model:
         camera_model = camera_model.replace(camera_make, '').strip()
+    camera_model = camera_model[:Camera.model.field.max_length]
     if camera_make and camera_model:
         try:
             camera = Camera.objects.get(library_id=library_id, make=camera_make, model=camera_model)
@@ -108,15 +131,15 @@ def record_photo(path, library, inotify_event_type=None):
         photo = Photo(
             library_id=library_id,
             taken_at=date_taken,
-            taken_by=metadata.get('Artist') or None,
+            taken_by=metadata.get('Artist', '')[:Photo.taken_by.field.max_length] or None,
             aperture=aperture,
-            exposure=metadata.get('Exposure Time') or None,
+            exposure=metadata.get('Exposure Time', '')[:Photo.exposure.field.max_length] or None,
             iso_speed=iso_speed,
             focal_length=metadata.get('Focal Length') and metadata.get('Focal Length').split(' ', 1)[0] or None,
             flash=metadata.get('Flash') and 'on' in metadata.get('Flash').lower() or False,
-            metering_mode=metadata.get('Metering Mode') or None,
-            drive_mode=metadata.get('Drive Mode') or None,
-            shooting_mode=metadata.get('Shooting Mode') or None,
+            metering_mode=metadata.get('Metering Mode', '')[:Photo.metering_mode.field.max_length] or None,
+            drive_mode=metadata.get('Drive Mode', '')[:Photo.drive_mode.field.max_length] or None,
+            shooting_mode=metadata.get('Shooting Mode', '')[:Photo.shooting_mode.field.max_length] or None,
             camera=camera,
             lens=lens,
             latitude=latitude,
@@ -152,7 +175,7 @@ def record_photo(path, library, inotify_event_type=None):
     photo_file.path = path
     photo_file.width = width
     photo_file.height = height
-    photo_file.mimetype = mimetypes.guess_type(path)[0]
+    photo_file.mimetype = mimetype
     photo_file.file_modified_at = file_modified_at
     photo_file.bytes = os.stat(path).st_size
     photo_file.preferred = False  # TODO

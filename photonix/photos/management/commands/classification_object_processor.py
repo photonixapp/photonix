@@ -1,11 +1,12 @@
 from django.core.management.base import BaseCommand
+
 # Pre-load the model graphs so it doesn't have to be done for each job
 from photonix.classifiers.object import ObjectModel, run_on_photo
-from photonix.photos.models import Task
 from photonix.photos.utils.classification import ThreadedQueueProcessor
+from photonix.web.utils import logger
 
 
-print('Loading object classification model')
+logger.debug('Loading object classification model')
 model = ObjectModel()
 
 
