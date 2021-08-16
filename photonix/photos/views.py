@@ -7,7 +7,7 @@ from graphql_jwt.shortcuts import get_user_by_token
 
 from photonix.photos.utils.thumbnails import get_thumbnail
 
-from photonix.photos.models import Library
+from photonix.photos.models import Library, Photo
 
 
 def thumbnailer(request, type, id, width, height, crop, quality):
@@ -65,7 +65,9 @@ def upload(request):
 
     # Accept file data and write to disk
     libpath = library.get_library_path_store()
+    total_photos_already_exist = Photo.objects.all().count()
     for fn, file in request.FILES.items():
+        fn = str(int(fn) + total_photos_already_exist) 
         dest = Path(libpath.path) / fn
         with open(dest, 'wb+') as destination:
             print(f'Writing to {dest}')
