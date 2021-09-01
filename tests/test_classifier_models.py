@@ -108,6 +108,11 @@ def test_style_predict():
     assert result[0][0] == 'serene'
     assert '{0:.3f}'.format(result[0][1]) == '0.962'
 
+    # Check that there is no error when running with non-RGB image
+    cmyk = str(Path(__file__).parent / 'photos' / 'cmyk.tif')
+    result = model.predict(cmyk)
+    assert result == None
+
 
 def test_face_predict():
     from photonix.classifiers.face.model import FaceModel

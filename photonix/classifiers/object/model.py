@@ -116,14 +116,17 @@ class ObjectModel(BaseModel):
 
     def predict(self, image_file, min_score=0.1):
         image = Image.open(image_file)
-        
+
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
         # Perform rotations if decalared in metadata
         metadata = PhotoMetadata(image_file)
         if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
             image = image.rotate(-90, expand=True)
         elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:
             image = image.rotate(90, expand=True)
-            
+
         # the array based representation of the image will be used later in order to prepare the
         # result image with boxes and labels on it.
         image_np = self.load_image_into_numpy_array(image)

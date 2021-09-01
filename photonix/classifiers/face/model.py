@@ -73,14 +73,17 @@ class FaceModel(BaseModel):
     def predict(self, image_file, min_score=0.99):
         # Detects face bounding boxes
         image = Image.open(image_file)
-        
+
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
         # Perform rotations if decalared in metadata
         metadata = PhotoMetadata(image_file)
         if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
             image = image.rotate(-90, expand=True)
         elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:
             image = image.rotate(90, expand=True)
-            
+
         image = np.asarray(image)
         results = self.graph['mtcnn'].detect_faces(image)
         return list(filter(lambda f: f['confidence'] > min_score, results))
