@@ -59,6 +59,7 @@ const SectionHeading = styled('h2')`
 `
 
 const ESCAPE_KEY = 27
+const CTRL_KEY = 17
 
 const Thumbnails = ({
   photoSections,
@@ -70,6 +71,8 @@ const Thumbnails = ({
 }) => {
   const history = useHistory()
   const [selected, setSelected] = useState([])
+  const [ctrlKeyPressed, setCtrlKeyPressed] = useState(false)
+
   let options = [
     {
       label: 'Tag',
@@ -88,6 +91,7 @@ const Thumbnails = ({
       icon: <DeleteIcon />,
     },
   ]
+
   mode !== 'ALBUM_ID' && options.splice(2, 1)
   const getNode = (startEl) => {
     for (let el = startEl; el && el.parentNode; el = el.parentNode) {
@@ -130,17 +134,39 @@ const Thumbnails = ({
         case ESCAPE_KEY:
           setSelected([])
           break
+        case CTRL_KEY:
+          setCtrlKeyPressed(true)
+          break
+        default:
+          break
+      }
+    }
+
+    const handleKeyUp = (event) => {
+      switch (event.keyCode) {
+        case CTRL_KEY:
+          setCtrlKeyPressed(false)
+          break
         default:
           break
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keyup', handleKeyUp)
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keyup', handleKeyUp)
     }
   }, [])
+
+  const onMouseDown = ctrlKeyPressed
+    ? (e) => {
+        const id = getNode(e.target).getAttribute('data-id')
+        addRemoveItem(id)
+      }
+    : bind.onMouseDown
 
   return (
     <>
@@ -175,10 +201,11 @@ const Thumbnails = ({
                           imageUrl={photo.thumbnail}
                           starRating={photo.starRating}
                           selected={selected.indexOf(photo.id) > -1}
-                          selectable={selected.length > 0}
+                          selectable={selected.length > 0 || ctrlKeyPressed}
                           mode={mode}
                           rateable={rateable}
                           {...bind}
+                          onMouseDown={onMouseDown}
                         />
                       )
                     })
