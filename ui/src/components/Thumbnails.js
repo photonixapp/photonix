@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import { useLongPress, LongPressDetectEvents } from 'use-long-press'
 import styled from '@emotion/styled'
 import { useHistory } from 'react-router-dom'
@@ -62,7 +63,8 @@ const Thumbnails = ({
   refetchPhotoList,
   refetchAlbumList,
   mapPhotosRefetch,
-  mode
+  mode,
+  rateable,
 }) => {
   const history = useHistory()
   const [selected, setSelected] = useState([])
@@ -125,15 +127,14 @@ const Thumbnails = ({
       <Container>
         {photoSections
           ? photoSections.map((section) => (
-            <div className="section" id={section.id} key={section.id}>
-              {section.title ? (
-                <SectionHeading>{section.title}</SectionHeading>
-              ) : null}
-              <div className="thumbnails">
-                {section.segments.map((segment) =>
-                  segment.photos.map((photo) => {
-                    return (
-                      mode === 'ALBUMS' ?
+              <div className="section" id={section.id} key={section.id}>
+                {section.title ? (
+                  <SectionHeading>{section.title}</SectionHeading>
+                ) : null}
+                <div className="thumbnails">
+                  {section.segments.map((segment) =>
+                    segment.photos.map((photo) => {
+                      return mode === 'ALBUMS' ? (
                         <Thumbnail
                           key={photo.albumId}
                           id={photo.id}
@@ -142,11 +143,12 @@ const Thumbnails = ({
                           selected={selected.indexOf(photo.id) > -1}
                           selectable={selected.length > 0}
                           mode={mode}
+                          rateable={rateable}
                           albumId={photo.albumId}
                           albumPhotosCount={photo.albumPhotosCount}
                           albumName={photo.albumName}
                         />
-                        :
+                      ) : (
                         <Thumbnail
                           key={photo.id}
                           id={photo.id}
@@ -155,14 +157,15 @@ const Thumbnails = ({
                           selected={selected.indexOf(photo.id) > -1}
                           selectable={selected.length > 0}
                           mode={mode}
+                          rateable={rateable}
                           {...bind}
                         />
-                    )
-                  })
-                )}
+                      )
+                    })
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            ))
           : null}
       </Container>
       {selected.length > 0 && (
@@ -176,6 +179,21 @@ const Thumbnails = ({
       )}
     </>
   )
+}
+
+Thumbnails.propTypes = {
+  photoSections: PropTypes.array,
+  refetchPhotoList: PropTypes.func,
+  refetchAlbumList: PropTypes.func,
+  mapPhotosRefetch: PropTypes.func,
+  mode: PropTypes.string,
+  rateable: PropTypes.bool,
+}
+
+Thumbnails.defaultProps = {
+  photoSections: [],
+  mode: 'TIMELINE',
+  rateable: false,
 }
 
 export default Thumbnails

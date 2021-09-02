@@ -129,6 +129,7 @@ const Thumbnail = ({
   selectable,
   selected,
   mode,
+  rateable,
   albumId,
   albumPhotosCount,
   albumName,
@@ -155,7 +156,7 @@ const Thumbnail = ({
             photoId: id,
             starRating: 0,
           },
-        }).catch((e) => { })
+        }).catch((e) => {})
       } else {
         updateStarRating(num)
         updatePhoto({
@@ -163,7 +164,7 @@ const Thumbnail = ({
             photoId: id,
             starRating: num,
           },
-        }).catch((e) => { })
+        }).catch((e) => {})
       }
     }
   }
@@ -185,41 +186,42 @@ const Thumbnail = ({
               width="100%"
               height="100%"
             />
-            <StarRatingStyled>
-              <StarRating
-                starRating={newStarRating}
-                onStarClick={!selectable && onStarClick}
-              />
-            </StarRatingStyled>
-          </div>
-          <div className="album-name">
-            {albumName}
-          </div>
-        </Link>)
-        : (
-          <>
-            <div className="thumbnail-area">
-              <LazyLoadImage
-                effect="opacity"
-                src={imageUrl}
-                className="thumbnail"
-                wrapperClassName="thumbnail-wrapper"
-                width="100%"
-                height="100%"
-              />
+            {rateable && (
               <StarRatingStyled>
                 <StarRating
                   starRating={newStarRating}
                   onStarClick={!selectable && onStarClick}
                 />
               </StarRatingStyled>
-            </div>
-            <div className="selection-indicator">
-              <TickIcon />
-            </div>
-          </>
-        )
-      }
+            )}
+          </div>
+          <div className="album-name">{albumName}</div>
+        </Link>
+      ) : (
+        <>
+          <div className="thumbnail-area">
+            <LazyLoadImage
+              effect="opacity"
+              src={imageUrl}
+              className="thumbnail"
+              wrapperClassName="thumbnail-wrapper"
+              width="100%"
+              height="100%"
+            />
+            {rateable && (
+              <StarRatingStyled>
+                <StarRating
+                  starRating={newStarRating}
+                  onStarClick={!selectable && onStarClick}
+                />
+              </StarRatingStyled>
+            )}
+          </div>
+          <div className="selection-indicator">
+            <TickIcon />
+          </div>
+        </>
+      )}
     </Container>
   )
 }
@@ -230,6 +232,12 @@ Thumbnail.propTypes = {
   starRating: PropTypes.number,
   selectable: PropTypes.bool,
   selected: PropTypes.bool,
+  mode: PropTypes.string,
+  rateable: PropTypes.bool,
+}
+
+Thumbnail.defaultProps = {
+  rateable: true,
 }
 
 export default Thumbnail

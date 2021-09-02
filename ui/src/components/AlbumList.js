@@ -9,28 +9,29 @@ const Container = styled('div')`
   overflow-y: auto;
 `
 
-const AlbumList = ({ 
+const AlbumList = ({
   photoSections,
   refetchPhotos,
   refetchPhotoList,
   refetchAlbumList,
   mapPhotosRefetch,
   setExpanded,
-  mode
+  mode,
 }) => {
   const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
   useEffect(() => {
     setExpanded(true)
-  }, []);
+  }, [])
 
   return (
     <Container ref={scrollerRef} onScroll={handleScroll}>
-      <Thumbnails 
-        photoSections={photoSections} 
+      <Thumbnails
+        photoSections={photoSections}
         refetchPhotoList={refetchPhotoList}
         refetchAlbumList={refetchAlbumList}
         mapPhotosRefetch={mapPhotosRefetch}
-        mode={mode} 
+        mode={mode}
+        rateable
       />
       {/* #TODO: Add the DateHistogram feature back here */}
     </Container>

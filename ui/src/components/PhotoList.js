@@ -27,6 +27,7 @@ const PhotoList = ({
         refetchAlbumList={refetchAlbumList}
         mapPhotosRefetch={mapPhotosRefetch}
         mode={mode}
+        rateable={mode !== 'ALBUMS'}
       />
       {/* #TODO: Add the DateHistogram feature back here */}
     </Container>
