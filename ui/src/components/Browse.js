@@ -91,9 +91,10 @@ const Browse = ({
     window.innerHeight > 850 ? true : false
   )
   const renderContent = () => {
-    switch(mode) {
+    switch (mode) {
       case 'ALBUM_ID':
-        return <AlbumList
+        return (
+          <AlbumList
             photoSections={photoSections}
             refetchPhotos={refetchPhotos}
             refetchPhotoList={refetchPhotoList}
@@ -102,10 +103,12 @@ const Browse = ({
             setExpanded={setExpanded}
             mode={mode}
           />
+        )
       case 'MAP':
         return <MapView photos={mapPhotos} />
       default:
-        return <PhotoList
+        return (
+          <PhotoList
             photoSections={photoSections}
             refetchPhotos={refetchPhotos}
             refetchPhotoList={refetchPhotoList}
@@ -113,6 +116,7 @@ const Browse = ({
             mapPhotosRefetch={mapPhotosRefetch}
             mode={mode}
           />
+        )
     }
   }
   let content = renderContent()
@@ -124,8 +128,8 @@ const Browse = ({
   if (error) content = <p>Error :(</p>
 
   const [searchMinHeight, setSearchMinHeight] = useState(0)
-  const setInitialIndex = () => {
-    switch(mode) {
+  const getInitialIndex = () => {
+    switch (mode) {
       case 'TIMELINE':
         return 0
       case 'ALBUMS':
@@ -155,8 +159,7 @@ const Browse = ({
           minHeightChanged={setSearchMinHeight}
           mode={mode}
         />
-        {
-        mode !== 'ALBUMS' &&
+        {mode !== 'ALBUMS' && (
           <div
             {...handlers}
             className="expandCollapse"
@@ -164,7 +167,7 @@ const Browse = ({
           >
             <ArrowDownIcon />
           </div>
-        }
+        )}
       </div>
       <div className="main">
         <Tabs
@@ -193,7 +196,7 @@ const Browse = ({
               },
             },
           ]}
-          initiallySelectedIndex={setInitialIndex}
+          initiallySelectedIndex={getInitialIndex()}
         />
         {content}
       </div>
