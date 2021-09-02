@@ -21,29 +21,31 @@ const Container = styled('li')`
   display: inline-block;
   cursor: pointer;
   position: relative;
-
-  .thumbnail-area {
-    border-radius: 10px;
-    box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
-    background: #292929;
-    overflow: hidden;
-    transition: transform 100ms ease-in-out;
-  }
-
-  img.thumbnail {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-
-  .thumbnail-wrapper {
-    display: block !important;
-  }
+  border-radius: 10px;
+  background: #292929;
 
   &.selectable {
+    background: none;
   }
   &.selected .thumbnail-area {
     transform: scale(0.9);
+  }
+
+  .thumbnail-area {
+    transition: transform 100ms ease-in-out;
+
+    .lazy-load-image-loaded {
+      background: #292929;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 10px;
+    }
   }
 
   .selection-indicator {
@@ -87,14 +89,17 @@ const Container = styled('li')`
   }
   .album-name {
     position: absolute;
-    bottom: 27px;
     color: #fff;
     font-weight: 600;
-    left: 8px;
     text-align: left;
-    width: 100%;
-    top: 14px;
-    text-shadow: 1px 1px 5px #000;
+    width: 85%;
+    top: 0;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 8px;
+    text-shadow: 1px 1px 3px #000;
   }
 
   @media all and (max-width: 1920px) {
@@ -103,10 +108,6 @@ const Container = styled('li')`
     margin: 0;
     padding-bottom: 100%;
     display: block;
-
-    img.thumbnail {
-      height: auto;
-    }
   }
 `
 const StarRatingStyled = styled('div')`
@@ -177,7 +178,10 @@ const Thumbnail = ({
     >
       {mode === 'ALBUMS' ? (
         <Link to={`?mode=albums&album_id=${albumId}`} key={albumId}>
-          <div className="thumbnail-area">
+          <div
+            className="thumbnail-area"
+            title={albumName.length > 8 && albumName}
+          >
             <LazyLoadImage
               effect="opacity"
               src={imageUrl}
