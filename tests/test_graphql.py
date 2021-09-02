@@ -193,6 +193,7 @@ class TestGraphQL(unittest.TestCase):
                     classificationStyleEnabled
                     classificationObjectEnabled
                     classificationLocationEnabled
+                    classificationFaceEnabled
                   }
                   sourceFolder
                 }
@@ -202,14 +203,15 @@ class TestGraphQL(unittest.TestCase):
         data = get_graphql_content(response)
         assert response.status_code == 200
         self.assertEqual(data['data']['librarySetting']['library']['name'], self.defaults['library'].name)
-        self.assertFalse(data['data']['librarySetting']['library']['classificationColorEnabled'])
-        self.assertFalse(data['data']['librarySetting']['library']['classificationStyleEnabled'])
-        assert data['data']['librarySetting']['library']['classificationObjectEnabled']
-        assert data['data']['librarySetting']['library']['classificationLocationEnabled']
+        self.assertTrue(data['data']['librarySetting']['library']['classificationColorEnabled'])
+        self.assertTrue(data['data']['librarySetting']['library']['classificationStyleEnabled'])
+        self.assertTrue(data['data']['librarySetting']['library']['classificationObjectEnabled'])
+        self.assertTrue(data['data']['librarySetting']['library']['classificationLocationEnabled'])
+        self.assertTrue(data['data']['librarySetting']['library']['classificationFaceEnabled'])
         self.assertEqual(data['data']['librarySetting']['sourceFolder'], self.defaults['library'].paths.all()[0].path)
 
-    def test_library_update_style_enabled_mutaion(self):
-        """Test library updateStyleEnabled mutaion response."""
+    def test_library_update_style_enabled_mutation(self):
+        """Test library updateStyleEnabled mutation response."""
         mutation = """
             mutation updateStyleEnabled(
                 $classificationStyleEnabled: Boolean!
@@ -230,8 +232,8 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         assert tuple(tuple(data.values())[0].values())[0].get('classificationStyleEnabled')
 
-    def test_library_update_color_enabled_mutaion(self):
-        """Test library updateColorEnabled mutaion response."""
+    def test_library_update_color_enabled_mutation(self):
+        """Test library updateColorEnabled mutation response."""
         mutation = """
             mutation updateColorEnabled(
                 $classificationColorEnabled: Boolean!
@@ -252,8 +254,8 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         assert tuple(tuple(data.values())[0].values())[0].get('classificationColorEnabled')
 
-    def test_library_update_location_enabled_mutaion(self):
-        """Test library updateLocationEnabled mutaion response."""
+    def test_library_update_location_enabled_mutation(self):
+        """Test library updateLocationEnabled mutation response."""
         mutation = """
             mutation updateLocationEnabled(
                 $classificationLocationEnabled: Boolean!
@@ -274,8 +276,8 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         self.assertFalse(tuple(tuple(data.values())[0].values())[0].get('classificationLocationEnabled'))
 
-    def test_library_update_object_enabled_mutaion(self):
-        """Test library updateObjectEnabled mutaion response."""
+    def test_library_update_object_enabled_mutation(self):
+        """Test library updateObjectEnabled mutation response."""
         mutation = """
             mutation updateObjectEnabled(
                 $classificationObjectEnabled: Boolean!
@@ -296,8 +298,8 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         self.assertFalse(tuple(tuple(data.values())[0].values())[0].get('classificationObjectEnabled'))
 
-    def test_library_update_source_folder_mutaion(self):
-        """Test library updateSourceFolder mutaion response."""
+    def test_library_update_source_folder_mutation(self):
+        """Test library updateSourceFolder mutation response."""
         mutation = """
             mutation updateSourceFolder($sourceFolder: String!, $libraryId: ID) {
                 updateSourceFolder(
@@ -313,7 +315,7 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(tuple(tuple(data.values())[0].values())[0].get('sourceFolder'),self.defaults['library'].paths.all()[0].path)
 
     def test_change_password_mutation(self):
-        """Test change password mutaion response."""
+        """Test change password mutation response."""
         mutation = """
             mutation changePassword (
                 $oldPassword: String!,
@@ -688,6 +690,10 @@ class TestGraphQL(unittest.TestCase):
                   id
                   name
                 }
+                allEventTags(libraryId: $libraryId, multiFilter: $multiFilter) {
+                  id
+                  name
+                }
                 allCameras(libraryId: $libraryId) {
                   id
                   make
@@ -827,8 +833,12 @@ class TestGraphQLOnboarding(unittest.TestCase):
         assert User.objects.first().has_configured_importing
         self.assertFalse(User.objects.first().has_configured_image_analysis)
         mutation = """
-            mutation ($classificationColorEnabled: Boolean!,$classificationStyleEnabled: Boolean!,
-                $classificationObjectEnabled: Boolean!,$classificationLocationEnabled: Boolean!,
+            mutation (
+                $classificationColorEnabled: Boolean!,
+                $classificationStyleEnabled: Boolean!,
+                $classificationObjectEnabled: Boolean!,
+                $classificationLocationEnabled: Boolean!,
+                $classificationFaceEnabled: Boolean!,
                 $userId: ID!,$libraryId: ID!,
                 ) {
                     imageAnalysis(input:{
@@ -836,6 +846,7 @@ class TestGraphQLOnboarding(unittest.TestCase):
                         classificationStyleEnabled:$classificationStyleEnabled,
                         classificationObjectEnabled:$classificationObjectEnabled,
                         classificationLocationEnabled:$classificationLocationEnabled,
+                        classificationFaceEnabled:$classificationFaceEnabled,
                         userId:$userId,
                         libraryId:$libraryId,
                     }) {
@@ -847,8 +858,11 @@ class TestGraphQLOnboarding(unittest.TestCase):
         library_id = data['data']['PhotoImporting']['libraryId']
         response = self.api_client.post_graphql(
             mutation, {
-                'classificationColorEnabled': True, 'classificationStyleEnabled': True,
-                'classificationObjectEnabled': False, 'classificationLocationEnabled': False,
+                'classificationColorEnabled': True,
+                'classificationStyleEnabled': True,
+                'classificationObjectEnabled': False,
+                'classificationLocationEnabled': False,
+                'classificationFaceEnabled': False,
                 'userId': data['data']['PhotoImporting']['userId'],
                 'libraryId': data['data']['PhotoImporting']['libraryId'],
             })

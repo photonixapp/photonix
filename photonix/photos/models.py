@@ -7,6 +7,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from photonix.common.models import UUIDModel, VersionedModel
+from photonix.web.utils import logger
 
 
 User = get_user_model()
@@ -25,6 +26,7 @@ class Library(UUIDModel, VersionedModel):
     classification_location_enabled = models.BooleanField(default=False, help_text='Run location detection on photos?')
     classification_style_enabled = models.BooleanField(default=False, help_text='Run style classification on photos?')
     classification_object_enabled = models.BooleanField(default=False, help_text='Run object detection on photos?')
+    classification_face_enabled = models.BooleanField(default=False, help_text='Run face detection on photos?')
     setup_stage_completed = models.CharField(max_length=2, choices=LIBRARY_SETUP_STAGE_COMPLETED_CHOICES, blank=True, null=True, help_text='Where the user got to during onboarding setup')
 
     class Meta:
@@ -36,6 +38,9 @@ class Library(UUIDModel, VersionedModel):
     def rescan(self):
         for library_path in self.paths:
             library_path.rescan()
+
+    def get_library_path_store(self):
+        return self.paths.filter(type='St')[0]
 
 
 LIBRARY_PATH_TYPE_CHOICES = (
@@ -118,10 +123,10 @@ class Photo(UUIDModel, VersionedModel):
     exposure = models.CharField(max_length=8, blank=True, null=True)
     iso_speed = models.PositiveIntegerField(null=True)
     focal_length = models.DecimalField(max_digits=4, decimal_places=1, null=True)
-    flash = models.NullBooleanField()
-    metering_mode = models.CharField(max_length=32, null=True)
-    drive_mode = models.CharField(max_length=32, null=True)
-    shooting_mode = models.CharField(max_length=32, null=True)
+    flash = models.BooleanField(null=True)
+    metering_mode = models.CharField(max_length=64, null=True)
+    drive_mode = models.CharField(max_length=64, null=True)
+    shooting_mode = models.CharField(max_length=64, null=True)
     camera = models.ForeignKey(Camera, related_name='photos', null=True, on_delete=models.CASCADE)
     lens = models.ForeignKey(Lens, related_name='photos', null=True, on_delete=models.CASCADE)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
@@ -164,6 +169,16 @@ class Photo(UUIDModel, VersionedModel):
         return self.base_file.base_image_path
 
     @property
+    def download_url(self):
+        library_url = self.library.get_library_path_store().url
+        if not library_url:
+            library_url = '/photos/'
+        library_path = self.library.get_library_path_store().path
+        if not library_path:
+            library_path = '/data/photos/'
+        return self.base_file.path.replace(library_path, library_url)
+
+    @property
     def dimensions(self):
         file = self.base_file
         if file:
@@ -189,8 +204,8 @@ class PhotoFile(UUIDModel, VersionedModel):
     thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
     raw_processed = models.BooleanField(default=False)
     raw_version = models.PositiveIntegerField(null=True)
-    raw_external_params = models.CharField(max_length=16, blank=True, null=True)
-    raw_external_version = models.CharField(max_length=16, blank=True, null=True)
+    raw_external_params = models.CharField(max_length=32, blank=True, null=True)
+    raw_external_version = models.CharField(max_length=32, blank=True, null=True)
 
     def __str__(self):
         return str(self.path)
@@ -219,6 +234,7 @@ TAG_TYPE_CHOICES = (
     ('C', 'Color'),
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
     ('G', 'Generic'),  # Tags created by user
+    ('E', 'Event'),  # Checked image taken date is any festival date.
 )
 
 
@@ -226,8 +242,8 @@ class Tag(UUIDModel, VersionedModel):
     library = models.ForeignKey(Library, related_name='tags', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     parent = models.ForeignKey('Tag', related_name='+', null=True, on_delete=models.CASCADE)
-    type = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True)
-    source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
+    type = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, null=True, db_index=True)
+    source = models.CharField(max_length=1, choices=SOURCE_CHOICES, db_index=True)
     ordering = models.FloatField(null=True)
 
     class Meta:
@@ -241,8 +257,9 @@ class Tag(UUIDModel, VersionedModel):
 class PhotoTag(UUIDModel, VersionedModel):
     photo = models.ForeignKey(Photo, related_name='photo_tags', on_delete=models.CASCADE, null=True)
     tag = models.ForeignKey(Tag, related_name='photo_tags', on_delete=models.CASCADE)
-    source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
-    model_version = models.PositiveIntegerField(default=0)
+    source = models.CharField(max_length=1, choices=SOURCE_CHOICES, db_index=True)
+    model_version = models.PositiveIntegerField(default=0, help_text='Version number of classifier model if source is Computer (YYYYMMDD)')
+    retrained_model_version = models.PositiveBigIntegerField(default=0, help_text='If classifier has models that are re-trained locally (e.g. Face) then we want to store this too (YYYYMMDDHHMMSS)')
     confidence = models.FloatField()
     significance = models.FloatField(null=True)
     verified = models.BooleanField(default=False)
@@ -252,6 +269,9 @@ class PhotoTag(UUIDModel, VersionedModel):
     position_y = models.FloatField(null=True)
     size_x = models.FloatField(null=True)
     size_y = models.FloatField(null=True)
+    # A place to store extra JSON data such as face feature positions for eyes, nose and mouth
+    extra_data = models.TextField(null=True)
+    deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-significance']
@@ -271,7 +291,7 @@ TASK_STATUS_CHOICES = (
 class Task(UUIDModel, VersionedModel):
     type = models.CharField(max_length=128, db_index=True)
     subject_id = models.UUIDField(db_index=True)
-    status = models.CharField(max_length=1, choices=TAG_TYPE_CHOICES, default='P', db_index=True)
+    status = models.CharField(max_length=1, choices=TASK_STATUS_CHOICES, default='P', db_index=True)
     started_at = models.DateTimeField(null=True)
     finished_at = models.DateTimeField(null=True)
     parent = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)
@@ -308,7 +328,10 @@ class Task(UUIDModel, VersionedModel):
                     self.parent.complete(
                         next_type=next_type, next_subject_id=next_subject_id)
 
-    def failed(self):
+    def failed(self, error=None, traceback=None):
         self.status = 'F'
         self.finished_at = timezone.now()
         self.save()
+
+        if error:
+            logger.error(error)

@@ -1,17 +1,23 @@
 import queue
 import threading
 from time import sleep
+import traceback
 
 from django.db import transaction
 from django.utils import timezone
+
 from photonix.photos.models import Task, Photo
 from photonix.photos.utils.tasks import requeue_stuck_tasks
+from photonix.web.utils import logger
+
 
 CLASSIFIERS = [
     'color',
+    'event',
     'location',
-    'object',
+    'face',
     'style',
+    'object',
 ]
 
 
@@ -59,11 +65,13 @@ class ThreadedQueueProcessor:
 
     def __process_task(self, task):
         try:
-            print(f'Running task: {task.type} - {task.subject_id}')
+            logger.info(f'Running task: {task.type} - {task.subject_id}')
             task.start()
             self.runner(task.subject_id)
             task.complete()
-        except:
+        except Exception:
+            logger.error(f'Error processing task: {task.type} - {task.subject_id}')
+            traceback.print_exc()
             task.failed()
 
     def __clean_up(self):
@@ -74,7 +82,7 @@ class ThreadedQueueProcessor:
             t.join()
 
     def run(self, loop=True):
-        print('Starting {} {} workers\n'.format(self.num_workers, self.task_type))
+        logger.info('Starting {} {} workers'.format(self.num_workers, self.task_type))
 
         if self.num_workers > 1:
             for i in range(self.num_workers):
@@ -89,15 +97,17 @@ class ThreadedQueueProcessor:
                     task_queryset = Task.objects.filter(library__classification_color_enabled=True, type=self.task_type, status='P')
                 elif self.task_type == 'classify.location':
                     task_queryset = Task.objects.filter(library__classification_location_enabled=True, type=self.task_type, status='P')
-                elif self.task_type == 'classify.object':
-                    task_queryset = Task.objects.filter(library__classification_object_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.face':
+                    task_queryset = Task.objects.filter(library__classification_face_enabled=True, type=self.task_type, status='P')
                 elif self.task_type == 'classify.style':
                     task_queryset = Task.objects.filter(library__classification_style_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.object':
+                    task_queryset = Task.objects.filter(library__classification_object_enabled=True, type=self.task_type, status='P')
                 else:
                     task_queryset = Task.objects.filter(type=self.task_type, status='P')
                 for task in task_queryset[:8]:
                     if self.num_workers > 1:
-                        print('putting task')
+                        logger.debug('putting task')
                         self.queue.put(task)
                     else:
                         self.__process_task(task)

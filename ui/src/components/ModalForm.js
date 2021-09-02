@@ -50,6 +50,7 @@ const ModalForm = ({
   const [stepFiveRegistration] = useMutation(STEP_FIVE)
   const onSubmit = (data) => {
     if (nextStep === '/onboarding/step2') {
+      localStorage.setItem("isSignin", false);
       stepOneRegistration({
         variables: {
           username: data.username,
@@ -134,6 +135,7 @@ const ModalForm = ({
           classificationStyleEnabled: data.classificationStyleEnabled,
           classificationObjectEnabled: data.classificationObjectEnabled,
           classificationLocationEnabled: data.classificationLocationEnabled,
+          classificationFaceEnabled: data.classificationFaceEnabled,
           userId: envData.environment.userId,
           libraryId: LibraryId ? LibraryId : envData.environment.libraryId,
         },

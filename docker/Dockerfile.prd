@@ -5,6 +5,7 @@ FROM ${ARCH}python:3.8.9-slim-buster as builder
 RUN apt-get update && \
     apt-get install -y \
         build-essential \
+        cmake \
         curl \
         gfortran \
         gnupg \
@@ -13,11 +14,11 @@ RUN apt-get update && \
         libblas3 \
         libfreetype6 \
         libfreetype6-dev \
-        libhdf5-dev \
         libjpeg-dev \
         liblapack-dev \
         liblapack3 \
         libpq-dev \
+        libssl-dev \
         libtiff5-dev \
     && \
         apt-get clean && \
@@ -86,7 +87,6 @@ RUN rm -rf \
     /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/sample_data \
     /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/images \
     /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/stylelib \
-    /usr/local/lib/python3.8/site-packages/h5py \
     /usr/local/lib/python3.8/site-packages/tensorboard \
     /usr/local/lib/python3.8/site-packages/tensorboard_plugin_wit
 
@@ -94,17 +94,24 @@ RUN rm -rf \
 FROM ${ARCH}python:3.8.9-slim-buster
 
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
+        cron \
         dcraw \
+        file \
         libatlas3-base \
         libfreetype6 \
         libfreetype6-dev \
+        libgl1 \
+        libglib2.0-dev \
+        libhdf5-dev \
+        libheif-examples \
         libimage-exiftool-perl \
         libpq-dev \
         libtiff5-dev \
         netcat \
         nginx-light \
         supervisor \
+        xz-utils \
     && \
         apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
@@ -120,6 +127,7 @@ WORKDIR /srv
 
 # Copy over the code
 COPY photonix /srv/photonix
+COPY manage.py /srv/manage.py
 COPY test.py /srv/test.py
 COPY tests /srv/tests
 COPY ui/public /srv/ui/public
@@ -128,9 +136,14 @@ COPY ui/public /srv/ui/public
 COPY system /srv/system
 COPY system/supervisord.conf /etc/supervisord.conf
 
-ENV PYTHONPATH /srv
+# Copy crontab
+COPY system/cron.d /etc/cron.d/
+RUN chmod 0644 /etc/cron.d/*
 
-RUN python photonix/manage.py collectstatic --noinput --link
+ENV PYTHONPATH /srv
+ENV TF_CPP_MIN_LOG_LEVEL 3
+
+RUN DJANGO_SECRET_KEY=test python photonix/manage.py collectstatic --noinput --link
 
 CMD ./system/run.sh
 

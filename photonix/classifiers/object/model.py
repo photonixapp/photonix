@@ -2,17 +2,18 @@ import os
 import sys
 from pathlib import Path
 
+from django.utils import timezone
 import numpy as np
 from PIL import Image
-
-import redis
 from redis_lock import Lock
 import tensorflow as tf
 
 from photonix.classifiers.object.utils import label_map_util
 from photonix.classifiers.base_model import BaseModel
+from photonix.photos.utils.redis import redis_connection
+from photonix.photos.utils.metadata import PhotoMetadata
 
-r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
+
 GRAPH_FILE = os.path.join('object', 'ssd_mobilenet_v2_oid_v4_2018_12_12_frozen_inference_graph.pb')
 LABEL_FILE = os.path.join('object', 'oid_v4_label_map.pbtxt')
 
@@ -33,7 +34,7 @@ class ObjectModel(BaseModel):
             self.labels = self.load_labels(label_file)
 
     def load_graph(self, graph_file):
-        with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
+        with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]
 
@@ -115,6 +116,17 @@ class ObjectModel(BaseModel):
 
     def predict(self, image_file, min_score=0.1):
         image = Image.open(image_file)
+
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
+        # Perform rotations if decalared in metadata
+        metadata = PhotoMetadata(image_file)
+        if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
+            image = image.rotate(-90, expand=True)
+        elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:
+            image = image.rotate(90, expand=True)
+
         # the array based representation of the image will be used later in order to prepare the
         # result image with boxes and labels on it.
         image_np = self.load_image_into_numpy_array(image)
@@ -132,12 +144,12 @@ def run_on_photo(photo_id):
     photo, results = results_for_model_on_photo(model, photo_id)
 
     if photo:
-        from django.utils import timezone
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='O')
         for result in results:
-            tag = get_or_create_tag(library=photo.library, name=result['label'], type='O', source='C')
-            PhotoTag(photo=photo, tag=tag, source='C', confidence=result['score'], significance=result['significance'], position_x=result['x'], position_y=result['y'], size_x=result['width'], size_y=result['height']).save()
+            if result['label'] != 'Human face':  # We have a specialised face detector
+                tag = get_or_create_tag(library=photo.library, name=result['label'], type='O', source='C')
+                PhotoTag(photo=photo, tag=tag, source='C', confidence=result['score'], significance=result['significance'], position_x=result['x'], position_y=result['y'], size_x=result['width'], size_y=result['height']).save()
         photo.classifier_object_completed_at = timezone.now()
         photo.classifier_object_version = getattr(model, 'version', 0)
         photo.save()
@@ -148,7 +160,7 @@ def run_on_photo(photo_id):
 if __name__ == '__main__':
     model = ObjectModel()
     if len(sys.argv) != 2:
-        print('Argument required: image file path')
+        print('Argument required: image file path or Photo ID')
         exit(1)
 
     results = run_on_photo(sys.argv[1])

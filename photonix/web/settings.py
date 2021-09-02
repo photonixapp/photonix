@@ -14,13 +14,13 @@ from datetime import timedelta
 import os
 from pathlib import Path
 
-from django.core.management import utils
+from .utils import get_secret_key
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
 
-SECRET_KEY = utils.get_random_secret_key()
+SECRET_KEY = get_secret_key()
 
 DEBUG = os.environ.get('ENV', 'prd') != 'prd'
 
@@ -88,7 +88,48 @@ DATABASES = {
         'NAME':     os.environ.get('POSTGRES_DB', 'photonix'),
         'USER':     os.environ.get('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'password'),
+        'PORT':     int(os.environ.get('POSTGRES_PORT', '5432')),
     }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'color': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': '%(log_color)s%(asctime)s %(levelname)-8s %(message)s',
+            'log_colors': {
+                'DEBUG':    'cyan',
+                'INFO':     'green',
+                'WARNING':  'yellow',
+                'ERROR':    'red',
+                'CRITICAL': 'white,bg_red',
+            },
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'color',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
+            'propagate': False,
+        },
+        'photonix': {
+            'handlers': ['console'],
+            'level': os.getenv('LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -151,8 +192,8 @@ THUMBNAIL_SIZES = [
     # Width, height, crop method, JPEG quality, whether it should be generated upon upload, force accurate gamma-aware sRGB resizing
     (256, 256, 'cover', 50, True, True),  # Square thumbnails
     # We use the largest dimension for both dimensions as they won't crop and some with in portrait mode
-    (960, 960, 'contain', 75, False, False),  # 960px
-    (1920, 1920, 'contain', 75, False, False),  # 2k
+    # (960, 960, 'contain', 75, False, False),  # 960px
+    # (1920, 1920, 'contain', 75, False, False),  # 2k
     (3840, 3840, 'contain', 75, False, False),  # 4k
 ]
 
