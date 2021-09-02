@@ -58,6 +58,8 @@ const SectionHeading = styled('h2')`
   display: block;
 `
 
+const ESCAPE_KEY = 27
+
 const Thumbnails = ({
   photoSections,
   refetchPhotoList,
@@ -121,6 +123,24 @@ const Thumbnails = ({
   useEffect(() => {
     setSelected([])
   }, [mode === 'ALBUMS'])
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      switch (event.keyCode) {
+        case ESCAPE_KEY:
+          setSelected([])
+          break
+        default:
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
   return (
     <>
