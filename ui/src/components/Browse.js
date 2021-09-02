@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import useLocalStorageState from 'use-local-storage-state'
 import { useSwipeable } from 'react-swipeable'
@@ -142,6 +142,11 @@ const Browse = ({
         return 0
     }
   }
+  const [tabSelectedIndex, setTabSelectedIndex] = useState(getInitialIndex)
+  useEffect(() => {
+    setTabSelectedIndex(getInitialIndex)
+  }, [mode])
+
   return (
     <Container>
       <Header profile={profile} libraries={libraries} />
@@ -196,7 +201,7 @@ const Browse = ({
               },
             },
           ]}
-          initiallySelectedIndex={getInitialIndex()}
+          initiallySelectedIndex={tabSelectedIndex}
         />
         {content}
       </div>

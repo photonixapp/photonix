@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 
@@ -63,6 +63,10 @@ const Container = styled('div')`
 
 const Tabs = ({ tabs, initiallySelectedIndex }) => {
   const [selectedIndex, setSelectedIndex] = useState(initiallySelectedIndex)
+
+  useEffect(() => {
+    setSelectedIndex(initiallySelectedIndex)
+  }, [initiallySelectedIndex])
 
   return (
     <Container>
