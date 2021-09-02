@@ -37,11 +37,15 @@ class Command(BaseCommand):
 
         print(f'Library "{library_name}" with path "{path}" created successfully for user "{username}"')
 
+    def is_path_dir(path):
+        if os.path.isdir(path):
+            return path
+
     def add_arguments(self, parser):
         # Positional arguments
         parser.add_argument('username', type=str)
         parser.add_argument('library_name', type=str)
-        parser.add_argument('--path', type=str, default='/data/photos')
+        parser.add_argument('--path', type=self.is_path_dir, default='/data/photos')
 
     def handle(self, *args, **options):
         self.create_library(options['username'], options['library_name'], options['path'])
