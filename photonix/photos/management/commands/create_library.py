@@ -1,4 +1,5 @@
 import os
+import argparse
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -37,9 +38,11 @@ class Command(BaseCommand):
 
         print(f'Library "{library_name}" with path "{path}" created successfully for user "{username}"')
 
-    def is_path_dir(path):
+    def is_path_dir(self, path):
         if os.path.isdir(path):
             return path
+        else:
+            raise argparse.ArgumentTypeError(f"{path} is not a valid folder")
 
     def add_arguments(self, parser):
         # Positional arguments
