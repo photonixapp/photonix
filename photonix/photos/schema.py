@@ -230,8 +230,8 @@ class TagNode(DjangoObjectType):
         return self.photo_tags.all().count()
 
     def resolve_cover_image(self, info):
-        if self.photo_tags.order_by('-created_at'):
-            return self.photo_tags.order_by('-created_at')[0].photo
+        if self.photo_tags:
+            return self.photo_tags.order_by('-photo__taken_at')[0].photo
         return None
 
 class TaskType(graphene.ObjectType):
