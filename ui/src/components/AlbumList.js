@@ -23,6 +23,10 @@ const AlbumList = ({
     setExpanded(true)
   }, [])
 
+  const params = new URLSearchParams(window.location.search)
+  const albumName = params.get('album_name')
+  if (albumName) photoSections[0].title = albumName
+
   return (
     <Container ref={scrollerRef} onScroll={handleScroll}>
       <Thumbnails
@@ -33,7 +37,7 @@ const AlbumList = ({
         mode={mode}
         rateable
       />
-      {/* #TODO: Add the DateHistogram feature back here */}
+      {/* TODO: Add the DateHistogram feature back here */}
     </Container>
   )
 }

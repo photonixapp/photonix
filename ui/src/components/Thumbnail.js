@@ -177,7 +177,10 @@ const Thumbnail = ({
       {...rest}
     >
       {mode === 'ALBUMS' ? (
-        <Link to={`?mode=albums&album_id=${albumId}`} key={albumId}>
+        <Link
+          to={`?mode=albums&album_id=${albumId}&album_name=${albumName}`}
+          key={albumId}
+        >
           <div
             className="thumbnail-area"
             title={albumName.length > 8 && albumName}
