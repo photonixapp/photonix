@@ -223,7 +223,6 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   const fetchNextPreviousPhoto = async (val) => {
     const { endCursor } = photosData.allPhotos.pageInfo
     let photo_variables = {}
-    // TODO
     const timelinePhoto = timelinePhotoIds.photos.photosDetail.find(
       (item) => item.node.id === photoId
     )
@@ -364,7 +363,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           <ArrowBackIcon
             alt="Close"
             onClick={() => {
-              if (document.referrer !== '') {
+              if (document.referrer !== '' || history.length > 2) {
                 history.goBack()
               } else {
                 history.push('/')
