@@ -95,8 +95,18 @@ const Header = ({ profile, libraries }) => {
         Photonix
       </div>
       <div className="navigation"></div>
-      <Notification showNotification={showNotification} setShowNotification={setShowNotification} setShowUserMenu={setShowUserMenu}/>
-      <User profile={profile} libraries={libraries} showUserMenu={showUserMenu} setShowUserMenu={setShowUserMenu} setShowNotification={setShowNotification} />
+      <Notification
+        showNotification={showNotification}
+        setShowNotification={setShowNotification}
+        setShowUserMenu={setShowUserMenu}
+      />
+      <User
+        profile={profile}
+        libraries={libraries}
+        showUserMenu={showUserMenu}
+        setShowUserMenu={setShowUserMenu}
+        setShowNotification={setShowNotification}
+      />
     </Container>
   )
 }
