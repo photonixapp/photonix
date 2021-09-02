@@ -17,7 +17,7 @@ class ColorModel:
         self.colors = {
             # Name: ((red, green, blue), ordering)
 
-            'Red':                  ((120, 4, 20),     1),
+            'Red':                  ((120, 4, 20),      1),
             'Orange':               ((245, 133, 0),     2),
             'Amber':                ((234, 166, 30),    3),
             'Yellow':               ((240, 240, 39),    4),

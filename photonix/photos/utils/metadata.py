@@ -13,7 +13,7 @@ class PhotoMetadata(object):
         self.data = {}
         try:
             # exiftool produces data such as MIME Type for non-photos too
-            result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8')
+            result = Popen(['exiftool', path], stdout=PIPE, stdin=PIPE, stderr=PIPE).communicate()[0].decode('utf-8', 'ignore')
         except UnicodeDecodeError:
             result = ''
         for line in str(result).split('\n'):
@@ -43,10 +43,13 @@ def parse_datetime(date_str):
     try:
         return datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S').replace(tzinfo=utc)
     except ValueError:
-        parsed_date = parse_date(date_str)
-        if not parsed_date.tzinfo:
-            parsed_date = parsed_date.replace(tzinfo=utc)
-        return parsed_date
+        try:
+            parsed_date = parse_date(date_str)
+            if not parsed_date.tzinfo:
+                parsed_date = parsed_date.replace(tzinfo=utc)
+            return parsed_date
+        except ValueError:
+            return None
 
 
 def parse_gps_location(gps_str):
@@ -72,11 +75,19 @@ def get_datetime(path):
     '''
     # TODO: Use 'GPS Date/Time' if available as it's more accurate
 
-    # First try the date in the metadate
+    # First try the date in the metadata
     metadata = PhotoMetadata(path)
     date_str = metadata.get('Date/Time Original')
     if date_str:
-        return parse_datetime(date_str)
+        parsed_datetime = parse_datetime(date_str)
+        if parsed_datetime:
+            return parsed_datetime
+
+    date_str = metadata.get('Create Date')
+    if date_str:
+        parsed_datetime = parse_datetime(date_str)
+        if parsed_datetime:
+            return parsed_datetime
 
     # If there was not date metadata, try to infer it from filename
     fn = os.path.split(path)[1]
@@ -86,7 +97,12 @@ def get_datetime(path):
     if matched:
         date_str = '{}-{}-{}'.format(matched.group(1), matched.group(3), matched.group(4))
         return datetime.strptime(date_str, '%Y-%m-%d')
-    return None
+
+    # Otherwise get file creation time
+    try:
+        return datetime.fromtimestamp(os.stat(path).st_ctime).replace(tzinfo=utc)
+    except:
+        return None
 
 
 def get_dimensions(path):

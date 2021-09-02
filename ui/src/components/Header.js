@@ -1,12 +1,12 @@
-import React from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import styled from '@emotion/styled'
 
 import User from './User'
+import Notification from './Notification'
 import { getIsMobileApp, getSafeArea } from '../stores/layout/selector'
 import { ReactComponent as Logo } from '../static/images/logo.svg'
 import { ReactComponent as MenuIcon } from '../static/images/menu.svg'
-// import notifications from '../static/images/notifications.svg'
 
 const Container = styled('div')`
   height: 50px;
@@ -45,15 +45,39 @@ const Container = styled('div')`
   .navigation {
     flex-grow: 1;
   }
-  .notifications {
-    width: 50px;
-  }
 `
+export const useComponentVisible = (initialIsVisible, type) => {
+  const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible)
+  const ref = useRef(null)
+
+  const handleHideDropdown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setIsComponentVisible(false)
+    }
+  }
+
+  const handleClickOutside = (event) => {
+    if (ref.current && !ref.current.contains(event.target)) {
+      setIsComponentVisible(false)
+    }
+  }
+  useEffect(() => {
+    document.addEventListener('keydown', handleHideDropdown, false)
+    document.addEventListener('click', handleClickOutside, false)
+    return () => {
+      document.removeEventListener('keydown', handleHideDropdown, true)
+      document.removeEventListener('click', handleClickOutside, true)
+    }
+  })
+
+  return { ref, isComponentVisible, setIsComponentVisible }
+}
 
 const Header = ({ profile, libraries }) => {
   const isMobileApp = useSelector(getIsMobileApp)
   const safeArea = useSelector(getSafeArea)
-
+  const [showNotification, setShowNotification] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   return (
     <Container
       className="flex-container-row"
@@ -70,10 +94,18 @@ const Header = ({ profile, libraries }) => {
         Photonix
       </div>
       <div className="navigation"></div>
-      {/* <div className="notifications">
-          <img src={notifications} alt="Notifications" />
-        </div> */}
-      <User profile={profile} libraries={libraries} />
+      <Notification
+        showNotification={showNotification}
+        setShowNotification={setShowNotification}
+        setShowUserMenu={setShowUserMenu}
+      />
+      <User
+        profile={profile}
+        libraries={libraries}
+        showUserMenu={showUserMenu}
+        setShowUserMenu={setShowUserMenu}
+        setShowNotification={setShowNotification}
+      />
     </Container>
   )
 }

@@ -47,6 +47,7 @@ class CreateUser(graphene.Mutation):
 
 class Environment(graphene.ObjectType):
     demo = graphene.Boolean()
+    sample_data = graphene.Boolean()
     first_run = graphene.Boolean()
     form = graphene.String()
     user_id = graphene.ID()
@@ -73,32 +74,44 @@ class Query(graphene.ObjectType):
 
     def resolve_environment(self, info):
         user = User.objects.first()
+        demo = os.environ.get('DEMO', False)
+        sample_data = os.environ.get('DEMO', False) or os.environ.get('SAMPLE_DATA', False)
+
         if user and user.has_config_persional_info and \
             user.has_created_library and user.has_configured_importing and \
                 user.has_configured_image_analysis:
             return {
-                'demo': os.environ.get('DEMO', False),
+                'demo': demo,
+                'sample_data': sample_data,
                 'first_run': False,
             }
         else:
             if not user or not user.is_authenticated:
                 return {
-                    'demo': os.environ.get('DEMO', False), 'first_run': True,
+                    'demo': demo,
+                    'sample_data': sample_data,
+                    'first_run': True,
                     'form': 'has_config_persional_info'}
             if not user.has_created_library:
                 return {
-                    'demo': os.environ.get('DEMO', False), 'first_run': True,
+                    'demo': demo,
+                    'sample_data': sample_data,
+                    'first_run': True,
                     'form': 'has_created_library', 'user_id': user.id}
             if not user.has_configured_importing:
                 return {
-                    'demo': os.environ.get('DEMO', False), 'first_run': True,
+                    'demo': demo,
+                    'sample_data': sample_data,
+                    'first_run': True,
                     'form': 'has_configured_importing', 'user_id': user.id,
                     'library_id': Library.objects.filter(users__user=user)[0].id,
                     'library_path_id': LibraryPath.objects.filter(library__users__user=user)[0].id
                 }
             if not user.has_configured_image_analysis:
                 return {
-                    'demo': os.environ.get('DEMO', False), 'first_run': True,
+                    'demo': demo,
+                    'sample_data': sample_data,
+                    'first_run': True,
                     'form': 'has_configured_image_analysis', 'user_id': user.id,
                     'library_id': Library.objects.filter(users__user=user)[0].id,
                 }

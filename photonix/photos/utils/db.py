@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 import imghdr
 import mimetypes
-import os
+import os, time
 import re
 import subprocess
 
@@ -55,11 +55,13 @@ def record_photo(path, library, inotify_event_type=None):
 
     metadata = PhotoMetadata(path)
     date_taken = None
-    possible_date_keys = ['Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'Modify Date', 'File Modification Date/Time']
+    possible_date_keys = ['Create Date', 'Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'File Modification Date/Time']
     for date_key in possible_date_keys:
         date_taken = parse_datetime(metadata.get(date_key))
         if date_taken:
             break
+    # If EXIF data not found.
+    date_taken = date_taken or datetime.strptime(time.ctime(os.path.getctime(path)), "%a %b %d %H:%M:%S %Y")
 
     camera = None
     camera_make = metadata.get('Make', '')[:Camera.make.field.max_length]
@@ -152,7 +154,7 @@ def record_photo(path, library, inotify_event_type=None):
         for subject in metadata.get('Subject', '').split(','):
             subject = subject.strip()
             if subject:
-                tag = Tag.objects.create(library_id=library_id, name=subject, type="G")
+                tag, _ = Tag.objects.get_or_create(library_id=library_id, name=subject, type="G")
                 PhotoTag.objects.create(
                     photo=photo,
                     tag=tag,

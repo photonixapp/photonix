@@ -32,7 +32,7 @@ services:
       - '8880:8001'
     environment:
       ENV: dev
-      DEMO: 1
+      SAMPLE_DATA: 1
       POSTGRES_HOST: postgres
       POSTGRES_DB: photonix
       POSTGRES_USER: postgres

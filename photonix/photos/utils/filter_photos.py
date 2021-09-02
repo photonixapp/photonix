@@ -120,6 +120,8 @@ def filter_photos_queryset(filters, queryset, library_id=None):
                     star_rating__gte=int(val.split("-")[0]),
                     star_rating__lte=int(val.split("-")[1]),
                 )
+            elif key == "id":
+                queryset = queryset.filter(id=val)
         else:
             if filter_val not in removable_date_filters:
                 queryset = queryset.filter(photo_tags__tag__name__icontains=filter_val)

@@ -19,7 +19,7 @@ def get_or_create_tag(library, name, type, source, parent=None, ordering=None):
     return tag
 
 
-def get_photo_by_any_type(photo_id):
+def get_photo_by_any_type(photo_id, model=None):
     is_photo_instance = False
     photo = None
 
@@ -33,7 +33,7 @@ def get_photo_by_any_type(photo_id):
 
     # Is an individual filename so return the prediction
     if not is_photo_instance:
-        return None, model.predict(photo_id)
+        return None
 
     # Is a Photo model instance so needs saving
     if not photo:
@@ -50,6 +50,9 @@ def get_photo_by_any_type(photo_id):
 
 
 def results_for_model_on_photo(model, photo_id):
-    photo = get_photo_by_any_type(photo_id)
-    results = model.predict(photo.base_image_path)
+    photo = get_photo_by_any_type(photo_id, model)
+    if photo:
+        results = model.predict(photo.base_image_path)
+    else:
+        results = model.predict(photo_id)
     return photo, results

@@ -52,6 +52,7 @@ const ENVIRONMENT = gql`
   {
     environment {
       demo
+      sampleData
       firstRun
       form
       userId
@@ -134,7 +135,7 @@ const Login = (props) => {
             ref={(node) => {
               inputUsername = node
             }}
-            defaultValue={envData && envData.environment.demo ? 'demo' : ''}
+            defaultValue={envData && (envData.environment.demo || envData.environment.sampleData) ? 'demo' : ''}
           />
         </Row>
         <Row>
@@ -144,7 +145,7 @@ const Login = (props) => {
             ref={(node) => {
               inputPassword = node
             }}
-            defaultValue={envData && envData.environment.demo ? 'demo' : ''}
+            defaultValue={envData && (envData.environment.demo || envData.environment.sampleData) ? 'demo' : ''}
           />
         </Row>
         <button type="submit" style={{ cursor: 'pointer' }}>

@@ -1,10 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 
 import { getActiveLibrary } from '../stores/libraries/selector'
+import { useComponentVisible } from './Header'
 import { ReactComponent as AccountCircleIcon } from '../static/images/account_circle.svg'
 import { ReactComponent as MoreVertIcon } from '../static/images/more_vert.svg'
 import { ReactComponent as LibraryIcon } from '../static/images/library.svg'
@@ -106,33 +107,13 @@ const Container = styled('div')`
   }
 `
 
-function useComponentVisible(initialIsVisible) {
-  const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible)
-  const ref = useRef(null)
-
-  const handleHideDropdown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      setIsComponentVisible(false)
-    }
-  }
-
-  const handleClickOutside = (event) => {
-    if (ref.current && !ref.current.contains(event.target)) {
-      setIsComponentVisible(false)
-    }
-  }
-  useEffect(() => {
-    document.addEventListener('keydown', handleHideDropdown, false)
-    document.addEventListener('click', handleClickOutside, false)
-    return () => {
-      document.removeEventListener('keydown', handleHideDropdown, true)
-      document.removeEventListener('click', handleClickOutside, true)
-    }
-  })
-
-  return { ref, isComponentVisible, setIsComponentVisible }
-}
-const User = ({ profile, libraries }) => {
+const User = ({
+  profile,
+  libraries,
+  showUserMenu,
+  setShowUserMenu,
+  setShowNotification,
+}) => {
   const dispatch = useDispatch()
   const activeLibrary = useSelector(getActiveLibrary)
   const {
@@ -153,13 +134,18 @@ const User = ({ profile, libraries }) => {
   }
   const handleShowMenu = () => {
     setIsComponentVisible(true)
+    setShowUserMenu(true)
+    setShowNotification(false)
   }
+  useEffect(() => {
+    if (!isComponentVisible) setShowUserMenu(false)
+  }, [isComponentVisible, setShowUserMenu])
   return (
     <Container ref={ref} onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
       <MoreVertIcon />
       <ul
         className="userMenu"
-        style={{ display: isComponentVisible ? 'block' : 'none' }}
+        style={{ display: showUserMenu ? 'block' : 'none' }}
       >
         {profile ? (
           <Link to="/account">
