@@ -9,7 +9,7 @@ import { ENVIRONMENT } from '../graphql/onboarding'
 import Browse from '../components/Browse'
 import { getActiveLibrary } from '../stores/libraries/selector'
 
-const PHOTO_PER_PAGE = 15
+const PHOTO_PER_PAGE = 100
 
 const GET_LIBRARIES = gql`
   {
@@ -179,7 +179,7 @@ const BrowseContainer = (props) => {
       setPhotoData(photosData)
       let ids = photosData?.allPhotos.edges.map((item) => item.node.id)
       let photoList = photosData?.allPhotos.edges
-      let data = {ids: ids, photoList: photoList}
+      let data = { ids: ids, photoList: photoList }
       updatePhotosStore(data)
     }
   }, [envData, photosData, updatePhotosStore])

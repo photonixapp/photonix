@@ -5,7 +5,6 @@ import useLocalStorageState from 'use-local-storage-state'
 import history from '../history'
 import gql from 'graphql-tag'
 
-// import GET_PHOTOS from '../containers/BrowseContainer'
 import { useQuery } from '@apollo/client'
 
 import ZoomableImage from './ZoomableImage'
@@ -28,8 +27,22 @@ const BEFORE = 'before'
 const AFTER = 'after'
 
 const GET_PHOTOS = gql`
-  query Photos($filters: String, $after: String, $first: Int, $last: Int, $before: String $id: UUID) {
-    allPhotos(multiFilter: $filters, first: $first, after: $after, before:$before, last: $last, id: $id) {
+  query Photos(
+    $filters: String
+    $after: String
+    $first: Int
+    $last: Int
+    $before: String
+    $id: UUID
+  ) {
+    allPhotos(
+      multiFilter: $filters
+      first: $first
+      after: $after
+      before: $before
+      last: $last
+      id: $id
+    ) {
       pageInfo {
         endCursor
         hasNextPage
@@ -131,7 +144,6 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
-  const [numHistoryPushes, setNumHistoryPushes] = useState(0)
 
   const [fetchNextPrevious, setFetchNextPrevious] = useState(false)
 
@@ -139,10 +151,9 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     'firstPrevious',
     0
   )
-// TODO 
+
   const timelinePhotoIds = useSelector(photos)
-  // const mapPhotoIds = useSelector(mapPhot)
-  
+
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
   //   const handleKeyDown = (event) => {
@@ -162,7 +173,6 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   //   }
   // }, [showMetadata])
 
-
   const {
     loading: photoLoading,
     error: photosError,
@@ -174,9 +184,9 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
       variables: {
         filters: '',
         id: photoId,
-        first:1,
+        first: 1,
         last: null,
-        after: ''
+        after: '',
       },
     },
     {
@@ -190,7 +200,6 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     console.log('photoLoading', photosError)
   }
 
-// TODO
   const updatePhotosStore = useCallback(
     (data) => {
       dispatch({
@@ -201,16 +210,23 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     [dispatch]
   )
 
-  // To fetch next/prevoius photos.
+  // Fetch next/prevoius photo
   const fetchNextPreviousPhoto = async (val) => {
     const { endCursor } = photosData.allPhotos.pageInfo
     let photo_variables = {}
     // TODO
-    const timelinePhoto = timelinePhotoIds.photos.photosDetail.find( (item) => item.node.id === photoId)
-    // const mapPhotoId = mapPhotoIds.photos.photosDetail.find( (item) => item.node.id === photoId)
-    if (val === AFTER) photo_variables = {after: timelinePhoto.cursor, id: null}
-    else if(val === BEFORE){
-      photo_variables = {before: firstPrevious >= 1? endCursor : null, id: null, first:null, last:1}
+    const timelinePhoto = timelinePhotoIds.photos.photosDetail.find(
+      (item) => item.node.id === photoId
+    )
+    if (val === AFTER)
+      photo_variables = { after: timelinePhoto.cursor, id: null }
+    else if (val === BEFORE) {
+      photo_variables = {
+        before: firstPrevious >= 1 ? endCursor : null,
+        id: null,
+        first: null,
+        last: 1,
+      }
       if (firstPrevious < 1) setFirstPrevious(firstPrevious + 1)
     }
     await fetchMorePhotos({
@@ -220,34 +236,48 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
           ...prevResult.allPhotos.edges,
           ...fetchMoreResult.allPhotos.edges,
         ]
-        setFetchNextPrevious(fetchMoreResult.allPhotos.edges[fetchMoreResult.allPhotos.edges.length-1])
-        if (val !== BEFORE) updatePhotosStore({ids:[fetchMoreResult.allPhotos.edges[fetchMoreResult.allPhotos.edges.length-1].node.id], photoList:[fetchMoreResult.allPhotos.edges[fetchMoreResult.allPhotos.edges.length-1]]})
+        setFetchNextPrevious(
+          fetchMoreResult.allPhotos.edges[
+            fetchMoreResult.allPhotos.edges.length - 1
+          ]
+        )
+        if (val !== BEFORE)
+          updatePhotosStore({
+            ids: [
+              fetchMoreResult.allPhotos.edges[
+                fetchMoreResult.allPhotos.edges.length - 1
+              ].node.id,
+            ],
+            photoList: [
+              fetchMoreResult.allPhotos.edges[
+                fetchMoreResult.allPhotos.edges.length - 1
+              ],
+            ],
+          })
         return fetchMoreResult
       },
     })
   }
 
   // To show next/previous photos.
-  useEffect( () => {
-    if(fetchNextPrevious){
-      history.push(`/photo/${fetchNextPrevious.node.id}`)
-      setNumHistoryPushes(numHistoryPushes + 1)
+  useEffect(() => {
+    if (fetchNextPrevious) {
+      history.replace(`/photo/${fetchNextPrevious.node.id}`)
     }
   }, [fetchNextPrevious])
 
   const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
     if (id) {
-      history.push(`/photo/${id}`)
-      setNumHistoryPushes(numHistoryPushes + 1)
-    }else fetchNextPreviousPhoto(BEFORE)
+      history.replace(`/photo/${id}`)
+    } else fetchNextPreviousPhoto(BEFORE)
   }, [prevNextPhotos])
+
   const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
     if (id) {
-      history.push(`/photo/${id}`)
-      setNumHistoryPushes(numHistoryPushes + 1)
-    }else fetchNextPreviousPhoto(AFTER)
+      history.replace(`/photo/${id}`)
+    } else fetchNextPreviousPhoto(AFTER)
   }, [prevNextPhotos])
 
   useEffect(() => {
@@ -296,11 +326,8 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
         <ArrowBackIcon
           alt="Close"
           onClick={() => {
-            if (
-              history.length - numHistoryPushes > 2 ||
-              document.referrer != ''
-            ) {
-              history.go(-(numHistoryPushes + 1))
+            if (document.referrer != '') {
+              history.go(-1)
             } else {
               history.push('/')
             }
