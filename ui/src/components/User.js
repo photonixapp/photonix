@@ -132,16 +132,23 @@ const User = ({
       payload: lib,
     })
   }
+
   const handleShowMenu = () => {
-    setIsComponentVisible(true)
-    setShowUserMenu(true)
-    setShowNotification(false)
+    if (!isComponentVisible) {
+      setIsComponentVisible(true)
+      setShowUserMenu(true)
+      setShowNotification(false)
+    } else {
+      setIsComponentVisible(false)
+    }
   }
+
   useEffect(() => {
     if (!isComponentVisible) setShowUserMenu(false)
   }, [isComponentVisible, setShowUserMenu])
+
   return (
-    <Container ref={ref} onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
+    <Container ref={ref} onClick={handleShowMenu}>
       <MoreVertIcon />
       <ul
         className="userMenu"

@@ -182,12 +182,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   //   }
   // }, [showMetadata])
 
-  const {
-    loading: photoLoading,
-    error: photosError,
-    data: photosData,
-    fetchMore: fetchMorePhotos,
-  } = useQuery(
+  const { data: photosData, fetchMore: fetchMorePhotos } = useQuery(
     GET_PHOTOS,
     {
       variables: {
@@ -202,12 +197,6 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
       skip: true,
     }
   )
-  if (photosError) {
-    console.log('photosError', photosError)
-  }
-  if (photoLoading) {
-    console.log('photoLoading', photosError)
-  }
 
   const updatePhotosStore = useCallback(
     (data) => {
