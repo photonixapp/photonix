@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
-import useLocalStorageState from 'use-local-storage-state'
 import { useSwipeable } from 'react-swipeable'
 
 import Header from './Header'
@@ -86,10 +85,7 @@ const Browse = ({
   refetchAlbumList,
   mapPhotosRefetch,
 }) => {
-  const [expanded, setExpanded] = useLocalStorageState(
-    'searchExpanded',
-    window.innerHeight > 850 ? true : false
-  )
+  const [expanded, setExpanded] = useState(false)
   const renderContent = () => {
     switch (mode) {
       case 'ALBUM_ID':
@@ -100,7 +96,6 @@ const Browse = ({
             refetchPhotoList={refetchPhotoList}
             refetchAlbumList={refetchAlbumList}
             mapPhotosRefetch={mapPhotosRefetch}
-            setExpanded={setExpanded}
             mode={mode}
           />
         )
@@ -180,7 +175,7 @@ const Browse = ({
             {
               label: 'Timeline',
               onClick: () => {
-                setExpanded(true)
+                setExpanded(false)
                 mode === 'ALBUMS' && onClearFilters()
                 history.push('?mode=timeline')
               },
@@ -196,7 +191,7 @@ const Browse = ({
             {
               label: 'Map',
               onClick: () => {
-                setExpanded(true)
+                setExpanded(false)
                 history.push('?mode=map')
               },
             },

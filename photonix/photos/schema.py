@@ -227,10 +227,10 @@ class TagNode(DjangoObjectType):
         interfaces = (CustomNode, PhotoInterface)
 
     def resolve_photos_count(self, info):
-        return self.photo_tags.all().count()
+        return self.photo_tags.count()
 
     def resolve_cover_image(self, info):
-        if self.photo_tags:
+        if self.photo_tags.count():
             return self.photo_tags.order_by('-photo__taken_at')[0].photo
         return None
 

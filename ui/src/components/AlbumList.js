@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import styled from '@emotion/styled'
 
 import Thumbnails from './Thumbnails'
@@ -15,14 +15,9 @@ const AlbumList = ({
   refetchPhotoList,
   refetchAlbumList,
   mapPhotosRefetch,
-  setExpanded,
   mode,
 }) => {
   const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
-
-  useEffect(() => {
-    setExpanded(true)
-  }, [setExpanded])
 
   const params = new URLSearchParams(window.location.search)
   const albumName = params.get('album_name')
