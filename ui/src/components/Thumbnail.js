@@ -199,7 +199,7 @@ const Thumbnail = ({
               <StarRatingStyled>
                 <StarRating
                   starRating={newStarRating}
-                  onStarClick={!selectable && onStarClick}
+                  onStarClick={!selectable ? onStarClick : null}
                 />
               </StarRatingStyled>
             )}
@@ -221,7 +221,7 @@ const Thumbnail = ({
               <StarRatingStyled>
                 <StarRating
                   starRating={newStarRating}
-                  onStarClick={!selectable && onStarClick}
+                  onStarClick={!selectable ? onStarClick : null}
                 />
               </StarRatingStyled>
             )}

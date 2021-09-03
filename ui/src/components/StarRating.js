@@ -45,9 +45,10 @@ const StarRating = ({
   }, [alwaysShow, starRating, onStarClick])
 
   useEffect(() => {
-    setDisplayStars(true)
-    onStarLeave()
-  }, [starRating, onStarLeave])
+    if (starHovering) {
+      setDisplayStars(true)
+    }
+  }, [starRating, starHovering, onStarLeave])
 
   const Stars = large ? StarsLarge : StarsSmall
 
