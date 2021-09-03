@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
 import useLocalStorageState from 'use-local-storage-state'
 import { useSwipeable } from 'react-swipeable'
@@ -128,7 +128,7 @@ const Browse = ({
   if (error) content = <p>Error :(</p>
 
   const [searchMinHeight, setSearchMinHeight] = useState(0)
-  const getInitialIndex = () => {
+  const getInitialIndex = useCallback(() => {
     switch (mode) {
       case 'TIMELINE':
         return 0
@@ -141,11 +141,11 @@ const Browse = ({
       default:
         return 0
     }
-  }
+  }, [mode])
   const [tabSelectedIndex, setTabSelectedIndex] = useState(getInitialIndex)
   useEffect(() => {
     setTabSelectedIndex(getInitialIndex)
-  }, [mode])
+  }, [mode, getInitialIndex])
 
   return (
     <Container>

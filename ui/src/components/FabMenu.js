@@ -57,7 +57,7 @@ const Container = styled('div')`
     }
     .option .optionsLink {
       text-decoration: none;
-      color: #FFF;
+      color: #fff;
     }
   }
   .position {
@@ -129,7 +129,7 @@ const FabMenu = ({
           mapPhotosRefetch()
         }
       })
-      .catch((e) => { })
+      .catch((e) => {})
   }
 
   const removeFromAlbum = () => {
@@ -146,7 +146,7 @@ const FabMenu = ({
           mapPhotosRefetch()
         }
       })
-      .catch((e) => { })
+      .catch((e) => {})
   }
   return (
     <Container>
@@ -167,30 +167,36 @@ const FabMenu = ({
                 }}
                 key={index}
               >
-                {option.label === 'Delete' || option.label === 'Remove from album'
-                  ?
+                {option.label === 'Delete' ||
+                option.label === 'Remove from album' ? (
                   <>
-                    <div onClick={ option.label === 'Delete' ? setPhotosDeletedTrue : removeFromAlbum }>
+                    <div
+                      onClick={
+                        option.label === 'Delete'
+                          ? setPhotosDeletedTrue
+                          : removeFromAlbum
+                      }
+                    >
                       {option.icon}
                       {option.label}
                     </div>
                   </>
-                  :
+                ) : (
                   <Link
                     to={{
-                      pathname: "/addtag",
+                      pathname: '/addtag',
                       state: {
                         photoIds: photoIds,
                         // refetchAlbumList: refetchAlbumList,
-                        tagType: option.label == 'Add to album' ? 'A' : 'G'
-                      }
+                        tagType: option.label === 'Add to album' ? 'A' : 'G',
+                      },
                     }}
                     className="optionsLink"
                   >
                     {option.icon}
                     {option.label}
                   </Link>
-                }
+                )}
               </div>
             )
           })}

@@ -125,8 +125,8 @@ const Thumbnails = ({
   )
 
   useEffect(() => {
-    setSelected([])
-  }, [mode === 'ALBUMS'])
+    if (mode === 'ALBUMS') setSelected([])
+  }, [mode])
 
   useEffect(() => {
     const handleKeyDown = (event) => {

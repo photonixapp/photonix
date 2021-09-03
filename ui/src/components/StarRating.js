@@ -42,7 +42,7 @@ const StarRating = ({
       setStarHovering(starRating)
       !alwaysShow && setDisplayStars(starRating > 0)
     }
-  }, [alwaysShow, starRating])
+  }, [alwaysShow, starRating, onStarClick])
 
   useEffect(() => {
     setDisplayStars(true)

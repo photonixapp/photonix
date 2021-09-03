@@ -61,8 +61,18 @@ const GET_MAP_PHOTOS = gql`
   }
 `
 const GET_ALBUMS = gql`
-  query AlbumList($libraryId: UUID, $name_Icontains: String, $after: String, $first: Int) {
-    albumList(libraryId: $libraryId, name_Icontains: $name_Icontains, first: $first, after: $after) {
+  query AlbumList(
+    $libraryId: UUID
+    $name_Icontains: String
+    $after: String
+    $first: Int
+  ) {
+    albumList(
+      libraryId: $libraryId
+      name_Icontains: $name_Icontains
+      first: $first
+      after: $after
+    ) {
       pageInfo {
         endCursor
         hasNextPage
@@ -73,7 +83,7 @@ const GET_ALBUMS = gql`
           id
           name
           photosCount
-          coverImage{
+          coverImage {
             id
             location
             starRating
@@ -98,8 +108,8 @@ const BrowseContainer = (props) => {
   const mode = params.get('album_id')
     ? 'ALBUM_ID'
     : params.get('mode')
-      ? params.get('mode').toUpperCase()
-      : 'TIMELINE'
+    ? params.get('mode').toUpperCase()
+    : 'TIMELINE'
 
   if (mode === 'MAP' && !isMapShowing) setIsMapShowing(true)
 
@@ -137,7 +147,6 @@ const BrowseContainer = (props) => {
 
   let photoSections = []
   let photos = []
-  let albumSections = []
   let albums = []
   let filtersStr = ''
   if (activeLibrary) {
@@ -153,7 +162,8 @@ const BrowseContainer = (props) => {
       if (filtersStr !== searchStr) setSearchStr(filtersStr)
     }
   }
-  const albumTagFilterStr = params.get('album_id') && `tag:${params.get('album_id')} ${searchStr}`
+  const albumTagFilterStr =
+    params.get('album_id') && `tag:${params.get('album_id')} ${searchStr}`
   const {
     loading: photosLoading,
     error: photosError,
@@ -255,7 +265,10 @@ const BrowseContainer = (props) => {
           id: album.node.coverImage.id,
           thumbnail: `/thumbnailer/photo/256x256_cover_q50/${album.node.coverImage.id}/`,
           location: album.node.coverImage.location
-            ? [album.node.coverImage.location.split(',')[0], album.node.coverImage.location.split(',')[1]]
+            ? [
+                album.node.coverImage.location.split(',')[0],
+                album.node.coverImage.location.split(',')[1],
+              ]
             : null,
           starRating: album.node.coverImage.starRating,
           albumId: album.node.id,
@@ -264,7 +277,6 @@ const BrowseContainer = (props) => {
         })
       }
       return result
-
     }, [])
   }
 
@@ -280,14 +292,15 @@ const BrowseContainer = (props) => {
   }
 
   photoSections.push(section)
-  let anyLoading = profileLoading || librariesLoading || photosLoading || albumLoading
+  let anyLoading =
+    profileLoading || librariesLoading || photosLoading || albumLoading
   let anyError = profileError
     ? profileError
     : librariesError
-      ? librariesError
-      : photosError
-        ? photosError
-        : albumError
+    ? librariesError
+    : photosError
+    ? photosError
+    : albumError
 
   useEffect(() => {
     if (isMapShowing) mapPhotosRefetch()

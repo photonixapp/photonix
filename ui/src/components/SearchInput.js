@@ -204,7 +204,7 @@ const SearchInput = ({
   const handleOnChange = (e) => {
     onSearchTextChange(e.target.value)
     const userInput = e.currentTarget.value
-    if (mode !== 'ALBUMS'){
+    if (mode !== 'ALBUMS') {
       const filteredOptions = options.filter(
         (optionName) =>
           optionName.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1
@@ -299,8 +299,8 @@ const SearchInput = ({
   const showSearchIcon = !hasContent || window.innerWidth > 700
 
   useEffect(() => {
-    setShowOptions(false)
-  }, [mode === 'ALBUMS'])
+    if (mode === 'ALBUMS') setShowOptions(false)
+  }, [mode])
 
   return (
     <Container ref={container}>

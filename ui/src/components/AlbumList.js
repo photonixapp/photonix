@@ -19,9 +19,10 @@ const AlbumList = ({
   mode,
 }) => {
   const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
+
   useEffect(() => {
     setExpanded(true)
-  }, [])
+  }, [setExpanded])
 
   const params = new URLSearchParams(window.location.search)
   const albumName = params.get('album_name')
