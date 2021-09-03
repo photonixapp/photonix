@@ -18,10 +18,10 @@ const Container = styled('div')`
 
   ul {
     position: relative;
-    margin: 0;
+    margin: -3px 0 0 0;
     padding: 0;
     list-style: none;
-    padding: 0 0 10px 30px;
+    padding: 0 25px 10px 35px;
     display: flex;
     align-items: flex-start;
     flex-wrap: wrap;
@@ -76,14 +76,14 @@ const Container = styled('div')`
     cursor: pointer;
     position: absolute;
     left: 5px;
-    bottom: 18px;
+    bottom: 17px;
   }
   svg.clearAll {
     filter: invert(0.7);
     cursor: pointer;
     position: absolute;
     right: 25px;
-    bottom: 20px;
+    bottom: 17px;
   }
   svg.clearAll:hover {
     opacity: 0.6;
