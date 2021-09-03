@@ -260,9 +260,9 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
       fetchMorePhotos,
       firstPrevious,
       photoId,
-      photosData.allPhotos.pageInfo,
+      photosData,
       setFirstPrevious,
-      timelinePhotoIds.photos.photosDetail,
+      timelinePhotoIds,
       updatePhotosStore,
     ]
   )
