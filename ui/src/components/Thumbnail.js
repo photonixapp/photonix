@@ -178,7 +178,9 @@ const Thumbnail = ({
     >
       {mode === 'ALBUMS' ? (
         <Link
-          to={`?mode=albums&album_id=${albumId}&album_name=${albumName}`}
+          to={`?mode=albums&album_id=${albumId}&album_name=${encodeURIComponent(
+            albumName
+          )}`}
           key={albumId}
         >
           <div
