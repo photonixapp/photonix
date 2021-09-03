@@ -149,7 +149,7 @@ const Thumbnail = ({
   const canHover = window.matchMedia('(hover: hover)').matches
   if (canHover) {
     onStarClick = (num, e) => {
-      e.preventDefault()
+      e.stopPropagation()
       if (newStarRating === num) {
         updateStarRating(0)
         updatePhoto({

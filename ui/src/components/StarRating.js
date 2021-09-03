@@ -58,7 +58,7 @@ const StarRating = ({
         const args = {
           onMouseEnter: () => onStarEnter(i + 1),
           onMouseLeave: () => onStarLeave(),
-          onClick: (e) => onStarClick && onStarClick(i + 1, e),
+          onMouseDown: (e) => onStarClick && onStarClick(i + 1, e), // We actually use onMouseDown rather than onClick as this is the event that useLongPress uses and we need to stopPropagation
           key: i + 1,
           alt: `${i + 1} stars`,
         }
