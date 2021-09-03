@@ -6,7 +6,7 @@
 }
 .FiltersContent {
   width: max-content;
-  padding-left: 40px;
+  padding-left: 50px;
 }
 
 .PeekAnimation {
@@ -62,7 +62,7 @@
   overflow-y: auto;
   scrollbar-width: none;
   margin: 0;
-  padding: 20px 0 70px 0;
+  padding: 10px 0 70px 0;
   display: inline-block;
   vertical-align: top;
   margin-right: 20px;
