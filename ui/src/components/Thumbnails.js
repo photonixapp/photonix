@@ -7,6 +7,7 @@ import { useHistory } from 'react-router-dom'
 import Thumbnail from './Thumbnail'
 import FabMenu from '../components/FabMenu'
 import { ReactComponent as AlbumIcon } from '../static/images/album_outlined.svg'
+import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as DeleteIcon } from '../static/images/delete_outlined.svg'
 import { ReactComponent as TagIcon } from '../static/images/tag_outlined.svg'
 
@@ -17,6 +18,16 @@ const Container = styled('ul')`
 
   & > h2 {
     display: block;
+  }
+
+  .backIcon {
+    cursor: pointer;
+    margin-right: 10px;
+    vertical-align: middle;
+    display: inline-block;
+    svg {
+      filter: invert(0.9);
+    }
   }
 
   .section {
@@ -30,6 +41,8 @@ const Container = styled('ul')`
     }
     h2 {
       font-size: 18px;
+      display: inline-block;
+      margin: 0 0 20px 0;
     }
   }
 
@@ -174,9 +187,24 @@ const Thumbnails = ({
         {photoSections
           ? photoSections.map((section) => (
               <div className="section" id={section.id} key={section.id}>
-                {section.title ? (
-                  <SectionHeading>{section.title}</SectionHeading>
-                ) : null}
+                <div>
+                  {mode === 'ALBUM_ID' && (
+                    <div className="backIcon" title="Back to album list">
+                      <ArrowBackIcon
+                        onClick={() => {
+                          if (document.referrer !== '' || history.length > 2) {
+                            history.goBack()
+                          } else {
+                            history.push('/?mode=albums')
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                  {section.title ? (
+                    <SectionHeading>{section.title}</SectionHeading>
+                  ) : null}
+                </div>
                 <div className="thumbnails">
                   {section.segments.map((segment) =>
                     segment.photos.map((photo) => {
