@@ -7,6 +7,7 @@
 .FiltersContent {
   width: max-content;
   padding-left: 50px;
+  transition: opacity 500ms;
 }
 
 .PeekAnimation {

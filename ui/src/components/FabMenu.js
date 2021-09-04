@@ -121,6 +121,7 @@ const FabMenu = ({ options, photoIds, onSuccess }) => {
                   top: MENU_WIDTH / 2 + pos[1] * -1,
                 }}
                 key={index}
+                title={option.description}
               >
                 <div
                   onClick={() => {
@@ -151,6 +152,7 @@ FabMenu.propTypes = {
   options: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string,
+      description: PropTypes.string,
       icon: PropTypes.element,
       onClick: PropTypes.func,
     })

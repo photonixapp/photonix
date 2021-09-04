@@ -128,24 +128,28 @@ const Thumbnails = ({
 
   let options = [
     {
-      label: 'Tag',
+      label: '+ Tag',
+      description: 'Add tag to selected photos',
       icon: <TagIcon />,
       onClick: () =>
         history.push(`/assign-tag`, { photoIds: selected, tagType: 'G' }),
     },
     {
-      label: 'Add to album',
+      label: '+ Album',
+      description: 'Add selected photos to album',
       icon: <AlbumIcon />,
       onClick: () =>
         history.push(`/assign-album`, { photoIds: selected, tagType: 'A' }),
     },
     {
-      label: 'Remove from album',
+      label: '− Album',
+      description: 'Remove selected photos from album',
       icon: <AlbumIcon />,
       onClick: removeFromAlbum,
     },
     {
       label: 'Delete',
+      description: 'Delete selected photos',
       icon: <DeleteIcon />,
       onClick: setPhotosDeletedTrue,
     },
