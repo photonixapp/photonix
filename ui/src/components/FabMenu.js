@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 import classNames from 'classnames/bind'
-import { Link } from 'react-router-dom'
 import { ReactComponent as AddIcon } from '../static/images/add.svg'
 
 const MENU_WIDTH = 400

@@ -226,9 +226,7 @@ const BrowseContainer = (props) => {
     photos = photoData.allPhotos.edges.map((photo) => ({
       id: photo.node.id,
       thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
-      location: photo.node.location
-        ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
-        : null,
+      location: photo.node.location,
       starRating: photo.node.starRating,
     }))
   }
@@ -264,12 +262,7 @@ const BrowseContainer = (props) => {
         result.push({
           id: album.node.coverImage.id,
           thumbnail: `/thumbnailer/photo/256x256_cover_q50/${album.node.coverImage.id}/`,
-          location: album.node.coverImage.location
-            ? [
-                album.node.coverImage.location.split(',')[0],
-                album.node.coverImage.location.split(',')[1],
-              ]
-            : null,
+          location: album.node.coverImage.location,
           starRating: album.node.coverImage.starRating,
           albumId: album.node.id,
           albumName: album.node.name,
@@ -312,9 +305,7 @@ const BrowseContainer = (props) => {
     photosWithLocation = mapPhotosData.mapPhotos.edges.map((photo) => ({
       id: photo.node.id,
       thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
-      location: photo.node.location
-        ? [photo.node.location.split(',')[0], photo.node.location.split(',')[1]]
-        : null,
+      location: photo.node.location,
     }))
   }
 

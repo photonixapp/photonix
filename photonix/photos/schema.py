@@ -67,7 +67,7 @@ class PhotoInterface(graphene.Interface):
 
 class PhotoNode(DjangoObjectType):
     url = graphene.String()
-    location = graphene.String()
+    location = graphene.List(graphene.Float)
     width = graphene.Int()
     height = graphene.Int()
     generic_tags = graphene.List(PhotoTagType)
@@ -89,7 +89,7 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_location(self, info):
         if self.latitude and self.longitude:
-            return '{},{}'.format(self.latitude, self.longitude)
+            return [self.latitude, self.longitude]
         return None
 
     def resolve_url(self, info):
