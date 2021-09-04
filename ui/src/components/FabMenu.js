@@ -1,12 +1,9 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import { useMutation } from '@apollo/client'
 import styled from '@emotion/styled'
 import classNames from 'classnames/bind'
 import { Link } from 'react-router-dom'
 import { ReactComponent as AddIcon } from '../static/images/add.svg'
-import { SET_PHOTOS_DELETED } from '../graphql/tag'
-import { REMOVE_PHOTOS_FROM_ALBUM } from '../graphql/tag'
 
 const MENU_WIDTH = 400
 const PADDING_ANGLE = 15
@@ -92,17 +89,8 @@ const Container = styled('div')`
   }
 `
 
-const FabMenu = ({
-  options,
-  photoIds,
-  refetchPhotoList,
-  refetchAlbumList,
-  mapPhotosRefetch,
-}) => {
+const FabMenu = ({ options, photoIds, onSuccess }) => {
   const [open, setOpen] = useState(false)
-  const [setPhotosDeleted] = useMutation(SET_PHOTOS_DELETED)
-  const [removePhotosFromAlbum] = useMutation(REMOVE_PHOTOS_FROM_ALBUM)
-  const params = new URLSearchParams(window.location.search)
 
   const deg2rad = (degrees) => {
     return degrees / (180 / Math.PI)
@@ -116,38 +104,6 @@ const FabMenu = ({
     return [x, y]
   }
 
-  const setPhotosDeletedTrue = () => {
-    setPhotosDeleted({
-      variables: {
-        photoIds: photoIds.toString(),
-      },
-    })
-      .then((res) => {
-        if (res.data.setPhotosDeleted.ok) {
-          refetchPhotoList()
-          refetchAlbumList()
-          mapPhotosRefetch()
-        }
-      })
-      .catch((e) => {})
-  }
-
-  const removeFromAlbum = () => {
-    removePhotosFromAlbum({
-      variables: {
-        photoIds: photoIds.toString(),
-        albumId: params.get('album_id'),
-      },
-    })
-      .then((res) => {
-        if (res.data.removePhotosFromAlbum.ok) {
-          refetchPhotoList()
-          refetchAlbumList()
-          mapPhotosRefetch()
-        }
-      })
-      .catch((e) => {})
-  }
   return (
     <Container>
       <div className="position">
@@ -167,36 +123,15 @@ const FabMenu = ({
                 }}
                 key={index}
               >
-                {option.label === 'Delete' ||
-                option.label === 'Remove from album' ? (
-                  <>
-                    <div
-                      onClick={
-                        option.label === 'Delete'
-                          ? setPhotosDeletedTrue
-                          : removeFromAlbum
-                      }
-                    >
-                      {option.icon}
-                      {option.label}
-                    </div>
-                  </>
-                ) : (
-                  <Link
-                    to={{
-                      pathname: '/addtag',
-                      state: {
-                        photoIds: photoIds,
-                        // refetchAlbumList: refetchAlbumList,
-                        tagType: option.label === 'Add to album' ? 'A' : 'G',
-                      },
-                    }}
-                    className="optionsLink"
-                  >
-                    {option.icon}
-                    {option.label}
-                  </Link>
-                )}
+                <div
+                  onClick={() => {
+                    option.onClick && option.onClick(photoIds)
+                    onSuccess()
+                  }}
+                >
+                  {option.icon}
+                  {option.label}
+                </div>
               </div>
             )
           })}
@@ -218,13 +153,11 @@ FabMenu.propTypes = {
     PropTypes.shape({
       label: PropTypes.string,
       icon: PropTypes.element,
-      onclick: PropTypes.func,
+      onClick: PropTypes.func,
     })
   ),
   photoIds: PropTypes.array,
-  refetchPhotoList: PropTypes.func,
-  refetchAlbumList: PropTypes.func,
-  mapPhotosRefetch: PropTypes.func,
+  onSuccess: PropTypes.func, // Funciton to call after the onClick of the option - usually something to hide the FabMenu
 }
 
 FabMenu.defaultProps = {

@@ -18,6 +18,7 @@ DefaultFabMenu.args = {
     {
       label: 'Tag',
       icon: <TagIcon />,
+      onClick: () => alert('"Tag" was clicked'),
     },
     {
       label: 'Add to album',

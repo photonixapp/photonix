@@ -10,7 +10,7 @@ import { isTagUpdated } from '../stores/tag/selector'
 import '../static/css/Account.css'
 import '../static/css/Onboarding.css'
 
-export default function AddTag( props ) {
+export default function AddTag(props) {
   const [data, setData] = useState({
     tagName: '',
   })
@@ -25,12 +25,12 @@ export default function AddTag( props ) {
       variables: {
         name: data.tagName,
         photoIds: props.location.state.photoIds.toString(),
-        tagType:props.location.state.tagType,
+        tagType: props.location.state.tagType,
       },
     })
       .then((res) => {
         if (!res.data.assignTagToPhotos.ok) {
-          setError('tagName', 'manual', "Something went wrong!")
+          setError('tagName', 'manual', 'Something went wrong!')
         } else {
           setShowAlert(true)
           dispatch({
@@ -42,6 +42,7 @@ export default function AddTag( props ) {
       })
       .catch((e) => {})
   }
+
   const onChange = (e) => {
     data[e.target.name] = e.target.value
     setData(data)
@@ -52,8 +53,8 @@ export default function AddTag( props ) {
       <form onSubmit={handleSubmit(onSave)}>
         <Flex direction="column" justify="space-between">
           <div>
-            <h2>Add or Assign Tag</h2>
-            
+            <h2>Assign Tag</h2>
+
             {showAlert && (
               <Alert
                 status="success"

@@ -67,7 +67,8 @@ const App = ({
         parentPath="/"
         component={PhotoDetailContainer}
       />
-      <ModalRoute path="/addtag" parentPath="/" component={AddTag} />
+      <ModalRoute path="/assign-tag" parentPath="/" component={AddTag} />
+      <ModalRoute path="/assign-album" parentPath="/" component={AddTag} />
       <ModalRoute
         path="?mode=albums&album_id=:albumId"
         parentPath="/"

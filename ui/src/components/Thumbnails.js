@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
+import { useMutation } from '@apollo/client'
 import { useLongPress, LongPressDetectEvents } from 'use-long-press'
 import styled from '@emotion/styled'
 import { useHistory } from 'react-router-dom'
 
 import Thumbnail from './Thumbnail'
 import FabMenu from '../components/FabMenu'
+import { REMOVE_PHOTOS_FROM_ALBUM } from '../graphql/tag'
+import { SET_PHOTOS_DELETED } from '../graphql/tag'
 import { ReactComponent as AlbumIcon } from '../static/images/album_outlined.svg'
 import { ReactComponent as ArrowBackIcon } from '../static/images/arrow_back.svg'
 import { ReactComponent as DeleteIcon } from '../static/images/delete_outlined.svg'
@@ -86,22 +89,65 @@ const Thumbnails = ({
   const [selected, setSelected] = useState([])
   const [ctrlKeyPressed, setCtrlKeyPressed] = useState(false)
 
+  const [removePhotosFromAlbum] = useMutation(REMOVE_PHOTOS_FROM_ALBUM)
+  const [setPhotosDeleted] = useMutation(SET_PHOTOS_DELETED)
+  const params = new URLSearchParams(window.location.search)
+
+  const removeFromAlbum = (photoIds) => {
+    removePhotosFromAlbum({
+      variables: {
+        photoIds: photoIds.toString(),
+        albumId: params.get('album_id'),
+      },
+    })
+      .then((res) => {
+        if (res.data.removePhotosFromAlbum.ok) {
+          refetchPhotoList()
+          refetchAlbumList()
+          mapPhotosRefetch()
+        }
+      })
+      .catch((e) => {})
+  }
+
+  const setPhotosDeletedTrue = (photoIds) => {
+    setPhotosDeleted({
+      variables: {
+        photoIds: photoIds.toString(),
+      },
+    })
+      .then((res) => {
+        if (res.data.setPhotosDeleted.ok) {
+          refetchPhotoList()
+          refetchAlbumList()
+          mapPhotosRefetch()
+        }
+      })
+      .catch((e) => {})
+  }
+
   let options = [
     {
       label: 'Tag',
       icon: <TagIcon />,
+      onClick: () =>
+        history.push(`/assign-tag`, { photoIds: selected, tagType: 'G' }),
     },
     {
       label: 'Add to album',
       icon: <AlbumIcon />,
+      onClick: () =>
+        history.push(`/assign-album`, { photoIds: selected, tagType: 'A' }),
     },
     {
       label: 'Remove from album',
       icon: <AlbumIcon />,
+      onClick: removeFromAlbum,
     },
     {
       label: 'Delete',
       icon: <DeleteIcon />,
+      onClick: setPhotosDeletedTrue,
     },
   ]
 
@@ -250,6 +296,7 @@ const Thumbnails = ({
           refetchPhotoList={refetchPhotoList}
           refetchAlbumList={refetchAlbumList}
           mapPhotosRefetch={mapPhotosRefetch}
+          onSuccess={() => setSelected([])}
         />
       )}
     </>
