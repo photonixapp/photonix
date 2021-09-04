@@ -2,12 +2,10 @@
   overflow: auto;
   margin: 0 -40px -20px;
   height: 350px;
-  transition: opacity 200ms;
 }
 .FiltersContent {
   width: max-content;
   padding-left: 50px;
-  transition: opacity 500ms;
 }
 
 .PeekAnimation {
@@ -29,10 +27,6 @@
     margin-left: 0;
     transform: translate3d(-200px, 0, 0);
   }
-}
-
-.Browse .collapsed .Filters {
-  opacity: 0;
 }
 
 .Filters .scrollbar {
