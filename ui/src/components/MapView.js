@@ -18,42 +18,41 @@ const Container = styled('div')`
   .leaflet-container {
     height: 100%;
     width: 100%;
+    background: none;
+
+    .leaflet-control-attribution {
+      background: #292929;
+      color: #555;
+      font-size: 10px;
+    }
+    .leaflet-tile-container {
+      filter: contrast(1.03);
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 4px;
+    }
   }
 
   .leaflet-touch .leaflet-bar {
     border: 0;
   }
-  .leaflet-bar a {
-    background-color: #383838;
-    border: 0;
-  }
-  .leaflet-bar a:hover {
-    background-color: #ddd;
-    border: 0;
-  }
-  .leaflet-bar a.leaflet-disabled {
-    opacity: 0;
+
+  .leaflet-bar {
+    box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
+    a {
+      background-color: #383838;
+      border: 0;
+      color: #ddd;
+      &:hover {
+        background-color: #444;
+        border: 0;
+      }
+      &.leaflet-disabled {
+        opacity: 0;
+      }
+    }
   }
 
-  .leaflet-container {
-    background: none;
-  }
-  .leaflet-container .leaflet-control-attribution {
-    background: #292929;
-    color: #555;
-    font-size: 10px;
-  }
-
-  .leaflet-tile-container {
-    filter: contrast(1.03);
-  }
-
-  .leaflet-popup-content-wrapper {
-    border-radius: 4px;
-  }
-  .leaflet-popup-content-wrapper img {
-    display: block;
-  }
   .leaflet-popup-content {
     margin: 4px;
   }
