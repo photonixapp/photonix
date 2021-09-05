@@ -13,7 +13,7 @@ const Container = styled('div')`
   background: rgba(50, 50, 50, 0.9);
   padding: 0;
   border-radius: 20px;
-  box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
   z-index: 10;
 
   .backgroundObround {

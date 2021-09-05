@@ -185,7 +185,7 @@ const Thumbnail = ({
         >
           <div
             className="thumbnail-area"
-            title={albumName.length > 8 && albumName}
+            title={albumName.length > 8 ? albumName : null}
           >
             <LazyLoadImage
               effect="opacity"
