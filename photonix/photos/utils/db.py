@@ -102,8 +102,17 @@ def record_photo(path, library, inotify_event_type=None):
     photo = None
     if date_taken:
         try:
-            # TODO: Match on file number/file name as well
-            photo = Photo.objects.get(taken_at=date_taken)
+            # Fix for issue 347: Photos with the same date are not imported ...
+            photo_set = Photo.objects.filter(taken_at=date_taken)
+            file_found = False
+            if photo_set:
+                for photo_entry in photo_set:
+                    if PhotoFile.objects.get(photo_id=photo_entry).base_image_path == path:
+                        file_found = True
+                        photo = photo_entry
+                        break
+            if not file_found:
+                photo = None
         except Photo.DoesNotExist:
             pass
 
