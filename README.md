@@ -1,6 +1,6 @@
 # Photonix Photo Manager
 
-[![](https://img.shields.io/travis/damianmoore/photonix/master.svg)](https://travis-ci.org/damianmoore/photonix/branches) [![](https://img.shields.io/codecov/c/github/damianmoore/photonix.svg)](https://codecov.io/gh/damianmoore/photonix) [![](https://img.shields.io/uptimerobot/status/m781745452-4f90c0e2a56b2086dd0c5092.svg?label=demo%20site)](https://demo.photonix.org/) [![](https://img.shields.io/uptimerobot/ratio/m781745452-4f90c0e2a56b2086dd0c5092.svg)](https://demo.photonix.org/)
+![GitHub](https://img.shields.io/github/license/photonixapp/photonix) [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/photonixapp/photonix)](https://hub.docker.com/r/photonixapp/photonix/) [![GitHub Sponsors](https://img.shields.io/github/sponsors/photonixapp)](https://github.com/sponsors/photonixapp) [![Docker Pulls](https://img.shields.io/docker/pulls/photonixapp/photonix)](https://hub.docker.com/r/photonixapp/photonix/) [![](https://img.shields.io/travis/damianmoore/photonix/master.svg)](https://travis-ci.org/damianmoore/photonix/branches) [![](https://img.shields.io/codecov/c/github/damianmoore/photonix.svg)](https://codecov.io/gh/damianmoore/photonix) [![](https://img.shields.io/uptimerobot/status/m781745452-4f90c0e2a56b2086dd0c5092.svg?label=demo%20site)](https://demo.photonix.org/) [![](https://img.shields.io/uptimerobot/ratio/m781745452-4f90c0e2a56b2086dd0c5092.svg)](https://demo.photonix.org/)
 
 This is a photo management application based on web technologies. Run it on your home server and it will let you find what you want from your photo collection using any device. Smart filtering is made possible automatically by object recognition, location awareness, color analysis and other algorithms.
 
@@ -18,6 +18,13 @@ Please join in the discussion and help us gain visibility by following us on soc
 - [Instagram](https://www.instagram.com/photonixapp/)
 - [LinkedIn](https://www.linkedin.com/company/photonixapp/)
 - [Indie Hackers](https://www.indiehackers.com/product/photonix-photo-organizer-app)
+
+## Sponsorship
+
+If you get value from Photonix or like where we're heading then we'd really appreciate it if you considered sponsoring us on a monthly basis.
+
+- [GitHub Sponsors](https://github.com/sponsors/photonixapp)
+- [Patreon](https://www.patreon.com/photonixapp)
 
 ## Installing & Running
 
