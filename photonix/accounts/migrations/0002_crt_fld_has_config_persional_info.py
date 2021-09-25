@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='user',
-            name='has_config_persional_info',
-            field=models.BooleanField(default=False, help_text='true if user has registered persional info?'),
+            name='has_config_personial_info',
+            field=models.BooleanField(default=False, help_text='true if user has registered personal info?'),
         ),
     ]

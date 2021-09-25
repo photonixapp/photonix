@@ -17,7 +17,7 @@ mutation (
    $username: String!,$password:String!,$password1:String!
    ) {
     createUser(username: $username,password:$password,password1:$password1) {
-        hasConfigPersionalInfo
+        hasConfigpersonalInfo
         userId
     }
 }

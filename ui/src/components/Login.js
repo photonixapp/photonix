@@ -81,7 +81,7 @@ const Login = (props) => {
     authUser,
     { data: authData, loading: authLoading, error: authError },
   ] = useMutation(AUTH_USER)
-  if (envData && envData.environment.form === 'has_config_persional_info') {
+  if (envData && envData.environment.form === 'has_config_personal_info') {
     return <Redirect to="/onboarding" />
   }
   if (envData && envData.environment.form === 'has_created_library') {

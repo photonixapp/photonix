@@ -755,12 +755,12 @@ class TestGraphQLOnboarding(unittest.TestCase):
         data = get_graphql_content(response)
         assert response.status_code == 200
         assert data['data']['environment']['firstRun']
-        assert data['data']['environment']['form'] == 'has_config_persional_info'
+        assert data['data']['environment']['form'] == 'has_config_personal_info'
         self.assertFalse(User.objects.all().count())
         mutation = """
             mutation ($username: String!,$password:String!,$password1:String!) {
                 createUser(username: $username,password:$password,password1:$password1) {
-                    hasConfigPersionalInfo
+                    hasConfigpersonalInfo
                     userId
                 }
             }
@@ -769,9 +769,9 @@ class TestGraphQLOnboarding(unittest.TestCase):
             mutation, {'username': 'demo', 'password': 'demo12345', 'password1': 'demo12345'})
         data = get_graphql_content(response)
         assert response.status_code == 200
-        assert data['data']['createUser']['hasConfigPersionalInfo']
+        assert data['data']['createUser']['hasConfigpersonalInfo']
         assert User.objects.all().count() == 1
-        assert User.objects.first().has_config_persional_info
+        assert User.objects.first().has_config_personal_info
         self.assertFalse(User.objects.first().has_created_library)
         self.assertFalse(response.wsgi_request.user.username)
         mutation = """
@@ -877,7 +877,7 @@ class TestGraphQLOnboarding(unittest.TestCase):
         self.assertFalse(library.classification_location_enabled)
         self.assertTrue(
             User.objects.filter(
-                username='demo', has_config_persional_info=True,
+                username='demo', has_config_personal_info=True,
                 has_created_library=True, has_configured_importing=True,
                 has_configured_image_analysis=True).exists()
         )
