@@ -760,7 +760,7 @@ class TestGraphQLOnboarding(unittest.TestCase):
         mutation = """
             mutation ($username: String!,$password:String!,$password1:String!) {
                 createUser(username: $username,password:$password,password1:$password1) {
-                    hasConfigpersonalInfo
+                    hasConfigPersonalInfo
                     userId
                 }
             }
@@ -769,7 +769,7 @@ class TestGraphQLOnboarding(unittest.TestCase):
             mutation, {'username': 'demo', 'password': 'demo12345', 'password1': 'demo12345'})
         data = get_graphql_content(response)
         assert response.status_code == 200
-        assert data['data']['createUser']['hasConfigpersonalInfo']
+        assert data['data']['createUser']['hasConfigPersonalInfo']
         assert User.objects.all().count() == 1
         assert User.objects.first().has_config_personal_info
         self.assertFalse(User.objects.first().has_created_library)
