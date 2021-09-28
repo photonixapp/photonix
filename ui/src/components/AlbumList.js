@@ -9,7 +9,7 @@ const Container = styled('div')`
   overflow-y: auto;
 `
 
-const PhotoList = ({
+const AlbumList = ({
   photoSections,
   refetchPhotos,
   refetchPhotoList,
@@ -19,6 +19,10 @@ const PhotoList = ({
 }) => {
   const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
 
+  const params = new URLSearchParams(window.location.search)
+  const albumName = params.get('album_name')
+  if (albumName) photoSections[0].title = albumName
+
   return (
     <Container ref={scrollerRef} onScroll={handleScroll}>
       <Thumbnails
@@ -27,11 +31,11 @@ const PhotoList = ({
         refetchAlbumList={refetchAlbumList}
         mapPhotosRefetch={mapPhotosRefetch}
         mode={mode}
-        rateable={mode !== 'ALBUMS'}
+        rateable
       />
-      {/* #TODO: Add the DateHistogram feature back here */}
+      {/* TODO: Add the DateHistogram feature back here */}
     </Container>
   )
 }
 
-export default PhotoList
+export default AlbumList

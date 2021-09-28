@@ -8,13 +8,13 @@ import { SIGN_IN } from '../graphql/onboarding'
 import { logIn, scheduleTokenRefresh } from '../auth'
 
 const Container = styled('div')`
-  background: #292929;
+  background: #333;
   width: 400px;
   margin: 80px auto;
   padding: 40px;
 
   button {
-    background: #484848;
+    background: #444;
     color: #fff;
     border: 0;
     padding: 11px 13px 9px 13px;
@@ -40,7 +40,7 @@ const Row = styled('div')`
 
   input {
     flex: 1;
-    background: #484848;
+    background: #444;
     color: #fff;
     border: 0;
     padding: 11px 13px 9px 13px;

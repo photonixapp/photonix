@@ -51,3 +51,33 @@ export const VERIFY_FACE_TAG = gql`
     }
   }
 `
+export const ASSIGN_TAG_TO_PHOTOS = gql`
+  mutation assignTagToPhotos(
+    $name: String!,
+    $photoIds: String!,
+    $tagType: String!
+  ) {
+    assignTagToPhotos(name: $name, photoIds: $photoIds, tagType: $tagType) {
+      ok
+    }
+  }
+`
+export const SET_PHOTOS_DELETED = gql`
+  mutation setPhotosDeleted(
+    $photoIds: String!,
+  ) {
+    setPhotosDeleted(photoIds: $photoIds) {
+      ok
+    }
+  }
+`
+export const REMOVE_PHOTOS_FROM_ALBUM = gql`
+  mutation removePhotosFromAlbum(
+    $photoIds: String!,
+    $albumId: String!,
+  ) {
+    removePhotosFromAlbum(photoIds: $photoIds, albumId: $albumId) {
+      ok
+    }
+  }
+`
