@@ -19,7 +19,7 @@ const Container = styled('div')`
     height: 100%;
   }
   .menuOptions {
-    background: rgba(0, 84, 97, 0.8);
+    background: rgba(0, 84, 97, 0.95);
     width: 0;
     height: 0;
     left: 0;
