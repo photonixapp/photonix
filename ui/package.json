@@ -11,6 +11,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "apollo-link-retry": "^2.2.15",
+    "classnames": "^2.3.1",
     "emotion-theming": "^10.0.27",
     "graphql": "^15.5.0",
     "history": "^4.10.1",
@@ -36,7 +37,8 @@
     "redux": "^4.0.5",
     "throttle-debounce": "^3.0.1",
     "url-search-params-polyfill": "^8.1.0",
-    "use-local-storage-state": "^9.0.2"
+    "use-local-storage-state": "^9.0.2",
+    "use-long-press": "^1.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.7",

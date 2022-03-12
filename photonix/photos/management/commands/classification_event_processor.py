@@ -1,10 +1,12 @@
 from django.core.management.base import BaseCommand
+
 # Pre-load the model graphs so it doesn't have to be done for each job
 from photonix.classifiers.event import EventModel, run_on_photo
 from photonix.photos.utils.classification import ThreadedQueueProcessor
+from photonix.web.utils import logger
 
 
-print('Loading event model')
+logger.debug('Loading event model')
 model = EventModel()
 
 

@@ -2,11 +2,10 @@
   overflow: auto;
   margin: 0 -40px -20px;
   height: 350px;
-  transition: opacity 200ms;
 }
 .FiltersContent {
   width: max-content;
-  padding-left: 40px;
+  padding-left: 50px;
 }
 
 .PeekAnimation {
@@ -30,46 +29,14 @@
   }
 }
 
-.FiltersContent .filterGradient {
-  width: 100%;
-  height: 45px;
-  position: absolute;
-  bottom: 0;
-  margin: 0 -40px 0 -40px;
-  /* background: rgba(0,0,0,0.5); */
-  background: -moz-linear-gradient(
-    top,
-    rgba(41, 41, 41, 0) 0%,
-    rgba(41, 41, 41, 0) 1%,
-    rgba(41, 41, 41, 1) 100%
-  );
-  background: -webkit-linear-gradient(
-    top,
-    rgba(41, 41, 41, 0) 0%,
-    rgba(41, 41, 41, 0) 1%,
-    rgba(41, 41, 41, 1) 100%
-  );
-  background: linear-gradient(
-    to bottom,
-    rgba(41, 41, 41, 0) 0%,
-    rgba(41, 41, 41, 0) 1%,
-    rgba(41, 41, 41, 1) 100%
-  );
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00292929', endColorstr='#292929',GradientType=0 );
-}
-
-.Browse .collapsed .Filters {
-  opacity: 0;
-}
-
 .Filters .scrollbar {
   width: 10px;
   height: 10px;
   border-radius: 5px;
-  background: #484848;
+  background: #666;
   position: absolute;
   cursor: grabbing;
-  bottom: 50px;
+  bottom: 10px;
   left: 10px;
   opacity: 0;
   transition: opacity 200ms;
@@ -90,7 +57,7 @@
   overflow-y: auto;
   scrollbar-width: none;
   margin: 0;
-  padding: 20px 0 70px 0;
+  padding: 10px 0 70px 0;
   display: inline-block;
   vertical-align: top;
   margin-right: 20px;
@@ -101,7 +68,7 @@
   padding: 0;
 }
 .FilterGroup li {
-  background: #484848;
+  background: #444;
   display: inline-block;
   margin: 0 10px 10px 0;
   padding: 5px 10px 4px;
@@ -116,13 +83,13 @@
 .tooltip {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted #484848;
+  border-bottom: 1px dotted #444;
   margin-left: 24px;
 }
 
 .tooltip .tooltiptext {
   width: 80px;
-  background-color: #484848;
+  background-color: #444;
   color: #f0f0f0;
   text-align: center;
   border-radius: 6px;
@@ -142,7 +109,7 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent #484848 transparent;
+  border-color: transparent transparent #444 transparent;
 }
 @media all and (max-width: 700px) {
   .Filters {

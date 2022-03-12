@@ -4,11 +4,12 @@ from pathlib import Path
 
 import numpy as np
 
-import redis
-import tensorflow as tf
 from redis_lock import Lock
+import tensorflow as tf
 
 from photonix.classifiers.base_model import BaseModel
+from photonix.photos.utils.redis import redis_connection
+from photonix.web.utils import logger
 
 
 GRAPH_FILE = os.path.join('style', 'graph.pb')
@@ -34,8 +35,7 @@ class StyleModel(BaseModel):
             self.labels = self.load_labels(label_file)
 
     def load_graph(self, graph_file):
-        r = redis.Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'))
-        with Lock(r, 'classifier_{}_load_graph'.format(self.name)):
+        with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]
 
@@ -72,6 +72,10 @@ class StyleModel(BaseModel):
             input_mean=input_mean,
             input_std=input_std)
 
+        if t is None:
+            logger.info(f'Skipping {image_file}, file format not supported by Tensorflow')
+            return None
+
         input_name = "import/" + input_layer
         output_name = "import/" + output_layer
         input_operation = self.graph.get_operation_by_name(input_name)
@@ -91,22 +95,25 @@ class StyleModel(BaseModel):
 
     def read_tensor_from_image_file(self, file_name, input_height=299, input_width=299, input_mean=0, input_std=255):
         input_name = "file_reader"
+        try:
 
-        file_reader = tf.io.read_file(file_name, input_name)
-        if file_name.endswith(".png"):
-            image_reader = tf.image.decode_png(file_reader, channels=3, name='png_reader')
-        elif file_name.endswith(".gif"):
-            image_reader = tf.squeeze(tf.image.decode_gif(file_reader, name='gif_reader'))
-        elif file_name.endswith(".bmp"):
-            image_reader = tf.image.decode_bmp(file_reader, name='bmp_reader')
-        else:
-            image_reader = tf.image.decode_jpeg(file_reader, channels=3, name='jpeg_reader')
-        float_caster = tf.cast(image_reader, tf.float32)
-        dims_expander = tf.expand_dims(float_caster, 0)
-        resized = tf.image.resize(dims_expander, [input_height, input_width], method=tf.image.ResizeMethod.BILINEAR, antialias=True)
-        normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
-        sess = tf.compat.v1.Session()
-        return sess.run(normalized)
+            file_reader = tf.io.read_file(file_name, input_name)
+            if file_name.endswith(".png"):
+                image_reader = tf.image.decode_png(file_reader, channels=3, name='png_reader')
+            elif file_name.endswith(".gif"):
+                image_reader = tf.squeeze(tf.image.decode_gif(file_reader, name='gif_reader'))
+            elif file_name.endswith(".bmp"):
+                image_reader = tf.image.decode_bmp(file_reader, name='bmp_reader')
+            else:
+                image_reader = tf.image.decode_jpeg(file_reader, channels=3, name='jpeg_reader')
+            float_caster = tf.cast(image_reader, tf.float32)
+            dims_expander = tf.expand_dims(float_caster, 0)
+            resized = tf.image.resize(dims_expander, [input_height, input_width], method=tf.image.ResizeMethod.BILINEAR, antialias=True)
+            normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
+            sess = tf.compat.v1.Session()
+            return sess.run(normalized)
+        except:
+            return None
 
 
 def run_on_photo(photo_id):
@@ -115,7 +122,7 @@ def run_on_photo(photo_id):
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
     photo, results = results_for_model_on_photo(model, photo_id)
 
-    if photo:
+    if photo and results is not None:
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='S')
         for name, score in results:
@@ -133,5 +140,8 @@ if __name__ == '__main__':
 
     results = model.predict(sys.argv[1], min_score=0.01)
 
-    for label, score in results:
-        print('{} (score: {:0.5f})'.format(label, score))
+    if results is None:
+        print(f'{sys.argv[1]} could not be processed by style classifier')
+    else:
+        for label, score in results:
+            print('{} (score: {:0.5f})'.format(label, score))

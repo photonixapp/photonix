@@ -4,13 +4,19 @@ from photonix.photos.utils.metadata import PhotoMetadata, parse_gps_location, ge
 
 
 def test_metadata():
-    # General exif metadata
+    # General EXIF metadata
     photo_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
     metadata = PhotoMetadata(photo_path)
     assert metadata.get('Image Size') == '800x600'
     assert metadata.get('Date Time') == '2018:02:28 07:16:25'
     assert metadata.get('Make') == 'Xiaomi'
     assert metadata.get('ISO') == '100'
+
+    # Ignore invalid UTF-8 that might be in the metadata
+    photo_path = str(Path(__file__).parent / 'photos' / 'invalid_utf8.jpg')
+    metadata = PhotoMetadata(photo_path)
+    assert len(metadata.get_all().keys()) > 30
+    assert metadata.get('Artist') == ''
 
 
 def test_location():
@@ -36,3 +42,14 @@ def test_datetime():
     photo_path = str(Path(__file__).parent / 'photos' / 'snow-20100603.jpg')
     parsed_datetime = get_datetime(photo_path)
     assert parsed_datetime.isoformat() == '2010-06-03T00:00:00'
+
+    # Date is parseable but has slashes instead of colons
+    photo_path = str(Path(__file__).parent / 'photos' / 'bad_date.jpg')
+    parsed_datetime = get_datetime(photo_path)
+    assert parsed_datetime.year == 2000
+    assert parsed_datetime.isoformat() == '2000-01-01T00:00:00+00:00'
+
+    # Some of the date digits are the letter X so fall back to file creation date
+    photo_path = str(Path(__file__).parent / 'photos' / 'unreadable_date.jpg')
+    parsed_datetime = get_datetime(photo_path)
+    assert parsed_datetime.isoformat() == '2021-09-02T10:43:49.739248+00:00'

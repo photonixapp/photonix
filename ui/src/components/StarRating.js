@@ -2,19 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 
-import star from '../static/images/star.svg'
-import starOutline from '../static/images/star_outline.svg'
+import { ReactComponent as StarIcon } from '../static/images/star.svg'
+import { ReactComponent as StarOutlineIcon } from '../static/images/star_outline.svg'
 
 const StarsSmall = styled('span')`
   cursor: pointer;
-  img {
+  svg {
     width: 16px;
     height: 16px;
     filter: invert(1);
   }
 `
 const StarsLarge = styled(StarsSmall)`
-  img {
+  svg {
     width: 24px;
     height: 24px;
   }
@@ -32,31 +32,42 @@ const StarRating = ({
   const [starHovering, setStarHovering] = useState(starRating)
 
   const onStarEnter = (num) => {
-    setStarHovering(num)
-    !alwaysShow && setDisplayStars(true)
+    if (onStarClick) {
+      setStarHovering(num)
+      !alwaysShow && setDisplayStars(true)
+    }
   }
   const onStarLeave = useCallback(() => {
-    setStarHovering(starRating)
-    !alwaysShow && setDisplayStars(starRating > 0)
-  }, [alwaysShow, starRating])
+    if (onStarClick) {
+      setStarHovering(starRating)
+      !alwaysShow && setDisplayStars(starRating > 0)
+    }
+  }, [alwaysShow, starRating, onStarClick])
+
   useEffect(() => {
-    setDisplayStars(true)
-    onStarLeave()
-  }, [starRating, onStarLeave])
+    if (starHovering) {
+      setDisplayStars(true)
+    }
+  }, [starRating, starHovering, onStarLeave])
+
   const Stars = large ? StarsLarge : StarsSmall
 
   return (
     <Stars style={{ opacity: displayStars ? 1 : 0 }}>
-      {[...Array(5).keys()].map((i) => (
-        <img
-          src={starHovering >= i + 1 ? star : starOutline}
-          onMouseEnter={() => onStarEnter(i + 1)}
-          onMouseLeave={() => onStarLeave()}
-          onClick={(e) => onStarClick && onStarClick(i + 1, e)}
-          key={i + 1}
-          alt={`${i + 1} stars`}
-        />
-      ))}
+      {[...Array(5).keys()].map((i) => {
+        const args = {
+          onMouseEnter: () => onStarEnter(i + 1),
+          onMouseLeave: () => onStarLeave(),
+          onMouseDown: (e) => onStarClick && onStarClick(i + 1, e), // We actually use onMouseDown rather than onClick as this is the event that useLongPress uses and we need to stopPropagation
+          key: i + 1,
+          alt: `${i + 1} stars`,
+        }
+        if (starHovering >= i + 1) {
+          return <StarIcon {...args} />
+        } else {
+          return <StarOutlineIcon {...args} />
+        }
+      })}
     </Stars>
   )
 }

@@ -6,7 +6,7 @@ import { ReactComponent as RemoveIcon } from '../static/images/remove.svg'
 
 const Container = styled('ul')`
   li {
-    background: #383838;
+    background: #444;
     display: inline-block;
     margin: 0 10px 10px 0;
     padding: 5px 10px 4px;

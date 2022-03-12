@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import useLocalStorageState from 'use-local-storage-state'
-
 import history from '../history'
+import gql from 'graphql-tag'
+
+import { useQuery } from '@apollo/client'
+
 import ZoomableImage from './ZoomableImage'
 import PhotoMetadata from './PhotoMetadata'
 import { getSafeArea } from '../stores/layout/selector'
@@ -18,9 +21,47 @@ import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 import { ReactComponent as RotateLeftIcon } from '../static/images/rotate_left.svg'
 import { ReactComponent as RotateRightIcon } from '../static/images/rotate_right.svg'
 
+import photos from '../stores/photos/index'
+
 // const I_KEY = 73
 const LEFT_KEY = 37
 const RIGHT_KEY = 39
+const BEFORE = 'before'
+const AFTER = 'after'
+
+const GET_PHOTOS = gql`
+  query Photos(
+    $filters: String
+    $after: String
+    $first: Int
+    $last: Int
+    $before: String
+    $id: UUID
+  ) {
+    allPhotos(
+      multiFilter: $filters
+      first: $first
+      after: $after
+      before: $before
+      last: $last
+      id: $id
+    ) {
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+      }
+      edges {
+        cursor
+        node {
+          id
+          location
+          starRating
+        }
+      }
+    }
+  }
+`
 
 const Container = styled('div')`
   width: 100vw;
@@ -76,9 +117,12 @@ const Container = styled('div')`
     .icon:hover {
       filter: invert(1);
     }
+    .icon.back {
+      padding: 0;
+    }
     .icon.metadata {
       padding: 0;
-      margin-left: 10px;
+      margin-left: 20px;
     }
   }
 
@@ -103,6 +147,7 @@ const PhotoDetail = ({
   updatePhotoFile,
   saveRotation,
 }) => {
+  const dispatch = useDispatch()
   const safeArea = useSelector(getSafeArea)
   const [showBoundingBox, setShowBoundingBox] = useLocalStorageState(
     'showObjectBoxes',
@@ -114,7 +159,15 @@ const PhotoDetail = ({
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
-  const [numHistoryPushes, setNumHistoryPushes] = useState(0)
+
+  const [fetchNextPrevious, setFetchNextPrevious] = useState(false)
+  const [firstPrevious, setFirstPrevious] = useLocalStorageState(
+    'firstPrevious',
+    0
+  )
+
+  const timelinePhotoIds = useSelector(photos)
+  const [showTopIcons, setShowTopIcons] = useState(true)
 
   // TODO: Bring this back so it doesn't get triggered by someone adding a tag with 'i' in it
   // useEffect(() => {
@@ -135,20 +188,111 @@ const PhotoDetail = ({
   //   }
   // }, [showMetadata])
 
+  const { data: photosData, fetchMore: fetchMorePhotos } = useQuery(
+    GET_PHOTOS,
+    {
+      variables: {
+        filters: '',
+        id: photoId,
+        first: 1,
+        last: null,
+        after: '',
+      },
+    },
+    {
+      skip: true,
+    }
+  )
+
+  const updatePhotosStore = useCallback(
+    (data) => {
+      dispatch({
+        type: 'SET_PHOTOS',
+        payload: data,
+      })
+    },
+    [dispatch]
+  )
+
+  // Fetch next/previous photo
+  const fetchNextPreviousPhoto = useCallback(
+    async (val) => {
+      const { endCursor } = photosData.allPhotos.pageInfo
+      let photo_variables = {}
+      const timelinePhoto = timelinePhotoIds.photos.photosDetail.find(
+        (item) => item.node.id === photoId
+      )
+      if (val === AFTER)
+        photo_variables = { after: timelinePhoto.cursor, id: null }
+      else if (val === BEFORE) {
+        photo_variables = {
+          before: firstPrevious >= 1 ? endCursor : null,
+          id: null,
+          first: null,
+          last: 1,
+        }
+        if (firstPrevious < 1) setFirstPrevious(firstPrevious + 1)
+      }
+      await fetchMorePhotos({
+        variables: photo_variables,
+        updateQuery: (prevResult, { fetchMoreResult }) => {
+          fetchMoreResult.allPhotos.edges = [
+            ...prevResult.allPhotos.edges,
+            ...fetchMoreResult.allPhotos.edges,
+          ]
+          setFetchNextPrevious(
+            fetchMoreResult.allPhotos.edges[
+              fetchMoreResult.allPhotos.edges.length - 1
+            ]
+          )
+          if (val !== BEFORE)
+            updatePhotosStore({
+              ids: [
+                fetchMoreResult.allPhotos.edges[
+                  fetchMoreResult.allPhotos.edges.length - 1
+                ].node.id,
+              ],
+              photoList: [
+                fetchMoreResult.allPhotos.edges[
+                  fetchMoreResult.allPhotos.edges.length - 1
+                ],
+              ],
+            })
+          return fetchMoreResult
+        },
+      })
+    },
+    [
+      fetchMorePhotos,
+      firstPrevious,
+      photoId,
+      photosData,
+      setFirstPrevious,
+      timelinePhotoIds,
+      updatePhotosStore,
+    ]
+  )
+
+  // To show next/previous photos.
+  useEffect(() => {
+    if (fetchNextPrevious) {
+      history.replace(`/photo/${fetchNextPrevious.node.id}`)
+    }
+  }, [fetchNextPrevious])
+
   const prevPhoto = useCallback(() => {
     let id = prevNextPhotos.prev[0]
     if (id) {
-      history.push(`/photo/${id}`)
-      setNumHistoryPushes(numHistoryPushes + 1)
-    }
-  }, [prevNextPhotos, numHistoryPushes])
+      history.replace(`/photo/${id}`)
+    } else fetchNextPreviousPhoto(BEFORE)
+  }, [prevNextPhotos, fetchNextPreviousPhoto])
+
   const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
     if (id) {
-      history.push(`/photo/${id}`)
-      setNumHistoryPushes(numHistoryPushes + 1)
-    }
-  }, [prevNextPhotos, numHistoryPushes])
+      history.replace(`/photo/${id}`)
+    } else fetchNextPreviousPhoto(AFTER)
+  }, [prevNextPhotos, fetchNextPreviousPhoto])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -171,19 +315,40 @@ const PhotoDetail = ({
     }
   }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
+  let boxes = {
+    object: photo?.objectTags.map((objectTag) => {
+      return {
+        name: objectTag.tag.name,
+        positionX: objectTag.positionX,
+        positionY: objectTag.positionY,
+        sizeX: objectTag.sizeX,
+        sizeY: objectTag.sizeY,
+      }
+    }),
+    face: photo?.personTags.map((tag) => {
+      return {
+        id: tag.id,
+        name: tag.tag.name,
+        positionX: tag.positionX,
+        positionY: tag.positionY,
+        sizeX: tag.sizeX,
+        sizeY: tag.sizeY,
+        verified: tag.verified,
+        deleted: tag.deleted,
+        boxColorClass: setBoxColorClass(tag),
+        showVerifyIcon: tag.showVerifyIcon,
+      }
+    }),
+  }
+
+  const setBoxColorClass = (tag) => {
+    return tag.deleted ? 'whiteBox' : tag.verified ? 'greenBox' : 'yellowBox'
+  }
+
   useEffect(() => {
     setRotation(Number(photo?.rotation))
   }, [photo])
 
-  let boxes = photo?.objectTags.map((objectTag) => {
-    return {
-      name: objectTag.tag.name,
-      positionX: objectTag.positionX,
-      positionY: objectTag.positionY,
-      sizeX: objectTag.sizeX,
-      sizeY: objectTag.sizeY,
-    }
-  })
   const rotate = (direction) => {
     let newRotation = direction === 'right' ? rotation + 90 : rotation - 90
     if (newRotation >= 360 || newRotation === -360) newRotation = 0
@@ -196,10 +361,77 @@ const PhotoDetail = ({
       <ZoomableImage
         photoId={photoId}
         boxes={showBoundingBox && boxes}
+        showBoundingBox={showBoundingBox}
+        setShowBoundingBox={setShowBoundingBox}
+        showMetadata={showMetadata}
+        setShowMetadata={setShowMetadata}
+        showTopIcons={showTopIcons}
+        setShowTopIcons={setShowTopIcons}
         next={nextPhoto}
         prev={prevPhoto}
         rotation={rotation}
+        refetch={refetch}
       />
+
+      {showTopIcons && (
+        <div className="topIcons" style={{ marginTop: safeArea.top }}>
+          <div
+            title="Press [Esc] key to go back to photo list"
+            style={{ marginTop: safeArea.top }}
+          >
+            <ArrowBackIcon
+              className="icon back"
+              alt="Close"
+              height="30"
+              width="30"
+              onClick={() => {
+                if (document.referrer !== '' || history.length > 2) {
+                  history.goBack()
+                } else {
+                  history.push('/')
+                }
+              }}
+            />
+          </div>
+          <div>
+            <RotateRightIcon
+              className="icon"
+              height="30"
+              width="30"
+              onClick={() => rotate('right')}
+            />
+            <RotateLeftIcon
+              className="icon"
+              height="30"
+              width="30"
+              onClick={() => rotate('left')}
+            />
+            {photo?.downloadUrl && (
+              <a href={`${photo.downloadUrl}`} download>
+                <DownloadIcon className="icon" height="30" width="30" />
+              </a>
+            )}
+            {!showMetadata ? (
+              <InfoIcon
+                className="icon metadata"
+                height="30"
+                width="30"
+                onClick={() => setShowMetadata(!showMetadata)}
+                // title="Press [I] key to show/hide photo details"
+              />
+            ) : (
+              <CloseIcon
+                className="icon metadata"
+                height="30"
+                width="30"
+                onClick={() => setShowMetadata(!showMetadata)}
+                // title="Press [I] key to show/hide photo details"
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="prevNextIcons" style={{ opacity: showPrevNext ? 1 : 0 }}>
         <ArrowLeftIcon
           alt="Previous"
@@ -218,6 +450,7 @@ const PhotoDetail = ({
           title="Use [←] left/right [→] arrow keys to quickly go to the previous/next photo"
         />
       </div>
+
       {photo && (
         <PhotoMetadata
           photo={photo}
@@ -228,63 +461,6 @@ const PhotoDetail = ({
           updatePhotoFile={updatePhotoFile}
         />
       )}
-      <div className="topIcons" style={{ marginTop: safeArea.top }}>
-        <div>
-          <ArrowBackIcon
-            className="icon"
-            height="30"
-            width="30"
-            alt="Close"
-            title="Press [Esc] key to go back to photo list"
-            onClick={() => {
-              if (
-                history.length - numHistoryPushes > 2 ||
-                document.referrer !== ''
-              ) {
-                history.go(-(numHistoryPushes + 1))
-              } else {
-                history.push('/')
-              }
-            }}
-          />
-        </div>
-        <div>
-          <RotateRightIcon
-            className="icon"
-            height="30"
-            width="30"
-            onClick={() => rotate('right')}
-          />
-          <RotateLeftIcon
-            className="icon"
-            height="30"
-            width="30"
-            onClick={() => rotate('left')}
-          />
-          {photo?.downloadUrl && (
-            <a href={`${photo.downloadUrl}`} download>
-              <DownloadIcon className="icon" height="30" width="30" />
-            </a>
-          )}
-          {!showMetadata ? (
-            <InfoIcon
-              className="icon metadata"
-              height="30"
-              width="30"
-              onClick={() => setShowMetadata(!showMetadata)}
-              // title="Press [I] key to show/hide photo details"
-            />
-          ) : (
-            <CloseIcon
-              className="icon metadata"
-              height="30"
-              width="30"
-              onClick={() => setShowMetadata(!showMetadata)}
-              // title="Press [I] key to show/hide photo details"
-            />
-          )}
-        </div>
-      </div>
     </Container>
   )
 }

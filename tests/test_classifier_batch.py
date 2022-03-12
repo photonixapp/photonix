@@ -22,7 +22,7 @@ def test_classifier_batch():
     photo = PhotoFactory()
     PhotoFileFactory(photo=photo)
 
-    for i in range(4):
+    for _ in range(4):
         TaskFactory(subject_id=photo.id)
 
     start = time()

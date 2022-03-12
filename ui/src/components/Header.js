@@ -1,18 +1,18 @@
-import React from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import styled from '@emotion/styled'
 
 import User from './User'
+import Notification from './Notification'
 import { getIsMobileApp, getSafeArea } from '../stores/layout/selector'
-import logo from '../static/images/logo.svg'
-import menuIcon from '../static/images/menu.svg'
-// import notifications from '../static/images/notifications.svg'
+import { ReactComponent as Logo } from '../static/images/logo.svg'
+import { ReactComponent as MenuIcon } from '../static/images/menu.svg'
 
 const Container = styled('div')`
   height: 50px;
   flex: none;
   justify-content: space-between;
-  background: #484848;
+  background: #444;
   z-index: 20;
 
   > .logo {
@@ -23,7 +23,7 @@ const Container = styled('div')`
     line-height: 1.2;
     color: #fff;
   }
-  > .logo img.menu {
+  > .logo svg.menu {
     width: 30px;
     height: 30px;
     margin-right: 8px;
@@ -34,7 +34,7 @@ const Container = styled('div')`
     background: none;
     display: none;
   }
-  > .logo img.logo {
+  > .logo svg.logo {
     width: 30px;
     height: 30px;
     margin-right: 8px;
@@ -45,36 +45,67 @@ const Container = styled('div')`
   .navigation {
     flex-grow: 1;
   }
-  .notifications {
-    width: 50px;
-  }
 `
+export const useComponentVisible = (initialIsVisible, type) => {
+  const [isComponentVisible, setIsComponentVisible] = useState(initialIsVisible)
+  const ref = useRef(null)
+
+  const handleHideDropdown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setIsComponentVisible(false)
+    }
+  }
+
+  const handleClickOutside = (event) => {
+    if (ref.current && !ref.current.contains(event.target)) {
+      setIsComponentVisible(false)
+    }
+  }
+  useEffect(() => {
+    document.addEventListener('keydown', handleHideDropdown, false)
+    document.addEventListener('click', handleClickOutside, false)
+    return () => {
+      document.removeEventListener('keydown', handleHideDropdown, true)
+      document.removeEventListener('click', handleClickOutside, true)
+    }
+  })
+
+  return { ref, isComponentVisible, setIsComponentVisible }
+}
 
 const Header = ({ profile, libraries }) => {
   const isMobileApp = useSelector(getIsMobileApp)
   const safeArea = useSelector(getSafeArea)
-
+  const [showNotification, setShowNotification] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   return (
     <Container
       className="flex-container-row"
       style={{ paddingTop: safeArea.top, height: 50 + safeArea.top }}
     >
       <div className="logo">
-        <img
-          src={menuIcon}
+        <MenuIcon
           className="menu"
           alt="menu"
           style={{ display: isMobileApp ? 'inline' : 'none' }}
           onClick={() => window.photonix?.openAppMenu()}
         />
-        <img src={logo} className="logo" alt="Photonix Logo" />
+        <Logo className="logo" alt="Photonix Logo" />
         Photonix
       </div>
       <div className="navigation"></div>
-      {/* <div className="notifications">
-          <img src={notifications} alt="Notifications" />
-        </div> */}
-      <User profile={profile} libraries={libraries} />
+      <Notification
+        showNotification={showNotification}
+        setShowNotification={setShowNotification}
+        setShowUserMenu={setShowUserMenu}
+      />
+      <User
+        profile={profile}
+        libraries={libraries}
+        showUserMenu={showUserMenu}
+        setShowUserMenu={setShowUserMenu}
+        setShowNotification={setShowNotification}
+      />
     </Container>
   )
 }

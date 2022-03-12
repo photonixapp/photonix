@@ -2,6 +2,7 @@ import React from 'react'
 
 const Result = () => {
   localStorage.setItem('isSignin', true)
+  sessionStorage.removeItem('__STATE_MACHINE__');
   setTimeout(() => {
     window.location.reload()
   }, 2000)

@@ -4,11 +4,10 @@ import os
 import math
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFile
 import numpy as np
 
 from django.conf import settings
-from django.utils import timezone
 from photonix.photos.models import Photo, PhotoFile, Task
 from photonix.photos.utils.metadata import PhotoMetadata
 
@@ -29,7 +28,7 @@ def generate_thumbnails_for_photo(photo, task):
         try:
             photo = Photo.objects.get(id=photo)
         except Photo.DoesNotExist:
-            task.failed()
+            task.failed(f'Photo instance does not exist with id={photo}')
             return
 
     for thumbnail in settings.THUMBNAIL_SIZES:
@@ -83,6 +82,7 @@ def get_thumbnail(photo_file=None, photo=None, width=256, height=256, crop='cove
 
     # Read base image and metadata
     input_path = photo_file.base_image_path
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
     im = Image.open(input_path)
 
     if im.mode != 'RGB':

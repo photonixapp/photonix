@@ -114,12 +114,6 @@ button {
   cursor: pointer;
 }
 
-@media all and (max-width: 700px) {
-  .Browse .searchBar {
-    height: 330px;
-  }
-}
-
 @media only screen and (max-device-width: 1024px) {
   .react-router-modal__container {
     -webkit-transform: none;

@@ -120,6 +120,8 @@ def filter_photos_queryset(filters, queryset, library_id=None):
                     star_rating__gte=int(val.split("-")[0]),
                     star_rating__lte=int(val.split("-")[1]),
                 )
+            elif key == "id":
+                queryset = queryset.filter(id=val)
         else:
             if filter_val not in removable_date_filters:
                 queryset = queryset.filter(photo_tags__tag__name__icontains=filter_val)
@@ -130,6 +132,7 @@ def filter_photos_queryset(filters, queryset, library_id=None):
                         0
                     ].id
 
+    # Date filtering
     if date_elements_dict.get("month") or date_elements_dict.get("year"):
         if not date_elements_dict.get("year"):
             year = (
@@ -153,7 +156,10 @@ def filter_photos_queryset(filters, queryset, library_id=None):
                 queryset = queryset.filter(
                     taken_at__month=date_elements_dict.get("month")
                 )
+
+    # Sort so Photos with most matching tags show first
     if selected_tag_id and (not library_id):
+        # TODO: Create a score that combines number of matching tags with significance of tags
         # queryset.order_by('-photo_tags__significance')
         queryset = (
             queryset.annotate(
@@ -163,8 +169,9 @@ def filter_photos_queryset(filters, queryset, library_id=None):
                     output_field=IntegerField(),
                 )
             )
-            .order_by("selected_tag")
+            .order_by('selected_tag', '-taken_at')
         )
+
     return queryset.distinct()
 
 

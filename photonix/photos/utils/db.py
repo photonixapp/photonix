@@ -1,16 +1,38 @@
-import mimetypes
-import os
-import re
 from datetime import datetime
 from decimal import Decimal
+import imghdr
+import mimetypes
+import os, time
+import re
+import subprocess
 
 from django.utils.timezone import utc
 
 from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task, Library, Tag, PhotoTag
-from photonix.photos.utils.metadata import (PhotoMetadata, parse_datetime, parse_gps_location)
+from photonix.photos.utils.metadata import PhotoMetadata, parse_datetime, parse_gps_location, get_mimetype
+from photonix.web.utils import logger
+
+
+MIMETYPE_WHITELIST = [
+    # This list is in addition to the filetypes detected by imghdr and 'dcraw -i'
+    'image/heif',
+    'image/heif-sequence',
+    'image/heic',
+    'image/heic-sequence',
+    'image/avif',
+    'image/avif-sequence',
+]
 
 
 def record_photo(path, library, inotify_event_type=None):
+    logger.info(f'Recording photo {path}')
+
+    mimetype = get_mimetype(path)
+
+    if not imghdr.what(path) and not mimetype in MIMETYPE_WHITELIST and subprocess.run(['dcraw', '-i', path]).returncode:
+        logger.error(f'File is not a supported type: {path} ({mimetype})')
+        return None
+
     if type(library) == Library:
         library_id = library.id
     else:
@@ -33,11 +55,13 @@ def record_photo(path, library, inotify_event_type=None):
 
     metadata = PhotoMetadata(path)
     date_taken = None
-    possible_date_keys = ['Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'Modify Date', 'File Modification Date/Time']
+    possible_date_keys = ['Create Date', 'Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'File Modification Date/Time']
     for date_key in possible_date_keys:
         date_taken = parse_datetime(metadata.get(date_key))
         if date_taken:
             break
+    # If EXIF data not found.
+    date_taken = date_taken or datetime.strptime(time.ctime(os.path.getctime(path)), "%a %b %d %H:%M:%S %Y")
 
     camera = None
     camera_make = metadata.get('Make', '')[:Camera.make.field.max_length]
@@ -78,8 +102,17 @@ def record_photo(path, library, inotify_event_type=None):
     photo = None
     if date_taken:
         try:
-            # TODO: Match on file number/file name as well
-            photo = Photo.objects.get(taken_at=date_taken)
+            # Fix for issue 347: Photos with the same date are not imported ...
+            photo_set = Photo.objects.filter(taken_at=date_taken)
+            file_found = False
+            if photo_set:
+                for photo_entry in photo_set:
+                    if PhotoFile.objects.get(photo_id=photo_entry).base_image_path == path:
+                        file_found = True
+                        photo = photo_entry
+                        break
+            if not file_found:
+                photo = None
         except Photo.DoesNotExist:
             pass
 
@@ -130,7 +163,7 @@ def record_photo(path, library, inotify_event_type=None):
         for subject in metadata.get('Subject', '').split(','):
             subject = subject.strip()
             if subject:
-                tag = Tag.objects.create(library_id=library_id, name=subject, type="G")
+                tag, _ = Tag.objects.get_or_create(library_id=library_id, name=subject, type="G")
                 PhotoTag.objects.create(
                     photo=photo,
                     tag=tag,
@@ -153,7 +186,7 @@ def record_photo(path, library, inotify_event_type=None):
     photo_file.path = path
     photo_file.width = width
     photo_file.height = height
-    photo_file.mimetype = mimetypes.guess_type(path)[0]
+    photo_file.mimetype = mimetype
     photo_file.file_modified_at = file_modified_at
     photo_file.bytes = os.stat(path).st_size
     photo_file.preferred = False  # TODO

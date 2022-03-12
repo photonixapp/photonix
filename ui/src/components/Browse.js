@@ -1,15 +1,16 @@
-import React from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
-import { Link } from 'react-router-dom'
-import useLocalStorageState from 'use-local-storage-state'
 import { useSwipeable } from 'react-swipeable'
 
 import Header from './Header'
-import SearchContainer from '../containers/SearchContainer'
+import Search from './Search'
 import PhotoList from '../components/PhotoList'
 import MapView from '../components/MapView'
 import Spinner from '../components/Spinner'
-import arrowDown from '../static/images/arrow_down.svg'
+import { ReactComponent as ArrowDownIcon } from '../static/images/arrow_down.svg'
+import Tabs from '../components/Tabs'
+import history from '../history'
+import AlbumList from '../components/AlbumList'
 
 const Container = styled('div')`
   height: 100%;
@@ -19,58 +20,34 @@ const Container = styled('div')`
   display: flex;
   flex-direction: column;
 
-  .tabs {
-    display: inline-block;
-    margin: 0;
-    padding: 0;
-    position: absolute;
-    right: 40px;
-    bottom: 0;
-  }
-  .tabs li {
-    display: inline-block;
-    list-style: none;
-    padding: 8px 20px;
-    background: #1d1d1d;
-    font-weight: 600;
-  }
-  .tabs button {
-    width: 32px;
-  }
-  .tabs a {
-    color: #ddd;
-    margin-left: 10px;
-  }
-
   .searchBar {
-    background: #292929;
+    background: #333;
     position: relative;
-    height: 330px;
-    transition: all 200ms;
+    height: 310px;
+    transition: height 300ms;
     transition-timing-function: ease-in-out;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
   }
   .searchBar.collapsed {
-    height: 140px;
-    .FiltersContent {
-      opacity: 0;
-    }
+    height: 0;
   }
 
   .expandCollapse {
-    width: calc(100% - 202px);
+    width: 24px;
     height: 24px;
     position: absolute;
-    bottom: 10px;
-    left: 40px;
+    top: 16px;
+    right: 13px;
     cursor: pointer;
   }
-  .expandCollapse img {
-    filter: invert(0.9);
-    transition: all 600ms;
+  .expandCollapse svg {
+    filter: invert(0.7);
+    transition: transform 300ms;
     transition-timing-function: ease-in-out;
   }
-  .expanded .expandCollapse img {
-    transform: rotate(-180deg);
+  .expanded .expandCollapse svg {
+    transform: rotate(180deg);
   }
 
   .main {
@@ -83,17 +60,7 @@ const Container = styled('div')`
     position: relative;
   }
 
-  @media all and (max-width: 700px) {
-    .tabs {
-      right: 20px;
-    }
-    .searchBar.collapsed {
-      height: 110px;
-    }
-    .expandCollapse {
-      bottom: 10px;
-      left: 10px;
-    }
+  @media all and (min-width: 700px) {
   }
 `
 
@@ -109,63 +76,127 @@ const Browse = ({
   onClearFilters,
   search,
   updateSearchText,
-  setIsMapShowing,
   mapPhotos,
   refetchPhotos,
+  refetchPhotoList,
+  refetchAlbumList,
+  mapPhotosRefetch,
 }) => {
-  const [expanded, setExpanded] = useLocalStorageState(
-    'searchExpanded',
-    window.innerHeight > 850 ? true : false
-  )
-  let content =
-    mode === 'MAP' ? (
-      <MapView photos={mapPhotos} />
-    ) : (
-      <PhotoList photoSections={photoSections} refetchPhotos={refetchPhotos} />
-    )
+  const [expanded, setExpanded] = useState(false)
+  const renderContent = () => {
+    switch (mode) {
+      case 'ALBUM_ID':
+        return (
+          <AlbumList
+            photoSections={photoSections}
+            refetchPhotos={refetchPhotos}
+            refetchPhotoList={refetchPhotoList}
+            refetchAlbumList={refetchAlbumList}
+            mapPhotosRefetch={mapPhotosRefetch}
+            mode={mode}
+          />
+        )
+      case 'MAP':
+        return <MapView photos={mapPhotos} />
+      default:
+        return (
+          <PhotoList
+            photoSections={photoSections}
+            refetchPhotos={refetchPhotos}
+            refetchPhotoList={refetchPhotoList}
+            refetchAlbumList={refetchAlbumList}
+            mapPhotosRefetch={mapPhotosRefetch}
+            mode={mode}
+          />
+        )
+    }
+  }
+  let content = renderContent()
   const handlers = useSwipeable({
     onSwipedDown: () => setExpanded(!expanded),
     onSwipedUp: () => setExpanded(!expanded),
   })
-
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
+
+  const [searchMinHeight, setSearchMinHeight] = useState(0)
+  const getInitialIndex = useCallback(() => {
+    switch (mode) {
+      case 'TIMELINE':
+        return 0
+      case 'ALBUMS':
+        return 1
+      case 'ALBUM_ID':
+        return 1
+      case 'MAP':
+        return 2
+      default:
+        return 0
+    }
+  }, [mode])
+  const [tabSelectedIndex, setTabSelectedIndex] = useState(getInitialIndex)
+  useEffect(() => {
+    setTabSelectedIndex(getInitialIndex)
+  }, [mode, getInitialIndex])
 
   return (
     <Container>
       <Header profile={profile} libraries={libraries} />
-      <div className={expanded ? ` searchBar expanded` : `searchBar collapsed`}>
-        <SearchContainer
+      <div
+        className={expanded ? ` searchBar expanded` : `searchBar collapsed`}
+        style={{ height: !expanded && searchMinHeight }}
+      >
+        <Search
           selectedFilters={selectedFilters}
           search={search}
           onFilterToggle={onFilterToggle}
           onClearFilters={onClearFilters}
           updateSearchText={updateSearchText}
           searchAreaExpand={expanded}
+          minHeightChanged={setSearchMinHeight}
+          mode={mode}
         />
+        {mode !== 'ALBUMS' && (
+          <div
+            {...handlers}
+            className="expandCollapse"
+            onClick={() => setExpanded(!expanded)}
+          >
+            <ArrowDownIcon />
+          </div>
+        )}
       </div>
-      <div
-        className={
-          expanded ? ` tabContainer expanded` : `tabContainer collapsed`
-        }
-      >
-        <div
-          {...handlers}
-          className="expandCollapse"
-          onClick={() => setExpanded(!expanded)}
-        >
-          <img src={arrowDown} alt="" />
-        </div>
-        <ul className="tabs">
-          <Link to="?mode=timeline" onClick={() => setIsMapShowing(false)}>
-            <li>Timeline</li>
-          </Link>
-          <Link to="?mode=map" onClick={() => setIsMapShowing(true)}>
-            <li>Map</li>
-          </Link>
-        </ul>
+      <div className="main">
+        <Tabs
+          tabs={[
+            {
+              label: 'Timeline',
+              onClick: () => {
+                setExpanded(false)
+                mode === 'ALBUMS' && onClearFilters()
+                history.push('?mode=timeline')
+              },
+            },
+            {
+              label: 'Albums',
+              onClick: () => {
+                setExpanded(false)
+                onClearFilters()
+                history.push('?mode=albums')
+              },
+            },
+            {
+              label: 'Map',
+              onClick: () => {
+                setExpanded(false)
+                history.push('?mode=map')
+              },
+            },
+          ]}
+          initiallySelectedIndex={tabSelectedIndex}
+        />
+        {content}
       </div>
-      <div className="main">{content}</div>
     </Container>
   )
 }

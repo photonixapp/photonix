@@ -24,14 +24,14 @@ class LibraryPathInline(admin.TabularInline):
 
 
 class LibraryAdmin(VersionedAdmin):
-    list_display = ('name', 'classification_color_enabled', 'classification_location_enabled', 'classification_style_enabled', 'classification_object_enabled', 'setup_stage_completed', 'created_at', 'updated_at')
+    list_display = ('name', 'classification_color_enabled', 'classification_location_enabled', 'classification_style_enabled', 'classification_object_enabled', 'classification_face_enabled', 'setup_stage_completed', 'created_at', 'updated_at')
     list_ordering = ('name',)
-    list_filter = ('classification_color_enabled', 'classification_location_enabled', 'classification_style_enabled', 'classification_object_enabled', 'setup_stage_completed',)
+    list_filter = ('classification_color_enabled', 'classification_location_enabled', 'classification_style_enabled', 'classification_object_enabled', 'classification_face_enabled' ,'setup_stage_completed',)
     inlines = [LibraryUserInline, LibraryPathInline]
 
     fieldsets = (
         (None, {
-            'fields': ('name', 'classification_color_enabled', 'classification_location_enabled', 'classification_style_enabled', 'classification_object_enabled', 'setup_stage_completed'),
+            'fields': ('name', 'classification_color_enabled', 'classification_location_enabled', 'classification_style_enabled', 'classification_object_enabled', 'classification_face_enabled','setup_stage_completed'),
         }),
     ) + VersionedAdmin.fieldsets
 

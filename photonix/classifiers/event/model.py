@@ -23,7 +23,6 @@ class EventModel:
                     datetime.date(date_taken.year, 12, 31): "New Year Start",
                     datetime.date(date_taken.year, 1, 1): "New Year End",
                 }
-                date_taken = datetime.datetime(date_taken.year, 12, 31, 2, 30)
                 if events.get(date_taken.date()):
                     if events.get(date_taken.date()).startswith("New Year"):
                         start_of_day = datetime.datetime.combine(datetime.date(date_taken.year, 12, 31), datetime.datetime.min.time())

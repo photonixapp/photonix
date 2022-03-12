@@ -19,7 +19,7 @@ const railStyle = {
   height: 8,
   borderRadius: 4,
   cursor: 'pointer',
-  backgroundColor: '#484848',
+  backgroundColor: '#444',
 }
 
 const Filters = ({ data, selectedFilters, onToggle, searchAreaExpand }) => {
@@ -235,7 +235,6 @@ const Filters = ({ data, selectedFilters, onToggle, searchAreaExpand }) => {
               </span>
             )
           })}
-          <div className="filterGradient"></div>
         </div>
       )}
     </ScrollArea>

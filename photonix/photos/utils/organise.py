@@ -11,6 +11,7 @@ from photonix.photos.utils.fs import (determine_destination,
                                       find_new_file_name, mkdir_p)
 from photonix.photos.utils.metadata import get_datetime
 
+
 SYNOLOGY_THUMBNAILS_DIR_NAME = '/@eaDir'
 
 
@@ -86,7 +87,8 @@ def determine_same_file(origpath, destpath, fhc=None):
 
 
 def blacklisted_type(file):
-    if file[-4:].lower() == '.mov' or file[-4:].lower() == '.mp4' or file[-4:].lower() == '.mkv':
+    ext = file.split('.')[-1].lower()
+    if ext in ['mov', 'mp4', 'mkv', 'xmp']:
         return True
     if file == '.DS_Store':
         return True

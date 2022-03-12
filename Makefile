@@ -19,6 +19,9 @@ restart:
 shell:
 	$(DOCKER_COMPOSE_DEV) exec photonix bash
 
+shell-prd:
+	$(DOCKER_COMPOSE_PRD) exec photonix bash
+
 manage:
 	$(DOCKER_COMPOSE_DEV) exec photonix python photonix/manage.py ${}
 

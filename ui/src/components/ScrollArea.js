@@ -4,7 +4,7 @@ export default class ScrollArea extends React.Component {
   constructor(props) {
     super(props)
 
-    this.padding = 40
+    this.padding = 20
     this.scrollbarHandleWidth = 200
 
     this.containerRef = React.createRef()
@@ -59,10 +59,9 @@ export default class ScrollArea extends React.Component {
   }
 
   calculateSizes = () => {
-    this.padding = 40
+    this.padding = 20
     this.scrollbarHandleWidth = 200
     if (window.innerWidth < 700) {
-      this.padding = 20
       this.scrollbarHandleWidth = 100
     }
 

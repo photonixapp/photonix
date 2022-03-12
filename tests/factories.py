@@ -13,7 +13,7 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     username = 'test'
     email = 'test@example.com'
-    has_config_persional_info = True
+    has_set_personal_info = True
     has_created_library = True
     has_configured_importing = True
     has_configured_image_analysis = True
@@ -24,8 +24,13 @@ class LibraryFactory(factory.django.DjangoModelFactory):
         model = Library
 
     name = factory.Sequence(lambda n: f'Test Library {n}')
+    classification_color_enabled = True
     classification_location_enabled = True
+    classification_style_enabled = True
     classification_object_enabled = True
+    classification_face_enabled = True
+    setup_stage_completed = True
+
 
 class LibraryUserFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -34,6 +39,7 @@ class LibraryUserFactory(factory.django.DjangoModelFactory):
     library = factory.SubFactory(LibraryFactory)
     user = factory.SubFactory(UserFactory)
     owner = True
+
 
 class PhotoFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -75,3 +81,4 @@ class TaskFactory(factory.django.DjangoModelFactory):
 
     type = 'classify.style'
     status = 'P'
+    library = factory.SubFactory(LibraryFactory)
