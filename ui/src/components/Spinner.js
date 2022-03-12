@@ -2,7 +2,7 @@ import React from 'react'
 import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 
-import spinner from '../static/images/spinner.svg'
+import { ReactComponent as SpinnerIcon } from '../static/images/spinner.svg'
 
 const Container = styled('span')`
   padding: 40px;
@@ -22,7 +22,7 @@ const Spinner = ({ show, containerStyle, imageStyle }) => {
   }
   return (
     <Container style={containerStyle}>
-      <img src={spinner} alt="" style={imageStyle} />
+      <SpinnerIcon style={imageStyle} />
     </Container>
   )
 }

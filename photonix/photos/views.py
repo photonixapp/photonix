@@ -1,10 +1,10 @@
+from pathlib import Path
+
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from pathlib import Path
 
 from photonix.photos.utils.thumbnails import get_thumbnail
-
 from photonix.photos.models import Library
 
 

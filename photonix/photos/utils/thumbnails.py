@@ -4,7 +4,7 @@ import os
 import math
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFile
 import numpy as np
 
 from django.conf import settings
@@ -82,6 +82,7 @@ def get_thumbnail(photo_file=None, photo=None, width=256, height=256, crop='cove
 
     # Read base image and metadata
     input_path = photo_file.base_image_path
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
     im = Image.open(input_path)
 
     if im.mode != 'RGB':

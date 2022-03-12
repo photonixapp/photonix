@@ -8,11 +8,12 @@ import { ReactComponent as CloseIcon } from '../static/images/close.svg'
 
 const Container = styled('ul')`
   li {
-    background: #383838;
+    background: #444;
     display: inline-block;
     margin: 0 10px 10px 0;
     padding: 3px 10px 4px 10px;
     font-size: 14px;
+    color: #ddd;
     border-radius: 4px;
     svg {
       filter: invert(0.9);

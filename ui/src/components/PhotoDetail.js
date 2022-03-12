@@ -182,12 +182,7 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
   //   }
   // }, [showMetadata])
 
-  const {
-    loading: photoLoading,
-    error: photosError,
-    data: photosData,
-    fetchMore: fetchMorePhotos,
-  } = useQuery(
+  const { data: photosData, fetchMore: fetchMorePhotos } = useQuery(
     GET_PHOTOS,
     {
       variables: {
@@ -202,12 +197,6 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
       skip: true,
     }
   )
-  if (photosError) {
-    console.log('photosError', photosError)
-  }
-  if (photoLoading) {
-    console.log('photoLoading', photosError)
-  }
 
   const updatePhotosStore = useCallback(
     (data) => {
@@ -219,53 +208,64 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     [dispatch]
   )
 
-  // Fetch next/prevoius photo
-  const fetchNextPreviousPhoto = async (val) => {
-    const { endCursor } = photosData.allPhotos.pageInfo
-    let photo_variables = {}
-    const timelinePhoto = timelinePhotoIds.photos.photosDetail.find(
-      (item) => item.node.id === photoId
-    )
-    if (val === AFTER)
-      photo_variables = { after: timelinePhoto.cursor, id: null }
-    else if (val === BEFORE) {
-      photo_variables = {
-        before: firstPrevious >= 1 ? endCursor : null,
-        id: null,
-        first: null,
-        last: 1,
+  // Fetch next/previous photo
+  const fetchNextPreviousPhoto = useCallback(
+    async (val) => {
+      const { endCursor } = photosData.allPhotos.pageInfo
+      let photo_variables = {}
+      const timelinePhoto = timelinePhotoIds.photos.photosDetail.find(
+        (item) => item.node.id === photoId
+      )
+      if (val === AFTER)
+        photo_variables = { after: timelinePhoto.cursor, id: null }
+      else if (val === BEFORE) {
+        photo_variables = {
+          before: firstPrevious >= 1 ? endCursor : null,
+          id: null,
+          first: null,
+          last: 1,
+        }
+        if (firstPrevious < 1) setFirstPrevious(firstPrevious + 1)
       }
-      if (firstPrevious < 1) setFirstPrevious(firstPrevious + 1)
-    }
-    await fetchMorePhotos({
-      variables: photo_variables,
-      updateQuery: (prevResult, { fetchMoreResult }) => {
-        fetchMoreResult.allPhotos.edges = [
-          ...prevResult.allPhotos.edges,
-          ...fetchMoreResult.allPhotos.edges,
-        ]
-        setFetchNextPrevious(
-          fetchMoreResult.allPhotos.edges[
-            fetchMoreResult.allPhotos.edges.length - 1
+      await fetchMorePhotos({
+        variables: photo_variables,
+        updateQuery: (prevResult, { fetchMoreResult }) => {
+          fetchMoreResult.allPhotos.edges = [
+            ...prevResult.allPhotos.edges,
+            ...fetchMoreResult.allPhotos.edges,
           ]
-        )
-        if (val !== BEFORE)
-          updatePhotosStore({
-            ids: [
-              fetchMoreResult.allPhotos.edges[
-                fetchMoreResult.allPhotos.edges.length - 1
-              ].node.id,
-            ],
-            photoList: [
-              fetchMoreResult.allPhotos.edges[
-                fetchMoreResult.allPhotos.edges.length - 1
+          setFetchNextPrevious(
+            fetchMoreResult.allPhotos.edges[
+              fetchMoreResult.allPhotos.edges.length - 1
+            ]
+          )
+          if (val !== BEFORE)
+            updatePhotosStore({
+              ids: [
+                fetchMoreResult.allPhotos.edges[
+                  fetchMoreResult.allPhotos.edges.length - 1
+                ].node.id,
               ],
-            ],
-          })
-        return fetchMoreResult
-      },
-    })
-  }
+              photoList: [
+                fetchMoreResult.allPhotos.edges[
+                  fetchMoreResult.allPhotos.edges.length - 1
+                ],
+              ],
+            })
+          return fetchMoreResult
+        },
+      })
+    },
+    [
+      fetchMorePhotos,
+      firstPrevious,
+      photoId,
+      photosData,
+      setFirstPrevious,
+      timelinePhotoIds,
+      updatePhotosStore,
+    ]
+  )
 
   // To show next/previous photos.
   useEffect(() => {
@@ -279,14 +279,14 @@ const PhotoDetail = ({ photoId, photo, refetch, updatePhotoFile }) => {
     if (id) {
       history.replace(`/photo/${id}`)
     } else fetchNextPreviousPhoto(BEFORE)
-  }, [prevNextPhotos])
+  }, [prevNextPhotos, fetchNextPreviousPhoto])
 
   const nextPhoto = useCallback(() => {
     let id = prevNextPhotos.next[0]
     if (id) {
       history.replace(`/photo/${id}`)
     } else fetchNextPreviousPhoto(AFTER)
-  }, [prevNextPhotos])
+  }, [prevNextPhotos, fetchNextPreviousPhoto])
 
   useEffect(() => {
     const handleKeyDown = (event) => {

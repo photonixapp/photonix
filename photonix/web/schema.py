@@ -11,7 +11,7 @@ class Query(AccountsQuery, PhotosQuery, graphene.ObjectType):
     pass
 
 
-class Mutation(AccountsMutation,LibraryMutation,graphene.ObjectType):
+class Mutation(AccountsMutation, LibraryMutation, graphene.ObjectType):
     pass
 
 

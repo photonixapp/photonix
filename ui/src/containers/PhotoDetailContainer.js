@@ -125,7 +125,13 @@ const PhotoDetailContainer = (props) => {
     const handleKeyDown = (event) => {
       switch (event.keyCode) {
         case ESCAPE_KEY:
-          event.target.name !== 'tagName' && history.push('/')
+          if (event.target.name !== 'tagName') {
+            if (document.referrer !== '' || history.length > 2) {
+              history.goBack()
+            } else {
+              history.push('/')
+            }
+          }
           break
         default:
           break

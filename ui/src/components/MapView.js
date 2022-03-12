@@ -1,14 +1,82 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useHistory } from 'react-router-dom'
+import styled from '@emotion/styled'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-markercluster'
 import { useMapEvent } from 'react-leaflet'
 import L from 'leaflet'
-import '../static/css/Map.css'
 import 'react-leaflet-markercluster/dist/styles.min.css' // sass
 
-const MapView = ({ photos, bounds, location, maxZoom, hideAttribution }) => {
+const Container = styled('div')`
+  width: 100%;
+  height: 100%;
+  background: #000;
+  position: relative;
+  z-index: 1;
+
+  .leaflet-container {
+    height: 100%;
+    width: 100%;
+    background: none;
+
+    .leaflet-control-attribution {
+      background: #292929;
+      color: #555;
+      font-size: 10px;
+    }
+    .leaflet-tile-container {
+      filter: contrast(1.03);
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 4px;
+    }
+  }
+
+  .leaflet-touch .leaflet-bar {
+    border: 0;
+  }
+
+  .leaflet-bar {
+    box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
+    a {
+      background-color: #383838;
+      border: 0;
+      color: #ddd;
+      &:hover {
+        background-color: #444;
+        border: 0;
+      }
+      &.leaflet-disabled {
+        opacity: 0;
+      }
+    }
+  }
+
+  .leaflet-popup-content {
+    margin: 4px;
+  }
+  .leaflet-popup-close-button {
+    display: none;
+  }
+  .leaflet-custom-icon {
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.25);
+  }
+`
+
+const MapView = ({
+  photos,
+  bounds,
+  location,
+  zoom,
+  maxZoom,
+  hideAttribution,
+}) => {
+  console.log(location)
+
   let markers = []
   let tileUrl =
     'https://{s}.basemaps.cartocdn.com/spotify_dark/{z}/{x}/{y}{r}.png'
@@ -19,7 +87,7 @@ const MapView = ({ photos, bounds, location, maxZoom, hideAttribution }) => {
 
   const [latState, setLatState] = useState(30)
   const [lngState, setLngState] = useState(0)
-  const [zoomState, setZoomState] = useState(2)
+  const [zoomState, setZoomState] = useState(zoom ? zoom : 2)
   const [map, setMap] = useState(null)
   const history = useHistory()
 
@@ -78,7 +146,7 @@ const MapView = ({ photos, bounds, location, maxZoom, hideAttribution }) => {
       ) : null
     )
     return (
-      <div className="Map">
+      <Container>
         <MapContainer
           bounds={bounds}
           boundsOptions={{ padding: [100, 100], maxZoom: maxZoom }}
@@ -92,18 +160,17 @@ const MapView = ({ photos, bounds, location, maxZoom, hideAttribution }) => {
           <MapEvents />
           <MarkerClusterGroup>{markers}</MarkerClusterGroup>
         </MapContainer>
-      </div>
+      </Container>
     )
   } else if (location) {
     markers = [<Marker key="marker" position={location}></Marker>]
-
     return (
-      <div className="Map">
-        <MapContainer center={location} zoomControl={true}>
+      <Container>
+        <MapContainer center={location} zoomControl={true} zoom={zoomState}>
           {tileLayer}
           <MarkerClusterGroup>{markers}</MarkerClusterGroup>
         </MapContainer>
-      </div>
+      </Container>
     )
   }
 }
@@ -112,6 +179,7 @@ MapView.propTypes = {
   photos: PropTypes.array,
   bounds: PropTypes.func,
   location: PropTypes.array,
+  zoom: PropTypes.number,
   maxZoom: PropTypes.number,
   hideAttribution: PropTypes.bool,
 }

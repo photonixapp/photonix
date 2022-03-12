@@ -74,16 +74,21 @@ const Notification = (props) => {
   const activeLibrary = useSelector(getActiveLibrary)
   const [settings, setSettings] = useSettings(activeLibrary)
   const [showNotificationIcon, setShowNotificationIcon] = useState(false)
-  const { ref, isComponentVisible, setIsComponentVisible } =
-    useComponentVisible(false)
+  const {
+    ref,
+    isComponentVisible,
+    setIsComponentVisible,
+  } = useComponentVisible(false)
   const { showNotification, setShowNotification, setShowUserMenu } = props
 
   const handleShowMenu = () => {
-    if (!showNotification) {
+    if (!isComponentVisible) {
       setIsComponentVisible(true)
       setShowNotification(true)
       setShowUserMenu(false)
       settingsRefetch()
+    } else {
+      setIsComponentVisible(false)
     }
   }
 
@@ -253,11 +258,7 @@ const Notification = (props) => {
   return (
     <>
       {showNotificationIcon ? (
-        <Container
-          ref={ref}
-          onClick={handleShowMenu}
-          onMouseEnter={handleShowMenu}
-        >
+        <Container ref={ref} onClick={handleShowMenu}>
           <img src={notifications} alt="Notification" />
           <ul
             className="notificationMenu"

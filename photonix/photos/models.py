@@ -136,6 +136,7 @@ class Photo(UUIDModel, VersionedModel):
         help_text='assign rating to photo', verbose_name="Rating", null=True, blank=True)
     preferred_photo_file = models.ForeignKey('PhotoFile', related_name='+', null=True, on_delete=models.SET_NULL)  # File selected by the user that is the best version to be used
     thumbnailed_version = models.PositiveIntegerField(default=0)  # Version from photos.utils.thumbnails.THUMBNAILER_VERSION at time of generating the required thumbnails declared in settings.THUMBNAIL_SIZES
+    deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-taken_at']
@@ -224,17 +225,18 @@ class PhotoFile(UUIDModel, VersionedModel):
 
 
 SOURCE_CHOICES = (
-    ('H', 'Human'),
     ('C', 'Computer'),
+    ('H', 'Human'),
 )
 TAG_TYPE_CHOICES = (
-    ('L', 'Location'),
-    ('O', 'Object'),
-    ('F', 'Face'),
-    ('C', 'Color'),
+    ('A', 'Album'),  # Assigned to an album by user
+    ('C', 'Color'), # Color detected by classifier
+    ('E', 'Event'),  # Image creation date matches a festival or type of event
+    ('F', 'Face'), # Face detected by classifier
+    ('G', 'Generic'),  # Tags assigned by user
+    ('L', 'Location'), # Location detected using GPS coordinates by classifier
+    ('O', 'Object'), # Object detected by classifier
     ('S', 'Style'),  # See Karayev et al.: Recognizing Image Style
-    ('G', 'Generic'),  # Tags created by user
-    ('E', 'Event'),  # Checked image taken date is any festival date.
 )
 
 

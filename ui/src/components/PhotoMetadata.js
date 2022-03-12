@@ -154,13 +154,6 @@ const PhotoMetadata = ({
     date = new Intl.DateTimeFormat().format(date)
   }
 
-  let location = null
-  if (photo.location) {
-    location = [null, null]
-    location[0] = parseFloat(photo.location.split(',')[0])
-    location[1] = parseFloat(photo.location.split(',')[1])
-  }
-
   useEffect(() => {
     updateStarRating(photo.starRating)
   }, [photo.starRating])
@@ -192,7 +185,9 @@ const PhotoMetadata = ({
   }
 
   // To show people tag list without having any blocked tag.
-  const personTagsList = photo.personTags.filter(personTags => !personTags.deleted);
+  const personTagsList = photo.personTags.filter(
+    (personTags) => !personTags.deleted
+  )
 
   return (
     <Container className={show && 'showing'}>
@@ -294,7 +289,11 @@ const PhotoMetadata = ({
           <div className={`box box${boxCount++}`}>
             <h2>Map</h2>
             <div className="map">
-              {<MapView location={location} hideAttribution={true} zoom={6} />}
+              <MapView
+                location={photo.location}
+                hideAttribution={true}
+                zoom={6}
+              />
             </div>
           </div>
         )}

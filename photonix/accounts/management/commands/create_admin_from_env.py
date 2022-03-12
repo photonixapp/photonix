@@ -32,7 +32,7 @@ class Command(BaseCommand):
             exit(1)
         else:
             user.set_password(password)
-            user.has_config_persional_info = True
+            user.has_set_personal_info = True
             user.save()
             print(f'User "{username}" created successfully and password set')
 

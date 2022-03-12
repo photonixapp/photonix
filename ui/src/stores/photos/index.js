@@ -8,9 +8,9 @@ const initialState = {
 const photos = (state = initialState, action = {}) => {
   switch (action.type) {
     case SET_PHOTOS:
-      let index = state.photosDetail.filter((el) => {
+      state.photosDetail.filter((el) => {
         return action.payload.photoList.findIndex(
-          (node) => el.node.id == node.node.id
+          (node) => el.node.id === node.node.id
         )
       })
       return {
