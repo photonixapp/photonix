@@ -394,17 +394,17 @@ const PhotoDetail = ({
             />
           </div>
           <div>
-            <RotateRightIcon
-              className="icon"
-              height="30"
-              width="30"
-              onClick={() => rotate('right')}
-            />
             <RotateLeftIcon
               className="icon"
               height="30"
               width="30"
               onClick={() => rotate('left')}
+            />
+            <RotateRightIcon
+              className="icon"
+              height="30"
+              width="30"
+              onClick={() => rotate('right')}
             />
             {photo?.downloadUrl && (
               <a href={`${photo.downloadUrl}`} download>
