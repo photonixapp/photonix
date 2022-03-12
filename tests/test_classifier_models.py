@@ -126,9 +126,9 @@ def test_face_predict():
     ]
     TEST_FACES = [
         # Test image, nearest match in TRAIN_FACES, distance (3DP)
-        ('Boris_Becker_0005.jpg', 0, '9.614'),
-        ('David_Beckham_0010.jpg', 2, '10.956'),
-        ('Barbara_Becker_0001.jpg', 2, '15.736'),
+        ('Boris_Becker_0005.jpg', 1, '9.897'),
+        ('David_Beckham_0010.jpg', 2, '10.351'),
+        ('Barbara_Becker_0001.jpg', 2, '15.732'),
     ]
 
     embedding_cache = []

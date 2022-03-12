@@ -16,6 +16,9 @@ from photonix.accounts.models import User
 class TestGraphQL(unittest.TestCase):
     """Test cases for graphql API's."""
 
+    _library_user = None
+    _library = None
+
     def setUp(self):
         """Make user login before each test case run."""
         super().setUp()
@@ -35,26 +38,41 @@ class TestGraphQL(unittest.TestCase):
     def defaults_values(self, db, api_client):
         """Created default user and library."""
         self.api_client = api_client
-        library_user = LibraryUserFactory()
-        library = library_user.library
-        user = library_user.user
+        self._library_user = LibraryUserFactory()
+        self._library = self._library_user.library
+
+        user = self._library_user.user
         user.set_password('demo123456')
         user.save()
-        LibraryPath.objects.create(library=library, type="St", backend_type='Lo', path='/data/photos/')
+
+        LibraryPath.objects.create(library=self._library, type="St", backend_type='Lo', path='/data/photos/')
         snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
-        snow_photo = record_photo(snow_path, library)
+        snow_photo = record_photo(snow_path, self._library)
 
         tree_path = str(Path(__file__).parent / 'photos' / 'tree.jpg')
-        tree_photo = record_photo(tree_path, library)
+        tree_photo = record_photo(tree_path, self._library)
 
         self.defaults = {
-            'library_user': library_user,
-            'library': library,
+            'library_user': self._library_user,
+            'library': self._library,
             'user': user,
             'snow_photo': snow_photo,
             'tree_photo': tree_photo,
             'password': 'demo123456',
         }
+
+    def test_fix347(self):
+        # Test fix 347 - Photos with same date are not imported
+        path_photo1 = str(Path(__file__).parent / 'photos' / 'photo_no_metadata_1.jpg')
+        Path(path_photo1).touch()
+
+        path_photo2 = str(Path(__file__).parent / 'photos' / 'photo_no_metadata_2.jpg')
+        Path(path_photo2).touch()
+
+        photo1 = record_photo(path_photo1, self._library)
+        photo2 = record_photo(path_photo2, self._library)
+
+        assert(not photo1 == photo2)
 
     def test_user_login_environment(self):
         """Test user logged in successfully or not."""

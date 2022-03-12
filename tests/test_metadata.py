@@ -52,4 +52,4 @@ def test_datetime():
     # Some of the date digits are the letter X so fall back to file creation date
     photo_path = str(Path(__file__).parent / 'photos' / 'unreadable_date.jpg')
     parsed_datetime = get_datetime(photo_path)
-    assert parsed_datetime.isoformat() == '2021-08-08T21:11:25.231271+00:00'
+    assert parsed_datetime.isoformat() == '2021-09-02T10:43:49.739248+00:00'
