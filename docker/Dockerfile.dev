@@ -1,4 +1,4 @@
-FROM python:3.8.9-slim-buster
+FROM python:3.8.12-slim-bullseye
 
 # Install system dependencies - note that some of these are only used on non-amd64 where Python packages have to be compiled from source
 RUN apt-get update && \
