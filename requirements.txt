@@ -5,7 +5,7 @@ tensorflow==2.4.1
 opencv-python==4.5.1.48
 annoy==1.17.0
 
-Django==3.2.5
+Django==3.2.12
 django-cors-headers==3.2.1
 django-filter==2.4.0
 PyJWT==1.7.1
