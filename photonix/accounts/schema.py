@@ -23,7 +23,7 @@ class CreateUser(graphene.Mutation):
         password = graphene.String(required=True)
         password1 = graphene.String(required=True)
 
-    has_config_persional_info = graphene.Boolean()
+    has_set_personal_info = graphene.Boolean()
     user_id = graphene.ID()
     ok = graphene.Boolean()
 
@@ -38,10 +38,10 @@ class CreateUser(graphene.Mutation):
         else:
             user = User(username=username)
             user.set_password(password1)
-            user.has_config_persional_info = True
+            user.has_set_personal_info = True
             user.save()
         return CreateUser(
-            has_config_persional_info=user.has_config_persional_info,
+            has_set_personal_info=user.has_set_personal_info,
             ok=True, user_id=user.id)
 
 
@@ -77,7 +77,7 @@ class Query(graphene.ObjectType):
         demo = os.environ.get('DEMO', False)
         sample_data = os.environ.get('DEMO', False) or os.environ.get('SAMPLE_DATA', False)
 
-        if user and user.has_config_persional_info and \
+        if user and user.has_set_personal_info and \
             user.has_created_library and user.has_configured_importing and \
                 user.has_configured_image_analysis:
             return {
@@ -91,7 +91,7 @@ class Query(graphene.ObjectType):
                     'demo': demo,
                     'sample_data': sample_data,
                     'first_run': True,
-                    'form': 'has_config_persional_info'}
+                    'form': 'has_set_personal_info'}
             if not user.has_created_library:
                 return {
                     'demo': demo,

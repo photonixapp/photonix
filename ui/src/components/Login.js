@@ -81,16 +81,29 @@ const Login = (props) => {
     authUser,
     { data: authData, loading: authLoading, error: authError },
   ] = useMutation(AUTH_USER)
-  if (envData && envData.environment.form === 'has_config_persional_info') {
+  console.log(envData)
+  if (
+    envData?.environment &&
+    envData.environment.form === 'has_set_personal_info'
+  ) {
     return <Redirect to="/onboarding" />
   }
-  if (envData && envData.environment.form === 'has_created_library') {
+  if (
+    envData?.environment &&
+    envData.environment.form === 'has_created_library'
+  ) {
     return <Redirect to="/onboarding/step3" />
   }
-  if (envData && envData.environment.form === 'has_configured_importing') {
+  if (
+    envData?.environment &&
+    envData.environment.form === 'has_configured_importing'
+  ) {
     return <Redirect to="/onboarding/step4" />
   }
-  if (envData && envData.environment.form === 'has_configured_image_analysis') {
+  if (
+    envData?.environment &&
+    envData.environment.form === 'has_configured_image_analysis'
+  ) {
     return <Redirect to="/onboarding/step5" />
   }
 
@@ -135,7 +148,12 @@ const Login = (props) => {
             ref={(node) => {
               inputUsername = node
             }}
-            defaultValue={envData && (envData.environment.demo || envData.environment.sampleData) ? 'demo' : ''}
+            defaultValue={
+              envData?.environment &&
+              (envData.environment.demo || envData.environment.sampleData)
+                ? 'demo'
+                : ''
+            }
           />
         </Row>
         <Row>
@@ -145,7 +163,12 @@ const Login = (props) => {
             ref={(node) => {
               inputPassword = node
             }}
-            defaultValue={envData && (envData.environment.demo || envData.environment.sampleData) ? 'demo' : ''}
+            defaultValue={
+              envData?.environment &&
+              (envData.environment.demo || envData.environment.sampleData)
+                ? 'demo'
+                : ''
+            }
           />
         </Row>
         <button type="submit" style={{ cursor: 'pointer' }}>
