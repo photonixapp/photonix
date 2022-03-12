@@ -13,10 +13,11 @@ import PhotoDetailContainer from '../containers/PhotoDetailContainer'
 import Onboarding from '../components/Onboarding'
 import Settings from '../components/Settings'
 import Account from '../components/Account'
+import AddTag from '../components/AddTag'
+import AlbumList from '../components/AlbumList'
 import history from '../history'
 import '../static/css/App.css'
 import '../static/css/typography.css'
-import ZoomTest from './ZoomTest'
 
 if (Cookies.get('refreshToken')) {
   logIn()
@@ -36,7 +37,6 @@ const App = ({
     <Switch>
       <Route path="/login" render={() => <Login />} />
       <Route path="/logout" render={() => <Logout />} />
-      {/* <Route path="/zoom" render={ZoomTest} /> */}
       <Route
         path="/"
         render={() => (
@@ -51,7 +51,6 @@ const App = ({
       />
     </Switch>
     <Switch>
-      <ModalRoute path="/zoom" component={ZoomTest} />
       <ModalRoute path="/account" parentPath="/" component={Account} />
       <ModalRoute
         path="/onboarding"
@@ -64,6 +63,13 @@ const App = ({
         path="/photo/:photoId"
         parentPath="/"
         component={PhotoDetailContainer}
+      />
+      <ModalRoute path="/assign-tag" parentPath="/" component={AddTag} />
+      <ModalRoute path="/assign-album" parentPath="/" component={AddTag} />
+      <ModalRoute
+        path="?mode=albums&album_id=:albumId"
+        parentPath="/"
+        component={AlbumList}
       />
     </Switch>
   </>

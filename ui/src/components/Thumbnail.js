@@ -1,36 +1,105 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
-
-import StarRating from './StarRating'
-import { PHOTO_UPDATE } from '../graphql/photo'
 import { useMutation } from '@apollo/client'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
 import 'react-lazy-load-image-component/src/effects/opacity.css'
+import classNames from 'classnames/bind'
+
+import StarRating from './StarRating'
+import { PHOTO_UPDATE } from '../graphql/photo'
+import { ReactComponent as TickIcon } from '../static/images/done_black.svg'
+import { Link } from 'react-router-dom'
 
 const Container = styled('li')`
   width: 130px;
   height: 130px;
   line-height: 0;
   vertical-align: bottom;
-  border: 1px solid #888;
   list-style: none;
   margin: 0 20px 20px 0;
   display: inline-block;
-  box-shadow: 0 2px 6px 1px rgba(0, 0, 0, 0.5);
-  background: #292929;
-  overflow: hidden;
   cursor: pointer;
   position: relative;
+  border-radius: 10px;
+  background: #292929;
 
-  img.thumbnail {
-    width: 100%;
-    height: 100%;
-    display: block;
+  &.selectable {
+    background: none;
+  }
+  &.selected .thumbnail-area {
+    transform: scale(0.9);
   }
 
-  .thumbnail-wrapper {
-    display: block !important;
+  .thumbnail-area {
+    transition: transform 100ms ease-in-out;
+
+    .lazy-load-image-loaded {
+      background: #292929;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 10px;
+    }
+  }
+
+  .selection-indicator {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    bottom: 4px;
+    right: 4px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    svg {
+      filter: invert(0.9);
+      display: none;
+      width: 18px;
+      height: 18px;
+      margin: 0.5px;
+    }
+  }
+  &.selectable .selection-indicator {
+    opacity: 1;
+  }
+  &.selected .selection-indicator {
+    border: 0;
+    width: 22px;
+    height: 22px;
+    bottom: 1px;
+    right: 1px;
+    opacity: 1;
+    background: #00a8a1;
+    svg {
+      display: block;
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      filter: invert(1);
+    }
+  }
+  .album-name {
+    position: absolute;
+    color: #fff;
+    font-weight: 600;
+    text-align: left;
+    width: 85%;
+    top: 0;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 8px;
+    text-shadow: 1px 1px 3px #000;
   }
 
   @media all and (max-width: 1920px) {
@@ -39,10 +108,6 @@ const Container = styled('li')`
     margin: 0;
     padding-bottom: 100%;
     display: block;
-
-    img.thumbnail {
-      height: auto;
-    }
   }
 `
 const StarRatingStyled = styled('div')`
@@ -58,7 +123,19 @@ const StarRatingStyled = styled('div')`
   }
 `
 
-const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
+const Thumbnail = ({
+  id,
+  imageUrl,
+  starRating,
+  selectable,
+  selected,
+  mode,
+  rateable,
+  albumId,
+  albumPhotosCount,
+  albumName,
+  ...rest
+}) => {
   const [newStarRating, updateStarRating] = useState(starRating)
 
   useEffect(() => {
@@ -72,7 +149,7 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
   const canHover = window.matchMedia('(hover: hover)').matches
   if (canHover) {
     onStarClick = (num, e) => {
-      e.preventDefault()
+      e.stopPropagation()
       if (newStarRating === num) {
         updateStarRating(0)
         updatePhoto({
@@ -94,22 +171,82 @@ const Thumbnail = ({ id, imageUrl, starRating, onStarRatingChange }) => {
   }
 
   return (
-    <Container>
-      <Link to={`/photo/${id}`} key={id}>
-        <LazyLoadImage
-          effect="opacity"
-          src={imageUrl}
-          className="thumbnail"
-          wrapperClassName="thumbnail-wrapper"
-          width="100%"
-          height="100%"
-        />
-        <StarRatingStyled>
-          <StarRating starRating={newStarRating} onStarClick={onStarClick} />
-        </StarRatingStyled>
-      </Link>
+    <Container
+      className={classNames({ selectable: selectable, selected: selected })}
+      data-id={id}
+      {...rest}
+    >
+      {mode === 'ALBUMS' ? (
+        <Link
+          to={`?mode=albums&album_id=${albumId}&album_name=${encodeURIComponent(
+            albumName
+          )}`}
+          key={albumId}
+        >
+          <div
+            className="thumbnail-area"
+            title={albumName.length > 8 ? albumName : null}
+          >
+            <LazyLoadImage
+              effect="opacity"
+              src={imageUrl}
+              className="thumbnail"
+              wrapperClassName="thumbnail-wrapper"
+              width="100%"
+              height="100%"
+            />
+            {rateable && (
+              <StarRatingStyled>
+                <StarRating
+                  starRating={newStarRating}
+                  onStarClick={!selectable ? onStarClick : null}
+                />
+              </StarRatingStyled>
+            )}
+          </div>
+          <div className="album-name">{albumName}</div>
+        </Link>
+      ) : (
+        <>
+          <div className="thumbnail-area">
+            <LazyLoadImage
+              effect="opacity"
+              src={imageUrl}
+              className="thumbnail"
+              wrapperClassName="thumbnail-wrapper"
+              width="100%"
+              height="100%"
+            />
+            {rateable && (
+              <StarRatingStyled>
+                <StarRating
+                  starRating={newStarRating}
+                  onStarClick={!selectable ? onStarClick : null}
+                />
+              </StarRatingStyled>
+            )}
+          </div>
+          <div className="selection-indicator">
+            <TickIcon />
+          </div>
+        </>
+      )}
     </Container>
   )
+}
+
+Thumbnail.propTypes = {
+  id: PropTypes.string,
+  imageUrl: PropTypes.string,
+  starRating: PropTypes.number,
+  selectable: PropTypes.bool,
+  selected: PropTypes.bool,
+  mode: PropTypes.string,
+  rateable: PropTypes.bool,
+}
+
+Thumbnail.defaultProps = {
+  rateable: true,
 }
 
 export default Thumbnail
