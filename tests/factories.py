@@ -13,7 +13,7 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     username = 'test'
     email = 'test@example.com'
-    has_config_personal_info = True
+    has_set_personal_info = True
     has_created_library = True
     has_configured_importing = True
     has_configured_image_analysis = True
