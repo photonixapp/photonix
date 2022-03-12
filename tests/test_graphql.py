@@ -40,17 +40,17 @@ class TestGraphQL(unittest.TestCase):
         self.api_client = api_client
         self._library_user = LibraryUserFactory()
         self._library = self._library_user.library
+
         user = self._library_user.user
         user.set_password('demo123456')
         user.save()
+
         LibraryPath.objects.create(library=self._library, type="St", backend_type='Lo', path='/data/photos/')
         snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
         snow_photo = record_photo(snow_path, self._library)
 
         tree_path = str(Path(__file__).parent / 'photos' / 'tree.jpg')
         tree_photo = record_photo(tree_path, self._library)
-
-
 
         self.defaults = {
             'library_user': self._library_user,
@@ -62,7 +62,7 @@ class TestGraphQL(unittest.TestCase):
         }
 
     def test_fix347(self):
-        #Test fix 347 - Photos with same date are not imported
+        # Test fix 347 - Photos with same date are not imported
         path_photo1 = str(Path(__file__).parent / 'photos' / 'photo_no_metadata_1.jpg')
         Path(path_photo1).touch()
 
