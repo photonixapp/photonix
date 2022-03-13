@@ -315,14 +315,19 @@ const PhotoDetail = ({
     }
   }, [photoId, prevNextPhotos, prevPhoto, nextPhoto])
 
+  const setBoxColorClass = (tag) => {
+    return tag.deleted ? 'whiteBox' : tag.verified ? 'greenBox' : 'yellowBox'
+  }
+
   let boxes = {
-    object: photo?.objectTags.map((objectTag) => {
+    object: photo?.objectTags.map((tag) => {
       return {
-        name: objectTag.tag.name,
-        positionX: objectTag.positionX,
-        positionY: objectTag.positionY,
-        sizeX: objectTag.sizeX,
-        sizeY: objectTag.sizeY,
+        id: tag.id,
+        name: tag.tag.name,
+        positionX: tag.positionX,
+        positionY: tag.positionY,
+        sizeX: tag.sizeX,
+        sizeY: tag.sizeY,
       }
     }),
     face: photo?.personTags.map((tag) => {
@@ -339,10 +344,6 @@ const PhotoDetail = ({
         showVerifyIcon: tag.showVerifyIcon,
       }
     }),
-  }
-
-  const setBoxColorClass = (tag) => {
-    return tag.deleted ? 'whiteBox' : tag.verified ? 'greenBox' : 'yellowBox'
   }
 
   useEffect(() => {
