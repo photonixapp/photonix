@@ -42,8 +42,6 @@ const Container = styled('div')`
         cursor: zoom-in;
         img {
           opacity: 0;
-          max-width: 100vw;
-          max-height: 100vh;
           vertical-align: top;
           &.display {
             opacity: 1;
@@ -83,6 +81,7 @@ const ZoomableImage = ({
   boxes,
   next,
   prev,
+  rotation,
   refetch,
   showBoundingBox,
   setShowBoundingBox,
@@ -177,6 +176,15 @@ const ZoomableImage = ({
     }
   }
 
+  let imageStyle = {
+    maxWidth: '100vw',
+    maxHeight: '100vh',
+  }
+  if (rotation === 90 || rotation === 270) {
+    imageStyle.maxWidth = '100vh'
+    imageStyle.maxHeight = '100vw'
+  }
+
   return (
     <Container>
       <TransformWrapper
@@ -197,12 +205,19 @@ const ZoomableImage = ({
             <TransformComponent>
               <div className="pinchArea">
                 <div {...swipeHandlers} className="imageFlex">
-                  <div className="imageWrapper" onClick={showHideIcons}>
+                  <div
+                    className="imageWrapper"
+                    onClick={showHideIcons}
+                    style={{
+                      transform: `rotate(${rotation}deg)`,
+                    }}
+                  >
                     <img
                       src={url}
                       alt=""
                       onLoad={handleImageLoaded}
                       className={displayImage ? 'display' : undefined}
+                      style={imageStyle}
                     />
                     {boxes &&
                       showTopIcons &&
@@ -218,6 +233,7 @@ const ZoomableImage = ({
                             showBoundingBox={showBoundingBox}
                             editLableId={editLableId}
                             setEditLableId={setEditLableId}
+                            rotation={rotation}
                           />
                         </span>
                       ))}

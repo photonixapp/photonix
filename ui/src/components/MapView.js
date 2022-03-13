@@ -75,8 +75,6 @@ const MapView = ({
   maxZoom,
   hideAttribution,
 }) => {
-  console.log(location)
-
   let markers = []
   let tileUrl =
     'https://{s}.basemaps.cartocdn.com/spotify_dark/{z}/{x}/{y}{r}.png'

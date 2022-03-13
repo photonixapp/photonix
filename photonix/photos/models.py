@@ -207,6 +207,7 @@ class PhotoFile(UUIDModel, VersionedModel):
     raw_version = models.PositiveIntegerField(null=True)
     raw_external_params = models.CharField(max_length=32, blank=True, null=True)
     raw_external_version = models.CharField(max_length=32, blank=True, null=True)
+    rotation = models.PositiveIntegerField(null=True, default=0)
 
     def __str__(self):
         return str(self.path)

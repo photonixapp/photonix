@@ -42,6 +42,7 @@ const GET_PHOTOS = gql`
           id
           location
           starRating
+          rotation
         }
       }
     }
@@ -55,6 +56,7 @@ const GET_MAP_PHOTOS = gql`
           id
           url
           location
+          rotation
         }
       }
     }
@@ -228,6 +230,7 @@ const BrowseContainer = (props) => {
       thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location,
       starRating: photo.node.starRating,
+      rotation: photo.node.rotation,
     }))
   }
 

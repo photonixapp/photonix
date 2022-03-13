@@ -74,6 +74,7 @@ class PhotoNode(DjangoObjectType):
     photo_file = graphene.List(PhotoFileType)
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
+    rotation = graphene.Int()
     download_url = graphene.String()
 
     color_tags = graphene.List(PhotoTagType)
@@ -113,6 +114,9 @@ class PhotoNode(DjangoObjectType):
 
     def resolve_base_file_id(self, info):
         return self.base_file.id
+
+    def resolve_rotation(self, info):
+        return getattr(self.base_file, 'rotation', 0)
 
     def resolve_download_url(self, info):
         return self.download_url
@@ -954,7 +958,7 @@ class ChangePreferredPhotoFile(graphene.Mutation):
         photo_obj = PhotoFile.objects.get(id=selected_photo_file_id).photo
         photo_obj.preferred_photo_file = PhotoFile.objects.get(id=selected_photo_file_id)
         photo_obj.save()
-        Task(type='generate_thumbnails', subject_id=photo_obj.id).save()
+        Task(type='generate_thumbnails', subject_id=photo_obj.id, library=photo_obj.library).save()
         return ChangePreferredPhotoFile(ok=True)
 
 
@@ -963,7 +967,6 @@ class EditFaceTag(graphene.Mutation):
 
     class Arguments:
         """Input arguments which will pass from frontend."""
-
         photo_tag_id = graphene.ID()
         new_name = graphene.String()
 
@@ -1107,6 +1110,31 @@ class RemovePhotosFromAlbum(graphene.Mutation):
             raise GraphQLError("Something Went wrong!")
 
 
+class SavePhotoFileRotation(graphene.Mutation):
+    """To save photoFile rotation."""
+
+    class Arguments:
+        """Input arguments which will pass from frontend."""
+        photo_file_id = graphene.ID()
+        rotation = graphene.Int()
+
+    ok = graphene.Boolean()
+    rotation = graphene.Int()
+
+    @staticmethod
+    def mutate(self, info, photo_file_id=None, rotation=None):
+        """Mutation to save photoFile rotation."""
+        if photo_file_id and rotation in [0, 90, 180, 270]:
+            photofile_obj = PhotoFile.objects.get(id=photo_file_id)
+            photofile_obj.rotation = rotation
+            photofile_obj.save()
+            Task(
+                type='generate_thumbnails', subject_id=photofile_obj.photo.id,
+                library=photofile_obj.photo.library).save()
+            return SavePhotoFileRotation(ok=True, rotation=rotation)
+        return SavePhotoFileRotation(ok=False, rotation=rotation)
+
+
 class Mutation(graphene.ObjectType):
     update_color_enabled = UpdateLibraryColorEnabled.Field()
     update_location_enabled = UpdateLibraryLocationEnabled.Field()
@@ -1127,3 +1155,4 @@ class Mutation(graphene.ObjectType):
     assign_tag_to_photos = AssignTagToPhotos.Field()
     set_photos_deleted = SetPhotosDeleted.Field()
     remove_photos_from_album = RemovePhotosFromAlbum.Field()
+    save_photoFile_rotation = SavePhotoFileRotation.Field()

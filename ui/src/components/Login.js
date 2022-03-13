@@ -81,7 +81,6 @@ const Login = (props) => {
     authUser,
     { data: authData, loading: authLoading, error: authError },
   ] = useMutation(AUTH_USER)
-  console.log(envData)
   if (
     envData?.environment &&
     envData.environment.form === 'has_set_personal_info'

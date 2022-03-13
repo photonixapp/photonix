@@ -18,18 +18,24 @@ const Container = styled('div')`
     position: absolute;
     border-radius: 6px;
     overflow: hidden;
-    .FeatureLabel {
-      color: #fff;
-      font-size: 14px;
-      background-color: rgba(255, 0, 0, 0.75);
-      display: inline-block;
-      overflow: hidden;
-      max-width: 100%;
-      padding: 1px 7px 2px 4px;
-      float: left;
-      text-align: left;
-      white-space: nowrap;
-      pointer-events: all;
+    .FeatureLabelContainer {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      .FeatureLabel {
+        color: #fff;
+        font-size: 14px;
+        background-color: rgba(255, 0, 0, 0.5);
+        border-top-left-radius: 3px;
+        overflow: hidden;
+        max-width: 100%;
+        padding: 1px 4px;
+        float: left;
+        text-align: left;
+        white-space: nowrap;
+        pointer-events: all;
+      }
     }
     &.face {
       cursor: default;
@@ -38,14 +44,14 @@ const Container = styled('div')`
         border-color: rgba(255, 255, 0, 0.75);
         .FeatureLabel {
           color: #000;
-          background-color: rgba(255, 255, 0, 0.75);
+          background-color: rgba(255, 255, 0, 0.5);
         }
       }
       &.greenBox {
         border-color: rgba(0, 255, 0, 0.75);
         .FeatureLabel {
           color: #000;
-          background-color: rgba(0, 255, 0, 0.75);
+          background-color: rgba(0, 255, 0, 0.5);
         }
       }
       &.whiteBox {
@@ -109,6 +115,7 @@ const BoundingBoxes = ({
   showBoundingBox,
   editLableId,
   setEditLableId,
+  rotation,
 }) => {
   const dispatch = useDispatch()
   const ref = useRef(null)
@@ -194,6 +201,38 @@ const BoundingBoxes = ({
     event.stopPropagation()
   }
 
+  const featureLabelContainerStyles = (id) => {
+    let styles = {
+      transform: `rotate(${360 - rotation}deg)`,
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+    }
+
+    let borderWidth = 1
+    if (window.innerWidth > 1000) {
+      borderWidth = 3
+    }
+
+    let box = document.getElementById('box-' + id)
+    if (!box) {
+      return styles
+    }
+
+    if (rotation === 0 || rotation === 180) {
+      styles.width = box.offsetWidth - 2 * borderWidth
+      styles.height = box.offsetHeight - 2 * borderWidth
+    } else {
+      styles.width = box.offsetHeight - 2 * borderWidth
+      styles.height = box.offsetWidth - 2 * borderWidth
+      styles.top = (styles.width - styles.height) / 2
+      styles.left = styles.top * -1
+    }
+
+    return styles
+  }
+
   return (
     <Container>
       {boxes?.map((box, index) => {
@@ -207,59 +246,66 @@ const BoundingBoxes = ({
               showBoundingBox ? box.boxColorClass : 'hideBox'
             }`}
             key={index}
+            id={`box-${box.id}`}
             style={{ left: left, top: top, width: width, height: height }}
           >
-            {showBoundingBox &&
-              (editLableId === box.id ? (
-                <input
-                  type="text"
-                  name="tagName"
-                  className="FeatureEditText"
-                  onKeyDown={(e) => onChangeLable(e, box.id)}
-                  ref={ref}
-                  onMouseDown={(e) => stopParentEventBehavior(e)}
-                  onClick={(e) => stopParentEventBehavior(e)}
-                />
-              ) : (
-                !box.deleted && (
-                  <div className="FeatureLabel" key={index}>
-                    {box.name}
-                  </div>
-                )
-              ))}
-            {className === 'face' && (
-              <div className="icons">
+            {showBoundingBox && (
+              <div
+                className="FeatureLabelContainer"
+                style={featureLabelContainerStyles(box.id)}
+              >
                 {editLableId === box.id ? (
-                  <DoneIcon
-                    alt="Done"
-                    className="FeatureIconDone"
-                    onClick={(e) => onSaveLable(e, box.id)}
+                  <input
+                    type="text"
+                    name="tagName"
+                    className="FeatureEditText"
+                    onKeyDown={(e) => onChangeLable(e, box.id)}
+                    ref={ref}
+                    onMouseDown={(e) => stopParentEventBehavior(e)}
+                    onClick={(e) => stopParentEventBehavior(e)}
                   />
                 ) : (
-                  <>
-                    {!box.verified && !box.deleted && (
-                      <BlockIcon
-                        alt="Block"
-                        className="FeatureIconDelete"
-                        onClick={(e) => onHandleBlock(e, box.id)}
-                        title="Reject automatic face tag"
-                      />
-                    )}
-                    {box.showVerifyIcon && !box.deleted && (
+                  !box.deleted && (
+                    <div className="FeatureLabel" key={index}>
+                      {box.name}
+                    </div>
+                  )
+                )}
+                {className === 'face' && (
+                  <div className="icons">
+                    {editLableId === box.id ? (
                       <DoneIcon
                         alt="Done"
                         className="FeatureIconDone"
-                        onClick={(e) => setVerifyPhoto(e, box.id)}
-                        title="Approve automatic face tag"
+                        onClick={(e) => onSaveLable(e, box.id)}
                       />
+                    ) : (
+                      <>
+                        {!box.verified && !box.deleted && (
+                          <BlockIcon
+                            alt="Block"
+                            className="FeatureIconDelete"
+                            onClick={(e) => onHandleBlock(e, box.id)}
+                            title="Reject automatic face tag"
+                          />
+                        )}
+                        {box.showVerifyIcon && !box.deleted && (
+                          <DoneIcon
+                            alt="Done"
+                            className="FeatureIconDone"
+                            onClick={(e) => setVerifyPhoto(e, box.id)}
+                            title="Approve automatic face tag"
+                          />
+                        )}
+                        <EditIcon
+                          alt="Edit"
+                          className="FeatureIconEdit"
+                          onClick={(e) => updateEditState(e, box.id)}
+                          title="Edit person’s name"
+                        />
+                      </>
                     )}
-                    <EditIcon
-                      alt="Edit"
-                      className="FeatureIconEdit"
-                      onClick={(e) => updateEditState(e, box.id)}
-                      title="Edit person’s name"
-                    />
-                  </>
+                  </div>
                 )}
               </div>
             )}

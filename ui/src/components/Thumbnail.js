@@ -127,6 +127,7 @@ const Thumbnail = ({
   id,
   imageUrl,
   starRating,
+  rotation,
   selectable,
   selected,
   mode,
@@ -194,6 +195,9 @@ const Thumbnail = ({
               wrapperClassName="thumbnail-wrapper"
               width="100%"
               height="100%"
+              style={{
+                transform: `rotate(${rotation}deg)`,
+              }}
             />
             {rateable && (
               <StarRatingStyled>
@@ -216,6 +220,9 @@ const Thumbnail = ({
               wrapperClassName="thumbnail-wrapper"
               width="100%"
               height="100%"
+              style={{
+                transform: `rotate(${rotation}deg)`,
+              }}
             />
             {rateable && (
               <StarRatingStyled>
@@ -239,6 +246,7 @@ Thumbnail.propTypes = {
   id: PropTypes.string,
   imageUrl: PropTypes.string,
   starRating: PropTypes.number,
+  rotation: PropTypes.number,
   selectable: PropTypes.bool,
   selected: PropTypes.bool,
   mode: PropTypes.string,
