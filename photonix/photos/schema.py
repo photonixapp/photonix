@@ -74,7 +74,7 @@ class PhotoNode(DjangoObjectType):
     photo_file = graphene.List(PhotoFileType)
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
-    rotation = graphene.String()
+    rotation = graphene.Int()
     download_url = graphene.String()
 
     color_tags = graphene.List(PhotoTagType)
@@ -116,7 +116,7 @@ class PhotoNode(DjangoObjectType):
         return self.base_file.id
 
     def resolve_rotation(self, info):
-        return self.base_file.rotation
+        return getattr(self.base_file, 'rotation', 0)
 
     def resolve_download_url(self, info):
         return self.download_url
@@ -1115,24 +1115,24 @@ class SavePhotoFileRotation(graphene.Mutation):
 
     class Arguments:
         """Input arguments which will pass from frontend."""
-
         photo_file_id = graphene.ID()
-        rotation_value = graphene.String()
+        rotation = graphene.Int()
+
     ok = graphene.Boolean()
-    rotation_value = graphene.String()
+    rotation = graphene.Int()
 
     @staticmethod
-    def mutate(self, info, photo_file_id=None, rotation_value=None):
+    def mutate(self, info, photo_file_id=None, rotation=None):
         """Mutation to save photoFile rotation."""
-        if photo_file_id and rotation_value in ['0', '90', '180', '270']:
+        if photo_file_id and rotation in [0, 90, 180, 270]:
             photofile_obj = PhotoFile.objects.get(id=photo_file_id)
-            photofile_obj.rotation = rotation_value
+            photofile_obj.rotation = rotation
             photofile_obj.save()
             Task(
                 type='generate_thumbnails', subject_id=photofile_obj.photo.id,
                 library=photofile_obj.photo.library).save()
-            return SavePhotoFileRotation(ok=True, rotation_value=rotation_value)
-        return SavePhotoFileRotation(ok=False, rotation_value=rotation_value)
+            return SavePhotoFileRotation(ok=True, rotation=rotation)
+        return SavePhotoFileRotation(ok=False, rotation=rotation)
 
 
 class Mutation(graphene.ObjectType):

@@ -115,10 +115,10 @@ const UPDATE_PREFERRED_PHOTOFILE = gql`
   }
 `
 const SAVE_PHOTOFILE_ROTATION = gql`
-  mutation savePhotoFileRotation($id: ID!, $rotation: String!) {
-    savePhotofileRotation(photoFileId: $id, rotationValue: $rotation) {
+  mutation savePhotoFileRotation($id: ID!, $rotation: Int!) {
+    savePhotofileRotation(photoFileId: $id, rotation: $rotation) {
       ok
-      rotationValue
+      rotation
     }
   }
 `
@@ -176,6 +176,7 @@ const PhotoDetailContainer = (props) => {
     }).catch((e) => {
       console.log(e)
     })
+    refetch()
   }
 
   return (

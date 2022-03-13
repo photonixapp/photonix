@@ -179,12 +179,11 @@ const ZoomableImage = ({
   let imageStyle = {
     maxWidth: '100vw',
     maxHeight: '100vh',
+    transform: `rotate(${rotation}deg)`,
   }
-  if (rotation == 90 || rotation == 270) {
-    imageStyle = {
-      maxWidth: '100vh',
-      maxHeight: '100vw',
-    }
+  if (rotation === 90 || rotation === 270) {
+    imageStyle.maxWidth = '100vh'
+    imageStyle.maxHeight = '100vw'
   }
 
   return (
@@ -207,11 +206,7 @@ const ZoomableImage = ({
             <TransformComponent>
               <div className="pinchArea">
                 <div {...swipeHandlers} className="imageFlex">
-                  <div
-                    className="imageWrapper"
-                    onClick={showHideIcons}
-                    style={{ transform: `rotate(${rotation}deg)` }}
-                  >
+                  <div className="imageWrapper" onClick={showHideIcons}>
                     <img
                       src={url}
                       alt=""
@@ -233,6 +228,7 @@ const ZoomableImage = ({
                             showBoundingBox={showBoundingBox}
                             editLableId={editLableId}
                             setEditLableId={setEditLableId}
+                            rotation={rotation}
                           />
                         </span>
                       ))}

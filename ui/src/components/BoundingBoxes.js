@@ -109,6 +109,7 @@ const BoundingBoxes = ({
   showBoundingBox,
   editLableId,
   setEditLableId,
+  rotation,
 }) => {
   const dispatch = useDispatch()
   const ref = useRef(null)
@@ -201,6 +202,10 @@ const BoundingBoxes = ({
         let top = (box.positionY - box.sizeY / 2) * 100 + '%'
         let width = box.sizeX * 100 + '%'
         let height = box.sizeY * 100 + '%'
+        if (rotation === 90 || rotation === 270) {
+          width = box.sizeY * 100 + '%'
+          height = box.sizeX * 100 + '%'
+        }
         return (
           <div
             className={`FeatureBox ${className} ${

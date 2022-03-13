@@ -155,7 +155,7 @@ const PhotoDetail = ({
   )
   const [showMetadata, setShowMetadata] = useState(false)
   const [showPrevNext, setShowPrevNext] = useState(false)
-  const [rotation, setRotation] = useState(0)
+  const [rotation, setRotation] = useState(photo?.rotation)
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
@@ -346,12 +346,13 @@ const PhotoDetail = ({
   }
 
   useEffect(() => {
-    setRotation(Number(photo?.rotation))
+    setRotation(photo?.rotation)
   }, [photo])
 
   const rotate = (direction) => {
-    let newRotation = direction === 'right' ? rotation + 90 : rotation - 90
-    if (newRotation >= 360 || newRotation === -360) newRotation = 0
+    let newRotation = direction === 'clockwise' ? rotation + 90 : rotation - 90
+    if (newRotation === -90) newRotation = 270
+    if (newRotation === 360) newRotation = 0
     setRotation(newRotation)
     saveRotation(newRotation)
   }
@@ -398,13 +399,13 @@ const PhotoDetail = ({
               className="icon"
               height="30"
               width="30"
-              onClick={() => rotate('left')}
+              onClick={() => rotate('anticlockwise')}
             />
             <RotateRightIcon
               className="icon"
               height="30"
               width="30"
-              onClick={() => rotate('right')}
+              onClick={() => rotate('clockwise')}
             />
             {photo?.downloadUrl && (
               <a href={`${photo.downloadUrl}`} download>
