@@ -40,6 +40,8 @@ Make volume directories for data stored outside the container.
 
     mkdir -p  data/photos
 
+We've by default picked uid and gid 2000 for the photonix container to run as. If that causes conflicts on your system or you'd like to change that to match ownership of your photos directory, change ARG UID and ARG GID in your docker-compose.yml file to suit.
+
 Bring up Docker Compose which will pull and run the required Docker images.
 
     docker-compose up
