@@ -16,7 +16,7 @@ services:
   redis:
     user: "999:999"
     container_name: photonix-redis
-    image: redis:6.2.2
+    image: redis:6.2-bullseye
     depends_on:
       - init
 
