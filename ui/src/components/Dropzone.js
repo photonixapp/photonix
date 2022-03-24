@@ -37,8 +37,8 @@ const Dropzone = () => {
   const onDrop = useCallback(
     (acceptedFiles) => {
       const formData = new FormData()
-      acceptedFiles.map((file, index) => {
-        formData.append(index, file)
+      acceptedFiles.forEach((file) => {
+        formData.append(file.name, file)
       })
       dispatch({ type: 'UPLOADING', loading: true })
       axios

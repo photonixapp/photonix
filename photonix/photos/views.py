@@ -1,4 +1,5 @@
 from pathlib import Path
+import random
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse, HttpResponseRedirect, HttpResponseForbidden
@@ -68,6 +69,13 @@ def upload(request):
     libpath = library.get_library_path_store()
     for fn, file in request.FILES.items():
         dest = Path(libpath.path) / fn
+        if dest.exists():
+            suffix = ''.join([random.choice('0123456789abcdef') for x in range(8)])
+            try:
+                base, ext = fn.rsplit('.', 1)
+                dest = Path(libpath.path) / f'{base}_{suffix}.{ext}'
+            except IndexError:
+                dest = Path(libpath.path) / f'{fn}_{suffix}'
         with open(dest, 'wb+') as destination:
             print(f'Writing to {dest}')
             for chunk in file.chunks():

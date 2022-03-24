@@ -251,17 +251,6 @@ class TaskType(graphene.ObjectType):
     classify_face = graphene.types.generic.GenericScalar()
 
 
-class TaskType(graphene.ObjectType):
-    """Different type of tasks."""
-
-    generate_thumbnails = graphene.types.generic.GenericScalar()
-    process_raw = graphene.types.generic.GenericScalar()
-    classify_color = graphene.types.generic.GenericScalar()
-    classify_location = graphene.types.generic.GenericScalar()
-    classify_object = graphene.types.generic.GenericScalar()
-    classify_style = graphene.types.generic.GenericScalar()
-
-
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
