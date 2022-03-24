@@ -154,13 +154,6 @@ const PhotoMetadata = ({
     date = new Intl.DateTimeFormat().format(date)
   }
 
-  let location = null
-  if (photo.location) {
-    location = [null, null]
-    location[0] = parseFloat(photo.location.split(',')[0])
-    location[1] = parseFloat(photo.location.split(',')[1])
-  }
-
   useEffect(() => {
     updateStarRating(photo.starRating)
   }, [photo.starRating])
@@ -190,6 +183,11 @@ const PhotoMetadata = ({
     const arr = path.split('/')
     return arr[arr.length - 1]
   }
+
+  // To show people tag list without having any blocked tag.
+  const personTagsList = photo.personTags.filter(
+    (personTags) => !personTags.deleted
+  )
 
   return (
     <Container className={show && 'showing'}>
@@ -275,7 +273,7 @@ const PhotoMetadata = ({
             )}
           </ul>
         </div>
-        {photo.locationTags.length ? (
+        {photo.locationTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>Locations</h2>
             <HierarchicalTagsContainer
@@ -286,20 +284,20 @@ const PhotoMetadata = ({
               })}
             />
           </div>
-        ) : (
-          ''
         )}
-        {photo.location ? (
+        {photo.location && (
           <div className={`box box${boxCount++}`}>
             <h2>Map</h2>
             <div className="map">
-              {<MapView location={location} hideAttribution={true} zoom={6} />}
+              <MapView
+                location={photo.location}
+                hideAttribution={true}
+                zoom={6}
+              />
             </div>
           </div>
-        ) : (
-          ''
         )}
-        {photo.colorTags.length ? (
+        {photo.colorTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>Colors</h2>
             <ColorTags
@@ -309,10 +307,25 @@ const PhotoMetadata = ({
               }))}
             />
           </div>
-        ) : (
-          ''
         )}
-        {photo.objectTags.length ? (
+        {personTagsList.length > 0 && (
+          <div className={`box box${boxCount++}`}>
+            <h2>
+              People
+              {showBoundingBox ? (
+                <VisibilityIcon onClick={() => setShowBoundingBox(false)} />
+              ) : (
+                <VisibilityOffIcon onClick={() => setShowBoundingBox(true)} />
+              )}
+            </h2>
+            <ul>
+              {personTagsList.map((photoTag, index) => (
+                <li key={index}>{photoTag.tag.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {photo.objectTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>
               Objects
@@ -328,14 +341,22 @@ const PhotoMetadata = ({
               ))}
             </ul>
           </div>
-        ) : (
-          ''
         )}
-        {photo.styleTags.length ? (
+        {photo.styleTags.length > 0 && (
           <div className={`box box${boxCount++}`}>
             <h2>Styles</h2>
             <ul>
               {photo.styleTags.map((photoTag, index) => (
+                <li key={index}>{photoTag.tag.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {photo.eventTags.length ? (
+          <div className={`box box${boxCount++}`}>
+            <h2>Events</h2>
+            <ul>
+              {photo.eventTags.map((photoTag, index) => (
                 <li key={index}>{photoTag.tag.name}</li>
               ))}
             </ul>

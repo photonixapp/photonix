@@ -1,4 +1,5 @@
 import os
+import argparse
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -16,7 +17,7 @@ User = get_user_model()
 class Command(BaseCommand):
     help = 'Create a library for a user'
 
-    def create_library(self, username, library_name):
+    def create_library(self, username, library_name, path):
         # Get user
         user = User.objects.get(username=username)
         # Create Library
@@ -27,8 +28,7 @@ class Command(BaseCommand):
             library=library,
             type='St',
             backend_type='Lo',
-            path='/data/photos/',
-            url='/photos/',
+            path=path,
         )
         library_user, _ = LibraryUser.objects.get_or_create(
             library=library,
@@ -36,12 +36,19 @@ class Command(BaseCommand):
             owner=True,
         )
 
-        print(f'Library "{library_name}" created successfully for user "{username}"')
+        print(f'Library "{library_name}" with path "{path}" created successfully for user "{username}"')
+
+    def is_path_dir(self, path):
+        if os.path.isdir(path):
+            return path
+        else:
+            raise argparse.ArgumentTypeError(f"{path} is not a valid folder")
 
     def add_arguments(self, parser):
         # Positional arguments
-        parser.add_argument('username', nargs='+', type=str)
-        parser.add_argument('library_name', nargs='+', type=str)
+        parser.add_argument('username', type=str)
+        parser.add_argument('library_name', type=str)
+        parser.add_argument('--path', type=self.is_path_dir, default='/data/photos')
 
     def handle(self, *args, **options):
-        self.create_library(options['username'][0], options['library_name'][0])
+        self.create_library(options['username'], options['library_name'], options['path'])

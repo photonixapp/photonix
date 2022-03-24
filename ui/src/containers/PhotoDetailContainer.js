@@ -54,7 +54,27 @@ const GET_PHOTO = gql`
         sizeX
         sizeY
       }
+      personTags {
+        id
+        tag {
+          name
+        }
+        positionX
+        positionY
+        sizeX
+        sizeY
+        verified
+        deleted
+        showVerifyIcon
+      }
       colorTags {
+        id
+        tag {
+          name
+        }
+        significance
+      }
+      eventTags {
         id
         tag {
           name
@@ -80,6 +100,7 @@ const GET_PHOTO = gql`
       }
       baseFileId
       baseFilePath
+      rotation
       downloadUrl
       width
       height
@@ -93,6 +114,14 @@ const UPDATE_PREFERRED_PHOTOFILE = gql`
     }
   }
 `
+const SAVE_PHOTOFILE_ROTATION = gql`
+  mutation savePhotoFileRotation($id: ID!, $rotation: Int!) {
+    savePhotofileRotation(photoFileId: $id, rotation: $rotation) {
+      ok
+      rotation
+    }
+  }
+`
 
 const PhotoDetailContainer = (props) => {
   const { data, refetch } = useQuery(GET_PHOTO, {
@@ -101,11 +130,18 @@ const PhotoDetailContainer = (props) => {
     },
   })
   const [updataPreferredPhotoFile] = useMutation(UPDATE_PREFERRED_PHOTOFILE)
+  const [saveRotationValue] = useMutation(SAVE_PHOTOFILE_ROTATION)
   useEffect(() => {
     const handleKeyDown = (event) => {
       switch (event.keyCode) {
         case ESCAPE_KEY:
-          history.push('/')
+          if (event.target.name !== 'tagName') {
+            if (document.referrer !== '' || history.length > 2) {
+              history.goBack()
+            } else {
+              history.push('/')
+            }
+          }
           break
         default:
           break
@@ -130,6 +166,18 @@ const PhotoDetailContainer = (props) => {
       })
       .catch((e) => {})
   }
+  const saveRotation = (rotation) => {
+    const id = data?.photo.baseFileId
+    saveRotationValue({
+      variables: {
+        id: id,
+        rotation: rotation,
+      },
+    }).catch((e) => {
+      console.log(e)
+    })
+    refetch()
+  }
 
   return (
     <PhotoDetail
@@ -137,6 +185,7 @@ const PhotoDetailContainer = (props) => {
       photo={data?.photo}
       refetch={refetch}
       updatePhotoFile={updatePhotoFile}
+      saveRotation={saveRotation}
     />
   )
 }

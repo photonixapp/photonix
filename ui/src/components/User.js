@@ -5,20 +5,18 @@ import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 
 import { getActiveLibrary } from '../stores/libraries/selector'
-import accountCircle from '../static/images/account_circle.svg'
-import arrowDown from '../static/images/arrow_down.svg'
-import library from '../static/images/library.svg'
-import settings from '../static/images/settings.svg'
-import logout from '../static/images/logout.svg'
-import uploadIcon from '../static/images/upload_icon.svg'
 import { useComponentVisible } from './Header'
+import { ReactComponent as AccountCircleIcon } from '../static/images/account_circle.svg'
+import { ReactComponent as MoreVertIcon } from '../static/images/more_vert.svg'
+import { ReactComponent as LibraryIcon } from '../static/images/library.svg'
+import { ReactComponent as SettingsIcon } from '../static/images/settings.svg'
+import { ReactComponent as LogoutIcon } from '../static/images/logout.svg'
+import { ReactComponent as UploadIcon } from '../static/images/upload_icon.svg'
 
 const Container = styled('div')`
-  width: 84px;
-
-  > img {
+  > svg {
     filter: invert(0.9);
-    padding: 10px 0 10px 10px;
+    padding: 10px;
     width: 50px;
     height: 50px;
     cursor: pointer;
@@ -28,14 +26,14 @@ const Container = styled('div')`
     padding: 10px 10px 10px 0;
   }
 
-  .notifications img,
+  .notifications svg,
   .userMenu {
     position: absolute;
     width: 200px;
     right: 0px;
     top: 50px;
     z-index: 10;
-    background: #484848;
+    background: #444;
     margin: 0;
     list-style: none;
     padding: 0;
@@ -62,7 +60,7 @@ const Container = styled('div')`
   .userMenu a:hover li {
     color: #fff;
   }
-  .userMenu li img {
+  .userMenu li svg {
     padding: 0;
     width: 24px;
     height: 24px;
@@ -75,7 +73,7 @@ const Container = styled('div')`
     align-self: center;
     margin-top: 1px;
   }
-  .userMenu li.profile img {
+  .userMenu li.profile svg {
     width: 32px;
     height: 32px;
     margin-left: -4px;
@@ -110,7 +108,13 @@ const Container = styled('div')`
   }
 `
 
-const User = ({ profile, libraries, showUserMenu ,setShowUserMenu, setShowNotification }) => {
+const User = ({
+  profile,
+  libraries,
+  showUserMenu,
+  setShowUserMenu,
+  setShowNotification,
+}) => {
   const dispatch = useDispatch()
   const activeLibrary = useSelector(getActiveLibrary)
   const {
@@ -129,19 +133,24 @@ const User = ({ profile, libraries, showUserMenu ,setShowUserMenu, setShowNotifi
       payload: lib,
     })
   }
+
   const handleShowMenu = () => {
-    setIsComponentVisible(true)
-    setShowUserMenu(true)
-    setShowNotification(false)
+    if (!isComponentVisible) {
+      setIsComponentVisible(true)
+      setShowUserMenu(true)
+      setShowNotification(false)
+    } else {
+      setIsComponentVisible(false)
+    }
   }
+
   useEffect(() => {
-    if (!isComponentVisible)
-    setShowUserMenu(false)
+    if (!isComponentVisible) setShowUserMenu(false)
   }, [isComponentVisible, setShowUserMenu])
+
   return (
-    <Container ref={ref} onClick={handleShowMenu} onMouseEnter={handleShowMenu}>
-      <img src={accountCircle} alt="User account" />
-      <img src={arrowDown} className="arrowDown" alt="" />
+    <Container ref={ref} onClick={handleShowMenu}>
+      <MoreVertIcon />
       <ul
         className="userMenu"
         style={{ display: showUserMenu ? 'block' : 'none' }}
@@ -149,7 +158,7 @@ const User = ({ profile, libraries, showUserMenu ,setShowUserMenu, setShowNotifi
         {profile ? (
           <Link to="/account">
             <li className="profile">
-              <img src={accountCircle} alt="Settings" />{' '}
+              <AccountCircleIcon />{' '}
               <div className="text">
                 <span className="username">{profile.username}</span>
                 <span className="email">{profile.email}</span>
@@ -164,7 +173,7 @@ const User = ({ profile, libraries, showUserMenu ,setShowUserMenu, setShowNotifi
                 onClick={() => updateActiveLib(lib)}
                 className="library"
               >
-                <img src={library} alt="Library" />
+                <LibraryIcon />
                 <div className="text">{lib.name}</div>
                 {isActiveLibrary(lib.id) ? (
                   <span className="activeLibrary"></span>
@@ -176,19 +185,19 @@ const User = ({ profile, libraries, showUserMenu ,setShowUserMenu, setShowNotifi
           : null}
         <Link to="/upload">
           <li>
-            <img src={uploadIcon} alt="Upload" />
+            <UploadIcon />
             <div className="text">Upload</div>
           </li>
-        </Link>  
+        </Link>
         <Link to="/settings">
           <li>
-            <img src={settings} alt="Settings" />
+            <SettingsIcon />
             <div className="text">Settings</div>
           </li>
         </Link>
         <Link to="/logout">
           <li>
-            <img src={logout} alt="Logout" />
+            <LogoutIcon />
             <div className="text">Logout</div>
           </li>
         </Link>

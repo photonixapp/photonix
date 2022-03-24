@@ -3,7 +3,8 @@ import layout from './layout'
 import libraries from './libraries'
 import photos from './photos'
 import user from './user'
-import photoUploading  from './photoUploading'
+import photoUploading from './photoUploading'
+import isTagUpdated from './tag'
 
 const reducers = combineReducers({
   layout,
@@ -11,6 +12,7 @@ const reducers = combineReducers({
   photos,
   user,
   photoUploading,
+  isTagUpdated,
 })
 
 export default reducers

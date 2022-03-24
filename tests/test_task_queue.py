@@ -74,7 +74,7 @@ def test_tasks_created_updated(photo_fixture_snow):
     process_classify_images_tasks()
     task = Task.objects.get(type='classify_images', subject_id=photo_fixture_snow.id)
     assert task.status == 'S'
-    assert task.children.count() == 4
+    assert task.children.count() == 6
     assert task.complete_with_children == True
 
     # Completing all the child processes should set the parent task to completed

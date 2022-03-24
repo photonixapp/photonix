@@ -17,8 +17,8 @@ if [ "${ADMIN_PASSWORD}" != "" ]; then
   python /srv/photonix/manage.py create_admin_from_env
 fi
 
-if [ "${DEMO}" = "1" ]; then
-  echo "Ensuring demo user, library and photos are created as we're running with DEMO=1 environment variable"
+if [ "${DEMO}" = "1" ] || [ "${SAMPLE_DATA}" = "1" ]; then
+  echo "Ensuring demo user, library and photos are created as we're running with DEMO=1 or SAMPLE_DATA=1 environment variable"
   python /srv/photonix/manage.py import_demo_photos
 fi
 

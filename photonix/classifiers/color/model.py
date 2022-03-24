@@ -17,7 +17,7 @@ class ColorModel:
         self.colors = {
             # Name: ((red, green, blue), ordering)
 
-            'Red':                  ((120, 4, 20),     1),
+            'Red':                  ((120, 4, 20),      1),
             'Orange':               ((245, 133, 0),     2),
             'Amber':                ((234, 166, 30),    3),
             'Yellow':               ((240, 240, 39),    4),
@@ -82,15 +82,11 @@ def run_on_photo(photo_id):
     photo, results = results_for_model_on_photo(model, photo_id)
 
     if photo:
-        from django.utils import timezone
         from photonix.photos.models import PhotoTag
         photo.clear_tags(source='C', type='C')
         for name, score in results:
             tag = get_or_create_tag(library=photo.library, name=name, type='C', source='C', ordering=model.colors[name][1])
             PhotoTag(photo=photo, tag=tag, source='C', confidence=score, significance=score).save()
-        photo.classifier_color_completed_at = timezone.now()
-        photo.classifier_color_version = getattr(model, 'version', 0)
-        photo.save()
 
     return photo, results
 

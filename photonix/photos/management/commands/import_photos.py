@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 
 from photonix.photos.utils.organise import import_photos_from_dir
 from photonix.photos.utils.system import missing_system_dependencies
+from photonix.web.utils import logger
 
 
 class Command(BaseCommand):
@@ -13,7 +14,7 @@ class Command(BaseCommand):
     def import_photos(self, paths):
         missing = missing_system_dependencies(['exiftool', ])
         if missing:
-            print('Missing dependencies: {}'.format(missing))
+            logger.critical('Missing dependencies: {}'.format(missing))
             exit(1)
 
         for path in paths:

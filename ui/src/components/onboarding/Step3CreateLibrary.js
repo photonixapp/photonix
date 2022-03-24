@@ -87,10 +87,12 @@ const Step3CreateLibrary = ({ history }) => {
         {state.data.storageBackend === 'Lo' && (
           <Stack spacing={4}>
             <p>
-              The base path will need to be writeable so that we can put new
-              files here, and also needs to be large enough to store your whole
-              collection. If you’re running in a container, feel free to restart
-              it with new mounted volumes if you need to.
+              Leave base path as the default unless you have configured multiple
+              volumes for multiple libraries. The base path will need to be
+              writeable so that we can put new files here, and also needs to be
+              large enough to store your whole collection. If you’re running in
+              a container, feel free to restart it with new mounted volumes if
+              you need to.
             </p>
             <ModalField
               name="basePath"
