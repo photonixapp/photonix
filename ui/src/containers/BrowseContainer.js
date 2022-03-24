@@ -309,6 +309,7 @@ const BrowseContainer = (props) => {
       id: photo.node.id,
       thumbnail: `/thumbnailer/photo/256x256_cover_q50/${photo.node.id}/`,
       location: photo.node.location,
+      rotation: photo.node.rotation,
     }))
   }
 

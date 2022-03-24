@@ -64,6 +64,7 @@ const Container = styled('div')`
     border-radius: 50%;
     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5);
     background: rgba(255, 255, 255, 0.25);
+    overflow: hidden;
   }
 `
 
@@ -120,11 +121,11 @@ const MapView = ({
     return null
   }
 
-  const getMarkerIcon = (photoThumbnail) => {
-    return new L.Icon({
-      iconUrl: photoThumbnail,
+  const getMarkerIcon = (photoThumbnail, rotation) => {
+    return new L.divIcon({
       iconSize: new L.Point(50, 50),
       className: 'leaflet-custom-icon',
+      html: `<img src="${photoThumbnail}" width="100%" height="100%" style="transform: rotate(${rotation}deg)" />`,
     })
   }
 
@@ -133,7 +134,7 @@ const MapView = ({
       photo.location ? (
         <Marker
           key={`marker-${photo.id}`}
-          icon={getMarkerIcon(photo.thumbnail)}
+          icon={getMarkerIcon(photo.thumbnail, photo.rotation)}
           position={[photo.location[0], photo.location[1]]}
           eventHandlers={{
             click: () => {
