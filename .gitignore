@@ -102,3 +102,6 @@ data/photos/*.*
 
 # OS files
 .DS_Store
+
+# Editor swap
+*~

@@ -12,7 +12,7 @@ services:
 
   redis:
     container_name: photonix-redis
-    image: redis:6.2.2
+    image: redis:6.2-bullseye
 
   photonix:
     container_name: photonix

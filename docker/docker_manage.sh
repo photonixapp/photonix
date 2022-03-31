@@ -1,2 +1,2 @@
 #!/bin/sh
-docker exec -ti `docker ps | grep photonix_photonix | awk '{print $1;}'` python photonix/manage.py "$@"
+docker exec -ti photonix python photonix/manage.py "$@"
