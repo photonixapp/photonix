@@ -8,7 +8,7 @@ annoy==1.17.0
 Django==3.2.12
 django-cors-headers==3.2.1
 django-filter==2.4.0
-PyJWT==1.7.1
+PyJWT==2.4.0
 django-graphql-jwt==0.3.0
 
 graphene==2.1.8
