@@ -1,6 +1,7 @@
 # Photonix Photo Manager
 
-![GitHub](https://img.shields.io/github/license/photonixapp/photonix) [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/photonixapp/photonix)](https://hub.docker.com/r/photonixapp/photonix/) [![GitHub Sponsors](https://img.shields.io/github/sponsors/photonixapp)](https://github.com/sponsors/photonixapp) [![Docker Pulls](https://img.shields.io/docker/pulls/photonixapp/photonix)](https://hub.docker.com/r/photonixapp/photonix/) [![](https://img.shields.io/travis/damianmoore/photonix/master.svg)](https://travis-ci.org/damianmoore/photonix/branches) [![](https://img.shields.io/codecov/c/github/damianmoore/photonix.svg)](https://codecov.io/gh/damianmoore/photonix) [![](https://img.shields.io/uptimerobot/status/m781745452-4f90c0e2a56b2086dd0c5092.svg?label=demo%20site)](https://demo.photonix.org/) [![](https://img.shields.io/uptimerobot/ratio/m781745452-4f90c0e2a56b2086dd0c5092.svg)](https://demo.photonix.org/)
+> ### Fork Information
+> This repository is a fork of the original [photonixapp/photonix](https://github.com/photonixapp/photonix) project by Damian Moore. This version is being actively developed and refactored for improved performance, reliability, and new features. Full credit goes to the original author for their foundational work.
 
 This is a photo management application based on web technologies. Run it on your home server and it will let you find what you want from your photo collection using any device. Smart filtering is made possible automatically by object recognition, location awareness, color analysis and other algorithms.
 
@@ -8,33 +9,15 @@ This is a photo management application based on web technologies. Run it on your
 
 This project is currently in development and not feature complete for a version 1.0 yet. If you don't mind putting up with broken parts or want to help out, run the Docker image and give it a go. I'd love for other contributors to get involved.
 
-## Community and Social
-
-Please join in the discussion and help us gain visibility by following us on social media. Much appreciated :)
-
-- [Gitter live chat](https://gitter.im/photonixapp/community)
-- [Docker Hub](https://hub.docker.com/r/photonixapp/photonix/)
-- [Twitter](https://twitter.com/photonixapp)
-- [Instagram](https://www.instagram.com/photonixapp/)
-- [LinkedIn](https://www.linkedin.com/company/photonixapp/)
-- [Indie Hackers](https://www.indiehackers.com/product/photonix-photo-organizer-app)
-
-## Sponsorship
-
-If you get value from Photonix or like where we're heading then we'd really appreciate it if you considered sponsoring us on a monthly basis.
-
-- [GitHub Sponsors](https://github.com/sponsors/photonixapp)
-- [Patreon](https://www.patreon.com/photonixapp)
-
 ## Installing & Running
 
 The easiest way to run it is with [Docker Compose](https://docs.docker.com/compose/install/#install-compose) using the pre-built image following these steps.
 
-Create a new directory to run inside and download the example Docker Compose file.
+Create a new directory to run inside and download the example Docker Compose file. **Note: This URL will be updated once the forked repository is public.**
 
     mkdir photonix
     cd photonix
-    curl https://raw.githubusercontent.com/photonixapp/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
+    curl https://raw.githubusercontent.com/YOUR_USERNAME/photonix/master/docker/docker-compose.example.yml > docker-compose.yml
 
 Make volume directories for data stored outside the container.
 
@@ -65,7 +48,7 @@ If you are using the pre-built Docker image you can use kill, pull and bring bac
 
 There is a [`Makefile`](./Makefile) and separate Docker Compose file `docker-compose.dev.yml` that you should use if you want to work on the project. Check out the repo and this setup will build the image, mount the code as volumes, hot-reload JS changes to the browser and reload the Python server for most changes.
 
-    git clone git@github.com:damianmoore/photonix.git
+    git clone git@github.com:YOUR_USERNAME/photonix.git
     cd photonix
     mkdir -p  data/photos
     make build

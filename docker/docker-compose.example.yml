@@ -16,7 +16,11 @@ services:
 
   photonix:
     container_name: photonix
-    image: photonixapp/photonix:latest
+    # This will build the image from the local Dockerfile instead of pulling from Docker Hub.
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prd
+    image: photonix-fork:latest
     ports:
       - '8888:80'
     environment:

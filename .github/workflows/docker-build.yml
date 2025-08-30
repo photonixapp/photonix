@@ -17,7 +17,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: photonixapp/photonix
+          # IMPORTANT: This image name should be updated to your own Docker Hub repository.
+          images: your-dockerhub-username/photonix
           tags: |
             type=semver,pattern={{major}}
             type=semver,pattern={{major}}.{{minor}}
@@ -25,23 +26,25 @@ jobs:
       -
         name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v1
-      -
-        name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # -
+      #   name: Login to DockerHub
+      #   uses: docker/login-action@v1
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       -
-        name: Build and push
+        name: Build and push (push disabled)
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./docker/Dockerfile.prd
           platforms: linux/amd64,linux/arm/v7,linux/arm64
-          push: true
+          # IMPORTANT: Set push to true and uncomment the login step above once you have configured your own Docker Hub secrets.
+          push: false
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=registry,ref=photonixapp/photonix:latest
+          # The build cache from the original repository is no longer relevant.
+          # cache-from: type=registry,ref=photonixapp/photonix:latest
           cache-to: type=inline

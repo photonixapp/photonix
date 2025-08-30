@@ -20,7 +20,6 @@ services:
 
   photonix:
     container_name: photonix
-    # image: photonixapp/photonix:latest
     image: photonix-dev
     build:
       context: ..
