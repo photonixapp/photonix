@@ -27,12 +27,24 @@ class StyleModel(BaseModel):
 
         tf.compat.v1.disable_eager_execution()
 
-        graph_file = os.path.join(self.model_dir, graph_file)
-        label_file = os.path.join(self.model_dir, label_file)
+        self._graph_file = os.path.join(self.model_dir, graph_file)
+        self._label_file = os.path.join(self.model_dir, label_file)
+        self._lock_name = lock_name
+        self._loaded = False
+        self.graph = None
+        self.labels = None
 
-        if self.ensure_downloaded(lock_name=lock_name):
-            self.graph = self.load_graph(graph_file)
-            self.labels = self.load_labels(label_file)
+        # Download model files eagerly (cheap), but don't load into memory yet
+        self.ensure_downloaded(lock_name=lock_name)
+
+    def _ensure_loaded(self):
+        """Lazy load the model on first use."""
+        if self._loaded:
+            return
+
+        self.graph = self.load_graph(self._graph_file)
+        self.labels = self.load_labels(self._label_file)
+        self._loaded = True
 
     def load_graph(self, graph_file):
         with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
@@ -58,6 +70,8 @@ class StyleModel(BaseModel):
         return labels
 
     def predict(self, image_file, min_score=0.66):
+        self._ensure_loaded()  # Lazy load on first use
+
         input_height = 224
         input_width = 224
         input_mean = 128
@@ -117,7 +131,11 @@ class StyleModel(BaseModel):
 
 
 def run_on_photo(photo_id):
-    model = StyleModel()
+    from photonix.classifiers.model_manager import get_model_manager
+
+    # Get or lazily load the model via ModelManager
+    model = get_model_manager().get_model('style', StyleModel)
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
     photo, results = results_for_model_on_photo(model, photo_id)

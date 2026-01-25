@@ -9,6 +9,7 @@ from PIL import Image
 
 
 class ColorModel:
+    name = 'color'
     version = 20210206
     approx_ram_mb = 120
     max_num_workers = 2
@@ -76,7 +77,11 @@ class ColorModel:
 
 
 def run_on_photo(photo_id):
-    model = ColorModel()
+    from photonix.classifiers.model_manager import get_model_manager
+
+    # Get or lazily load the model via ModelManager
+    model = get_model_manager().get_model('color', ColorModel)
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
     photo, results = results_for_model_on_photo(model, photo_id)

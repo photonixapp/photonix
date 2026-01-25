@@ -36,11 +36,21 @@ class FaceModel(BaseModel):
         super().__init__(model_dir=model_dir)
         self.library_id = library_id
 
-        graph_file = os.path.join(self.model_dir, graph_file)
+        self._graph_file = os.path.join(self.model_dir, graph_file)
+        self._lock_name = lock_name
+        self._loaded = False
+        self.graph = None
 
-        if self.ensure_downloaded(lock_name=lock_name):
-            self.graph = self.load_graph(graph_file)
+        # Download model files eagerly (cheap), but don't load into memory yet
+        self.ensure_downloaded(lock_name=lock_name)
 
+    def _ensure_loaded(self):
+        """Lazy load the model on first use."""
+        if self._loaded:
+            return
+
+        self.graph = self.load_graph(self._graph_file)
+        self._loaded = True
 
     def load_graph(self, graph_file):
         with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
@@ -71,6 +81,8 @@ class FaceModel(BaseModel):
             }
 
     def predict(self, image_file, min_score=0.99):
+        self._ensure_loaded()  # Lazy load on first use
+
         # Detects face bounding boxes
         image = Image.open(image_file)
 
@@ -97,6 +109,7 @@ class FaceModel(BaseModel):
         ])
 
     def get_face_embedding(self, image_data):
+        self._ensure_loaded()  # Ensure model is loaded for embedding generation
         return DeepFace.represent(np.asarray(image_data), model_name='Facenet', model= self.graph['facenet'])
 
     def find_closest_face_tag_by_ann(self, source_embedding):
@@ -230,11 +243,20 @@ class FaceModel(BaseModel):
 
 
 def run_on_photo(photo_id):
+    from photonix.classifiers.model_manager import get_model_manager
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import get_photo_by_any_type, results_for_model_on_photo, get_or_create_tag
 
     photo = get_photo_by_any_type(photo_id)
-    model = FaceModel(library_id=photo and photo.library_id)
+
+    # Get or lazily load the model via ModelManager
+    # Face model needs library_id for face matching
+    model = get_model_manager().get_model(
+        'face',
+        FaceModel,
+        library_id=photo and photo.library_id
+    )
 
     # Detect all faces in an image
     photo, results = results_for_model_on_photo(model, photo_id)

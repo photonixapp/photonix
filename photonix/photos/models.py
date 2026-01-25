@@ -288,6 +288,7 @@ TASK_STATUS_CHOICES = (
     ('S', 'Started'),
     ('C', 'Completed'),
     ('F', 'Failed'),
+    ('M', 'Memory Wait'),
 )
 
 
@@ -297,6 +298,7 @@ class Task(UUIDModel, VersionedModel):
     status = models.CharField(max_length=1, choices=TASK_STATUS_CHOICES, default='P', db_index=True)
     started_at = models.DateTimeField(null=True)
     finished_at = models.DateTimeField(null=True)
+    memory_retry_at = models.DateTimeField(null=True, blank=True)
     parent = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)
     complete_with_children = models.BooleanField(default=False)
     library = models.ForeignKey(Library, related_name='task_library', on_delete=models.CASCADE, null=True, blank=True)
@@ -338,3 +340,12 @@ class Task(UUIDModel, VersionedModel):
 
         if error:
             logger.error(error)
+
+    def memory_wait(self):
+        """Mark task as waiting for memory, to be retried later."""
+        from datetime import timedelta
+        from django.conf import settings
+        retry_seconds = getattr(settings, 'CLASSIFIER_MEMORY_RETRY_SECONDS', 300)
+        self.status = 'M'
+        self.memory_retry_at = timezone.now() + timedelta(seconds=retry_seconds)
+        self.save()

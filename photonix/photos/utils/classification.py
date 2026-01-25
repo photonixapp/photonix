@@ -7,7 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from photonix.photos.models import Task, Photo
-from photonix.photos.utils.tasks import requeue_stuck_tasks
+from photonix.photos.utils.tasks import requeue_stuck_tasks, requeue_memory_wait_tasks
 from photonix.web.utils import logger
 
 
@@ -43,14 +43,46 @@ def generate_classifier_tasks_for_photo(photo_id, task):
 
 
 class ThreadedQueueProcessor:
-    def __init__(self, model=None, task_type=None, runner=None, num_workers=4, batch_size=64):
+    """
+    Processes classification tasks using a pool of worker threads.
+
+    Supports two modes:
+    1. Legacy mode: Pass a pre-loaded model instance via `model` parameter
+    2. Lazy loading mode: Pass `model_class` and `model_name` to use ModelManager
+
+    In lazy loading mode, models are loaded on first use and unloaded after idle timeout.
+    """
+
+    def __init__(self, model=None, task_type=None, runner=None, num_workers=4, batch_size=64,
+                 model_class=None, model_name=None):
+        """
+        Initialize the processor.
+
+        Args:
+            model: Pre-loaded model instance (legacy mode, deprecated)
+            task_type: Task type string (e.g., 'classify.object')
+            runner: Function to run on each photo
+            num_workers: Number of worker threads
+            batch_size: Batch size for processing
+            model_class: Model class for lazy loading (new mode)
+            model_name: Classifier name for ModelManager (new mode)
+        """
         self.model = model
+        self.model_class = model_class
+        self.model_name = model_name
         self.task_type = task_type
         self.runner = runner
         self.num_workers = num_workers
         self.batch_size = batch_size
         self.queue = queue.Queue()
         self.threads = []
+
+        # Lazy loading mode
+        self._use_lazy_loading = model_class is not None and model_name is not None
+        self._model_manager = None
+        if self._use_lazy_loading:
+            from photonix.classifiers.model_manager import get_model_manager
+            self._model_manager = get_model_manager()
 
     def __worker(self):
         while True:
@@ -64,11 +96,29 @@ class ThreadedQueueProcessor:
             self.queue.task_done()
 
     def __process_task(self, task):
+        # Import here to avoid circular imports
+        from photonix.classifiers.model_manager import InsufficientMemoryError
+
         try:
             logger.info(f'Running task: {task.type} - {task.subject_id}')
             task.start()
+
+            # Touch the model to reset idle timer before processing
+            if self._use_lazy_loading and self._model_manager:
+                self._model_manager.touch(self.model_name)
+
             self.runner(task.subject_id)
+
+            # Touch again after processing (in case it was slow)
+            if self._use_lazy_loading and self._model_manager:
+                self._model_manager.touch(self.model_name)
+
             task.complete()
+
+        except InsufficientMemoryError as e:
+            logger.warning(f'Insufficient memory for task {task.type} - {task.subject_id}: {e}')
+            task.memory_wait()
+
         except Exception:
             logger.error(f'Error processing task: {task.type} - {task.subject_id}')
             traceback.print_exc()
@@ -93,6 +143,8 @@ class ThreadedQueueProcessor:
         try:
             while True:
                 requeue_stuck_tasks(self.task_type)
+                requeue_memory_wait_tasks(self.task_type)
+
                 if self.task_type == 'classify.color':
                     task_queryset = Task.objects.filter(library__classification_color_enabled=True, type=self.task_type, status='P')
                 elif self.task_type == 'classify.location':

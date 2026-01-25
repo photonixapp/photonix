@@ -5,6 +5,7 @@ import datetime
 
 
 class EventModel:
+    name = 'event'
     version = 20210505
     approx_ram_mb = 120
     max_num_workers = 2
@@ -32,8 +33,13 @@ class EventModel:
                     return [events.get(date_taken.date())]
         return []
 
+
 def run_on_photo(photo_id):
-    model = EventModel()
+    from photonix.classifiers.model_manager import get_model_manager
+
+    # Get or lazily load the model via ModelManager
+    model = get_model_manager().get_model('event', EventModel)
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
 

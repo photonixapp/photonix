@@ -23,12 +23,24 @@ class LocationModel(BaseModel):
     def __init__(self, model_dir=None, world_file=WORLD_FILE, cities_file=CITIES_FILE, lock_name=None):
         super().__init__(model_dir=model_dir)
 
-        world_file = str(Path(self.model_dir) / world_file)
-        cities_file = str(Path(self.model_dir) / cities_file)
+        self._world_file = str(Path(self.model_dir) / world_file)
+        self._cities_file = str(Path(self.model_dir) / cities_file)
+        self._lock_name = lock_name
+        self._loaded = False
+        self.world = None
+        self.cities = None
 
-        if self.ensure_downloaded(lock_name=lock_name):
-            self.world = self.load_world(world_file)
-            self.cities = self.load_cities(cities_file)
+        # Download model files eagerly (cheap), but don't load into memory yet
+        self.ensure_downloaded(lock_name=lock_name)
+
+    def _ensure_loaded(self):
+        """Lazy load the model on first use."""
+        if self._loaded:
+            return
+
+        self.world = self.load_world(self._world_file)
+        self.cities = self.load_cities(self._cities_file)
+        self._loaded = True
 
     def load_world(self, world_file):
         return shapefile.Reader(world_file, encoding='latin1').shapeRecords()
@@ -42,6 +54,8 @@ class LocationModel(BaseModel):
         return rows
 
     def predict(self, image_file=None, location=None):
+        self._ensure_loaded()  # Lazy load on first use
+
         if location:
             lon, lat = location
         else:
@@ -200,7 +214,11 @@ class LocationModel(BaseModel):
 
 
 def run_on_photo(photo_id):
-    model = LocationModel()
+    from photonix.classifiers.model_manager import get_model_manager
+
+    # Get or lazily load the model via ModelManager
+    model = get_model_manager().get_model('location', LocationModel)
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
     photo, results = results_for_model_on_photo(model, photo_id)
