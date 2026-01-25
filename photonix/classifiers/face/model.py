@@ -12,12 +12,29 @@ from PIL import Image
 from redis_lock import Lock
 
 from photonix.classifiers.base_model import BaseModel
-from photonix.classifiers.face.deepface import DeepFace
-from photonix.classifiers.face.mtcnn import MTCNN
-from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance
-from photonix.classifiers.face.deepface.DeepFace import build_model
 from photonix.photos.utils.redis import redis_connection
 from photonix.photos.utils.metadata import PhotoMetadata
+
+# Lazy-loaded modules (heavy imports - TensorFlow/Keras based)
+_DeepFace = None
+_MTCNN = None
+_findEuclideanDistance = None
+_build_model = None
+
+
+def _ensure_face_libs():
+    """Lazy load face recognition libraries (imports TensorFlow/Keras)."""
+    global _DeepFace, _MTCNN, _findEuclideanDistance, _build_model
+    if _MTCNN is None:
+        from photonix.classifiers.face.deepface import DeepFace as df
+        from photonix.classifiers.face.mtcnn import MTCNN as mtcnn
+        from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance as fed
+        from photonix.classifiers.face.deepface.DeepFace import build_model as bm
+        _DeepFace = df
+        _MTCNN = mtcnn
+        _findEuclideanDistance = fed
+        _build_model = bm
+    return _DeepFace, _MTCNN, _findEuclideanDistance, _build_model
 
 
 GRAPH_FILE = os.path.join('face', 'mtcnn_weights.npy')
@@ -53,6 +70,7 @@ class FaceModel(BaseModel):
         self._loaded = True
 
     def load_graph(self, graph_file):
+        DeepFace, MTCNN, findEuclideanDistance, build_model = _ensure_face_libs()
         with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             # Load MTCNN
             mtcnn_graph = None
@@ -110,6 +128,7 @@ class FaceModel(BaseModel):
 
     def get_face_embedding(self, image_data):
         self._ensure_loaded()  # Ensure model is loaded for embedding generation
+        DeepFace, _, _, _ = _ensure_face_libs()
         return DeepFace.represent(np.asarray(image_data), model_name='Facenet', model= self.graph['facenet'])
 
     def find_closest_face_tag_by_ann(self, source_embedding):
@@ -155,6 +174,7 @@ class FaceModel(BaseModel):
                     pass
 
         # Calculate Euclidean distances
+        _, _, findEuclideanDistance, _ = _ensure_face_libs()
         distances = []
         for (_, target_embedding) in representations:
             distance = findEuclideanDistance(source_embedding, target_embedding)

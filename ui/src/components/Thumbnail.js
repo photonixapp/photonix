@@ -25,7 +25,6 @@ const Container = styled('li')`
   background: #292929;
 
   &.selectable {
-    background: none;
   }
   &.selected .thumbnail-area {
     transform: scale(0.9);

@@ -5,11 +5,23 @@ from pathlib import Path
 import numpy as np
 
 from redis_lock import Lock
-import tensorflow as tf
 
 from photonix.classifiers.base_model import BaseModel
 from photonix.photos.utils.redis import redis_connection
 from photonix.web.utils import logger
+
+# Lazy-loaded modules (heavy imports)
+tf = None
+
+
+def _ensure_tensorflow():
+    """Lazy load TensorFlow on first use."""
+    global tf
+    if tf is None:
+        import tensorflow as _tf
+        _tf.compat.v1.disable_eager_execution()
+        tf = _tf
+    return tf
 
 
 GRAPH_FILE = os.path.join('style', 'graph.pb')
@@ -24,8 +36,6 @@ class StyleModel(BaseModel):
 
     def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
         super().__init__(model_dir=model_dir)
-
-        tf.compat.v1.disable_eager_execution()
 
         self._graph_file = os.path.join(self.model_dir, graph_file)
         self._label_file = os.path.join(self.model_dir, label_file)
@@ -47,6 +57,7 @@ class StyleModel(BaseModel):
         self._loaded = True
 
     def load_graph(self, graph_file):
+        tf = _ensure_tensorflow()
         with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]
@@ -63,6 +74,7 @@ class StyleModel(BaseModel):
             return graph
 
     def load_labels(self, label_file):
+        tf = _ensure_tensorflow()
         labels = []
         proto_as_ascii_lines = tf.io.gfile.GFile(label_file).readlines()
         for l in proto_as_ascii_lines:
@@ -95,6 +107,7 @@ class StyleModel(BaseModel):
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
+        tf = _ensure_tensorflow()
         with tf.compat.v1.Session(graph=self.graph) as sess:
             results = sess.run(output_operation.outputs[0], {input_operation.outputs[0]: t})
         results = np.squeeze(results)
@@ -108,6 +121,7 @@ class StyleModel(BaseModel):
         return response
 
     def read_tensor_from_image_file(self, file_name, input_height=299, input_width=299, input_mean=0, input_std=255):
+        tf = _ensure_tensorflow()
         input_name = "file_reader"
         try:
 

@@ -6,12 +6,32 @@ from django.utils import timezone
 import numpy as np
 from PIL import Image
 from redis_lock import Lock
-import tensorflow as tf
 
-from photonix.classifiers.object.utils import label_map_util
 from photonix.classifiers.base_model import BaseModel
 from photonix.photos.utils.redis import redis_connection
 from photonix.photos.utils.metadata import PhotoMetadata
+
+# Lazy-loaded modules (heavy imports)
+tf = None
+label_map_util = None
+
+
+def _ensure_tensorflow():
+    """Lazy load TensorFlow on first use."""
+    global tf
+    if tf is None:
+        import tensorflow as _tf
+        tf = _tf
+    return tf
+
+
+def _ensure_label_map_util():
+    """Lazy load label_map_util on first use (imports TensorFlow)."""
+    global label_map_util
+    if label_map_util is None:
+        from photonix.classifiers.object.utils import label_map_util as _label_map_util
+        label_map_util = _label_map_util
+    return label_map_util
 
 
 GRAPH_FILE = os.path.join('object', 'ssd_mobilenet_v2_oid_v4_2018_12_12_frozen_inference_graph.pb')
@@ -46,6 +66,7 @@ class ObjectModel(BaseModel):
         self._loaded = True
 
     def load_graph(self, graph_file):
+        tf = _ensure_tensorflow()
         with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]
@@ -64,15 +85,17 @@ class ObjectModel(BaseModel):
             return graph
 
     def load_labels(self, label_file):
-        label_map = label_map_util.load_labelmap(label_file)
-        categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=1000, use_display_name=True)
-        return label_map_util.create_category_index(categories)
+        lmu = _ensure_label_map_util()
+        label_map = lmu.load_labelmap(label_file)
+        categories = lmu.convert_label_map_to_categories(label_map, max_num_classes=1000, use_display_name=True)
+        return lmu.create_category_index(categories)
 
     def load_image_into_numpy_array(self, image):
         (im_width, im_height) = image.size
         return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
 
     def run_inference_for_single_image(self, image):
+        tf = _ensure_tensorflow()
         with self.graph.as_default():
             with tf.compat.v1.Session() as sess:
                 # Get handles to input and output tensors
