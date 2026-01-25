@@ -1,11 +1,14 @@
 from datetime import datetime
 import json
+import logging
 import os
 import sys
 from pathlib import Path
 from random import randint
 
 from annoy import AnnoyIndex
+
+logger = logging.getLogger(__name__)
 from django.utils import timezone
 import numpy as np
 from PIL import Image
@@ -119,12 +122,19 @@ class FaceModel(BaseModel):
         return list(filter(lambda f: f['confidence'] > min_score, results))
 
     def crop(self, image_data, box):
-        return image_data.crop([
-            max(box[0]-int(box[2]*0.3), 0),
-            max(box[1]-int(box[3]*0.3), 0),
-            min(box[0]+box[2]+int(box[2]*0.3), image_data.width),
-            min(box[1]+box[3]+int(box[3]*0.3), image_data.height)
-        ])
+        # Calculate crop coordinates with 30% padding, clipped to image boundaries
+        x1 = max(box[0] - int(box[2] * 0.3), 0)
+        y1 = max(box[1] - int(box[3] * 0.3), 0)
+        x2 = min(box[0] + box[2] + int(box[2] * 0.3), image_data.width)
+        y2 = min(box[1] + box[3] + int(box[3] * 0.3), image_data.height)
+
+        # Ensure valid crop region (x2 > x1 and y2 > y1)
+        x1 = min(x1, image_data.width - 1)
+        y1 = min(y1, image_data.height - 1)
+        x2 = max(x2, x1 + 1)
+        y2 = max(y2, y1 + 1)
+
+        return image_data.crop([x1, y1, x2, y2])
 
     def get_face_embedding(self, image_data):
         self._ensure_loaded()  # Ensure model is loaded for embedding generation
@@ -301,8 +311,6 @@ def run_on_photo(photo_id):
             if photo:
                 closest_tag, closest_distance = model.find_closest_face_tag(embedding)
                 if closest_tag:
-                    print(f'Closest tag: {closest_tag}')
-                    print(f'Closest distance: {closest_distance}')
                     result['closest_tag'] = closest_tag
                     result['closest_distance'] = closest_distance
         except ValueError:
@@ -317,7 +325,6 @@ def run_on_photo(photo_id):
             # Use matched tag if within distance threshold
             if result.get('closest_distance', 999) < DISTANCE_THRESHOLD:
                 tag = Tag.objects.get(id=result['closest_tag'], library=photo.library, type='F')
-                print(f'MATCHED {tag.name}')
 
             # Otherwise create new tag
             else:

@@ -6,6 +6,7 @@ This module provides a singleton ModelManager that:
 - Tracks model usage and unloads idle models after a configurable timeout
 - Checks available system memory before loading to prevent OOMKilled events
 - Uses Redis locks for multi-process safety
+- Staggers model loading to prevent all classifiers from loading simultaneously
 """
 
 import gc
@@ -22,6 +23,14 @@ from photonix.photos.utils.redis import redis_connection
 
 
 logger = logging.getLogger(__name__)
+
+# Redis key for tracking when a model was last loaded (for staggered startup)
+LAST_MODEL_LOAD_KEY = 'classifier:last_model_load_time'
+
+# Import classifier priorities from classification module (single source of truth)
+# Higher number = higher priority (like k8s PriorityClass)
+from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+DEFAULT_PRIORITY = 0  # Unknown classifiers get lowest priority
 
 
 class InsufficientMemoryError(Exception):
@@ -59,6 +68,7 @@ class ModelManager:
         self._idle_timeout = getattr(settings, 'CLASSIFIER_IDLE_TIMEOUT_SECONDS', 300)
         self._watchdog_interval = getattr(settings, 'CLASSIFIER_WATCHDOG_INTERVAL_SECONDS', 60)
         self._memory_buffer_mb = getattr(settings, 'CLASSIFIER_MEMORY_BUFFER_MB', 500)
+        self._load_cooldown_seconds = getattr(settings, 'CLASSIFIER_LOAD_COOLDOWN_SECONDS', 15)
         self._watchdog_thread: Optional[threading.Thread] = None
         self._shutdown_event = threading.Event()
         self._initialized = True
@@ -66,7 +76,8 @@ class ModelManager:
         logger.info(
             f"ModelManager initialized: idle_timeout={self._idle_timeout}s, "
             f"watchdog_interval={self._watchdog_interval}s, "
-            f"memory_buffer={self._memory_buffer_mb}MB"
+            f"memory_buffer={self._memory_buffer_mb}MB, "
+            f"load_cooldown={self._load_cooldown_seconds}s"
         )
 
     def start_watchdog(self):
@@ -136,6 +147,67 @@ class ModelManager:
         """Return available system memory in megabytes."""
         return psutil.virtual_memory().available / (1024 * 1024)
 
+    def _check_load_cooldown(self) -> float:
+        """Check if another model was recently loaded (staggered startup).
+
+        Returns:
+            Seconds remaining in cooldown, or 0 if ready to load.
+        """
+        try:
+            last_load = redis_connection.get(LAST_MODEL_LOAD_KEY)
+            if last_load:
+                last_load_time = float(last_load)
+                elapsed = time.time() - last_load_time
+                remaining = self._load_cooldown_seconds - elapsed
+                if remaining > 0:
+                    return remaining
+        except Exception as e:
+            logger.warning(f"Error checking load cooldown: {e}")
+        return 0
+
+    def _record_model_load(self):
+        """Record that a model was just loaded (for staggered startup)."""
+        try:
+            redis_connection.set(
+                LAST_MODEL_LOAD_KEY,
+                str(time.time()),
+                ex=self._load_cooldown_seconds + 10  # Expire shortly after cooldown
+            )
+        except Exception as e:
+            logger.warning(f"Error recording model load time: {e}")
+
+    def _register_waiting(self, classifier_name: str):
+        """Register that a classifier is waiting to load."""
+        try:
+            key = f'classifier:waiting:{classifier_name}'
+            redis_connection.set(key, str(time.time()), ex=300)  # Expire after 5 min
+        except Exception as e:
+            logger.warning(f"Error registering waiting classifier: {e}")
+
+    def _unregister_waiting(self, classifier_name: str):
+        """Unregister a classifier from waiting list."""
+        try:
+            key = f'classifier:waiting:{classifier_name}'
+            redis_connection.delete(key)
+        except Exception as e:
+            logger.warning(f"Error unregistering waiting classifier: {e}")
+
+    def _is_highest_priority_waiting(self, classifier_name: str) -> bool:
+        """Check if this classifier has the highest priority among those waiting."""
+        my_priority = CLASSIFIER_PRIORITIES.get(classifier_name, DEFAULT_PRIORITY)
+
+        try:
+            # Check all known classifiers for waiting status
+            for name, priority in CLASSIFIER_PRIORITIES.items():
+                if priority > my_priority:  # Higher priority (higher number, like k8s)
+                    key = f'classifier:waiting:{name}'
+                    if redis_connection.exists(key):
+                        return False
+            return True
+        except Exception as e:
+            logger.warning(f"Error checking priority: {e}")
+            return True  # On error, allow loading
+
     def get_model(self, classifier_name: str, model_class: Type, **kwargs) -> Any:
         """
         Get or lazily load a model instance.
@@ -149,7 +221,8 @@ class ModelManager:
             Loaded model instance
 
         Raises:
-            InsufficientMemoryError: If not enough memory is available to load the model
+            InsufficientMemoryError: If not enough memory is available to load the model,
+                or if another model is still loading (cooldown period)
         """
         # Fast path: model already loaded
         with self._state_lock:
@@ -172,16 +245,37 @@ class ModelManager:
                 available_mb = self.get_available_memory_mb()
                 logger.warning(
                     f"Insufficient memory to load {classifier_name}: "
-                    f"need {required_mb}MB + {self._memory_buffer_mb}MB buffer, "
-                    f"have {available_mb:.0f}MB available"
+                    f"need {required_mb}MB, have {available_mb:.0f}MB"
                 )
                 raise InsufficientMemoryError(
-                    f"Need {required_mb}MB to load {classifier_name}, "
-                    f"only {available_mb:.0f}MB available"
+                    f"Insufficient memory to load {classifier_name}"
                 )
 
-            logger.info(f"Lazy loading model: {classifier_name}")
+            # Staggered startup: if another model loaded recently, enforce priority during cooldown
+            cooldown_remaining = self._check_load_cooldown()
+            if cooldown_remaining > 0:
+                # Register as waiting for priority tracking during cooldown
+                self._register_waiting(classifier_name)
+
+                # During cooldown, only allow highest priority classifier to proceed
+                if not self._is_highest_priority_waiting(classifier_name):
+                    raise InsufficientMemoryError(
+                        f"Higher priority classifier waiting to load"
+                    )
+
+                # Even highest priority must wait for cooldown to finish
+                raise InsufficientMemoryError(
+                    f"Load cooldown active ({cooldown_remaining:.0f}s remaining)"
+                )
+
+            logger.info(f"Loading model: {classifier_name}")
             start_time = time.time()
+
+            # Record that we're loading now (before actual load to block others)
+            self._record_model_load()
+
+            # Unregister from waiting list if we were waiting
+            self._unregister_waiting(classifier_name)
 
             model = model_class(**kwargs)
 
@@ -191,6 +285,10 @@ class ModelManager:
 
             elapsed = time.time() - start_time
             logger.info(f"Model '{classifier_name}' loaded in {elapsed:.2f}s")
+
+            # Update the load timestamp again after loading completes
+            # (so cooldown starts from when load finished, not started)
+            self._record_model_load()
 
             return model
 

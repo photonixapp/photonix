@@ -32,7 +32,10 @@ def thumbnailer(request, type, id, width, height, crop, quality):
         photo_file_id = id
 
     path = get_thumbnail(photo_file=photo_file_id, photo=photo_id, width=width, height=height, crop=crop, quality=quality, return_type='url', force_accurate=force_accurate)
-    return HttpResponseRedirect(path)
+    response = HttpResponseRedirect(path)
+    # Cache the redirect for 7 days - thumbnail URLs are immutable (based on photo ID)
+    response['Cache-Control'] = 'public, max-age=604800, immutable'
+    return response
 
 
 def upload(request):

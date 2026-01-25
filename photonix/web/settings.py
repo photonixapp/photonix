@@ -215,9 +215,10 @@ MODEL_INFO_URL = 'https://photonix.org/models.json'
 
 # Classifier model lifecycle management
 CLASSIFIER_IDLE_TIMEOUT_SECONDS = int(os.environ.get('CLASSIFIER_IDLE_TIMEOUT', 300))  # 5 min
-CLASSIFIER_WATCHDOG_INTERVAL_SECONDS = int(os.environ.get('CLASSIFIER_WATCHDOG_INTERVAL', 60))  # 1 min
+CLASSIFIER_WATCHDOG_INTERVAL_SECONDS = int(os.environ.get('CLASSIFIER_WATCHDOG_INTERVAL', 15))
 CLASSIFIER_MEMORY_BUFFER_MB = int(os.environ.get('CLASSIFIER_MEMORY_BUFFER_MB', 500))  # Safety buffer
-CLASSIFIER_MEMORY_RETRY_SECONDS = int(os.environ.get('CLASSIFIER_MEMORY_RETRY_SECONDS', 300))  # 5 min retry
+CLASSIFIER_MEMORY_RETRY_SECONDS = int(os.environ.get('CLASSIFIER_MEMORY_RETRY_SECONDS', 30))  # 30 sec retry
+CLASSIFIER_LOAD_COOLDOWN_SECONDS = int(os.environ.get('CLASSIFIER_LOAD_COOLDOWN', 15))
 
 GRAPHENE = {
     'SCHEMA': 'photonix.web.schema.schema',

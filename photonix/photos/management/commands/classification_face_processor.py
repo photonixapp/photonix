@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def run_processors(self):
         num_workers = 1
-        batch_size = 64
+        batch_size = 8
 
         # Start the model manager watchdog for idle unloading
         model_manager = get_model_manager()

@@ -10,8 +10,8 @@ class Command(BaseCommand):
     help = 'Runs the workers with the event classification model.'
 
     def run_processors(self):
-        num_workers = 1
-        batch_size = 64
+        num_workers = 2
+        batch_size = 8
 
         # Start the model manager watchdog for idle unloading
         model_manager = get_model_manager()

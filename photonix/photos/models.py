@@ -296,6 +296,7 @@ class Task(UUIDModel, VersionedModel):
     type = models.CharField(max_length=128, db_index=True)
     subject_id = models.UUIDField(db_index=True)
     status = models.CharField(max_length=1, choices=TASK_STATUS_CHOICES, default='P', db_index=True)
+    priority = models.IntegerField(default=0, db_index=True)  # Higher = higher priority (like k8s)
     started_at = models.DateTimeField(null=True)
     finished_at = models.DateTimeField(null=True)
     memory_retry_at = models.DateTimeField(null=True, blank=True)
@@ -304,7 +305,7 @@ class Task(UUIDModel, VersionedModel):
     library = models.ForeignKey(Library, related_name='task_library', on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-priority', 'created_at']  # Higher priority first, then oldest first
 
     def __str__(self):
         return '{}: {}'.format(self.type, self.created_at)

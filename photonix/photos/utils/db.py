@@ -25,8 +25,6 @@ MIMETYPE_WHITELIST = [
 
 
 def record_photo(path, library, inotify_event_type=None):
-    logger.info(f'Recording photo {path}')
-
     mimetype = get_mimetype(path)
 
     if not imghdr.what(path) and not mimetype in MIMETYPE_WHITELIST and subprocess.run(['dcraw', '-i', path]).returncode:
@@ -51,8 +49,9 @@ def record_photo(path, library, inotify_event_type=None):
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
     if photo_file and photo_file.file_modified_at == file_modified_at:
-        return True
+        return 'SKIPPED'
 
+    logger.info(f'Recording photo {path}')
     metadata = PhotoMetadata(path)
     date_taken = None
     possible_date_keys = ['Create Date', 'Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'File Modification Date/Time']

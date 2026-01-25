@@ -11,13 +11,13 @@ class Command(BaseCommand):
 
     def run_processors(self):
         num_workers = 1
-        batch_size = 64
+        batch_size = 8
 
         # Start the model manager watchdog for idle unloading
         model_manager = get_model_manager()
         model_manager.start_watchdog()
 
-        logger.info('Starting object classification processor with lazy loading')
+        logger.info('Starting object classification processor')
         threaded_queue_processor = ThreadedQueueProcessor(
             model_class=ObjectModel,
             model_name='object',
