@@ -76,6 +76,8 @@ const SectionHeading = styled('h2')`
 
 const ESCAPE_KEY = 27
 const CTRL_KEY = 17
+const SHIFT_KEY = 16
+const A_KEY = 65
 
 const Thumbnails = ({
   photoSections,
@@ -88,6 +90,8 @@ const Thumbnails = ({
   const history = useHistory()
   const [selected, setSelected] = useState([])
   const [ctrlKeyPressed, setCtrlKeyPressed] = useState(false)
+  const [shiftKeyPressed, setShiftKeyPressed] = useState(false)
+  const [lastSelectedId, setLastSelectedId] = useState(null)
 
   const [removePhotosFromAlbum] = useMutation(REMOVE_PHOTOS_FROM_ALBUM)
   const [setPhotosDeleted] = useMutation(SET_PHOTOS_DELETED)
@@ -163,11 +167,47 @@ const Thumbnails = ({
     return null
   }
 
-  const addRemoveItem = (id) => {
+  // Get flat array of all photo IDs in display order
+  const getAllPhotoIds = () => {
+    const ids = []
+    if (!photoSections) return ids
+    for (const section of photoSections) {
+      for (const segment of section.segments) {
+        for (const photo of segment.photos) {
+          if (mode !== 'ALBUMS') {
+            ids.push(photo.id)
+          }
+        }
+      }
+    }
+    return ids
+  }
+
+  const addRemoveItem = (id, isShiftClick = false) => {
+    if (isShiftClick && lastSelectedId && lastSelectedId !== id) {
+      // Range selection: select all items between lastSelectedId and id
+      const allIds = getAllPhotoIds()
+      const lastIndex = allIds.indexOf(lastSelectedId)
+      const currentIndex = allIds.indexOf(id)
+
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const startIndex = Math.min(lastIndex, currentIndex)
+        const endIndex = Math.max(lastIndex, currentIndex)
+        const rangeIds = allIds.slice(startIndex, endIndex + 1)
+
+        // Add range to existing selection (union)
+        const newSelected = [...new Set([...selected, ...rangeIds])]
+        setSelected(newSelected)
+        return
+      }
+    }
+
+    // Normal toggle behavior for ctrl-click or single click
     let ids = [...selected]
     const index = ids.indexOf(id)
     index > -1 ? ids.splice(index, 1) : ids.push(id)
     setSelected(ids)
+    setLastSelectedId(id)
   }
 
   const bind = useLongPress(
@@ -196,9 +236,23 @@ const Thumbnails = ({
       switch (event.keyCode) {
         case ESCAPE_KEY:
           setSelected([])
+          setLastSelectedId(null)
           break
         case CTRL_KEY:
           setCtrlKeyPressed(true)
+          break
+        case SHIFT_KEY:
+          setShiftKeyPressed(true)
+          break
+        case A_KEY:
+          if (event.ctrlKey || event.metaKey) {
+            event.preventDefault()
+            const allIds = getAllPhotoIds()
+            setSelected(allIds)
+            if (allIds.length > 0) {
+              setLastSelectedId(allIds[allIds.length - 1])
+            }
+          }
           break
         default:
           break
@@ -209,6 +263,9 @@ const Thumbnails = ({
       switch (event.keyCode) {
         case CTRL_KEY:
           setCtrlKeyPressed(false)
+          break
+        case SHIFT_KEY:
+          setShiftKeyPressed(false)
           break
         default:
           break
@@ -222,14 +279,15 @@ const Thumbnails = ({
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('keyup', handleKeyUp)
     }
-  }, [])
+  }, [photoSections, mode])
 
-  const onMouseDown = ctrlKeyPressed
-    ? (e) => {
-        const id = getNode(e.target).getAttribute('data-id')
-        addRemoveItem(id)
-      }
-    : bind.onMouseDown
+  const onMouseDown =
+    ctrlKeyPressed || shiftKeyPressed
+      ? (e) => {
+          const id = getNode(e.target).getAttribute('data-id')
+          addRemoveItem(id, shiftKeyPressed)
+        }
+      : bind.onMouseDown
 
   return (
     <>
@@ -281,7 +339,7 @@ const Thumbnails = ({
                           starRating={photo.starRating}
                           rotation={photo.rotation}
                           selected={selected.indexOf(photo.id) > -1}
-                          selectable={selected.length > 0 || ctrlKeyPressed}
+                          selectable={selected.length > 0 || ctrlKeyPressed || shiftKeyPressed}
                           mode={mode}
                           rateable={rateable}
                           {...bind}
