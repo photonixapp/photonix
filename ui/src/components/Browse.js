@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
-import { useSwipeable } from 'react-swipeable'
+import { useDrag } from '@use-gesture/react'
 
 import Header from './Header'
 import Search from './Search'
@@ -113,10 +113,15 @@ const Browse = ({
     }
   }
   let content = renderContent()
-  const handlers = useSwipeable({
-    onSwipedDown: () => setExpanded(!expanded),
-    onSwipedUp: () => setExpanded(!expanded),
-  })
+  const bindSwipe = useDrag(
+    ({ direction: [, dy], distance: [, distY], last }) => {
+      // Toggle expanded on vertical swipe (up or down)
+      if (last && distY > 30 && Math.abs(dy) > 0) {
+        setExpanded(!expanded)
+      }
+    },
+    { axis: 'y', filterTaps: true }
+  )
   if (loading) content = <Spinner />
   if (error) content = <p>Error :(</p>
 
@@ -159,7 +164,7 @@ const Browse = ({
         />
         {mode !== 'ALBUMS' && (
           <div
-            {...handlers}
+            {...bindSwipe()}
             className="expandCollapse"
             onClick={() => setExpanded(!expanded)}
           >

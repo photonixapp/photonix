@@ -2,27 +2,82 @@ import React, { useCallback, useState, useEffect, useRef } from 'react'
 import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
-import { useSwipeable } from 'react-swipeable'
+import { useDrag } from '@use-gesture/react'
 import { useSelector } from 'react-redux'
+import { useQuery } from '@apollo/client'
+import gql from 'graphql-tag'
 
 import BoundingBoxes from './BoundingBoxes'
 import Spinner from './Spinner'
 import { getPrevNextPhotos } from '../stores/photos/selector'
+
+// Lightweight query for just rotation data of adjacent photos
+const GET_PHOTO_ROTATION = gql`
+  query PhotoRotation($id: UUID) {
+    photo(id: $id) {
+      id
+      rotation
+      userRotation
+    }
+  }
+`
 
 const Container = styled('div')`
   width: 100vw;
   height: 100vh;
   position: relative;
   background: #1b1b1b;
+  overflow: hidden;
 
-  .react-transform-component {
+  .swipeOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    z-index: 20;
+    touch-action: pan-y;
   }
-  .react-transform-element {
-    width: 100%;
-    height: 100%;
+
+  .carouselTrack {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    will-change: transform;
+    position: relative;
   }
+
+  .carouselSlide {
+    width: 100vw;
+    height: 100vh;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1b1b1b;
+    position: relative;
+  }
+
+  .carouselSlidePrev,
+  .carouselSlideNext {
+    img {
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+    }
+  }
+
+  .carouselSlideCurrent {
+    .react-transform-component {
+      width: 100%;
+      height: 100%;
+    }
+    .react-transform-element {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
   .pinchArea {
     width: 100%;
     height: 100%;
@@ -73,6 +128,8 @@ const Container = styled('div')`
     display: flex;
     flex-direction: column;
     justify-content: center;
+    z-index: 10;
+    pointer-events: none;
   }
 `
 
@@ -100,6 +157,7 @@ const ZoomableImage = ({
   const [displayImage, setDisplayImage] = useState(false)
   const [editLableId, setEditLableId] = useState('')
   const spinnerTimeoutRef = useRef(null)
+  const transformRef = useRef(null)
   let clickTimeOut = null
 
   const prevNextPhotos = useSelector((state) =>
@@ -107,31 +165,131 @@ const ZoomableImage = ({
   )
   const url = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
 
-  const prevPhoto = useCallback(() => {
-    if (!zoom) prev()
-  }, [zoom, prev])
+  const prevPhotoId = prevNextPhotos.prev[0]
+  const nextPhotoId = prevNextPhotos.next[0]
+  const prevUrl = prevPhotoId ? `/thumbnailer/photo/3840x3840_contain_q75/${prevPhotoId}/` : null
+  const nextUrl = nextPhotoId ? `/thumbnailer/photo/3840x3840_contain_q75/${nextPhotoId}/` : null
 
-  const nextPhoto = useCallback(() => {
-    if (!zoom) next()
-  }, [zoom, next])
-
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => nextPhoto(),
-    onSwipedRight: () => prevPhoto(),
+  // Fetch rotation data for adjacent photos
+  const { data: prevPhotoData } = useQuery(GET_PHOTO_ROTATION, {
+    variables: { id: prevPhotoId },
+    skip: !prevPhotoId,
+  })
+  const { data: nextPhotoData } = useQuery(GET_PHOTO_ROTATION, {
+    variables: { id: nextPhotoId },
+    skip: !nextPhotoId,
   })
 
-  const loadNextPrevImages = () => {
-    let prevId = prevNextPhotos.prev[0]
-    let nextId = prevNextPhotos.next[0]
-    if (prevId) {
-      const prevImg = new Image()
-      prevImg.src = `/thumbnailer/photo/3840x3840_contain_q75/${prevId}/`
+  // Calculate rotations for adjacent photos
+  const prevRotation = prevPhotoData?.photo?.rotation ?? 0
+  const nextRotation = nextPhotoData?.photo?.rotation ?? 0
+
+  // Swipe offset in pixels (during drag and animation)
+  const [swipeOffset, setSwipeOffset] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const animationRef = useRef(null)
+  const navigatedViaSwipeRef = useRef(false)
+
+  const prevPhoto = useCallback(() => {
+    if (!zoom && prevPhotoId) prev()
+  }, [zoom, prev, prevPhotoId])
+
+  const nextPhoto = useCallback(() => {
+    if (!zoom && nextPhotoId) next()
+  }, [zoom, next, nextPhotoId])
+
+  // Animate to target offset, then call callback
+  const animateTo = useCallback((targetOffset, onComplete) => {
+    setIsAnimating(true)
+    const startOffset = swipeOffset
+    const startTime = performance.now()
+    const duration = 250 // ms
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3)
+      const currentOffset = startOffset + (targetOffset - startOffset) * eased
+
+      setSwipeOffset(currentOffset)
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate)
+      } else {
+        setIsAnimating(false)
+        if (onComplete) onComplete()
+      }
     }
-    if (nextId) {
-      const nextImg = new Image()
-      nextImg.src = `/thumbnailer/photo/3840x3840_contain_q75/${nextId}/`
+
+    animationRef.current = requestAnimationFrame(animate)
+  }, [swipeOffset])
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
     }
-  }
+  }, [])
+
+  // Reset offset when photo changes
+  useEffect(() => {
+    setSwipeOffset(0)
+  }, [photoId])
+
+  // Gesture handler for swipe carousel
+  const bindDrag = useDrag(
+    ({ active, movement: [mx], velocity: [vx], direction: [dx], cancel }) => {
+      // Don't allow swiping when zoomed or animating
+      if (zoom || isAnimating) {
+        cancel()
+        return
+      }
+
+      setIsDragging(active)
+
+      if (active) {
+        // During drag: apply resistance at edges
+        let adjustedX = mx
+        if (mx > 0 && !prevPhotoId) {
+          // Dragging right but no previous photo - add resistance
+          adjustedX = mx * 0.3
+        } else if (mx < 0 && !nextPhotoId) {
+          // Dragging left but no next photo - add resistance
+          adjustedX = mx * 0.3
+        }
+        setSwipeOffset(adjustedX)
+      } else {
+        // On release: check if we should navigate
+        const width = window.innerWidth
+        const threshold = width * 0.25
+        const velocityThreshold = 0.5
+
+        if ((mx > threshold || (vx > velocityThreshold && dx > 0)) && prevPhotoId) {
+          // Swipe right - go to previous
+          animateTo(width, () => {
+            navigatedViaSwipeRef.current = true
+            // Navigate immediately - the useEffect on photoId will reset swipeOffset
+            prevPhoto()
+          })
+        } else if ((mx < -threshold || (vx > velocityThreshold && dx < 0)) && nextPhotoId) {
+          // Swipe left - go to next
+          animateTo(-width, () => {
+            navigatedViaSwipeRef.current = true
+            // Navigate immediately - the useEffect on photoId will reset swipeOffset
+            nextPhoto()
+          })
+        } else {
+          // Snap back to center
+          animateTo(0)
+        }
+      }
+    },
+    { axis: 'x', filterTaps: true }
+  )
 
   const handleImageLoaded = () => {
     if (loading) {
@@ -145,12 +303,21 @@ const ZoomableImage = ({
       setShowSpinner(false)
       setTimeout(() => {
         setDisplayImage(true)
-        loadNextPrevImages()
       }, 250)
     }
   }
 
   useEffect(() => {
+    // If we navigated via swipe, skip the fade-in animation since image is already visible
+    if (navigatedViaSwipeRef.current) {
+      navigatedViaSwipeRef.current = false
+      setLoading(false)
+      setShowSpinner(false)
+      setDisplayImage(true)
+      setScale(1)
+      return
+    }
+
     console.log('[ZoomableImage] URL changed, starting load:', url)
     setLoading(true)
     setShowSpinner(false)
@@ -212,66 +379,131 @@ const ZoomableImage = ({
     imageStyle.maxHeight = '100vw'
   }
 
+  // Calculate transform: start at -100vw (to show middle slide), then add swipeOffset
+  const trackTransform = `translateX(calc(-100vw + ${swipeOffset}px))`
+
   return (
     <Container>
-      <TransformWrapper
-        key={url}
-        wheel={{
-          limitsOnWheel: false,
-          step: 75,
+      {/* Transparent overlay to capture swipe gestures - prevents TransformWrapper interference */}
+      {!zoom && (
+        <div
+          {...bindDrag()}
+          className="swipeOverlay"
+          onClick={showHideIcons}
+          onDoubleClick={() => {
+            if (transformRef.current) {
+              transformRef.current.zoomIn()
+            }
+          }}
+          style={{
+            cursor: isDragging ? 'grabbing' : 'grab',
+          }}
+        />
+      )}
+      <div
+        className="carouselTrack"
+        style={{
+          transform: trackTransform,
         }}
-        doubleClick={{
-          mode: scale < 5 ? 'zoomIn' : 'reset',
-        }}
-        pan={{ lockAxisY: !zoom }}
-        onZoomChange={handleZoom}
-        onPanningStop={({ scale }) => setScale(scale)}
       >
-        {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
-          <>
-            <TransformComponent>
-              <div className="pinchArea">
-                <div {...swipeHandlers} className="imageFlex">
-                  <div
-                    className="imageWrapper"
-                    onClick={showHideIcons}
-                    style={{
-                      transform: `rotate(${rotation}deg)`,
-                    }}
-                  >
-                    <img
-                      src={url}
-                      alt=""
-                      onLoad={handleImageLoaded}
-                      className={displayImage ? 'display' : undefined}
-                      style={imageStyle}
-                    />
-                    {boxes &&
-                      showTopIcons &&
-                      Object.keys(boxes).map((key, index) => (
-                        <span
-                          className={displayImage ? ' display' : undefined}
-                          key={index}
-                        >
-                          <BoundingBoxes
-                            boxes={boxes[key]}
-                            className={key}
-                            refetch={refetch}
-                            showBoundingBox={showBoundingBox}
-                            editLableId={editLableId}
-                            setEditLableId={setEditLableId}
-                            rotation={rotation}
-                            exifRotation={exifRotation}
-                          />
-                        </span>
-                      ))}
+        {/* Previous image */}
+        <div className="carouselSlide carouselSlidePrev">
+          {prevUrl && (
+            <img
+              src={prevUrl}
+              alt=""
+              style={{
+                maxWidth: (prevRotation === 90 || prevRotation === 270) ? '100vh' : '100vw',
+                maxHeight: (prevRotation === 90 || prevRotation === 270) ? '100vw' : '100vh',
+                transform: `rotate(${prevRotation}deg)`,
+              }}
+            />
+          )}
+        </div>
+
+        {/* Current image with zoom/pan */}
+        <div className="carouselSlide carouselSlideCurrent">
+          <TransformWrapper
+            ref={transformRef}
+            key={url}
+            initialScale={1}
+            initialPositionX={0}
+            initialPositionY={0}
+            centerOnInit={false}
+            wheel={{
+              limitsOnWheel: false,
+              step: 75,
+            }}
+            doubleClick={{
+              mode: scale < 5 ? 'zoomIn' : 'reset',
+            }}
+            panning={{ disabled: !zoom }}
+            onZoomChange={handleZoom}
+            onPanningStop={({ scale }) => setScale(scale)}
+          >
+            {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
+              <>
+                <TransformComponent>
+                  <div className="pinchArea">
+                    <div className="imageFlex">
+                      <div
+                        className="imageWrapper"
+                        onClick={showHideIcons}
+                        style={{
+                          transform: `rotate(${rotation}deg)`,
+                        }}
+                      >
+                        <img
+                          src={url}
+                          alt=""
+                          onLoad={handleImageLoaded}
+                          className={displayImage ? 'display' : undefined}
+                          style={imageStyle}
+                        />
+                        {boxes &&
+                          showTopIcons &&
+                          Object.keys(boxes).map((key, index) => (
+                            <span
+                              className={displayImage ? ' display' : undefined}
+                              key={index}
+                            >
+                              <BoundingBoxes
+                                boxes={boxes[key]}
+                                className={key}
+                                refetch={refetch}
+                                showBoundingBox={showBoundingBox}
+                                editLableId={editLableId}
+                                setEditLableId={setEditLableId}
+                                rotation={rotation}
+                                exifRotation={exifRotation}
+                              />
+                            </span>
+                          ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </TransformComponent>
-          </>
-        )}
-      </TransformWrapper>
+                </TransformComponent>
+              </>
+            )}
+          </TransformWrapper>
+        </div>
+
+        {/* Next image */}
+        <div className="carouselSlide carouselSlideNext">
+          {nextUrl && (
+            <img
+              src={nextUrl}
+              alt=""
+              style={{
+                maxWidth: (nextRotation === 90 || nextRotation === 270) ? '100vh' : '100vw',
+                maxHeight: (nextRotation === 90 || nextRotation === 270) ? '100vw' : '100vh',
+                transform: `rotate(${nextRotation}deg)`,
+              }}
+            />
+          )}
+        </div>
+      </div>
+
       {!url ||
         (!displayImage && showSpinner && (
           <div className="spinnerWrapper">
