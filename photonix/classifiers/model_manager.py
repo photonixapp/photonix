@@ -244,11 +244,11 @@ class ModelManager:
             if not self.check_memory_available(required_mb):
                 available_mb = self.get_available_memory_mb()
                 logger.warning(
-                    f"Insufficient memory to load {classifier_name}: "
+                    f"Insufficient memory to load {classifier_name} classifier: "
                     f"need {required_mb}MB, have {available_mb:.0f}MB"
                 )
                 raise InsufficientMemoryError(
-                    f"Insufficient memory to load {classifier_name}"
+                    f"Insufficient memory to load {classifier_name} classifier"
                 )
 
             # Staggered startup: if another model loaded recently, enforce priority during cooldown

@@ -181,8 +181,18 @@ class Photo(UUIDModel, VersionedModel):
 
     @property
     def dimensions(self):
+        """Return display dimensions (post-rotation).
+
+        Width/height in DB are pre-rotation (original file dimensions).
+        This property swaps them based on total rotation (exif + user).
+        """
         file = self.base_file
         if file:
+            total_rotation = (getattr(file, 'exif_rotation', 0) or 0) + (getattr(file, 'user_rotation', 0) or 0)
+            total_rotation = total_rotation % 360
+            # Swap dimensions for 90 or 270 degree rotations
+            if total_rotation in (90, 270):
+                return (file.height, file.width)
             return (file.width, file.height)
         return (None, None)
 
@@ -197,6 +207,9 @@ class Photo(UUIDModel, VersionedModel):
 class PhotoFile(UUIDModel, VersionedModel):
     photo = models.ForeignKey(Photo, related_name='files', on_delete=models.CASCADE)
     path = models.CharField(max_length=512)
+    # Dimensions are stored PRE-rotation (original file dimensions from sensor).
+    # Display dimensions are calculated at query time by swapping based on total rotation.
+    # This simplifies user rotation handling - no need to update dimensions when user rotates.
     width = models.PositiveIntegerField(null=True)
     height = models.PositiveIntegerField(null=True)
     mimetype = models.CharField(max_length=32, blank=True, null=True)
@@ -207,7 +220,13 @@ class PhotoFile(UUIDModel, VersionedModel):
     raw_version = models.PositiveIntegerField(null=True)
     raw_external_params = models.CharField(max_length=32, blank=True, null=True)
     raw_external_version = models.CharField(max_length=32, blank=True, null=True)
-    rotation = models.PositiveIntegerField(null=True, default=0)
+    # Rotation handling:
+    # - exif_rotation: Original EXIF orientation from camera (0, 90, 180, 270 degrees clockwise).
+    # - user_rotation: User-specified rotation adjustment (0, 90, 180, 270 degrees clockwise).
+    # Total rotation for display = (exif_rotation + user_rotation) % 360.
+    # Thumbnails are stored WITHOUT rotation; frontend applies via CSS transform.
+    exif_rotation = models.PositiveIntegerField(null=True, default=0)
+    user_rotation = models.PositiveIntegerField(null=True, default=0)
 
     def __str__(self):
         return str(self.path)
@@ -289,6 +308,7 @@ TASK_STATUS_CHOICES = (
     ('C', 'Completed'),
     ('F', 'Failed'),
     ('M', 'Memory Wait'),
+    ('D', 'Delayed'),
 )
 
 
@@ -300,6 +320,7 @@ class Task(UUIDModel, VersionedModel):
     started_at = models.DateTimeField(null=True)
     finished_at = models.DateTimeField(null=True)
     memory_retry_at = models.DateTimeField(null=True, blank=True)
+    delayed_until = models.DateTimeField(null=True, blank=True)
     parent = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)
     complete_with_children = models.BooleanField(default=False)
     library = models.ForeignKey(Library, related_name='task_library', on_delete=models.CASCADE, null=True, blank=True)
@@ -349,4 +370,14 @@ class Task(UUIDModel, VersionedModel):
         retry_seconds = getattr(settings, 'CLASSIFIER_MEMORY_RETRY_SECONDS', 300)
         self.status = 'M'
         self.memory_retry_at = timezone.now() + timedelta(seconds=retry_seconds)
+        self.save()
+
+    def delay(self, seconds=10):
+        """Mark task as delayed, to start processing after a delay.
+
+        Used to debounce rapid user actions like multiple rotation clicks.
+        """
+        from datetime import timedelta
+        self.status = 'D'
+        self.delayed_until = timezone.now() + timedelta(seconds=seconds)
         self.save()

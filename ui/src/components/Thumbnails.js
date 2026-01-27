@@ -247,10 +247,17 @@ const Thumbnails = ({
         case A_KEY:
           if (event.ctrlKey || event.metaKey) {
             event.preventDefault()
-            const allIds = getAllPhotoIds()
-            setSelected(allIds)
-            if (allIds.length > 0) {
-              setLastSelectedId(allIds[allIds.length - 1])
+            if (event.shiftKey) {
+              // Ctrl+Shift+A: Deselect all
+              setSelected([])
+              setLastSelectedId(null)
+            } else {
+              // Ctrl+A: Select all
+              const allIds = getAllPhotoIds()
+              setSelected(allIds)
+              if (allIds.length > 0) {
+                setLastSelectedId(allIds[allIds.length - 1])
+              }
             }
           }
           break
@@ -272,12 +279,21 @@ const Thumbnails = ({
       }
     }
 
+    const handleWindowFocus = () => {
+      // Reset modifier key states when window regains focus
+      // This handles the case where keys were released while in another window/desktop
+      setCtrlKeyPressed(false)
+      setShiftKeyPressed(false)
+    }
+
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('focus', handleWindowFocus)
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('focus', handleWindowFocus)
     }
   }, [photoSections, mode])
 

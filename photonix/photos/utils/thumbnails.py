@@ -9,10 +9,9 @@ import numpy as np
 
 from django.conf import settings
 from photonix.photos.models import Photo, PhotoFile, Task
-from photonix.photos.utils.metadata import PhotoMetadata
 
 
-THUMBNAILER_VERSION = 20210321
+THUMBNAILER_VERSION = 20260127
 
 
 def process_generate_thumbnails_tasks():
@@ -88,15 +87,10 @@ def get_thumbnail(photo_file=None, photo=None, width=256, height=256, crop='cove
     if im.mode != 'RGB':
         im = im.convert('RGB')
 
-    metadata = PhotoMetadata(input_path)
-
-    # Perform rotations if decalared in metadata
-    if force_regenerate:
-        im = im.rotate(photo_file.rotation, expand=True)
-    elif metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
-        im = im.rotate(-90, expand=True)
-    elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:
-        im = im.rotate(90, expand=True)
+    # Thumbnails are stored WITHOUT rotation applied. The frontend applies
+    # rotation via CSS transform based on the GraphQL 'rotation' field
+    # (which combines exif_rotation + user rotation). This avoids regenerating
+    # thumbnails when user rotates photos.
 
     # Crop / resize
     if force_accurate:

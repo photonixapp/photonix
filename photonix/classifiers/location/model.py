@@ -53,7 +53,7 @@ class LocationModel(BaseModel):
                 rows.append(row)
         return rows
 
-    def predict(self, image_file=None, location=None):
+    def predict(self, image_file=None, location=None, photo_file=None):
         self._ensure_loaded()  # Lazy load on first use
 
         if location:

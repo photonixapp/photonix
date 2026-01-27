@@ -199,7 +199,7 @@ const SearchInput = ({
   }, [filters, prepareOptions])
 
   useEffect(() => {
-    minHeightChanged(container.current.offsetHeight + 5)
+    minHeightChanged(container.current.offsetHeight + 10)
   }, [search, selectedFilters, viewportWidth, minHeightChanged])
   const handleOnChange = (e) => {
     onSearchTextChange(e.target.value)

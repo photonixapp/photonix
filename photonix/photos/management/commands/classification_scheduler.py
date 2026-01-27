@@ -14,7 +14,7 @@ class Command(BaseCommand):
         prev_num_remaining = 0
         while True:
             num_remaining = Task.objects.filter(type='classify_images', status__in=['P', 'S', 'M']).count()
-            if num_remaining and num_remaining != prev_num_remaining:
+            if num_remaining != prev_num_remaining:
                 logger.info('{} photos remaining for classification'.format(num_remaining))
                 prev_num_remaining = num_remaining
                 process_classify_images_tasks()

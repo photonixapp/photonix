@@ -6,7 +6,7 @@ import traceback
 from django.db import transaction
 
 from photonix.photos.models import Task, Photo
-from photonix.photos.utils.tasks import requeue_stuck_tasks, requeue_memory_wait_tasks
+from photonix.photos.utils.tasks import requeue_stuck_tasks, requeue_memory_wait_tasks, requeue_delayed_tasks
 from photonix.web.utils import logger
 
 
@@ -209,6 +209,7 @@ class ThreadedQueueProcessor:
             while True:
                 requeue_stuck_tasks(self.task_type)
                 requeue_memory_wait_tasks(self.task_type)
+                requeue_delayed_tasks(self.task_type)
 
                 if self.task_type == 'classify.color':
                     task_queryset = Task.objects.filter(library__classification_color_enabled=True, type=self.task_type, status='P')

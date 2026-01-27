@@ -10,7 +10,7 @@ class EventModel:
     approx_ram_mb = 120
     max_num_workers = 2
 
-    def predict(self, image_file):
+    def predict(self, image_file, photo_file=None):
         metadata = PhotoMetadata(image_file)
         date_taken = None
         possible_date_keys = ['Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'Modify Date', 'File Modification Date/Time']

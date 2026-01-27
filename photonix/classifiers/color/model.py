@@ -5,7 +5,7 @@ from colorsys import rgb_to_hsv
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
 
 class ColorModel:
@@ -38,8 +38,13 @@ class ColorModel:
             'Black':                ((0, 0, 0),         17),
         }
 
-    def predict(self, image_file, image_size=32, min_score=0.005):
+    def predict(self, image_file, image_size=32, min_score=0.005, photo_file=None):
         image = Image.open(image_file)
+
+        # Apply EXIF orientation correction using Pillow's built-in handler
+        # This handles all 8 EXIF orientation cases (including mirrored/flipped)
+        image = ImageOps.exif_transpose(image)
+
         image = image.resize((image_size, image_size), Image.BICUBIC)
         pixels = np.asarray(image)
         pixels = [j for i in pixels for j in i]

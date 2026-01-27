@@ -11,12 +11,11 @@ from annoy import AnnoyIndex
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 from redis_lock import Lock
 
 from photonix.classifiers.base_model import BaseModel
 from photonix.photos.utils.redis import redis_connection
-from photonix.photos.utils.metadata import PhotoMetadata
 
 # Lazy-loaded modules (heavy imports - TensorFlow/Keras based)
 _DeepFace = None
@@ -101,7 +100,7 @@ class FaceModel(BaseModel):
                 'facenet': facenet_graph,
             }
 
-    def predict(self, image_file, min_score=0.99):
+    def predict(self, image_file, min_score=0.99, photo_file=None):
         self._ensure_loaded()  # Lazy load on first use
 
         # Detects face bounding boxes
@@ -110,12 +109,13 @@ class FaceModel(BaseModel):
         if image.mode != 'RGB':
             image = image.convert('RGB')
 
-        # Perform rotations if decalared in metadata
-        metadata = PhotoMetadata(image_file)
-        if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
-            image = image.rotate(-90, expand=True)
-        elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:
-            image = image.rotate(90, expand=True)
+        # Apply rotation: EXIF + user rotation if photo_file provided
+        if photo_file is not None:
+            from photonix.photos.utils.rotation import apply_photo_rotation
+            image = apply_photo_rotation(image, photo_file)
+        else:
+            # Fallback: just apply EXIF orientation correction
+            image = ImageOps.exif_transpose(image)
 
         image = np.asarray(image)
         results = self.graph['mtcnn'].detect_faces(image)

@@ -81,7 +81,7 @@ class StyleModel(BaseModel):
             labels.append(l.rstrip())
         return labels
 
-    def predict(self, image_file, min_score=0.66):
+    def predict(self, image_file, min_score=0.66, photo_file=None):
         self._ensure_loaded()  # Lazy load on first use
 
         input_height = 224
