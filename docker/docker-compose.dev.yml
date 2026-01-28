@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   postgres:
     container_name: photonix-postgres
@@ -32,6 +30,7 @@ services:
       - '8880:8001'
     environment:
       ENV: dev
+      DEMO: 1
       SAMPLE_DATA: 1
       POSTGRES_HOST: postgres
       POSTGRES_DB: photonix
@@ -47,13 +46,13 @@ services:
       - ../test.py:/srv/test.py
       - ../ui/public:/srv/ui/public
       - ../ui/src:/srv/ui/src
-      - ../ui/.storybook:/srv/ui/.storybook
-      - ../ui/static:/srv/ui/static
-      - ../ui/stories:/srv/ui/stories
+      - ../ui/index.html:/srv/ui/index.html
+      - ../ui/vite.config.ts:/srv/ui/vite.config.ts
+      - ../ui/tsconfig.json:/srv/ui/tsconfig.json
+      - ../ui/tsconfig.app.json:/srv/ui/tsconfig.app.json
+      - ../ui/tsconfig.node.json:/srv/ui/tsconfig.node.json
       - ../ui/package.json:/srv/ui/package.json
-      - ../ui/yarn.lock:/srv/ui/yarn.lock
-      - ../ui/config:/srv/ui/config
-      - ../ui/scripts:/srv/ui/scripts
+      - ../ui/package-lock.json:/srv/ui/package-lock.json
       - ../data/photos:/data/photos
       - ../data/raw-photos-processed:/data/raw-photos-processed
       - ../data/cache:/data/cache

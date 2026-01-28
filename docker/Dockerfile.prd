@@ -26,15 +26,14 @@ RUN apt-get update && \
                    /tmp/* \
                    /var/tmp/*
 
-# Install Node 20.x LTS & Yarn
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+# Install Node 24.x LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
     apt-get update && \
     apt-get install -y nodejs && \
          apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \
                    /var/tmp/*
-RUN npm install --global --unsafe-perm yarn
 
 # Install Python dependencies
 WORKDIR /srv
@@ -53,21 +52,23 @@ RUN if [ "${PYPI_UPLOAD_USERNAME}" = "" ] ; \
      else python /root/install_and_upload_python_packages.py -u ${PYPI_UPLOAD_USERNAME} -p ${PYPI_UPLOAD_PASSWORD} ; \
     fi
 
-# Install NPM dependencies
+# Install NPM dependencies (include devDependencies for build tools like vite)
 COPY ui/package.json /srv/ui/package.json
-COPY ui/yarn.lock /srv/ui/yarn.lock
+COPY ui/package-lock.json /srv/ui/package-lock.json
 WORKDIR /srv/ui
-ENV NODE_ENV=production
-ENV NODE_OPTIONS=--openssl-legacy-provider
-RUN yarn install --no-cache --network-timeout 1000000
+RUN npm install
 
 # Copy over the frontend code
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
+COPY ui/index.html /srv/ui/index.html
+COPY ui/vite.config.ts /srv/ui/vite.config.ts
+COPY ui/tsconfig.json /srv/ui/tsconfig.json
+COPY ui/tsconfig.app.json /srv/ui/tsconfig.app.json
+COPY ui/tsconfig.node.json /srv/ui/tsconfig.node.json
 
 # Build frontend app
-# Node option here solves heap out-of-memory issue when building Webpack bundle on machines that only have 1GB RAM
-RUN NODE_OPTIONS="--max-old-space-size=768 --openssl-legacy-provider" yarn build
+RUN NODE_OPTIONS="--max-old-space-size=768" npm run build
 
 # Remove large unused files in Python site-packages
 RUN find /usr/local/lib/python3.8 -type d -name  "__pycache__" -exec rm -r {} + && \

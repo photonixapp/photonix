@@ -35,15 +35,14 @@ RUN apt-get update && \
                    /tmp/* \
                    /var/tmp/*
 
-# Install Node 20.x LTS & Yarn
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+# Install Node 24.x LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
     apt-get update && \
     apt-get install -y nodejs && \
          apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \
                    /var/tmp/*
-RUN npm install --global --unsafe-perm yarn
 
 # Install Python dependencies
 WORKDIR /srv
@@ -64,10 +63,9 @@ RUN if [ "${PYPI_UPLOAD_USERNAME}" = "" ] ; \
 
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
-COPY ui/yarn.lock /srv/ui/yarn.lock
+COPY ui/package-lock.json /srv/ui/package-lock.json
 ENV NODE_ENV=development
-ENV NODE_OPTIONS=--openssl-legacy-provider
-RUN cd /srv/ui && yarn install
+RUN cd /srv/ui && npm install
 
 # Copy over the code
 COPY photonix /srv/photonix
@@ -76,6 +74,11 @@ COPY manage.py /srv/manage.py
 COPY tests /srv/tests
 COPY ui/public /srv/ui/public
 COPY ui/src /srv/ui/src
+COPY ui/index.html /srv/ui/index.html
+COPY ui/vite.config.ts /srv/ui/vite.config.ts
+COPY ui/tsconfig.json /srv/ui/tsconfig.json
+COPY ui/tsconfig.app.json /srv/ui/tsconfig.app.json
+COPY ui/tsconfig.node.json /srv/ui/tsconfig.node.json
 
 # Copy system config and init scripts
 COPY system /srv/system

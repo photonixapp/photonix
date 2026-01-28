@@ -1,6 +1,7 @@
 #!/bin/sh
-if [ "$ENV" = "dev" ]
-then
-  >&2 echo "Starting Storybook server as not in prd mode"
-  yarn storybook --quiet
-fi
+# Storybook disabled during Vite migration
+# if [ "$ENV" = "dev" ]
+# then
+#   >&2 echo "Starting Storybook server"
+#   npm run storybook --quiet
+# fi

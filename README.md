@@ -63,6 +63,13 @@ If you are using the pre-built Docker image you can use kill, pull and bring bac
 
 ## Developing
 
+For detailed developer documentation, see:
+
+- **[Developer Docs](https://photonix.org/docs/developer/)** - Full documentation on the website
+- **[Docs Source](https://github.com/photonixapp/photonix-website/tree/master/docs)** - Markdown source files on GitHub
+
+### Quick Start
+
 There is a [`Makefile`](./Makefile) and separate Docker Compose file `docker-compose.dev.yml` that you should use if you want to work on the project. Check out the repo and this setup will build the image, mount the code as volumes, hot-reload JS changes to the browser and reload the Python server for most changes.
 
     git clone git@github.com:damianmoore/photonix.git
