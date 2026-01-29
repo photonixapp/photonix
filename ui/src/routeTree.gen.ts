@@ -21,6 +21,7 @@ import { Route as OnboardingStep3RouteImport } from './routes/onboarding/step3'
 import { Route as OnboardingStep2RouteImport } from './routes/onboarding/step2'
 import { Route as OnboardingStep1RouteImport } from './routes/onboarding/step1'
 import { Route as OnboardingCompleteRouteImport } from './routes/onboarding/complete'
+import { Route as AuthenticatedPhotoIdRouteImport } from './routes/_authenticated/photo/$id'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -81,6 +82,11 @@ const OnboardingCompleteRoute = OnboardingCompleteRouteImport.update({
   path: '/complete',
   getParentRoute: () => OnboardingRoute,
 } as any)
+const AuthenticatedPhotoIdRoute = AuthenticatedPhotoIdRouteImport.update({
+  id: '/photo/$id',
+  path: '/photo/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/step4': typeof OnboardingStep4Route
   '/onboarding/step5': typeof OnboardingStep5Route
   '/onboarding/': typeof OnboardingIndexRoute
+  '/photo/$id': typeof AuthenticatedPhotoIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/onboarding/step5': typeof OnboardingStep5Route
   '/': typeof AuthenticatedIndexRoute
   '/onboarding': typeof OnboardingIndexRoute
+  '/photo/$id': typeof AuthenticatedPhotoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/onboarding/step5': typeof OnboardingStep5Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/onboarding/': typeof OnboardingIndexRoute
+  '/_authenticated/photo/$id': typeof AuthenticatedPhotoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/onboarding/step4'
     | '/onboarding/step5'
     | '/onboarding/'
+    | '/photo/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/onboarding/step5'
     | '/'
     | '/onboarding'
+    | '/photo/$id'
   id:
     | '__root__'
     | '/_authenticated'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/onboarding/step5'
     | '/_authenticated/'
     | '/onboarding/'
+    | '/_authenticated/photo/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,15 +269,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingCompleteRouteImport
       parentRoute: typeof OnboardingRoute
     }
+    '/_authenticated/photo/$id': {
+      id: '/_authenticated/photo/$id'
+      path: '/photo/$id'
+      fullPath: '/photo/$id'
+      preLoaderRoute: typeof AuthenticatedPhotoIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedPhotoIdRoute: typeof AuthenticatedPhotoIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedPhotoIdRoute: AuthenticatedPhotoIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

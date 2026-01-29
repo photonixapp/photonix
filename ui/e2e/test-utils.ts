@@ -131,6 +131,12 @@ export const TEST_PHOTOS = {
   snow: '/home/damian/projects/photonix/tests/photos/snow.jpg',
   tree: '/home/damian/projects/photonix/tests/photos/tree.jpg',
   badDate: '/home/damian/projects/photonix/tests/photos/bad_date.jpg',
+  // Solid color test images for carousel/navigation tests
+  red: '/data/photos/test_red.jpg',
+  green: '/data/photos/test_green.jpg',
+  blue: '/data/photos/test_blue.jpg',
+  yellow: '/data/photos/test_yellow.jpg',
+  cyan: '/data/photos/test_cyan.jpg',
 }
 
 // Tag type codes for test photo creation
@@ -146,6 +152,9 @@ export interface CreateTestPhotosOptions {
   tags?: TestTag[]
 }
 
+// Color names for test images (maps to solid color test images)
+const TEST_IMAGE_COLORS = ['red', 'green', 'blue', 'yellow', 'cyan']
+
 // Helper to create test photos in the database
 // Returns array of photo IDs
 export function createTestPhotos(
@@ -154,6 +163,9 @@ export function createTestPhotos(
   options: CreateTestPhotosOptions = {}
 ): string[] {
   const tagsJson = JSON.stringify(options.tags || []).replace(/'/g, "\\'")
+  // Limit count to available test images
+  const actualCount = Math.min(count, TEST_IMAGE_COLORS.length)
+  const colorsJson = JSON.stringify(TEST_IMAGE_COLORS.slice(0, actualCount))
 
   const result = runDjangoCommand(`
 from photonix.photos.models import Photo, PhotoFile, LibraryUser, Tag, PhotoTag
@@ -176,17 +188,24 @@ for tag_data in tags_config:
     )
     created_tags.append(tag)
 
+# Use actual test image files (solid colors)
+colors = json.loads('${colorsJson}')
 photo_ids = []
-for i in range(${count}):
+for i, color in enumerate(colors):
     photo = Photo.objects.create(
         library=library,
         star_rating=i % 6,
+        # EXIF metadata fields (nullable but GraphQL requires values)
+        flash=False,
+        metering_mode='',
+        drive_mode='',
+        shooting_mode='',
     )
     PhotoFile.objects.create(
         photo=photo,
-        path=f'/data/photos/test_{i}.jpg',
+        path=f'/data/photos/test_{color}.jpg',
         mimetype='image/jpeg',
-        bytes=1024,
+        bytes=33269,  # Actual file size
         width=1920,
         height=1080,
         file_modified_at=timezone.now(),

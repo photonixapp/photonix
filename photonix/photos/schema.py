@@ -267,6 +267,13 @@ class TaskType(graphene.ObjectType):
     classify_face = graphene.types.generic.GenericScalar()
 
 
+class PhotosAroundType(graphene.ObjectType):
+    """Response type for photos_around query."""
+    photo_ids = graphene.List(graphene.String)
+    rotations = graphene.types.generic.GenericScalar()
+    current_index = graphene.Int()
+
+
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
@@ -286,6 +293,12 @@ class Query(graphene.ObjectType):
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
     all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter, max_limit=None)
     map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
+    photos_around = graphene.Field(
+        PhotosAroundType,
+        photo_id=graphene.UUID(required=True),
+        count=graphene.Int(default_value=100),
+        description="Get photo IDs around a specific photo for navigation"
+    )
 
     all_location_tags = graphene.List(LocationTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
     all_object_tags = graphene.List(ObjectTagType, library_id=graphene.UUID(), multi_filter=graphene.String())
@@ -394,6 +407,73 @@ class Query(graphene.ObjectType):
     def resolve_map_photos(self, info, **kwargs):
         user = info.context.user
         return Photo.objects.filter(library__users__user=user, deleted=False).exclude(latitude__isnull=True, longitude__isnull=True)
+
+    @login_required
+    def resolve_photos_around(self, info, **kwargs):
+        """
+        Fetch photo IDs around a specific photo for navigation.
+
+        Returns up to `count` photos before and after the specified photo,
+        in the default ordering (-taken_at). Also returns rotations for each photo.
+        """
+        user = info.context.user
+        photo_id = kwargs.get('photo_id')
+        count = kwargs.get('count', 100)
+
+        # Get the target photo
+        try:
+            target_photo = Photo.objects.get(pk=photo_id)
+        except Photo.DoesNotExist:
+            return None
+
+        # Base queryset - same as all_photos
+        base_qs = Photo.objects.filter(
+            library__users__user=user,
+            library=target_photo.library,
+            thumbnailed_version__isnull=False,
+            deleted=False
+        ).order_by('-taken_at')
+
+        # Get photos taken after (or at same time but different id) - these come BEFORE in the list
+        # Since ordering is -taken_at, photos with later taken_at come first
+        photos_before_qs = base_qs.filter(
+            taken_at__gt=target_photo.taken_at
+        ).order_by('taken_at')[:count]  # Order ascending to get closest first
+        photos_before = list(reversed(photos_before_qs))  # Reverse to get proper order
+
+        # Get photos taken before (or at same time) - these come AFTER in the list
+        photos_after_qs = base_qs.filter(
+            taken_at__lt=target_photo.taken_at
+        ).order_by('-taken_at')[:count]
+        photos_after = list(photos_after_qs)
+
+        # Handle photos with same taken_at as target
+        same_time_photos = list(base_qs.filter(taken_at=target_photo.taken_at).exclude(id=photo_id))
+        for p in same_time_photos:
+            if str(p.id) < str(photo_id):
+                photos_after.insert(0, p)
+            else:
+                photos_before.append(p)
+
+        # Combine: before + target + after
+        all_photos = photos_before + [target_photo] + photos_after
+        photo_ids = [str(p.id) for p in all_photos]
+        current_index = len(photos_before)
+
+        # Build rotations dict
+        rotations = {}
+        for p in all_photos:
+            base_file = p.base_file
+            if base_file:
+                exif_rotation = getattr(base_file, 'exif_rotation', 0) or 0
+                user_rotation = getattr(base_file, 'user_rotation', 0) or 0
+                rotations[str(p.id)] = (exif_rotation + user_rotation) % 360
+
+        return {
+            'photo_ids': photo_ids,
+            'rotations': rotations,
+            'current_index': current_index,
+        }
 
     @login_required
     def resolve_all_location_tags(self, info, **kwargs):

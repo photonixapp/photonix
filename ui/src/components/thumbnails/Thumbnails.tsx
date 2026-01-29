@@ -1,16 +1,20 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
 import { useQuery } from '@apollo/client/react'
+import { useNavigate } from '@tanstack/react-router'
 import { Thumbnail } from './Thumbnail'
 import { useKeyboardSelection } from './hooks/useKeyboardSelection'
 import { useInfiniteScroll } from './hooks/useInfiniteScroll'
 import { useLibrariesStore } from '../../lib/libraries'
 import { usePhotoFilters } from '../../lib/search'
+import { usePhotoListStore } from '../../lib/photos/photo-list-store'
 import { GET_PHOTOS, PHOTOS_PER_PAGE } from '../../lib/photos/graphql'
 import type { ThumbnailPhoto, PhotoEdge, AllPhotosResponse } from '../../lib/photos/types'
 
 export function Thumbnails() {
   const { activeLibraryId } = useLibrariesStore()
   const filters = usePhotoFilters()
+  const navigate = useNavigate()
+  const { setPhotoList, saveScrollPosition, scrollPosition } = usePhotoListStore()
 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
@@ -30,6 +34,29 @@ export function Thumbnails() {
   }, [data])
 
   const allPhotoIds = useMemo(() => photos.map((p) => p.id), [photos])
+
+  // Build rotation map from photos
+  const rotationsByPhotoId = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const photo of photos) {
+      map[photo.id] = photo.rotation
+    }
+    return map
+  }, [photos])
+
+  // Populate photo list store when photos change
+  useEffect(() => {
+    if (allPhotoIds.length > 0) {
+      setPhotoList(allPhotoIds, rotationsByPhotoId)
+    }
+  }, [allPhotoIds, rotationsByPhotoId, setPhotoList])
+
+  // Restore scroll position when returning from photo detail
+  useEffect(() => {
+    if (scrollPosition > 0) {
+      window.scrollTo(0, scrollPosition)
+    }
+  }, [scrollPosition])
 
   const toggleSelection = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -132,6 +159,18 @@ export function Thumbnails() {
     ]
   )
 
+  // Navigate to photo detail on click (when not in selection mode)
+  const handleClick = useCallback(
+    (photoId: string) => () => {
+      if (!isSelecting && !ctrlKeyPressed && !shiftKeyPressed) {
+        // Save scroll position before navigating
+        saveScrollPosition(window.scrollY)
+        navigate({ to: '/photo/$id', params: { id: photoId } })
+      }
+    },
+    [isSelecting, ctrlKeyPressed, shiftKeyPressed, saveScrollPosition, navigate]
+  )
+
   const showSelectable = isSelecting || ctrlKeyPressed || shiftKeyPressed
 
   if (!activeLibraryId) {
@@ -154,6 +193,7 @@ export function Thumbnails() {
           isSelected={selectedIds.includes(photo.id)}
           isSelectable={showSelectable}
           onMouseDown={handleMouseDown(photo.id)}
+          onClick={handleClick(photo.id)}
         />
       ))}
 

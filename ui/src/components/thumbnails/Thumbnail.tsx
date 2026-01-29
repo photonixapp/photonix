@@ -10,6 +10,7 @@ interface ThumbnailProps {
   isSelected: boolean
   isSelectable: boolean
   onMouseDown: (e: React.MouseEvent) => void
+  onClick: () => void
 }
 
 export const Thumbnail = memo(function Thumbnail({
@@ -17,6 +18,7 @@ export const Thumbnail = memo(function Thumbnail({
   isSelected,
   isSelectable,
   onMouseDown,
+  onClick,
 }: ThumbnailProps) {
   const [localRating, setLocalRating] = useState(photo.starRating)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -61,6 +63,7 @@ export const Thumbnail = memo(function Thumbnail({
         isSelected ? 'bg-transparent' : ''
       }`}
       onMouseDown={onMouseDown}
+      onClick={onClick}
     >
       <div
         className={`absolute inset-0 transition-transform duration-100 ease-in-out ${
