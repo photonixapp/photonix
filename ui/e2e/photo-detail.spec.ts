@@ -506,4 +506,98 @@ test.describe.serial('Photo Detail Page', () => {
       expect(page.url()).toMatch(/\/photo\/[0-9a-f-]+/)
     }
   })
+
+  test('can add and remove tags in info sidebar', async ({ page }) => {
+    await login(page)
+
+    // Navigate to photo detail
+    const firstPhotoId = testPhotoIds[0]
+    const thumbnail = page.getByTestId(`thumbnail-${firstPhotoId}`)
+    await expect(thumbnail).toBeVisible({ timeout: 10000 })
+    await thumbnail.click()
+
+    await expect(page).toHaveURL(`/photo/${firstPhotoId}`, { timeout: 10000 })
+    const carousel = page.getByTestId('photo-carousel')
+    await expect(carousel).toBeVisible({ timeout: 10000 })
+
+    // Open info sidebar
+    await page.keyboard.press('i')
+    const tagsHeading = page.locator('h3:has-text("Tags")')
+    await expect(tagsHeading).toBeVisible({ timeout: 5000 })
+
+    // Click edit button next to Tags heading
+    const editButton = page.getByRole('button', { name: 'Edit tags' })
+    await expect(editButton).toBeVisible()
+    await editButton.click()
+
+    // Input should appear and be focused
+    const tagInput = page.getByPlaceholder('New tag')
+    await expect(tagInput).toBeVisible()
+    await expect(tagInput).toBeFocused()
+
+    // Add a tag using Enter
+    const testTagName = `test-tag-${Date.now()}`
+    await tagInput.fill(testTagName)
+    await tagInput.press('Enter')
+
+    // Tag should appear in the list
+    const newTag = page.locator(`text=${testTagName}`)
+    await expect(newTag).toBeVisible({ timeout: 5000 })
+
+    // Remove button should be visible in edit mode
+    const removeButton = page.getByRole('button', { name: `Remove tag "${testTagName}"` })
+    await expect(removeButton).toBeVisible()
+
+    // Remove the tag
+    await removeButton.click()
+
+    // Tag should disappear
+    await expect(newTag).not.toBeVisible({ timeout: 5000 })
+
+    // Exit edit mode
+    const doneButton = page.getByRole('button', { name: 'Done editing' })
+    await doneButton.click()
+
+    // Edit button should be back
+    await expect(editButton).toBeVisible()
+  })
+
+  test('can add tags using Tab key', async ({ page }) => {
+    await login(page)
+
+    // Navigate to photo detail
+    const firstPhotoId = testPhotoIds[0]
+    const thumbnail = page.getByTestId(`thumbnail-${firstPhotoId}`)
+    await expect(thumbnail).toBeVisible({ timeout: 10000 })
+    await thumbnail.click()
+
+    await expect(page).toHaveURL(`/photo/${firstPhotoId}`, { timeout: 10000 })
+    const carousel = page.getByTestId('photo-carousel')
+    await expect(carousel).toBeVisible({ timeout: 10000 })
+
+    // Open info sidebar
+    await page.keyboard.press('i')
+
+    // Click edit button
+    const editButton = page.getByRole('button', { name: 'Edit tags' })
+    await expect(editButton).toBeVisible({ timeout: 5000 })
+    await editButton.click()
+
+    // Add a tag using Tab key
+    const tagInput = page.getByPlaceholder('New tag')
+    await expect(tagInput).toBeVisible()
+
+    const testTagName = `tab-tag-${Date.now()}`
+    await tagInput.fill(testTagName)
+    await tagInput.press('Tab')
+
+    // Tag should appear in the list
+    const newTag = page.locator(`text=${testTagName}`)
+    await expect(newTag).toBeVisible({ timeout: 5000 })
+
+    // Clean up - remove the tag
+    const removeButton = page.getByRole('button', { name: `Remove tag "${testTagName}"` })
+    await removeButton.click()
+    await expect(newTag).not.toBeVisible({ timeout: 5000 })
+  })
 })

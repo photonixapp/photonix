@@ -26,7 +26,7 @@ export function NavigationArrows({
         disabled={!hasPrev}
         className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 text-white/70 hover:text-white transition-all duration-200 ${
           visible && hasPrev ? 'opacity-100' : 'opacity-0'
-        } ${!hasPrev ? 'cursor-default' : ''}`}
+        } ${!hasPrev ? 'cursor-default' : 'cursor-pointer'}`}
         title="Previous photo (Left arrow)"
       >
         <ChevronLeft className="w-12 h-12" strokeWidth={1.5} />
@@ -41,7 +41,7 @@ export function NavigationArrows({
         disabled={!hasNext}
         className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 text-white/70 hover:text-white transition-all duration-200 ${
           visible && hasNext ? 'opacity-100' : 'opacity-0'
-        } ${!hasNext ? 'cursor-default' : ''}`}
+        } ${!hasNext ? 'cursor-default' : 'cursor-pointer'}`}
         title="Next photo (Right arrow)"
       >
         <ChevronRight className="w-12 h-12" strokeWidth={1.5} />

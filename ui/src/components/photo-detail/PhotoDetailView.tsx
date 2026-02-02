@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useMutation } from '@apollo/client/react'
 import { useNavigate } from '@tanstack/react-router'
 import { PhotoToolbar } from './PhotoToolbar'
@@ -8,6 +8,8 @@ import { PhotoInfoSidebar } from './PhotoInfoSidebar'
 import { FullscreenButton } from './FullscreenButton'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useImageRotation } from './hooks/useImageRotation'
+import { useCurrentPhotoData } from './hooks/useCurrentPhotoData'
+import { useOptimalResolution } from './hooks/useOptimalResolution'
 import { usePhotoListStore } from '../../lib/photos/photo-list-store'
 import { UPDATE_PHOTO_RATING } from '../../lib/photos/graphql'
 import type { PhotoDetail } from '../../lib/photos/detail-types'
@@ -19,19 +21,32 @@ interface PhotoDetailViewProps {
 export function PhotoDetailView({ photo }: PhotoDetailViewProps) {
   const navigate = useNavigate()
   const carouselRef = useRef<HTMLDivElement>(null)
+  const resolution = useOptimalResolution()
 
 
   const [showInfo, setShowInfo] = useState(false)
   const [showToolbar, setShowToolbar] = useState(true)
   const [showNavArrows, setShowNavArrows] = useState(false)
-  const [showBoundingBox, setShowBoundingBox] = useState(() => {
-    const stored = localStorage.getItem('showBoundingBox')
+  const [showPeopleBoxes, setShowPeopleBoxes] = useState(() => {
+    const stored = localStorage.getItem('showPeopleBoxes')
+    return stored !== null ? stored === 'true' : true
+  })
+  const [showObjectBoxes, setShowObjectBoxes] = useState(() => {
+    const stored = localStorage.getItem('showObjectBoxes')
     return stored !== null ? stored === 'true' : true
   })
   const [localRating, setLocalRating] = useState(photo.starRating)
 
   // Track current photo for carousel (may differ from URL during swipe)
   const [currentPhotoId, setCurrentPhotoId] = useState(photo.id)
+
+  // Fetch metadata for the current carousel photo (for sidebar and bounding boxes)
+  const { photo: currentPhoto, refetch: refetchCurrentPhoto } = useCurrentPhotoData(currentPhotoId, photo)
+
+  // Update localRating when navigating to a different photo
+  useEffect(() => {
+    setLocalRating(currentPhoto.starRating)
+  }, [currentPhoto.id, currentPhoto.starRating])
 
   const [updateRating] = useMutation(UPDATE_PHOTO_RATING)
 
@@ -64,10 +79,18 @@ export function PhotoDetailView({ photo }: PhotoDetailViewProps) {
     setShowInfo((prev) => !prev)
   }, [])
 
-  const toggleBoundingBox = useCallback(() => {
-    setShowBoundingBox((prev) => {
+  const togglePeopleBoxes = useCallback(() => {
+    setShowPeopleBoxes((prev) => {
       const newValue = !prev
-      localStorage.setItem('showBoundingBox', String(newValue))
+      localStorage.setItem('showPeopleBoxes', String(newValue))
+      return newValue
+    })
+  }, [])
+
+  const toggleObjectBoxes = useCallback(() => {
+    setShowObjectBoxes((prev) => {
+      const newValue = !prev
+      localStorage.setItem('showObjectBoxes', String(newValue))
       return newValue
     })
   }, [])
@@ -84,10 +107,10 @@ export function PhotoDetailView({ photo }: PhotoDetailViewProps) {
     (newRating: number) => {
       setLocalRating(newRating)
       updateRating({
-        variables: { photoId: photo.id, starRating: newRating },
-      }).catch(() => setLocalRating(photo.starRating))
+        variables: { photoId: currentPhoto.id, starRating: newRating },
+      }).catch(() => setLocalRating(currentPhoto.starRating))
     },
-    [photo.id, photo.starRating, updateRating]
+    [currentPhoto.id, currentPhoto.starRating, updateRating]
   )
 
   // Handle photo change from carousel (swipe or scroll)
@@ -105,7 +128,8 @@ export function PhotoDetailView({ photo }: PhotoDetailViewProps) {
     onEscape: goToHome,
     onPrev: scrollToPrev,
     onNext: scrollToNext,
-    onToggleBoundingBox: toggleBoundingBox,
+    onTogglePeopleBoxes: togglePeopleBoxes,
+    onToggleObjectBoxes: toggleObjectBoxes,
     onToggleInfo: toggleInfo,
   })
 
@@ -115,20 +139,20 @@ export function PhotoDetailView({ photo }: PhotoDetailViewProps) {
       onMouseMove={() => setShowNavArrows(true)}
       onMouseLeave={() => setShowNavArrows(false)}
     >
-      {/* Main photo area */}
-      <div className="flex-1 relative overflow-hidden">
-        {/* Toolbar */}
-        {showToolbar && (
-          <PhotoToolbar
-            onBack={goToHome}
-            onRotateCW={rotateClockwise}
-            onRotateCCW={rotateCounterClockwise}
-            downloadUrl={photo.downloadUrl}
-            showInfo={showInfo}
-            onToggleInfo={toggleInfo}
-          />
-        )}
+      {/* Toolbar - z-50 to appear above sidebar (z-40) */}
+      {showToolbar && (
+        <PhotoToolbar
+          onBack={goToHome}
+          onRotateCW={rotateClockwise}
+          onRotateCCW={rotateCounterClockwise}
+          downloadUrl={photo.downloadUrl}
+          showInfo={showInfo}
+          onToggleInfo={toggleInfo}
+        />
+      )}
 
+      {/* Main photo area - z-30 keeps it below sidebar (z-40) */}
+      <div className="flex-1 relative overflow-hidden z-30">
         {/* Photo carousel with swipe support */}
         <PhotoCarousel
           ref={carouselRef}
@@ -137,6 +161,12 @@ export function PhotoDetailView({ photo }: PhotoDetailViewProps) {
           rotationsByPhotoId={rotationsByPhotoId}
           onPhotoChange={handlePhotoChange}
           onClick={handleViewerClick}
+          personTags={currentPhoto.personTags}
+          objectTags={currentPhoto.objectTags}
+          showPeopleBoxes={showPeopleBoxes}
+          showObjectBoxes={showObjectBoxes}
+          tagsPhotoId={currentPhoto.id}
+          onRefetch={refetchCurrentPhoto}
         />
 
         {/* Navigation arrows */}
@@ -154,11 +184,15 @@ export function PhotoDetailView({ photo }: PhotoDetailViewProps) {
 
       {/* Info sidebar */}
       <PhotoInfoSidebar
-        photo={{ ...photo, starRating: localRating }}
+        photo={{ ...currentPhoto, starRating: localRating }}
         show={showInfo}
-        showBoundingBox={showBoundingBox}
-        onToggleBoundingBox={toggleBoundingBox}
+        showPeopleBoxes={showPeopleBoxes}
+        showObjectBoxes={showObjectBoxes}
+        onTogglePeopleBoxes={togglePeopleBoxes}
+        onToggleObjectBoxes={toggleObjectBoxes}
         onRatingChange={handleRatingChange}
+        onTagsUpdated={refetchCurrentPhoto}
+        resolution={resolution}
       />
     </div>
   )

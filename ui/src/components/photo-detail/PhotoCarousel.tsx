@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback, forwardRef, useState } from 'react'
 import { PhotoViewer } from './PhotoViewer'
 import { usePhotoListStore } from '../../lib/photos/photo-list-store'
+import type { PersonTag, ObjectTag } from '../../lib/photos/detail-types'
 
 interface PhotoCarouselProps {
   currentPhotoId: string
@@ -8,6 +9,13 @@ interface PhotoCarouselProps {
   rotationsByPhotoId?: Record<string, number>
   onPhotoChange: (photoId: string) => void
   onClick?: () => void
+  // Bounding box props (only shown on current photo when tags match)
+  personTags?: PersonTag[]
+  objectTags?: ObjectTag[]
+  showPeopleBoxes?: boolean
+  showObjectBoxes?: boolean
+  onRefetch?: () => void
+  tagsPhotoId?: string // ID of the photo whose tags we're displaying
 }
 
 // Slot assignment: maps photoId to a stable slot number
@@ -20,7 +28,7 @@ interface SlotAssignment {
 }
 
 export const PhotoCarousel = forwardRef<HTMLDivElement, PhotoCarouselProps>(
-  function PhotoCarousel({ currentPhotoId, rotation, rotationsByPhotoId, onPhotoChange, onClick }, forwardedRef) {
+  function PhotoCarousel({ currentPhotoId, rotation, rotationsByPhotoId, onPhotoChange, onClick, personTags, objectTags, showPeopleBoxes, showObjectBoxes, onRefetch, tagsPhotoId }, forwardedRef) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isZoomed, setIsZoomed] = useState(false)
 
@@ -222,6 +230,12 @@ export const PhotoCarousel = forwardRef<HTMLDivElement, PhotoCarouselProps>(
               isCurrent={isCurrent}
               onClick={onClick}
               onZoomChange={isCurrent ? handleZoomChange : undefined}
+              // Only show bounding boxes when tags match the visible photo
+              personTags={isCurrent && tagsPhotoId === photoId ? personTags : undefined}
+              objectTags={isCurrent && tagsPhotoId === photoId ? objectTags : undefined}
+              showPeopleBoxes={isCurrent && tagsPhotoId === photoId ? showPeopleBoxes : false}
+              showObjectBoxes={isCurrent && tagsPhotoId === photoId ? showObjectBoxes : false}
+              onRefetch={isCurrent ? onRefetch : undefined}
             />
           </div>
         )

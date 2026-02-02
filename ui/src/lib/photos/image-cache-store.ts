@@ -51,7 +51,22 @@ export const useImageCacheStore = create<ImageCacheStore>((set) => ({
   notifyCacheChanged: () => set((state) => ({ version: state.version + 1 })),
 }))
 
+// Available thumbnail resolutions
+export type ThumbnailResolution = '1920' | '3840'
+
 // Helper to generate thumbnail URL for a photo
-export function getPhotoThumbnailUrl(photoId: string): string {
-  return `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
+export function getPhotoThumbnailUrl(photoId: string, resolution: ThumbnailResolution = '1920'): string {
+  return `/thumbnailer/photo/${resolution}x${resolution}_contain_q75/${photoId}/`
+}
+
+// Calculate optimal resolution based on viewport and pixel density
+// Returns '3840' (4K) if max(viewport width, height) * pixelRatio > 1920, else '1920' (2K)
+export function getOptimalResolution(
+  viewportWidth: number,
+  viewportHeight: number,
+  pixelRatio: number = 1
+): ThumbnailResolution {
+  const maxDimension = Math.max(viewportWidth, viewportHeight)
+  const effectiveResolution = maxDimension * pixelRatio
+  return effectiveResolution > 1920 ? '3840' : '1920'
 }

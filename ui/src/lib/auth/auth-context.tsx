@@ -16,6 +16,8 @@ import {
   cancelTokenRefresh,
   performTokenRefresh,
   setAuthFailureCallback,
+  enableVisibilityRefresh,
+  disableVisibilityRefresh,
 } from './token-refresh'
 import type { AuthContextValue, User, LoginResult } from './types'
 
@@ -60,13 +62,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result && typeof result === 'object') {
         setUser(result)
         setIsAuthenticated(true)
+        enableVisibilityRefresh()
       }
 
       setIsLoading(false)
     }
 
     initAuth()
-    return () => cancelTokenRefresh()
+    return () => {
+      cancelTokenRefresh()
+      disableVisibilityRefresh()
+    }
   }, [])
 
   const login = useCallback(
@@ -93,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           })
 
           scheduleTokenRefresh()
+          enableVisibilityRefresh()
           setUser({ username: payload.username })
           setIsAuthenticated(true)
 
@@ -113,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     const currentRefreshToken = Cookies.get('refreshToken')
     cancelTokenRefresh()
+    disableVisibilityRefresh()
 
     if (currentRefreshToken) {
       revokeTokenMutation({

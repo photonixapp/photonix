@@ -29,7 +29,7 @@ export function usePhotoNavigation({ currentPhotoId }: UsePhotoNavigationOptions
     idsToPreload.forEach((id) => {
       if (!preloadedIds.current.has(id)) {
         const img = new Image()
-        img.src = `/thumbnailer/photo/3840x3840_contain_q75/${id}/`
+        img.src = `/thumbnailer/photo/1920x1920_contain_q75/${id}/`
         preloadedIds.current.add(id)
       }
     })

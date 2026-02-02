@@ -88,15 +88,25 @@ def photo_tile(request, photo_id, z, x, y):
 
     The frontend uses Leaflet CRS.Simple which has Y increasing upward,
     but this is handled by the frontend (no TMS flip here).
+
+    ROTATION: Tiles are generated with rotation already applied (EXIF + user rotation).
+    This ensures panning coordinates match visual coordinates in Leaflet.
     """
     z, x, y = int(z), int(x), int(y)
     tile_size = 256
+
+    # JPEG quality from query param (default 75)
+    quality_param = request.GET.get('q', '75')
+    try:
+        jpeg_quality = max(1, min(100, int(quality_param)))
+    except ValueError:
+        jpeg_quality = 75
 
     # Return blue tile for negative coordinates or zoom (for debugging)
     if z < 0 or x < 0 or y < 0:
         tile = Image.new('RGB', (tile_size, tile_size), (0, 100, 200))  # Blue for invalid coords
         response = HttpResponse(content_type='image/jpeg')
-        tile.save(response, 'JPEG', quality=85)
+        tile.save(response, 'JPEG', quality=jpeg_quality)
         response['Cache-Control'] = 'no-cache'
         return response
 
@@ -118,6 +128,24 @@ def photo_tile(request, photo_id, z, x, y):
     if im.mode != 'RGB':
         im = im.convert('RGB')
 
+    # Apply rotation BEFORE tiling
+    # Use rotation from query parameter if provided (for real-time preview)
+    # Otherwise fall back to stored EXIF + user rotation
+    rotation_param = request.GET.get('rotation')
+    if rotation_param is not None:
+        total_rotation = int(rotation_param) % 360
+    else:
+        exif_rotation = getattr(photo_file, 'exif_rotation', 0) or 0
+        user_rotation = getattr(photo_file, 'user_rotation', 0) or 0
+        total_rotation = (exif_rotation + user_rotation) % 360
+
+    if total_rotation == 90:
+        im = im.transpose(Image.ROTATE_270)  # PIL rotates counter-clockwise, we want clockwise
+    elif total_rotation == 180:
+        im = im.transpose(Image.ROTATE_180)
+    elif total_rotation == 270:
+        im = im.transpose(Image.ROTATE_90)  # PIL rotates counter-clockwise, we want clockwise
+
     img_width, img_height = im.size
 
     # SQUARE COORDINATE SYSTEM:
@@ -133,7 +161,7 @@ def photo_tile(request, photo_id, z, x, y):
     if x >= num_tiles or y >= num_tiles:
         tile = Image.new('RGB', (tile_size, tile_size), (0, 150, 100))  # Green for out-of-bounds
         response = HttpResponse(content_type='image/jpeg')
-        tile.save(response, 'JPEG', quality=85)
+        tile.save(response, 'JPEG', quality=jpeg_quality)
         response['Cache-Control'] = 'no-cache'
         return response
 
@@ -154,8 +182,8 @@ def photo_tile(request, photo_id, z, x, y):
     img_top = square_top - padding_y
     img_bottom = square_bottom - padding_y
 
-    # Create tile canvas (purple background for padding areas)
-    tile = Image.new('RGB', (tile_size, tile_size), (150, 50, 150))
+    # Create tile canvas (dark background for padding areas)
+    tile = Image.new('RGB', (tile_size, tile_size), (29, 29, 29))
 
     # Calculate the intersection with actual image bounds
     crop_left = max(0, img_left)
@@ -195,6 +223,6 @@ def photo_tile(request, photo_id, z, x, y):
 
     # Return the tile
     response = HttpResponse(content_type='image/jpeg')
-    tile.save(response, 'JPEG', quality=85)
-    response['Cache-Control'] = 'no-cache'
+    tile.save(response, 'JPEG', quality=jpeg_quality)
+    response['Cache-Control'] = 'no-cache'  # Disable caching for debugging
     return response

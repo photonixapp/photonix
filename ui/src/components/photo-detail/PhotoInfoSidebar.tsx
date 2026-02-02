@@ -1,14 +1,23 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Eye, EyeOff, Edit2, ChevronDown, ChevronUp } from 'lucide-react'
 import { StarRating } from '../thumbnails/StarRating'
+import { ImageHistogram } from './ImageHistogram'
+import { EditableTags } from './EditableTags'
+import { TagList } from './TagList'
+import { ColorTags } from './ColorTags'
+import { getPhotoThumbnailUrl, type ThumbnailResolution } from '../../lib/photos/image-cache-store'
 import type { PhotoDetail } from '../../lib/photos/detail-types'
 
 interface PhotoInfoSidebarProps {
   photo: PhotoDetail
   show: boolean
-  showBoundingBox: boolean
-  onToggleBoundingBox: () => void
+  showPeopleBoxes: boolean
+  showObjectBoxes: boolean
+  onTogglePeopleBoxes: () => void
+  onToggleObjectBoxes: () => void
   onRatingChange: (rating: number) => void
+  onTagsUpdated: () => void
+  resolution?: ThumbnailResolution
 }
 
 interface SectionProps {
@@ -41,11 +50,16 @@ function Section({ title, index, children, showIcon }: SectionProps) {
 export function PhotoInfoSidebar({
   photo,
   show,
-  showBoundingBox,
-  onToggleBoundingBox,
+  showPeopleBoxes,
+  showObjectBoxes,
+  onTogglePeopleBoxes,
+  onToggleObjectBoxes,
   onRatingChange,
+  onTagsUpdated,
+  resolution = '1920',
 }: PhotoInfoSidebarProps) {
   const [showAllMetadata, setShowAllMetadata] = useState(false)
+  const [tagEditorMode, setTagEditorMode] = useState(false)
   let sectionIndex = 0
 
   // Format date
@@ -67,29 +81,53 @@ export function PhotoInfoSidebar({
     [photo.personTags]
   )
 
-  const BoundingBoxIcon = showBoundingBox ? Eye : EyeOff
+  // Exit tag editor mode on Escape key
+  useEffect(() => {
+    if (!tagEditorMode) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setTagEditorMode(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [tagEditorMode])
+
+  const PeopleBoxIcon = showPeopleBoxes ? Eye : EyeOff
+  const ObjectBoxIcon = showObjectBoxes ? Eye : EyeOff
 
   if (!show) return null
 
   return (
     <div
-      className="w-[350px] max-w-[80vw] bg-black/80 text-white overflow-y-auto flex-shrink-0"
+      className="absolute right-0 top-0 bottom-0 w-[350px] max-w-[80vw] bg-black/80 text-white overflow-y-auto z-40"
       style={{
         animation: 'slideInRight 300ms ease-out',
       }}
     >
       <div className="p-6 pt-16">
         {/* Star Rating */}
-        <Section title="Rating" index={sectionIndex++}>
+        <Section title="" index={sectionIndex++}>
           <StarRating
             rating={photo.starRating}
             onRatingChange={onRatingChange}
             size="lg"
+            alwaysShow
           />
         </Section>
 
+        <Section title="" index={sectionIndex++}>
+          <div className="mt-4">
+            <ImageHistogram
+              imageUrl={getPhotoThumbnailUrl(photo.id, resolution)}
+            />
+          </div>
+        </Section>
+
         {/* Metadata */}
-        <Section title="Metadata" index={sectionIndex++}>
+        <Section title="" index={sectionIndex++}>
           <ul className="space-y-1">
             {photo.camera && (
               <li>
@@ -172,7 +210,7 @@ export function PhotoInfoSidebar({
             <li>
               <button
                 onClick={() => setShowAllMetadata(!showAllMetadata)}
-                className="text-white/80 hover:text-white underline flex items-center gap-1 mt-1"
+                className="text-white/80 hover:text-white underline flex items-center gap-1 mt-1 cursor-pointer"
               >
                 {showAllMetadata ? (
                   <>
@@ -188,14 +226,32 @@ export function PhotoInfoSidebar({
           </ul>
         </Section>
 
+        {/* User Tags */}
+        <Section
+          title="Tags"
+          index={sectionIndex++}
+          showIcon={
+            <button
+              onClick={() => setTagEditorMode(!tagEditorMode)}
+              className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
+              title={tagEditorMode ? 'Done editing' : 'Edit tags'}
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+          }
+        >
+          <EditableTags
+            tags={photo.genericTags}
+            editorMode={tagEditorMode}
+            photoId={photo.id}
+            onTagsUpdated={onTagsUpdated}
+          />
+        </Section>
+
         {/* Location Tags */}
         {photo.locationTags.length > 0 && (
           <Section title="Locations" index={sectionIndex++}>
-            <ul className="space-y-1">
-              {photo.locationTags.map((lt, i) => (
-                <li key={i}>{lt.tag.name}</li>
-              ))}
-            </ul>
+            <TagList tags={photo.locationTags} />
           </Section>
         )}
 
@@ -211,20 +267,7 @@ export function PhotoInfoSidebar({
         {/* Color Tags */}
         {photo.colorTags.length > 0 && (
           <Section title="Colors" index={sectionIndex++}>
-            <div className="flex flex-wrap gap-2">
-              {photo.colorTags.map((ct, i) => (
-                <div
-                  key={i}
-                  className="px-2 py-1 rounded text-xs"
-                  style={{
-                    backgroundColor: ct.tag.name.toLowerCase(),
-                    color: isLightColor(ct.tag.name) ? '#000' : '#fff',
-                  }}
-                >
-                  {ct.tag.name}
-                </div>
-              ))}
-            </div>
+            <ColorTags tags={photo.colorTags} />
           </Section>
         )}
 
@@ -235,11 +278,11 @@ export function PhotoInfoSidebar({
             index={sectionIndex++}
             showIcon={
               <button
-                onClick={onToggleBoundingBox}
-                className="p-1 hover:bg-white/10 rounded transition-colors"
-                title={showBoundingBox ? 'Hide bounding boxes' : 'Show bounding boxes'}
+                onClick={onTogglePeopleBoxes}
+                className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
+                title={showPeopleBoxes ? 'Hide people boxes' : 'Show people boxes'}
               >
-                <BoundingBoxIcon className="w-4 h-4" />
+                <PeopleBoxIcon className="w-4 h-4" />
               </button>
             }
           >
@@ -263,72 +306,31 @@ export function PhotoInfoSidebar({
             index={sectionIndex++}
             showIcon={
               <button
-                onClick={onToggleBoundingBox}
-                className="p-1 hover:bg-white/10 rounded transition-colors"
-                title={showBoundingBox ? 'Hide bounding boxes' : 'Show bounding boxes'}
+                onClick={onToggleObjectBoxes}
+                className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
+                title={showObjectBoxes ? 'Hide object boxes' : 'Show object boxes'}
               >
-                <BoundingBoxIcon className="w-4 h-4" />
+                <ObjectBoxIcon className="w-4 h-4" />
               </button>
             }
           >
-            <ul className="space-y-1">
-              {photo.objectTags.map((ot, i) => (
-                <li key={i}>{ot.tag.name}</li>
-              ))}
-            </ul>
+            <TagList tags={photo.objectTags} />
           </Section>
         )}
 
         {/* Styles */}
         {photo.styleTags.length > 0 && (
           <Section title="Styles" index={sectionIndex++}>
-            <ul className="space-y-1">
-              {photo.styleTags.map((st, i) => (
-                <li key={i}>{st.tag.name}</li>
-              ))}
-            </ul>
+            <TagList tags={photo.styleTags} />
           </Section>
         )}
 
         {/* Events */}
         {photo.eventTags.length > 0 && (
           <Section title="Events" index={sectionIndex++}>
-            <ul className="space-y-1">
-              {photo.eventTags.map((et, i) => (
-                <li key={i}>{et.tag.name}</li>
-              ))}
-            </ul>
+            <TagList tags={photo.eventTags} />
           </Section>
         )}
-
-        {/* Generic Tags */}
-        <Section
-          title="Tags"
-          index={sectionIndex++}
-          showIcon={
-            <button
-              className="p-1 hover:bg-white/10 rounded transition-colors"
-              title="Edit tags"
-            >
-              <Edit2 className="w-4 h-4" />
-            </button>
-          }
-        >
-          {photo.genericTags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {photo.genericTags.map((gt, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-1 bg-white/10 rounded text-xs"
-                >
-                  {gt.tag.name}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <span className="text-white/40">No tags</span>
-          )}
-        </Section>
 
         {/* Multiple file versions */}
         {photo.photoFile.length > 1 && (
@@ -366,23 +368,4 @@ export function PhotoInfoSidebar({
       `}</style>
     </div>
   )
-}
-
-// Helper to determine if a color is light (for text contrast)
-function isLightColor(colorName: string): boolean {
-  const lightColors = [
-    'white',
-    'yellow',
-    'cyan',
-    'lime',
-    'aqua',
-    'beige',
-    'ivory',
-    'lightyellow',
-    'lightcyan',
-    'lightgreen',
-    'pink',
-    'lavender',
-  ]
-  return lightColors.includes(colorName.toLowerCase())
 }

@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { MapContainer, useMap, useMapEvents } from 'react-leaflet'
-import L from 'leaflet'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Loader2 } from 'lucide-react'
-import 'leaflet/dist/leaflet.css'
 import {
   getCachedDimensions,
   markImageLoaded,
   getPhotoThumbnailUrl,
+  type ThumbnailResolution,
 } from '../../lib/photos/image-cache-store'
+import { BoundingBoxes } from './BoundingBoxes'
+import { useOptimalResolution } from './hooks/useOptimalResolution'
+import type { PersonTag, ObjectTag } from '../../lib/photos/detail-types'
 
 interface PhotoViewerProps {
   photoId: string
@@ -15,228 +16,430 @@ interface PhotoViewerProps {
   isCurrent: boolean
   onClick?: () => void
   onZoomChange?: (isZoomed: boolean) => void
+  // Bounding box props
+  personTags?: PersonTag[]
+  objectTags?: ObjectTag[]
+  showPeopleBoxes?: boolean
+  showObjectBoxes?: boolean
+  onRefetch?: () => void
 }
 
 const SPINNER_DELAY_MS = 100
-const TILE_SIZE = 256
-// Switch to tiles when zoom exceeds this threshold (where 4K thumbnail gets pixelated)
-const TILE_ZOOM_THRESHOLD = 2
+const MIN_SCALE = 1
+const MAX_SCALE = 16
+// Opacity for TileViewer - set to 1 for production
+const TILE_VIEWER_OPACITY = 1
 
-// ImageOverlay as a semi-transparent reference layer
-// Used to verify that tiles align correctly
-function PhotoImageLayer({ photoId, bounds, opacity = 1 }: {
-  photoId: string
-  bounds: L.LatLngBounds
-  opacity?: number
-}) {
-  const map = useMap()
-
-  useEffect(() => {
-    // Use the 3840x3840 thumbnail for good quality at all zoom levels
-    const imageUrl = `/thumbnailer/photo/3840x3840_contain_q75/${photoId}/`
-
-    const imageOverlay = L.imageOverlay(imageUrl, bounds, { opacity })
-    imageOverlay.addTo(map)
-
-    return () => {
-      map.removeLayer(imageOverlay)
-    }
-  }, [map, photoId, bounds, opacity])
-
-  return null
+// Shared view state for synchronizing ImageViewer and TileViewer
+interface ViewState {
+  scale: number
+  offsetX: number
+  offsetY: number
 }
 
-// Custom TileLayer that handles Y coordinate transformation for CRS.Simple
-// CRS.Simple has Y increasing upward, but our backend expects Y=0 at top
-const PhotoTileLayerClass = L.TileLayer.extend({
-  getTileUrl: function(coords: L.Coords) {
-    const z = coords.z
-    const x = coords.x
-    const numTiles = Math.pow(2, z)
-    // CRS.Simple Y is negative when viewport is in the positive Y coordinate space
-    // (because Leaflet's tile origin is at pixel 0,0 which maps to Y=0 in CRS.Simple,
-    // but our image is placed at Y=0 to Y=256 which is "above" the tile origin)
-    // Transform: url_y = numTiles + internal_y
-    // Example at zoom 2 (4 tiles): internal_y=-4 → url_y=0, internal_y=-1 → url_y=3
-    const y = numTiles + coords.y
+// Tile coordinate
+interface TileCoord {
+  z: number
+  x: number
+  y: number
+}
 
-    return `/thumbnailer/tile/${(this.options as { photoId: string }).photoId}/${z}/${x}/${y}.jpg`
+// Calculate which tiles are visible at current view state
+// The backend uses a SQUARE tile grid where tiles cover [0, 256] x [0, 256] normalized space
+// The image is scaled to fit within this square (largest dimension = 256)
+function getVisibleTiles(
+  viewState: ViewState,
+  imageWidth: number,
+  imageHeight: number,
+  viewportWidth: number,
+  viewportHeight: number,
+  rotation: number
+): TileCoord[] {
+  const { scale } = viewState
+
+  // For tiles, we use rotated dimensions (tiles are pre-rotated on backend)
+  const isRotated90or270 = rotation === 90 || rotation === 270
+  const tileImageWidth = isRotated90or270 ? imageHeight : imageWidth
+  const tileImageHeight = isRotated90or270 ? imageWidth : imageHeight
+
+  // Calculate fit scale (how the image fits the viewport at scale=1)
+  const fitScale = Math.min(
+    viewportWidth / tileImageWidth,
+    viewportHeight / tileImageHeight
+  )
+
+  // The tile grid is SQUARE based on max dimension
+  const maxDim = Math.max(tileImageWidth, tileImageHeight)
+
+  // At zoom z, the square grid has 2^z tiles per side
+  // Each tile is 256x256 pixels covering (maxDim / 2^z) image pixels
+  // Display size of tile = (maxDim / 2^z) * fitScale * scale screen pixels
+  // We want display size ≈ 256 (tile's natural size) for sharp rendering
+  // So: (maxDim / 2^z) * fitScale * scale ≈ 256
+  // => 2^z ≈ maxDim * fitScale * scale / 256
+  // => z ≈ log2(maxDim * fitScale * scale / 256)
+  const displayedGridSize = maxDim * fitScale * scale
+  const z = Math.max(0, Math.min(5, Math.ceil(Math.log2(displayedGridSize / 256))))
+
+  const numTiles = Math.pow(2, z)
+
+  // Return ALL tiles at this zoom level (let the renderer filter what's visible)
+  const tiles: TileCoord[] = []
+  for (let x = 0; x < numTiles; x++) {
+    for (let y = 0; y < numTiles; y++) {
+      tiles.push({ z, x, y })
+    }
   }
-})
 
-// Tile layer for high-resolution deep zoom
-// Uses a NORMALIZED coordinate system where largest dimension = TILE_SIZE (256)
-// This ensures all images appear the same size initially, regardless of pixel dimensions
-function PhotoTileLayer({ photoId, bounds }: {
-  photoId: string
-  bounds: L.LatLngBounds
-}) {
-  const map = useMap()
-
-  useEffect(() => {
-    // Custom tile layer with Y transformation for CRS.Simple
-    const tileLayer = new (PhotoTileLayerClass as new (url: string, options?: L.TileLayerOptions & { photoId: string }) => L.TileLayer)(
-      '', // URL template not used - we override getTileUrl
-      {
-        tileSize: TILE_SIZE,
-        minZoom: 0,
-        maxZoom: 5,
-        noWrap: true,
-        bounds: bounds,
-        photoId: photoId,
-      } as L.TileLayerOptions & { photoId: string }
-    )
-
-    tileLayer.addTo(map)
-
-    return () => {
-      map.removeLayer(tileLayer)
-    }
-  }, [map, photoId, bounds])
-
-  return null
+  return tiles
 }
 
-// Component to handle map events and sync zoom state
-function MapEventHandler({
-  onZoomChange,
-  onClick,
-  minZoom,
-}: {
-  onZoomChange?: (isZoomed: boolean) => void
-  onClick?: () => void
-  minZoom: number
-}) {
-  const map = useMap()
-  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useMapEvents({
-    zoomend: () => {
-      const currentZoom = map.getZoom()
-      onZoomChange?.(currentZoom > minZoom)
-    },
-    click: () => {
-      // Delay click to distinguish from double-click
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current)
-        clickTimeoutRef.current = null
-        return
-      }
-      clickTimeoutRef.current = setTimeout(() => {
-        clickTimeoutRef.current = null
-        onClick?.()
-      }, 250)
-    },
-    dblclick: () => {
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current)
-        clickTimeoutRef.current = null
-      }
-    },
-  })
-
-  return null
-}
-
-// Component to reset view when photo changes or becomes non-current
-function ViewResetter({
-  isCurrent,
-  bounds,
-  minZoom,
-}: {
-  isCurrent: boolean
-  bounds: L.LatLngBounds
-  minZoom: number
-}) {
-  const map = useMap()
-  const prevIsCurrent = useRef(isCurrent)
-
-  useEffect(() => {
-    // Reset view when becoming non-current
-    if (prevIsCurrent.current && !isCurrent) {
-      map.fitBounds(bounds, { animate: false })
-      map.setZoom(minZoom, { animate: false })
-    }
-    prevIsCurrent.current = isCurrent
-  }, [isCurrent, map, bounds, minZoom])
-
-  return null
-}
-
-// Image-based viewer for initial view (uses 4K thumbnail)
-function ImageViewer({
+// Custom TileViewer that renders tiles with CSS transforms
+function CustomTileViewer({
   photoId,
   rotation,
-  isCurrent,
-  onClick,
-  onZoomChange,
-  onNeedsTiles,
+  viewState,
+  imageWidth,
+  imageHeight,
+  viewportWidth,
+  viewportHeight,
+  opacity = 1,
+  onTilesReady,
+  isGestureActive = false,
 }: {
   photoId: string
   rotation: number
-  isCurrent: boolean
-  onClick?: () => void
-  onZoomChange?: (isZoomed: boolean) => void
-  onNeedsTiles: (dimensions: { width: number; height: number }, scale: number) => void
+  viewState: ViewState
+  imageWidth: number
+  imageHeight: number
+  viewportWidth: number
+  viewportHeight: number
+  opacity?: number
+  onTilesReady?: (ready: boolean) => void
+  isGestureActive?: boolean
 }) {
-  const url = getPhotoThumbnailUrl(photoId)
+  const [loadedTiles, setLoadedTiles] = useState<Set<string>>(new Set())
+  // Debounced view state - only update after zoom/pan stops
+  const [stableViewState, setStableViewState] = useState(viewState)
+  // Stable zoom level - only load tiles at this zoom level (debounced)
+  const [stableZoomLevel, setStableZoomLevel] = useState<number | null>(null)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Track current zoom level to cancel old tile requests
+  const currentZoomLevelRef = useRef<number | null>(null)
 
-  // Check module-level cache directly - no React state, just a simple Map lookup
-  // This is checked on EVERY render, including initial mount
-  const cachedDimensions = getCachedDimensions(url)
-  const isCached = !!cachedDimensions
+  const { scale, offsetX, offsetY } = viewState
 
-  // Use lazy initializers to check cache at mount time
-  // This ensures new component instances start with correct state
-  const [showSpinner, setShowSpinner] = useState(false)
-  const [scale, setScale] = useState(1)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [naturalDimensions, setNaturalDimensions] = useState<{ width: number; height: number } | null>(
-    () => getCachedDimensions(url) || null
+  // Debounce view state changes - wait 400ms after zoom stops before loading tiles
+  // Don't load tiles at all while gesture is active (fingers on screen)
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    // Don't start loading tiles while gesture is active
+    if (isGestureActive) {
+      return
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      // Calculate target zoom level for this view state
+      const tiles = getVisibleTiles(viewState, imageWidth, imageHeight, viewportWidth, viewportHeight, rotation)
+      const targetZ = tiles.length > 0 ? tiles[0].z : null
+      setStableZoomLevel(targetZ)
+      setStableViewState(viewState)
+    }, 400)
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [viewState, isGestureActive, imageWidth, imageHeight, viewportWidth, viewportHeight, rotation])
+
+  // Tiles are pre-rotated on the backend, so they're already in the final orientation
+  // But we need to match the ImageViewer's positioning exactly
+  const isRotated90or270 = rotation === 90 || rotation === 270
+
+  // Use ROTATED dimensions for tile coordinate calculations
+  const tileImageWidth = isRotated90or270 ? imageHeight : imageWidth
+  const tileImageHeight = isRotated90or270 ? imageWidth : imageHeight
+
+  // Reset loaded tiles when photo changes
+  useEffect(() => {
+    setLoadedTiles(new Set())
+  }, [photoId])
+
+  // MUST match SyncedImageViewer VISUAL position exactly
+  // ImageViewer uses original dimensions and CSS rotation
+  // We need to calculate where the image VISUALLY appears after CSS rotation
+
+  // Use layout dimensions (swapped if rotated) for fitScale, matching ImageViewer
+  const layoutWidth = isRotated90or270 ? imageHeight : imageWidth
+  const layoutHeight = isRotated90or270 ? imageWidth : imageHeight
+
+  const fitScale = Math.min(
+    viewportWidth / layoutWidth,
+    viewportHeight / layoutHeight
   )
 
-  const containerRef = useRef<HTMLDivElement>(null)
-  const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 })
-  const spinnerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const prevPhotoIdRef = useRef<string>(photoId)
+  // ImageViewer element size (before CSS rotation)
+  const imgElemWidth = imageWidth * fitScale * scale
+  const imgElemHeight = imageHeight * fitScale * scale
 
-  // Track if image has loaded (either from cache or fresh load)
-  // Use lazy initializer to check cache at component mount
-  const [imageReady, setImageReady] = useState(() => !!getCachedDimensions(url))
+  // ImageViewer element position - element is centered, CSS rotation preserves center
+  const imgElemLeft = (viewportWidth - imgElemWidth) / 2 + offsetX
+  const imgElemTop = (viewportHeight - imgElemHeight) / 2 + offsetY
 
-  // When photoId changes (same component, different photo), reset state
-  if (prevPhotoIdRef.current !== photoId) {
-    prevPhotoIdRef.current = photoId
+  // The element center = visual center (rotation preserves center)
+  const imgCenterX = imgElemLeft + imgElemWidth / 2
+  const imgCenterY = imgElemTop + imgElemHeight / 2
 
-    // Reset zoom/position
-    if (scale !== 1) setScale(1)
-    if (position.x !== 0 || position.y !== 0) setPosition({ x: 0, y: 0 })
+  // IMPORTANT: Backend uses a SQUARE tile grid based on max(width, height)
+  // The image is centered within this square, with padding on shorter dimension
+  const maxDim = Math.max(tileImageWidth, tileImageHeight)
 
-    // Update imageReady based on new cache status
-    if (isCached !== imageReady) {
-      setImageReady(isCached)
-    }
+  // The square grid size in screen pixels
+  const squareGridSize = maxDim * fitScale * scale
 
-    // Update dimensions from cache
-    if (cachedDimensions && naturalDimensions !== cachedDimensions) {
-      setNaturalDimensions(cachedDimensions)
-    }
+  // Padding to center the image within the square grid
+  const paddingX = (maxDim - tileImageWidth) / 2 * fitScale * scale
+  const paddingY = (maxDim - tileImageHeight) / 2 * fitScale * scale
 
-    // Clear spinner
-    if (showSpinner) setShowSpinner(false)
+  // The image's visual dimensions (for positioning within the grid)
+  const scaledWidth = tileImageWidth * fitScale * scale
+  const scaledHeight = tileImageHeight * fitScale * scale
+
+  // Position tiles so their center matches the ImageViewer's center
+  const imageLeft = imgCenterX - scaledWidth / 2
+  const imageTop = imgCenterY - scaledHeight / 2
+
+  // The square grid starts at this position (accounting for padding)
+  const gridLeft = imageLeft - paddingX
+  const gridTop = imageTop - paddingY
+
+  // Calculate what zoom level the user is currently viewing (from live viewState)
+  // This determines whether loaded tiles should stay visible during gestures
+  const currentTargetZoomLevel = useMemo(() => {
+    const tiles = getVisibleTiles(viewState, imageWidth, imageHeight, viewportWidth, viewportHeight, rotation)
+    return tiles.length > 0 ? tiles[0].z : null
+  }, [viewState, imageWidth, imageHeight, viewportWidth, viewportHeight, rotation])
+
+  // Track the zoom level of tiles we're actually displaying
+  const displayedZoomLevelRef = useRef<number | null>(null)
+
+  // Calculate tiles to RENDER (from current viewState, always calculated)
+  // These are rendered at current positions so tiles follow pan/zoom
+  // Sort by distance from viewport center so center tiles load first (browser loads in DOM order)
+  const tilesToRender = useMemo(() => {
+    const tiles = getVisibleTiles(viewState, imageWidth, imageHeight, viewportWidth, viewportHeight, rotation)
+    if (tiles.length === 0) return tiles
+
+    const numTiles = Math.pow(2, tiles[0].z)
+    const tileSize = squareGridSize / numTiles
+
+    // Screen center
+    const screenCenterX = viewportWidth / 2
+    const screenCenterY = viewportHeight / 2
+
+    // Sort tiles by distance from screen center so they load center-first
+    return tiles
+      .map(tile => {
+        // Tile center position on screen
+        const tileCenterX = gridLeft + tile.x * tileSize + tileSize / 2
+        const tileCenterY = gridTop + tile.y * tileSize + tileSize / 2
+
+        // Distance from screen center
+        const distFromCenter = Math.sqrt(
+          Math.pow(tileCenterX - screenCenterX, 2) +
+          Math.pow(tileCenterY - screenCenterY, 2)
+        )
+
+        return { ...tile, distFromCenter }
+      })
+      .sort((a, b) => a.distFromCenter - b.distFromCenter)
+  }, [viewState, imageWidth, imageHeight, viewportWidth, viewportHeight, rotation, squareGridSize, gridLeft, gridTop])
+
+  // Calculate tiles to LOAD (debounced, after gesture ends)
+  // Sort tiles by distance from VIEWPORT CENTER (screen center), not image center
+  const tilesToLoad = useMemo(() => {
+    // Don't load NEW tiles while gesture is active
+    if (isGestureActive) return []
+
+    const tiles = getVisibleTiles(stableViewState, imageWidth, imageHeight, viewportWidth, viewportHeight, rotation)
+    if (tiles.length === 0) return tiles
+
+    const numTiles = Math.pow(2, tiles[0].z)
+    const tileSize = squareGridSize / numTiles
+
+    // Screen center
+    const screenCenterX = viewportWidth / 2
+    const screenCenterY = viewportHeight / 2
+
+    // Calculate screen position for each tile and sort by distance from screen center
+    return tiles
+      .map(tile => {
+        // Tile center position on screen
+        const tileCenterX = gridLeft + tile.x * tileSize + tileSize / 2
+        const tileCenterY = gridTop + tile.y * tileSize + tileSize / 2
+
+        // Distance from screen center
+        const distFromCenter = Math.sqrt(
+          Math.pow(tileCenterX - screenCenterX, 2) +
+          Math.pow(tileCenterY - screenCenterY, 2)
+        )
+
+        return { ...tile, distFromCenter }
+      })
+      .sort((a, b) => a.distFromCenter - b.distFromCenter)
+  }, [stableViewState, imageWidth, imageHeight, viewportWidth, viewportHeight, rotation, squareGridSize, gridLeft, gridTop, isGestureActive])
+
+  // Calculate the zoom level we're loading tiles for
+  const loadingZoomLevel = tilesToLoad.length > 0 ? tilesToLoad[0].z : null
+
+  // Update displayed zoom level when we start loading new tiles
+  if (loadingZoomLevel !== null) {
+    displayedZoomLevelRef.current = loadingZoomLevel
+    currentZoomLevelRef.current = loadingZoomLevel
   }
+
+  // Determine if tiles should be visible:
+  // - Show tiles if the current target zoom level matches the displayed tiles' zoom level
+  // - This keeps tiles visible during pan and zoom within the same z level
+  const shouldShowTiles = displayedZoomLevelRef.current !== null &&
+    currentTargetZoomLevel === displayedZoomLevelRef.current
+
+  // Clear loaded tiles when zoom level changes (new tiles needed)
+  const prevZoomLevelRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (loadingZoomLevel === null) return
+    if (prevZoomLevelRef.current !== null && prevZoomLevelRef.current !== loadingZoomLevel) {
+      // Zoom level changed - clear old tiles
+      setLoadedTiles(new Set())
+    }
+    prevZoomLevelRef.current = loadingZoomLevel
+  }, [loadingZoomLevel])
+
+  const handleTileLoad = useCallback((key: string) => {
+    // Only add tile if it matches current zoom level (ignore stale responses)
+    const tileZ = parseInt(key.split('-')[0])
+    if (currentZoomLevelRef.current !== null && tileZ !== currentZoomLevelRef.current) {
+      return // Ignore tile from wrong zoom level
+    }
+    setLoadedTiles(prev => new Set(prev).add(key))
+  }, [])
+
+  // Notify parent when tiles become active (zoomed in enough to show tiles)
+  useEffect(() => {
+    // Tiles are ready (active) as soon as we're zoomed in enough to show them
+    onTilesReady?.(scale >= 1.5)
+  }, [scale, onTilesReady])
+
+  // Only show tiles when zoomed in enough that they provide detail
+  if (scale < 1.5) {
+    return null
+  }
+
+  return (
+    <div
+      className="absolute inset-0 overflow-hidden pointer-events-none"
+      style={{ opacity }}
+    >
+      {tilesToRender.map(({ z, x, y }) => {
+        const numTiles = Math.pow(2, z)
+
+        // Backend uses SQUARE tile grid - each tile is a square
+        // The grid covers max(width, height) on each side
+        const tileSize = squareGridSize / numTiles
+
+        // Tile position within the square grid
+        const tileLeft = gridLeft + x * tileSize
+        const tileTop = gridTop + y * tileSize
+
+        // Skip tiles that are completely outside the viewport
+        if (tileLeft + tileSize < 0 || tileLeft > viewportWidth ||
+            tileTop + tileSize < 0 || tileTop > viewportHeight) {
+          return null
+        }
+
+        const key = `${z}-${x}-${y}-r${rotation}`
+
+        // Only set src (triggering network request) when zoom level matches stable zoom level
+        // This prevents loading tiles at intermediate zoom levels during zoom gestures
+        const shouldLoad = stableZoomLevel === z
+        const url = shouldLoad
+          ? `/thumbnailer/tile/${photoId}/${z}/${x}/${y}.jpg?rotation=${rotation}&q=75`
+          : undefined
+
+        // Only show tile as loaded if:
+        // 1. The tile matches the displayed zoom level (not a stale tile from different z)
+        // 2. The current target zoom level matches the displayed zoom level (hide during z transitions)
+        // This keeps tiles visible during pan and zoom within same z level
+        const isCorrectZoomLevel = displayedZoomLevelRef.current === z
+        const isLoaded = loadedTiles.has(key) && isCorrectZoomLevel && shouldShowTiles
+
+        return (
+          <img
+            key={key}
+            src={url}
+            alt=""
+            onLoad={() => handleTileLoad(key)}
+            onError={() => {/* Tile doesn't exist, ignore */}}
+            style={{
+              position: 'absolute',
+              left: tileLeft,
+              top: tileTop,
+              width: tileSize,
+              height: tileSize,
+              maxWidth: 'none',
+              maxHeight: 'none',
+              opacity: isLoaded ? 1 : 0,
+              transition: 'opacity 150ms ease-in',
+            }}
+            draggable={false}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+// ImageViewer that syncs with the shared view state
+function SyncedImageViewer({
+  photoId,
+  rotation,
+  viewState,
+  imageWidth,
+  imageHeight,
+  viewportWidth,
+  viewportHeight,
+  onImageLoad,
+  debugOpacity = 1,
+  resolution = '1920',
+}: {
+  photoId: string
+  rotation: number
+  viewState: ViewState
+  imageWidth: number
+  imageHeight: number
+  viewportWidth: number
+  viewportHeight: number
+  onImageLoad: (dimensions: { width: number; height: number }) => void
+  debugOpacity?: number
+  resolution?: ThumbnailResolution
+}) {
+  const url = getPhotoThumbnailUrl(photoId, resolution)
+  const cachedDimensions = getCachedDimensions(url)
+  const [showSpinner, setShowSpinner] = useState(false)
+  const [imageReady, setImageReady] = useState(() => !!cachedDimensions)
+  const spinnerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const { scale, offsetX, offsetY } = viewState
 
   // Handle spinner timeout for non-cached images
   useEffect(() => {
-    // Clear any existing timeout
     if (spinnerTimeoutRef.current) {
       clearTimeout(spinnerTimeoutRef.current)
       spinnerTimeoutRef.current = null
     }
 
-    // Only show spinner if not cached and not ready
-    if (!isCached && !imageReady) {
+    if (!cachedDimensions && !imageReady) {
       spinnerTimeoutRef.current = setTimeout(() => {
         setShowSpinner(true)
       }, SPINNER_DELAY_MS)
@@ -247,20 +450,7 @@ function ImageViewer({
         clearTimeout(spinnerTimeoutRef.current)
       }
     }
-  }, [photoId, isCached, imageReady])
-
-  // Reset zoom when this photo is no longer current
-  useEffect(() => {
-    if (!isCurrent && scale > 1) {
-      setScale(1)
-      setPosition({ x: 0, y: 0 })
-    }
-  }, [isCurrent, scale])
-
-  // Notify parent when zoom state changes
-  useEffect(() => {
-    onZoomChange?.(scale > 1)
-  }, [scale, onZoomChange])
+  }, [photoId, cachedDimensions, imageReady])
 
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     if (spinnerTimeoutRef.current) {
@@ -271,413 +461,564 @@ function ImageViewer({
     const img = e.currentTarget
     const dimensions = { width: img.naturalWidth, height: img.naturalHeight }
 
-    // Add to module-level cache
     markImageLoaded(url, dimensions)
-
-    setNaturalDimensions(dimensions)
     setShowSpinner(false)
     setImageReady(true)
-  }, [url, photoId, isCurrent])
+    onImageLoad(dimensions)
+  }, [url, onImageLoad])
 
-  // Wheel zoom
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
-      e.preventDefault()
-      const delta = e.deltaY > 0 ? 0.9 : 1.1
-      const newScale = Math.min(Math.max(scale * delta, 1), 10)
-
-      // Switch to tiles when zooming beyond threshold
-      if (newScale > TILE_ZOOM_THRESHOLD && naturalDimensions) {
-        onNeedsTiles(naturalDimensions, newScale)
-        return
-      }
-
-      if (newScale === 1) {
-        setPosition({ x: 0, y: 0 })
-      }
-      setScale(newScale)
-    },
-    [scale, onNeedsTiles, naturalDimensions]
-  )
-
-  // Double-click to zoom/reset
-  const handleDoubleClick = useCallback(() => {
-    if (scale > 1) {
-      setScale(1)
-      setPosition({ x: 0, y: 0 })
-    } else {
-      // If zooming to 3x, switch to tiles
-      if (3 > TILE_ZOOM_THRESHOLD && naturalDimensions) {
-        onNeedsTiles(naturalDimensions, 3)
-      } else {
-        setScale(3)
-      }
-    }
-  }, [scale, onNeedsTiles, naturalDimensions])
-
-  // Single click (with delay to distinguish from double-click)
-  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const handleClick = useCallback(() => {
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current)
-      clickTimeoutRef.current = null
-      return // Double-click detected
-    }
-    clickTimeoutRef.current = setTimeout(() => {
-      clickTimeoutRef.current = null
-      onClick?.()
-    }, 250)
-  }, [onClick])
-
-  // Mouse drag for panning when zoomed
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      if (scale > 1) {
-        setIsDragging(true)
-        dragStart.current = {
-          x: e.clientX,
-          y: e.clientY,
-          posX: position.x,
-          posY: position.y,
-        }
-      }
-    },
-    [scale, position]
-  )
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!isDragging) return
-      const dx = e.clientX - dragStart.current.x
-      const dy = e.clientY - dragStart.current.y
-      setPosition({
-        x: dragStart.current.posX + dx,
-        y: dragStart.current.posY + dy,
-      })
-    },
-    [isDragging]
-  )
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false)
-  }, [])
-
-  // Touch handling for pinch-zoom
-  const touchesRef = useRef<React.Touch[]>([])
-  const initialDistanceRef = useRef(0)
-  const initialScaleRef = useRef(1)
-
-  const getDistance = (t1: React.Touch, t2: React.Touch) => {
-    const dx = t1.clientX - t2.clientX
-    const dy = t1.clientY - t2.clientY
-    return Math.sqrt(dx * dx + dy * dy)
-  }
-
-  const handleTouchStart = useCallback(
-    (e: React.TouchEvent) => {
-      if (e.touches.length === 2) {
-        touchesRef.current = Array.from(e.touches) as unknown as React.Touch[]
-        initialDistanceRef.current = getDistance(e.touches[0], e.touches[1])
-        initialScaleRef.current = scale
-      } else if (e.touches.length === 1 && scale > 1) {
-        setIsDragging(true)
-        dragStart.current = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-          posX: position.x,
-          posY: position.y,
-        }
-      }
-    },
-    [scale, position]
-  )
-
-  const handleTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      if (e.touches.length === 2) {
-        e.preventDefault()
-        const currentDistance = getDistance(e.touches[0], e.touches[1])
-        const scaleChange = currentDistance / initialDistanceRef.current
-        const newScale = Math.min(
-          Math.max(initialScaleRef.current * scaleChange, 1),
-          10
-        )
-
-        // Switch to tiles when zooming beyond threshold
-        if (newScale > TILE_ZOOM_THRESHOLD && naturalDimensions) {
-          onNeedsTiles(naturalDimensions, newScale)
-          return
-        }
-
-        setScale(newScale)
-        if (newScale === 1) {
-          setPosition({ x: 0, y: 0 })
-        }
-      } else if (isDragging && e.touches.length === 1) {
-        const dx = e.touches[0].clientX - dragStart.current.x
-        const dy = e.touches[0].clientY - dragStart.current.y
-        setPosition({
-          x: dragStart.current.posX + dx,
-          y: dragStart.current.posY + dy,
-        })
-      }
-    },
-    [isDragging, onNeedsTiles, naturalDimensions]
-  )
-
-  const handleTouchEnd = useCallback(() => {
-    touchesRef.current = []
-    setIsDragging(false)
-  }, [])
-
-  // Calculate image style based on rotation
+  // Calculate display dimensions
+  // The 4K thumbnail is NOT rotated, so we apply CSS rotation
   const isRotated90or270 = rotation === 90 || rotation === 270
 
-  // For cached images: no opacity manipulation at all - let browser show it naturally
-  // For non-cached images: start hidden, fade in when imageReady becomes true
+  // Calculate scaled size - use the image dimensions we have
+  const displayWidth = imageWidth || 1920
+  const displayHeight = imageHeight || 1080
+
+  // For rotated images, we need to swap dimensions for layout calculation
+  const layoutWidth = isRotated90or270 ? displayHeight : displayWidth
+  const layoutHeight = isRotated90or270 ? displayWidth : displayHeight
+
+  // Calculate the base size to fit viewport
+  const fitScale = Math.min(
+    viewportWidth / layoutWidth,
+    viewportHeight / layoutHeight
+  )
+
+  const baseWidth = displayWidth * fitScale
+  const baseHeight = displayHeight * fitScale
+
+  // Apply zoom scale
+  const scaledWidth = baseWidth * scale
+  const scaledHeight = baseHeight * scale
+
+  // Calculate position: center the ELEMENT so after CSS rotation the visual center is at viewport center
+  // CSS rotation preserves the center, so centering the element centers the visual result
+  const left = (viewportWidth - scaledWidth) / 2 + offsetX
+  const top = (viewportHeight - scaledHeight) / 2 + offsetY
+
   const imageStyle: React.CSSProperties = {
-    maxWidth: isRotated90or270 ? '100vh' : '100vw',
-    maxHeight: isRotated90or270 ? '100vw' : '100vh',
+    position: 'absolute',
+    left,
+    top,
+    width: scaledWidth,
+    height: scaledHeight,
+    maxWidth: 'none',
+    maxHeight: 'none',
     transform: `rotate(${rotation}deg)`,
-    // Only use opacity trick for non-cached images
-    ...(isCached ? {} : {
-      opacity: imageReady ? 1 : 0,
-      transition: 'opacity 250ms ease-in',
-    }),
+    transformOrigin: 'center center',
+    opacity: imageReady ? debugOpacity : 0,
+    transition: cachedDimensions ? 'none' : 'opacity 250ms ease-in',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    pointerEvents: 'none',
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-full flex items-center justify-center overflow-hidden"
-      onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      style={{ cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in' }}
-      data-testid="photo-viewer"
-    >
-      <div
-        style={{
-          transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
-          transition: isDragging ? 'none' : 'transform 150ms ease-out',
-        }}
-      >
-        <img
-          src={url}
-          alt=""
-          onLoad={handleImageLoad}
-          style={imageStyle}
-          draggable={false}
-        />
-      </div>
+    <>
+      <img
+        src={url}
+        alt=""
+        onLoad={handleImageLoad}
+        style={imageStyle}
+        draggable={false}
+        data-testid="photo-viewer-image"
+        data-resolution={resolution}
+      />
 
-      {/* Loading spinner - only show if NOT cached and NOT ready and spinner delay has passed */}
-      {!isCached && !imageReady && showSpinner && (
+      {/* Loading spinner */}
+      {!cachedDimensions && !imageReady && showSpinner && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Loader2 className="w-10 h-10 text-white/60 animate-spin" />
         </div>
       )}
-    </div>
+    </>
   )
 }
 
-// Leaflet-based viewer for deep zoom (uses tiles)
-function TileViewer({
-  photoId,
-  rotation,
-  isCurrent,
+// GestureHandler - captures all touch/wheel/click events and updates view state
+function GestureHandler({
+  viewState,
+  onViewStateChange,
+  onClick,
+  onDoubleClick,
+  onGestureActiveChange,
   imageWidth,
   imageHeight,
-  initialScale = 1,
-  onClick,
-  onZoomChange,
-  onBackToImage,
+  viewportWidth,
+  viewportHeight,
+  rotation,
+  children,
 }: {
-  photoId: string
-  rotation: number
-  isCurrent: boolean
+  viewState: ViewState
+  onViewStateChange: (newState: ViewState) => void
+  onClick?: () => void
+  onDoubleClick?: () => void
+  onGestureActiveChange?: (active: boolean) => void
   imageWidth: number
   imageHeight: number
-  initialScale?: number
-  onClick?: () => void
-  onZoomChange?: (isZoomed: boolean) => void
-  onBackToImage: () => void
+  viewportWidth: number
+  viewportHeight: number
+  rotation: number
+  children: React.ReactNode
 }) {
-  const mapRef = useRef<L.Map | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // NORMALIZED COORDINATE SYSTEM:
-  //
-  // Map the image to a square where largest dimension = TILE_SIZE (256 map units).
-  // This ensures all images appear fitted to screen at start, regardless of pixel size.
-  //
-  // At zoom 0: one 256px tile covers 256 map units (the full normalized space)
-  // At zoom 1: four tiles, each covering 128 map units
-  //
-  // CRS.Simple has Y increasing upward. We place our image at Y=0 to Y=256.
-  // The custom PhotoTileLayer handles the Y transformation to map to backend coords.
+  // For rotated images, swap dimensions for boundary calculations
+  const isRotated90or270 = rotation === 90 || rotation === 270
+  const effectiveWidth = isRotated90or270 ? imageHeight : imageWidth
+  const effectiveHeight = isRotated90or270 ? imageWidth : imageHeight
 
-  const minZoom = 0
-  const maxZoom = 5
+  // Pinch state
+  const pinchStateRef = useRef<{
+    initialDistance: number
+    initialScale: number
+    initialCenter: { x: number; y: number }
+    initialOffset: { x: number; y: number }
+  } | null>(null)
 
-  // Calculate normalized dimensions (largest = TILE_SIZE)
-  const maxDim = Math.max(imageWidth, imageHeight)
-  const normScale = TILE_SIZE / maxDim
-  const scaledWidth = imageWidth * normScale   // For landscape: 256
-  const scaledHeight = imageHeight * normScale // For landscape: < 256
+  // Pan state (single finger when zoomed, or mouse drag)
+  const panStateRef = useRef<{
+    startX: number
+    startY: number
+    initialOffset: { x: number; y: number }
+  } | null>(null)
 
-  // Center the image in the square coordinate space
-  const paddingX = (TILE_SIZE - scaledWidth) / 2
-  const paddingY = (TILE_SIZE - scaledHeight) / 2
+  // Mouse drag state
+  const isDraggingRef = useRef(false)
+  const hasDraggedRef = useRef(false)
 
-  // Image bounds (where the actual image content is)
-  // CRS.Simple: [[south, west], [north, east]] = [[minY, minX], [maxY, maxX]]
-  // Y increases upward in CRS.Simple, so south=bottom, north=top
-  const imageBounds = L.latLngBounds(
-    [[paddingY, paddingX], [paddingY + scaledHeight, paddingX + scaledWidth]]
-  )
+  // Calculate constraints for panning
+  const getConstrainedOffset = useCallback((offsetX: number, offsetY: number, scale: number) => {
+    if (scale <= MIN_SCALE) {
+      return { x: 0, y: 0 }
+    }
 
-  // Full tile space bounds (the entire square: 0 to TILE_SIZE)
-  const tileBounds = L.latLngBounds([[0, 0], [TILE_SIZE, TILE_SIZE]])
+    // Calculate how much the image extends beyond viewport when zoomed
+    const fitScale = Math.min(
+      viewportWidth / effectiveWidth,
+      viewportHeight / effectiveHeight
+    )
+    const scaledWidth = effectiveWidth * fitScale * scale
+    const scaledHeight = effectiveHeight * fitScale * scale
 
-  const center: [number, number] = [TILE_SIZE / 2, TILE_SIZE / 2]
+    const maxOffsetX = Math.max(0, (scaledWidth - viewportWidth) / 2)
+    const maxOffsetY = Math.max(0, (scaledHeight - viewportHeight) / 2)
 
-  // Calculate initial zoom to match the scale from ImageViewer
-  // In Leaflet, each zoom level doubles the scale, so zoom = log2(scale)
-  // We clamp to valid zoom range
-  const initialZoom = Math.min(maxZoom, Math.max(minZoom, Math.log2(initialScale)))
+    return {
+      x: Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX)),
+      y: Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY)),
+    }
+  }, [viewportWidth, viewportHeight, effectiveWidth, effectiveHeight])
 
-  // Handle rotation via CSS transform on container
-  const containerStyle: React.CSSProperties = {
-    transform: `rotate(${rotation}deg)`,
-    width: '100%',
-    height: '100%',
-  }
+  // Wheel zoom
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault()
 
-  // Handle zoom changes - switch back to image viewer if zoomed out
-  const handleZoomChange = useCallback(
-    (isZoomed: boolean) => {
-      onZoomChange?.(isZoomed)
-      if (!isZoomed) {
-        // User zoomed all the way out, switch back to image viewer
-        onBackToImage()
+    const container = containerRef.current
+    if (!container) return
+
+    const rect = container.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+
+    // Calculate zoom
+    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87
+    const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, viewState.scale * zoomFactor))
+
+    // Zoom toward mouse position
+    const scaleRatio = newScale / viewState.scale
+    const centerX = viewportWidth / 2
+    const centerY = viewportHeight / 2
+
+    const newOffsetX = (viewState.offsetX - (mouseX - centerX)) * scaleRatio + (mouseX - centerX)
+    const newOffsetY = (viewState.offsetY - (mouseY - centerY)) * scaleRatio + (mouseY - centerY)
+
+    const constrained = getConstrainedOffset(newOffsetX, newOffsetY, newScale)
+
+    onViewStateChange({
+      scale: newScale,
+      offsetX: constrained.x,
+      offsetY: constrained.y,
+    })
+  }, [viewState, viewportWidth, viewportHeight, onViewStateChange, getConstrainedOffset])
+
+  // Touch handlers
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    // Allow single-finger horizontal swipe to pass through to carousel when not zoomed
+    if (e.touches.length === 1 && viewState.scale <= MIN_SCALE) {
+      return // Let carousel handle it for swipe navigation
+    }
+
+    // Notify that gesture is active
+    onGestureActiveChange?.(true)
+
+    if (e.touches.length === 2) {
+      // Pinch start
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+
+      const dx = touch2.clientX - touch1.clientX
+      const dy = touch2.clientY - touch1.clientY
+      const distance = Math.sqrt(dx * dx + dy * dy)
+
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+
+      pinchStateRef.current = {
+        initialDistance: distance,
+        initialScale: viewState.scale,
+        initialCenter: {
+          x: (touch1.clientX + touch2.clientX) / 2 - rect.left,
+          y: (touch1.clientY + touch2.clientY) / 2 - rect.top,
+        },
+        initialOffset: { x: viewState.offsetX, y: viewState.offsetY },
       }
-    },
-    [onZoomChange, onBackToImage]
-  )
+      panStateRef.current = null
+    } else if (e.touches.length === 1 && viewState.scale > MIN_SCALE) {
+      // Pan start (only when zoomed)
+      panStateRef.current = {
+        startX: e.touches[0].clientX,
+        startY: e.touches[0].clientY,
+        initialOffset: { x: viewState.offsetX, y: viewState.offsetY },
+      }
+      pinchStateRef.current = null
+    }
+  }, [viewState, onGestureActiveChange])
 
-  // Store map reference and fit bounds
-  const handleMapCreated = useCallback((map: L.Map) => {
-    mapRef.current = map
-    // Fit the image bounds in the view
-    map.fitBounds(imageBounds)
-  }, [imageBounds])
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 2 && pinchStateRef.current) {
+      e.preventDefault()
+
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+
+      const dx = touch2.clientX - touch1.clientX
+      const dy = touch2.clientY - touch1.clientY
+      const distance = Math.sqrt(dx * dx + dy * dy)
+
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+
+      const currentCenter = {
+        x: (touch1.clientX + touch2.clientX) / 2 - rect.left,
+        y: (touch1.clientY + touch2.clientY) / 2 - rect.top,
+      }
+
+      // Calculate new scale
+      const scaleRatio = distance / pinchStateRef.current.initialDistance
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinchStateRef.current.initialScale * scaleRatio))
+
+      // Calculate offset to zoom toward pinch center
+      const { initialCenter, initialOffset, initialScale } = pinchStateRef.current
+      const centerX = viewportWidth / 2
+      const centerY = viewportHeight / 2
+
+      // Pan from pinch center movement
+      const panX = currentCenter.x - initialCenter.x
+      const panY = currentCenter.y - initialCenter.y
+
+      // Zoom toward initial pinch center
+      const actualScaleRatio = newScale / initialScale
+      const newOffsetX = (initialOffset.x - (initialCenter.x - centerX)) * actualScaleRatio + (initialCenter.x - centerX) + panX
+      const newOffsetY = (initialOffset.y - (initialCenter.y - centerY)) * actualScaleRatio + (initialCenter.y - centerY) + panY
+
+      const constrained = getConstrainedOffset(newOffsetX, newOffsetY, newScale)
+
+      onViewStateChange({
+        scale: newScale,
+        offsetX: constrained.x,
+        offsetY: constrained.y,
+      })
+    } else if (e.touches.length === 1 && panStateRef.current) {
+      e.preventDefault()
+
+      const deltaX = e.touches[0].clientX - panStateRef.current.startX
+      const deltaY = e.touches[0].clientY - panStateRef.current.startY
+
+      const newOffsetX = panStateRef.current.initialOffset.x + deltaX
+      const newOffsetY = panStateRef.current.initialOffset.y + deltaY
+
+      const constrained = getConstrainedOffset(newOffsetX, newOffsetY, viewState.scale)
+
+      onViewStateChange({
+        ...viewState,
+        offsetX: constrained.x,
+        offsetY: constrained.y,
+      })
+    }
+  }, [viewState, viewportWidth, viewportHeight, onViewStateChange, getConstrainedOffset])
+
+  const handleTouchEnd = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 0) {
+      pinchStateRef.current = null
+      panStateRef.current = null
+      // Notify that gesture ended
+      onGestureActiveChange?.(false)
+    } else if (e.touches.length === 1) {
+      // Transition from pinch to pan
+      pinchStateRef.current = null
+      if (viewState.scale > MIN_SCALE) {
+        panStateRef.current = {
+          startX: e.touches[0].clientX,
+          startY: e.touches[0].clientY,
+          initialOffset: { x: viewState.offsetX, y: viewState.offsetY },
+        }
+      }
+    }
+  }, [viewState, onGestureActiveChange])
+
+  // Mouse drag handlers
+  const handleMouseDown = useCallback((e: MouseEvent) => {
+    if (e.button !== 0) return // Only left click
+    if (viewState.scale <= MIN_SCALE) return // Only pan when zoomed
+
+    isDraggingRef.current = true
+    hasDraggedRef.current = false
+    panStateRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialOffset: { x: viewState.offsetX, y: viewState.offsetY },
+    }
+  }, [viewState])
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingRef.current || !panStateRef.current) return
+
+    const deltaX = e.clientX - panStateRef.current.startX
+    const deltaY = e.clientY - panStateRef.current.startY
+
+    // Mark as dragged if moved more than a few pixels
+    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+      hasDraggedRef.current = true
+    }
+
+    const newOffsetX = panStateRef.current.initialOffset.x + deltaX
+    const newOffsetY = panStateRef.current.initialOffset.y + deltaY
+
+    const constrained = getConstrainedOffset(newOffsetX, newOffsetY, viewState.scale)
+
+    onViewStateChange({
+      ...viewState,
+      offsetX: constrained.x,
+      offsetY: constrained.y,
+    })
+  }, [viewState, onViewStateChange, getConstrainedOffset])
+
+  const handleMouseUp = useCallback(() => {
+    isDraggingRef.current = false
+    panStateRef.current = null
+  }, [])
+
+  // Click handling with double-click detection
+  const handleClick = useCallback((_e: React.MouseEvent) => {
+    // Ignore click if we just finished dragging
+    if (hasDraggedRef.current) {
+      hasDraggedRef.current = false
+      return
+    }
+
+    if (clickTimeoutRef.current) {
+      // Double-click detected
+      clearTimeout(clickTimeoutRef.current)
+      clickTimeoutRef.current = null
+
+      // Toggle zoom
+      if (viewState.scale > MIN_SCALE) {
+        // Zoom out to fit
+        onViewStateChange({ scale: MIN_SCALE, offsetX: 0, offsetY: 0 })
+      } else {
+        // Zoom in to 3x centered
+        onViewStateChange({ scale: 3, offsetX: 0, offsetY: 0 })
+      }
+
+      onDoubleClick?.()
+      return
+    }
+
+    clickTimeoutRef.current = setTimeout(() => {
+      clickTimeoutRef.current = null
+      onClick?.()
+    }, 250)
+  }, [viewState, viewportWidth, viewportHeight, onClick, onDoubleClick, onViewStateChange, getConstrainedOffset])
+
+  // Attach event listeners
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    container.addEventListener('wheel', handleWheel, { passive: false })
+    container.addEventListener('touchstart', handleTouchStart, { passive: false })
+    container.addEventListener('touchmove', handleTouchMove, { passive: false })
+    container.addEventListener('touchend', handleTouchEnd, { passive: false })
+    container.addEventListener('mousedown', handleMouseDown)
+    container.addEventListener('mousemove', handleMouseMove)
+    container.addEventListener('mouseup', handleMouseUp)
+    container.addEventListener('mouseleave', handleMouseUp)
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel)
+      container.removeEventListener('touchstart', handleTouchStart)
+      container.removeEventListener('touchmove', handleTouchMove)
+      container.removeEventListener('touchend', handleTouchEnd)
+      container.removeEventListener('mousedown', handleMouseDown)
+      container.removeEventListener('mousemove', handleMouseMove)
+      container.removeEventListener('mouseup', handleMouseUp)
+      container.removeEventListener('mouseleave', handleMouseUp)
+    }
+  }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd, handleMouseDown, handleMouseMove, handleMouseUp])
 
   return (
     <div
-      className="w-full h-full flex items-center justify-center overflow-hidden bg-[#1d1d1d]"
+      ref={containerRef}
+      className="w-full h-full relative overflow-hidden"
+      onClick={handleClick}
+      style={{
+        cursor: viewState.scale > MIN_SCALE ? 'grab' : 'zoom-in',
+        // When not zoomed, allow horizontal touch scrolling for carousel swipe
+        touchAction: viewState.scale > MIN_SCALE ? 'none' : 'pan-x',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+      }}
       data-testid="photo-viewer"
     >
-      <div style={containerStyle}>
-        <MapContainer
-          center={center}
-          zoom={initialZoom}
-          minZoom={minZoom}
-          maxZoom={maxZoom}
-          crs={L.CRS.Simple}
-          zoomControl={false}
-          attributionControl={false}
-          doubleClickZoom={true}
-          scrollWheelZoom={true}
-          dragging={true}
-          maxBounds={tileBounds.pad(0.5)} // Add some padding for panning
-          maxBoundsViscosity={0.8}
-          style={{ width: '100%', height: '100%', background: '#1d1d1d' }}
-          ref={(map) => {
-            if (map) handleMapCreated(map)
-          }}
-        >
-          {/* Base image layer - shows immediately as placeholder while tiles load */}
-          <PhotoImageLayer photoId={photoId} bounds={imageBounds} opacity={0.25} />
-          {/* Tile layer loads on top, progressively covering the base image */}
-          <PhotoTileLayer photoId={photoId} bounds={tileBounds} />
-          <MapEventHandler
-            onZoomChange={handleZoomChange}
-            onClick={onClick}
-            minZoom={minZoom}
-          />
-          <ViewResetter
-            isCurrent={isCurrent}
-            bounds={imageBounds}
-            minZoom={minZoom}
-          />
-        </MapContainer>
-      </div>
+      {children}
     </div>
   )
 }
 
-export function PhotoViewer({ photoId, rotation, isCurrent, onClick, onZoomChange }: PhotoViewerProps) {
-  const [useTiles, setUseTiles] = useState(false)
-  // Store image dimensions from the loaded thumbnail
+export function PhotoViewer({ photoId, rotation, isCurrent, onClick, onZoomChange, personTags, objectTags, showPeopleBoxes, showObjectBoxes, onRefetch }: PhotoViewerProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [viewState, setViewState] = useState<ViewState>({ scale: 1, offsetX: 0, offsetY: 0 })
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null)
-  // Store the scale at which we transition to tiles (for smooth handoff)
-  const [transitionScale, setTransitionScale] = useState(1)
+  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
+  const [isLoading, setIsLoading] = useState(true)
+  const [tilesReady, setTilesReady] = useState(false)
+  const [isGestureActive, setIsGestureActive] = useState(false)
 
-  // Reset to image mode when photo changes
+  // Calculate optimal resolution based on viewport and pixel density
+  const resolution = useOptimalResolution()
+
+  // Reset view state when photo changes
   useEffect(() => {
-    setUseTiles(false)
+    setViewState({ scale: 1, offsetX: 0, offsetY: 0 })
     setImageDimensions(null)
-    setTransitionScale(1)
+    setIsLoading(true)
+    setTilesReady(false)
+    setIsGestureActive(false)
   }, [photoId])
 
-  // Reset to image mode when becoming non-current
+  // Reset view state when becoming non-current
   useEffect(() => {
     if (!isCurrent) {
-      setUseTiles(false)
+      setViewState({ scale: 1, offsetX: 0, offsetY: 0 })
     }
   }, [isCurrent])
 
-  const handleNeedsTiles = useCallback((dimensions: { width: number; height: number }, scale: number) => {
+  // Track viewport size
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const updateSize = () => {
+      setViewportSize({
+        width: container.clientWidth,
+        height: container.clientHeight,
+      })
+    }
+
+    updateSize()
+
+    const observer = new ResizeObserver(updateSize)
+    observer.observe(container)
+
+    return () => observer.disconnect()
+  }, [])
+
+  // Notify parent of zoom state changes
+  useEffect(() => {
+    onZoomChange?.(viewState.scale > MIN_SCALE)
+  }, [viewState.scale, onZoomChange])
+
+  const handleImageLoad = useCallback((dimensions: { width: number; height: number }) => {
     setImageDimensions(dimensions)
-    setTransitionScale(scale)
-    setUseTiles(true)
+    setIsLoading(false)
   }, [])
 
-  const handleBackToImage = useCallback(() => {
-    setUseTiles(false)
+  const handleViewStateChange = useCallback((newState: ViewState) => {
+    setViewState(newState)
   }, [])
 
-  if (useTiles && imageDimensions) {
-    return (
-      <TileViewer
-        photoId={photoId}
-        rotation={rotation}
-        isCurrent={isCurrent}
-        imageWidth={imageDimensions.width}
-        imageHeight={imageDimensions.height}
-        initialScale={transitionScale}
-        onClick={onClick}
-        onZoomChange={onZoomChange}
-        onBackToImage={handleBackToImage}
-      />
-    )
-  }
+  // Use cached dimensions if available
+  const url = getPhotoThumbnailUrl(photoId)
+  const cachedDimensions = getCachedDimensions(url)
+  const effectiveDimensions = imageDimensions || cachedDimensions || { width: 1920, height: 1080 }
 
   return (
-    <ImageViewer
-      photoId={photoId}
-      rotation={rotation}
-      isCurrent={isCurrent}
-      onClick={onClick}
-      onZoomChange={onZoomChange}
-      onNeedsTiles={handleNeedsTiles}
-    />
+    <div ref={containerRef} className="w-full h-full bg-[#1d1d1d]">
+      {viewportSize.width > 0 && viewportSize.height > 0 && (
+        <GestureHandler
+          viewState={viewState}
+          onViewStateChange={handleViewStateChange}
+          onClick={onClick}
+          onGestureActiveChange={setIsGestureActive}
+          imageWidth={effectiveDimensions.width}
+          imageHeight={effectiveDimensions.height}
+          viewportWidth={viewportSize.width}
+          viewportHeight={viewportSize.height}
+          rotation={rotation}
+        >
+          {/* ImageViewer layer - shows 2K or 4K thumbnail based on viewport, fades when tiles ready */}
+          <SyncedImageViewer
+            photoId={photoId}
+            rotation={rotation}
+            viewState={viewState}
+            imageWidth={effectiveDimensions.width}
+            imageHeight={effectiveDimensions.height}
+            viewportWidth={viewportSize.width}
+            viewportHeight={viewportSize.height}
+            onImageLoad={handleImageLoad}
+            debugOpacity={tilesReady ? 0.75 : 1}
+            resolution={resolution}
+          />
+
+          {/* TileViewer layer - shows high-res tiles when zoomed */}
+          {!isLoading && (
+            <CustomTileViewer
+              photoId={photoId}
+              rotation={rotation}
+              viewState={viewState}
+              imageWidth={effectiveDimensions.width}
+              imageHeight={effectiveDimensions.height}
+              viewportWidth={viewportSize.width}
+              viewportHeight={viewportSize.height}
+              opacity={TILE_VIEWER_OPACITY}
+              onTilesReady={setTilesReady}
+              isGestureActive={isGestureActive}
+            />
+          )}
+
+          {/* Bounding boxes layer - shows face/object detection boxes */}
+          {!isLoading && (
+            <BoundingBoxes
+              personTags={personTags || []}
+              objectTags={objectTags || []}
+              rotation={rotation}
+              showPeopleBoxes={showPeopleBoxes ?? false}
+              showObjectBoxes={showObjectBoxes ?? false}
+              onRefetch={onRefetch}
+              viewState={viewState}
+              imageWidth={effectiveDimensions.width}
+              imageHeight={effectiveDimensions.height}
+              viewportWidth={viewportSize.width}
+              viewportHeight={viewportSize.height}
+            />
+          )}
+        </GestureHandler>
+      )}
+    </div>
   )
 }

@@ -4,7 +4,8 @@ interface KeyboardShortcutsOptions {
   onEscape?: () => void
   onPrev?: () => void
   onNext?: () => void
-  onToggleBoundingBox?: () => void
+  onTogglePeopleBoxes?: () => void
+  onToggleObjectBoxes?: () => void
   onToggleInfo?: () => void
   enabled?: boolean
 }
@@ -13,7 +14,8 @@ export function useKeyboardShortcuts({
   onEscape,
   onPrev,
   onNext,
-  onToggleBoundingBox,
+  onTogglePeopleBoxes,
+  onToggleObjectBoxes,
   onToggleInfo,
   enabled = true,
 }: KeyboardShortcutsOptions) {
@@ -39,9 +41,13 @@ export function useKeyboardShortcuts({
         case 'ArrowRight':
           onNext?.()
           break
-        case 'b':
-        case 'B':
-          onToggleBoundingBox?.()
+        case 'p':
+        case 'P':
+          onTogglePeopleBoxes?.()
+          break
+        case 'o':
+        case 'O':
+          onToggleObjectBoxes?.()
           break
         case 'i':
         case 'I':
@@ -49,7 +55,7 @@ export function useKeyboardShortcuts({
           break
       }
     },
-    [onEscape, onPrev, onNext, onToggleBoundingBox, onToggleInfo]
+    [onEscape, onPrev, onNext, onTogglePeopleBoxes, onToggleObjectBoxes, onToggleInfo]
   )
 
   useEffect(() => {

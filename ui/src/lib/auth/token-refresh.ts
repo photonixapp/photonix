@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie'
 import { apolloClient } from '../apollo-client'
 import { REFRESH_TOKEN } from './graphql'
-import { setAccessToken, clearTokens } from './auth-store'
+import { setAccessToken, clearTokens, getTokenExpiry } from './auth-store'
 import type { User } from './types'
 
 const TOKEN_EXPIRY_PREEMPT = 2 * 60 * 1000  // Refresh 2 min before expiry
@@ -10,6 +10,7 @@ const ERROR_REFRESH_INTERVAL = 15 * 1000    // Retry interval on error
 
 let refreshTimeout: ReturnType<typeof setTimeout> | null = null
 let onAuthFailure: (() => void) | null = null
+let visibilityListenerActive = false
 
 export function setAuthFailureCallback(callback: () => void): void {
   onAuthFailure = callback
@@ -26,6 +27,33 @@ export function cancelTokenRefresh(): void {
     clearTimeout(refreshTimeout)
     refreshTimeout = null
   }
+}
+
+function handleVisibilityChange(): void {
+  if (document.visibilityState !== 'visible') return
+
+  const refreshToken = Cookies.get('refreshToken')
+  if (!refreshToken) return
+
+  const expiry = getTokenExpiry()
+  const now = Date.now() / 1000
+
+  // If token is expired or will expire within the preempt window, refresh immediately
+  if (!expiry || expiry - now < TOKEN_EXPIRY_PREEMPT / 1000) {
+    performTokenRefresh()
+  }
+}
+
+export function enableVisibilityRefresh(): void {
+  if (visibilityListenerActive) return
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  visibilityListenerActive = true
+}
+
+export function disableVisibilityRefresh(): void {
+  if (!visibilityListenerActive) return
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  visibilityListenerActive = false
 }
 
 export async function performTokenRefresh(): Promise<User | false> {
