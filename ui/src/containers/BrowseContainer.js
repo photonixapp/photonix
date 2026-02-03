@@ -196,8 +196,8 @@ const BrowseContainer = (props) => {
   } = useQuery(GET_MAP_PHOTOS, {
     variables: {
       filters: searchStr,
-      skip: !user,
     },
+    skip: !user || !searchStr || !searchStr.includes('library_id:'),
   })
   if (mapPhotosError) console.log(mapPhotosError)
 
