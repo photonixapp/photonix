@@ -2,23 +2,26 @@ version: '3'
 
 services:
   postgres:
+    user: "70:70"
     container_name: photonix-postgres
     image: postgres:11.1-alpine
-    ports:
-      - '5432:5432'
     environment:
       POSTGRES_DB: photonix
       POSTGRES_PASSWORD: password
     volumes:
       - ../data/db:/var/lib/postgresql/data
+    depends_on:
+      - init
 
   redis:
+    user: "999:999"
     container_name: photonix-redis
-    image: redis:6.2.2
-    ports:
-      - '6379:6379'
+    image: redis:6.2-bullseye
+    depends_on:
+      - init
 
   photonix:
+    user: "2000:2000"
     container_name: photonix
     # image: photonixapp/photonix:latest
     image: photonix
@@ -43,3 +46,5 @@ services:
     links:
       - postgres
       - redis
+    depends_on:
+      - init

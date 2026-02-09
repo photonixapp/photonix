@@ -1,10 +1,12 @@
 FROM python:3.8.12-slim-bullseye
 
+ARG UID=2000
+ARG GID=2000
+
 # Install system dependencies - note that some of these are only used on non-amd64 where Python packages have to be compiled from source
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
-        cron \
         curl \
         dcraw \
         file \
@@ -86,6 +88,11 @@ COPY system/cron.d /etc/cron.d/
 RUN chmod 0644 /etc/cron.d/*
 
 ENV PYTHONPATH /srv
+
+RUN groupadd -g $GID photonix
+RUN useradd -u $UID -g $GID photonix
+RUN chown -R photonix:photonix /srv /var/lib/nginx /var/log/nginx /var/run /run
+USER photonix
 
 CMD ./system/run.sh
 
