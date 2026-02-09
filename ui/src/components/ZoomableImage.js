@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react'
+import React, { useCallback, useState, useEffect, useRef } from 'react'
 import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
@@ -76,12 +76,15 @@ const Container = styled('div')`
   }
 `
 
+const SPINNER_DELAY_MS = 100 // Delay before showing spinner to allow cache/etag check
+
 const ZoomableImage = ({
   photoId,
   boxes,
   next,
   prev,
   rotation,
+  exifRotation,
   refetch,
   showBoundingBox,
   setShowBoundingBox,
@@ -93,8 +96,10 @@ const ZoomableImage = ({
   const [scale, setScale] = useState(1)
   const [zoom, setZoom] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [showSpinner, setShowSpinner] = useState(false)
   const [displayImage, setDisplayImage] = useState(false)
   const [editLableId, setEditLableId] = useState('')
+  const spinnerTimeoutRef = useRef(null)
   let clickTimeOut = null
 
   const prevNextPhotos = useSelector((state) =>
@@ -130,7 +135,14 @@ const ZoomableImage = ({
 
   const handleImageLoaded = () => {
     if (loading) {
+      console.log('[ZoomableImage] Image loaded, hiding spinner (was showing:', showSpinner, ')')
+      // Cancel pending spinner timeout since image loaded in time
+      if (spinnerTimeoutRef.current) {
+        clearTimeout(spinnerTimeoutRef.current)
+        spinnerTimeoutRef.current = null
+      }
       setLoading(false)
+      setShowSpinner(false)
       setTimeout(() => {
         setDisplayImage(true)
         loadNextPrevImages()
@@ -139,9 +151,24 @@ const ZoomableImage = ({
   }
 
   useEffect(() => {
+    console.log('[ZoomableImage] URL changed, starting load:', url)
     setLoading(true)
+    setShowSpinner(false)
     setDisplayImage(false)
     setScale(1)
+
+    // Delay showing spinner to allow cached images to load without flicker
+    spinnerTimeoutRef.current = setTimeout(() => {
+      console.log('[ZoomableImage] Spinner delay elapsed, showing spinner')
+      setShowSpinner(true)
+    }, SPINNER_DELAY_MS)
+
+    return () => {
+      if (spinnerTimeoutRef.current) {
+        clearTimeout(spinnerTimeoutRef.current)
+        spinnerTimeoutRef.current = null
+      }
+    }
   }, [url])
 
   const handleZoom = (e) => {
@@ -234,6 +261,7 @@ const ZoomableImage = ({
                             editLableId={editLableId}
                             setEditLableId={setEditLableId}
                             rotation={rotation}
+                            exifRotation={exifRotation}
                           />
                         </span>
                       ))}
@@ -245,9 +273,9 @@ const ZoomableImage = ({
         )}
       </TransformWrapper>
       {!url ||
-        (!displayImage && loading && (
+        (!displayImage && showSpinner && (
           <div className="spinnerWrapper">
-            <Spinner show={loading} />
+            <Spinner show={showSpinner} />
           </div>
         ))}
     </Container>

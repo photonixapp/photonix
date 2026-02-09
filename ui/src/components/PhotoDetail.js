@@ -155,7 +155,9 @@ const PhotoDetail = ({
   )
   const [showMetadata, setShowMetadata] = useState(false)
   const [showPrevNext, setShowPrevNext] = useState(false)
-  const [rotation, setRotation] = useState(photo?.rotation)
+  // userRotation is the user's rotation adjustment (saved to backend)
+  // rotation (from photo.rotation) is the total rotation for CSS display (exif + user)
+  const [userRotation, setUserRotation] = useState(photo?.userRotation ?? 0)
   const prevNextPhotos = useSelector((state) =>
     getPrevNextPhotos(state, photoId)
   )
@@ -347,15 +349,19 @@ const PhotoDetail = ({
   }
 
   useEffect(() => {
-    setRotation(photo?.rotation)
+    setUserRotation(photo?.userRotation ?? 0)
   }, [photo])
 
+  // Calculate total rotation for display (exif + user)
+  const exifRotation = (photo?.rotation ?? 0) - (photo?.userRotation ?? 0)
+  const totalRotation = (exifRotation + userRotation + 360) % 360
+
   const rotate = (direction) => {
-    let newRotation = direction === 'clockwise' ? rotation + 90 : rotation - 90
-    if (newRotation === -90) newRotation = 270
-    if (newRotation === 360) newRotation = 0
-    setRotation(newRotation)
-    saveRotation(newRotation)
+    let newUserRotation = direction === 'clockwise' ? userRotation + 90 : userRotation - 90
+    if (newUserRotation < 0) newUserRotation = 360 + newUserRotation
+    newUserRotation = newUserRotation % 360
+    setUserRotation(newUserRotation)
+    saveRotation(newUserRotation)
   }
 
   return (
@@ -371,7 +377,8 @@ const PhotoDetail = ({
         setShowTopIcons={setShowTopIcons}
         next={nextPhoto}
         prev={prevPhoto}
-        rotation={rotation}
+        rotation={totalRotation}
+        exifRotation={exifRotation}
         refetch={refetch}
       />
 

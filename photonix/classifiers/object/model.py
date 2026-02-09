@@ -4,14 +4,33 @@ from pathlib import Path
 
 from django.utils import timezone
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps as PILImageOps
 from redis_lock import Lock
-import tensorflow as tf
 
-from photonix.classifiers.object.utils import label_map_util
 from photonix.classifiers.base_model import BaseModel
 from photonix.photos.utils.redis import redis_connection
-from photonix.photos.utils.metadata import PhotoMetadata
+
+# Lazy-loaded modules (heavy imports)
+tf = None
+label_map_util = None
+
+
+def _ensure_tensorflow():
+    """Lazy load TensorFlow on first use."""
+    global tf
+    if tf is None:
+        import tensorflow as _tf
+        tf = _tf
+    return tf
+
+
+def _ensure_label_map_util():
+    """Lazy load label_map_util on first use (imports TensorFlow)."""
+    global label_map_util
+    if label_map_util is None:
+        from photonix.classifiers.object.utils import label_map_util as _label_map_util
+        label_map_util = _label_map_util
+    return label_map_util
 
 
 GRAPH_FILE = os.path.join('object', 'ssd_mobilenet_v2_oid_v4_2018_12_12_frozen_inference_graph.pb')
@@ -26,14 +45,27 @@ class ObjectModel(BaseModel):
     def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
         super().__init__(model_dir=model_dir)
 
-        graph_file = os.path.join(self.model_dir, graph_file)
-        label_file = os.path.join(self.model_dir, label_file)
+        self._graph_file = os.path.join(self.model_dir, graph_file)
+        self._label_file = os.path.join(self.model_dir, label_file)
+        self._lock_name = lock_name
+        self._loaded = False
+        self.graph = None
+        self.labels = None
 
-        if self.ensure_downloaded(lock_name=lock_name):
-            self.graph = self.load_graph(graph_file)
-            self.labels = self.load_labels(label_file)
+        # Download model files eagerly (cheap), but don't load into memory yet
+        self.ensure_downloaded(lock_name=lock_name)
+
+    def _ensure_loaded(self):
+        """Lazy load the model on first use."""
+        if self._loaded:
+            return
+
+        self.graph = self.load_graph(self._graph_file)
+        self.labels = self.load_labels(self._label_file)
+        self._loaded = True
 
     def load_graph(self, graph_file):
+        tf = _ensure_tensorflow()
         with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]
@@ -52,15 +84,17 @@ class ObjectModel(BaseModel):
             return graph
 
     def load_labels(self, label_file):
-        label_map = label_map_util.load_labelmap(label_file)
-        categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=1000, use_display_name=True)
-        return label_map_util.create_category_index(categories)
+        lmu = _ensure_label_map_util()
+        label_map = lmu.load_labelmap(label_file)
+        categories = lmu.convert_label_map_to_categories(label_map, max_num_classes=1000, use_display_name=True)
+        return lmu.create_category_index(categories)
 
     def load_image_into_numpy_array(self, image):
         (im_width, im_height) = image.size
         return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
 
     def run_inference_for_single_image(self, image):
+        tf = _ensure_tensorflow()
         with self.graph.as_default():
             with tf.compat.v1.Session() as sess:
                 # Get handles to input and output tensors
@@ -114,18 +148,21 @@ class ObjectModel(BaseModel):
             })
         return results
 
-    def predict(self, image_file, min_score=0.1):
+    def predict(self, image_file, min_score=0.1, photo_file=None):
+        self._ensure_loaded()  # Lazy load on first use
+
         image = Image.open(image_file)
 
         if image.mode != 'RGB':
             image = image.convert('RGB')
 
-        # Perform rotations if decalared in metadata
-        metadata = PhotoMetadata(image_file)
-        if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
-            image = image.rotate(-90, expand=True)
-        elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:
-            image = image.rotate(90, expand=True)
+        # Apply rotation: EXIF + user rotation if photo_file provided
+        if photo_file is not None:
+            from photonix.photos.utils.rotation import apply_photo_rotation
+            image = apply_photo_rotation(image, photo_file)
+        else:
+            # Fallback: just apply EXIF orientation correction
+            image = PILImageOps.exif_transpose(image)
 
         # the array based representation of the image will be used later in order to prepare the
         # result image with boxes and labels on it.
@@ -138,7 +175,11 @@ class ObjectModel(BaseModel):
 
 
 def run_on_photo(photo_id):
-    model = ObjectModel()
+    from photonix.classifiers.model_manager import get_model_manager
+
+    # Get or lazily load the model via ModelManager
+    model = get_model_manager().get_model('object', ObjectModel)
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
     photo, results = results_for_model_on_photo(model, photo_id)

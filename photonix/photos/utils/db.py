@@ -25,8 +25,6 @@ MIMETYPE_WHITELIST = [
 
 
 def record_photo(path, library, inotify_event_type=None):
-    logger.info(f'Recording photo {path}')
-
     mimetype = get_mimetype(path)
 
     if not imghdr.what(path) and not mimetype in MIMETYPE_WHITELIST and subprocess.run(['dcraw', '-i', path]).returncode:
@@ -51,8 +49,9 @@ def record_photo(path, library, inotify_event_type=None):
     file_modified_at = datetime.fromtimestamp(os.stat(path).st_mtime, tz=utc)
 
     if photo_file and photo_file.file_modified_at == file_modified_at:
-        return True
+        return 'SKIPPED'
 
+    logger.info(f'Recording photo {path}')
     metadata = PhotoMetadata(path)
     date_taken = None
     possible_date_keys = ['Create Date', 'Date/Time Original', 'Date Time Original', 'Date/Time', 'Date Time', 'GPS Date/Time', 'File Modification Date/Time']
@@ -174,18 +173,27 @@ def record_photo(path, library, inotify_event_type=None):
             if not os.path.exists(photo_file.path):
                 photo_file.delete()
 
+    # Store original file dimensions (pre-rotation). Display dimensions are
+    # calculated at query time by swapping based on total rotation.
     width = metadata.get('Image Width')
     height = metadata.get('Image Height')
-    if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW', 'Rotate 90 CCW', 'Rotate 270 CW']:
-        old_width = width
-        width = height
-        height = old_width
+
+    # Map EXIF orientation to rotation degrees (stored for reference and display calculation)
+    exif_orientation = metadata.get('Orientation')
+    exif_rotation = 0
+    if exif_orientation in ['Rotate 90 CW', 'Rotate 270 CCW']:
+        exif_rotation = 90
+    elif exif_orientation in ['Rotate 90 CCW', 'Rotate 270 CW']:
+        exif_rotation = 270
+    elif exif_orientation == 'Rotate 180':
+        exif_rotation = 180
 
     # Save PhotoFile
     photo_file.photo = photo
     photo_file.path = path
     photo_file.width = width
     photo_file.height = height
+    photo_file.exif_rotation = exif_rotation
     photo_file.mimetype = mimetype
     photo_file.file_modified_at = file_modified_at
     photo_file.bytes = os.stat(path).st_size
