@@ -116,11 +116,11 @@ const Modal = ({
 }
 
 Modal.propTypes = {
-  children: PropTypes.element,
+  children: PropTypes.node,
   topAccent: PropTypes.bool,
   allowClose: PropTypes.bool,
-  width: PropTypes.bool,
-  height: PropTypes.bool,
+  width: PropTypes.number,
+  height: PropTypes.number,
   className: PropTypes.string,
   onClose: PropTypes.func,
 }

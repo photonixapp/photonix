@@ -35,7 +35,7 @@ RUN apt-get update && \
                    /tmp/* \
                    /var/tmp/*
 
-# Install Node 20.x LTS & Yarn
+# Install Node LTS
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get update && \
     apt-get install -y nodejs && \
@@ -64,7 +64,7 @@ RUN if [ "${PYPI_UPLOAD_USERNAME}" = "" ] ; \
 
 # Install NPM dependencies
 COPY ui/package.json /srv/ui/package.json
-COPY ui/yarn.lock /srv/ui/yarn.lock
+COPY ui/package-lock.json /srv/ui/package-lock.json
 ENV NODE_ENV=development
 ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN cd /srv/ui && npm install --legacy-peer-deps

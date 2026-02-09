@@ -104,7 +104,7 @@ Tabs.propTypes = {
   tabs: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string,
-      onClick: PropTypes.function,
+      onClick: PropTypes.func,
     })
   ),
   initiallySelectedIndex: PropTypes.number,

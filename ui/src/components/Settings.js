@@ -175,7 +175,7 @@ export default function Settings() {
                 <Switch
                   key={index}
                   id={item.key + 'New'}
-                  isChecked={settings[item.key]}
+                  isChecked={!!settings[item.key]}
                   onChange={() => toggleBooleanSetting(item.key)}
                   variantColor="cyan"
                 />

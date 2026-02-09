@@ -113,7 +113,9 @@ const BrowseContainer = (props) => {
     ? params.get('mode').toUpperCase()
     : 'TIMELINE'
 
-  if (mode === 'MAP' && !isMapShowing) setIsMapShowing(true)
+  useEffect(() => {
+    if (mode === 'MAP' && !isMapShowing) setIsMapShowing(true)
+  }, [mode, isMapShowing])
 
   const { data: envData } = useQuery(ENVIRONMENT)
   const {
@@ -122,24 +124,26 @@ const BrowseContainer = (props) => {
     data: librariesData,
   } = useQuery(GET_LIBRARIES, { skip: !user })
 
-  if (librariesData && librariesData.allLibraries.length && !isLibrarySet) {
-    const libs = librariesData.allLibraries.map((lib, index) => {
-      let newLib = { ...lib }
-      const lsActiveLibrary = localStorage.getItem('activeLibrary')
-      if (lsActiveLibrary) {
-        newLib['isActive'] = lsActiveLibrary === lib.id ? true : false
-      } else {
-        newLib['isActive'] = index === 0 ? true : false
-        index === 0 && localStorage.setItem('activeLibrary', lib.id)
-      }
-      return newLib
-    })
-    dispatch({
-      type: 'SET_LIBRARIES',
-      payload: libs,
-    })
-    setIsLibrarySet(true)
-  }
+  useEffect(() => {
+    if (librariesData && librariesData.allLibraries.length && !isLibrarySet) {
+      const libs = librariesData.allLibraries.map((lib, index) => {
+        let newLib = { ...lib }
+        const lsActiveLibrary = localStorage.getItem('activeLibrary')
+        if (lsActiveLibrary) {
+          newLib['isActive'] = lsActiveLibrary === lib.id ? true : false
+        } else {
+          newLib['isActive'] = index === 0 ? true : false
+          index === 0 && localStorage.setItem('activeLibrary', lib.id)
+        }
+        return newLib
+      })
+      dispatch({
+        type: 'SET_LIBRARIES',
+        payload: libs,
+      })
+      setIsLibrarySet(true)
+    }
+  }, [librariesData, isLibrarySet, dispatch])
 
   const {
     loading: profileLoading,
@@ -159,11 +163,17 @@ const BrowseContainer = (props) => {
       filtersStr = filtersStr.length
         ? `${filtersStr} ${props.search}`
         : props.search
+    }
+  }
+
+  useEffect(() => {
+    if (!activeLibrary) return
+    if (props.search.length >= 2) {
       debounced.current(filtersStr)
     } else {
       if (filtersStr !== searchStr) setSearchStr(filtersStr)
     }
-  }
+  }, [filtersStr, searchStr, activeLibrary, props.search])
   const albumTagFilterStr =
     params.get('album_id') && `tag:${params.get('album_id')} ${searchStr}`
   const {

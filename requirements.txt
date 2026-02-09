@@ -6,13 +6,13 @@ opencv-python==4.5.1.48
 annoy==1.17.0
 
 Django==4.2.28
-django-cors-headers==3.2.1
+django-cors-headers==4.4.0
 django-filter==2.4.0
 PyJWT==2.4.0
-django-graphql-jwt==0.3.0
+django-graphql-jwt==0.3.4
 
 graphene==2.1.8
-graphene-django==2.8.0
+graphene-django==2.16.0
 Markdown==3.1.1
 Pillow==9.3.0
 

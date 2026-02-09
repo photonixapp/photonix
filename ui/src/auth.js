@@ -62,6 +62,7 @@ export const refreshToken = () => {
         scheduleTokenRefresh(nextRefresh)
       } else if (response.errors) {
         // Log all GraphQL errors
+        let shouldRedirect = false
         response.errors.forEach(({ message, locations, path }) => {
           console.log(
             `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
@@ -71,11 +72,16 @@ export const refreshToken = () => {
             message.indexOf('Refresh token is expired') > -1 ||
             message.indexOf('Invalid refresh token') > -1
           ) {
-            history.push('/login')
-            return false
+            shouldRedirect = true
           }
         })
-        // All other GraphQL errors, assume server problem and shedule a new refresh
+        if (shouldRedirect) {
+          loggedIn = false
+          Cookies.remove('refreshToken')
+          history.push('/login')
+          return false
+        }
+        // All other GraphQL errors, assume server problem and schedule a new refresh
         console.log('Received GraphQL error')
         scheduleTokenRefresh(ERROR_REFRESH_INTERVAL)
       } else {

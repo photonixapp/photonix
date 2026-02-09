@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { useMutation } from '@apollo/client'
 import { useLongPress, LongPressDetectEvents } from 'use-long-press'
@@ -168,7 +168,7 @@ const Thumbnails = ({
   }
 
   // Get flat array of all photo IDs in display order
-  const getAllPhotoIds = () => {
+  const getAllPhotoIds = useCallback(() => {
     const ids = []
     if (!photoSections) return ids
     for (const section of photoSections) {
@@ -181,7 +181,7 @@ const Thumbnails = ({
       }
     }
     return ids
-  }
+  }, [photoSections, mode])
 
   const addRemoveItem = (id, isShiftClick = false) => {
     if (isShiftClick && lastSelectedId && lastSelectedId !== id) {
@@ -295,7 +295,7 @@ const Thumbnails = ({
       document.removeEventListener('keyup', handleKeyUp)
       window.removeEventListener('focus', handleWindowFocus)
     }
-  }, [photoSections, mode])
+  }, [photoSections, mode, getAllPhotoIds])
 
   const onMouseDown =
     ctrlKeyPressed || shiftKeyPressed
