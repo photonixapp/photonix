@@ -43,7 +43,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
             rm -rf /var/lib/apt/lists/* \
                    /tmp/* \
                    /var/tmp/*
-RUN npm install --global --unsafe-perm yarn
+# npm is already included with Node.js
 
 # Install Python dependencies
 WORKDIR /srv
@@ -67,7 +67,7 @@ COPY ui/package.json /srv/ui/package.json
 COPY ui/yarn.lock /srv/ui/yarn.lock
 ENV NODE_ENV=development
 ENV NODE_OPTIONS=--openssl-legacy-provider
-RUN cd /srv/ui && yarn install
+RUN cd /srv/ui && npm install --legacy-peer-deps
 
 # Copy over the code
 COPY photonix /srv/photonix
