@@ -2,5 +2,5 @@
 if [ "$ENV" = "dev" ]
 then
   >&2 echo "Starting Storybook server as not in prd mode"
-  yarn storybook --quiet
+  npx storybook --quiet
 fi
