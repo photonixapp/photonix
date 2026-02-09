@@ -5,10 +5,11 @@ from colorsys import rgb_to_hsv
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
 
 class ColorModel:
+    name = 'color'
     version = 20210206
     approx_ram_mb = 120
     max_num_workers = 2
@@ -37,8 +38,13 @@ class ColorModel:
             'Black':                ((0, 0, 0),         17),
         }
 
-    def predict(self, image_file, image_size=32, min_score=0.005):
+    def predict(self, image_file, image_size=32, min_score=0.005, photo_file=None):
         image = Image.open(image_file)
+
+        # Apply EXIF orientation correction using Pillow's built-in handler
+        # This handles all 8 EXIF orientation cases (including mirrored/flipped)
+        image = ImageOps.exif_transpose(image)
+
         image = image.resize((image_size, image_size), Image.BICUBIC)
         pixels = np.asarray(image)
         pixels = [j for i in pixels for j in i]
@@ -76,7 +82,11 @@ class ColorModel:
 
 
 def run_on_photo(photo_id):
-    model = ColorModel()
+    from photonix.classifiers.model_manager import get_model_manager
+
+    # Get or lazily load the model via ModelManager
+    model = get_model_manager().get_model('color', ColorModel)
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
     photo, results = results_for_model_on_photo(model, photo_id)

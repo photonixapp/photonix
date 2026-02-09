@@ -17,14 +17,14 @@ const AlbumList = ({
   mapPhotosRefetch,
   mode,
 }) => {
-  const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
+  const [scrollerRef, sentinelRef] = useInfiniteScroll(refetchPhotos)
 
   const params = new URLSearchParams(window.location.search)
   const albumName = params.get('album_name')
   if (albumName) photoSections[0].title = albumName
 
   return (
-    <Container ref={scrollerRef} onScroll={handleScroll}>
+    <Container ref={scrollerRef}>
       <Thumbnails
         photoSections={photoSections}
         refetchPhotoList={refetchPhotoList}
@@ -34,6 +34,7 @@ const AlbumList = ({
         rateable
       />
       {/* TODO: Add the DateHistogram feature back here */}
+      <div ref={sentinelRef} style={{ height: '1px' }} />
     </Container>
   )
 }

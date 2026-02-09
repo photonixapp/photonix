@@ -31,6 +31,7 @@ const Container = styled('div')`
   }
   .searchBar.collapsed {
     height: 0;
+    overflow: hidden;
   }
 
   .expandCollapse {

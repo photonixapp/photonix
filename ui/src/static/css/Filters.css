@@ -45,6 +45,9 @@
 .Filters:hover .scrollbar {
   opacity: 1;
 }
+.collapsed .Filters .scrollbar {
+  display: none;
+}
 
 .Filters h2 {
   margin-top: 0;

@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import styled from '@emotion/styled'
 import { useMutation } from '@apollo/client'
-import { LazyLoadImage } from 'react-lazy-load-image-component'
-import 'react-lazy-load-image-component/src/effects/opacity.css'
 import classNames from 'classnames/bind'
 
 import StarRating from './StarRating'
 import { PHOTO_UPDATE } from '../graphql/photo'
 import { ReactComponent as TickIcon } from '../static/images/done_black.svg'
 import { Link } from 'react-router-dom'
+import { useThumbnailQueue } from '../contexts/ThumbnailQueueContext'
 
 const Container = styled('li')`
   width: 130px;
@@ -25,7 +24,9 @@ const Container = styled('li')`
   background: #292929;
 
   &.selectable {
-    background: none;
+  }
+  &.selected {
+    background: transparent;
   }
   &.selected .thumbnail-area {
     transform: scale(0.9);
@@ -123,6 +124,89 @@ const StarRatingStyled = styled('div')`
   }
 `
 
+const ThumbnailWrapper = styled('span')`
+  display: block;
+  width: 100%;
+  height: 100%;
+  &.loaded {
+    background: #292929;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 1px rgba(0, 0, 0, 0.3);
+  }
+`
+
+const QueuedImage = styled('img')`
+  opacity: ${props => props.loaded ? 1 : 0};
+  transition: opacity 0.3s ease-in;
+`
+
+// Lazy-loaded image that uses the thumbnail queue to limit concurrent requests
+const LazyQueuedImage = ({ src, className, wrapperClassName, width, height, style }) => {
+  const [loadedUrl, setLoadedUrl] = useState(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const containerRef = useRef(null)
+  const { requestThumbnail, cancelRequest, isLoaded } = useThumbnailQueue()
+
+  // Check if already loaded on mount
+  useEffect(() => {
+    if (isLoaded(src)) {
+      setLoadedUrl(src)
+    }
+  }, [src, isLoaded])
+
+  // IntersectionObserver for visibility detection
+  useEffect(() => {
+    const element = containerRef.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          setIsVisible(entry.isIntersecting)
+        })
+      },
+      {
+        rootMargin: '200px', // Start loading 200px before entering viewport
+        threshold: 0
+      }
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  // Request thumbnail when visible
+  useEffect(() => {
+    if (!isVisible || loadedUrl || !src) return
+
+    const element = containerRef.current
+    const top = element ? element.getBoundingClientRect().top : 0
+
+    requestThumbnail(src, src, top).then(url => {
+      if (url) setLoadedUrl(url)
+    })
+
+    return () => {
+      if (!loadedUrl) {
+        cancelRequest(src)
+      }
+    }
+  }, [isVisible, src, loadedUrl, requestThumbnail, cancelRequest])
+
+  return (
+    <ThumbnailWrapper ref={containerRef} className={`${wrapperClassName || ''} ${loadedUrl ? 'loaded' : ''}`}>
+      <QueuedImage
+        src={loadedUrl || ''}
+        className={className}
+        loaded={!!loadedUrl}
+        width={width}
+        height={height}
+        style={style}
+      />
+    </ThumbnailWrapper>
+  )
+}
+
 const Thumbnail = ({
   id,
   imageUrl,
@@ -188,8 +272,7 @@ const Thumbnail = ({
             className="thumbnail-area"
             title={albumName.length > 8 ? albumName : null}
           >
-            <LazyLoadImage
-              effect="opacity"
+            <LazyQueuedImage
               src={imageUrl}
               className="thumbnail"
               wrapperClassName="thumbnail-wrapper"
@@ -213,8 +296,7 @@ const Thumbnail = ({
       ) : (
         <>
           <div className="thumbnail-area">
-            <LazyLoadImage
-              effect="opacity"
+            <LazyQueuedImage
               src={imageUrl}
               className="thumbnail"
               wrapperClassName="thumbnail-wrapper"
