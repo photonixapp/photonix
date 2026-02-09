@@ -52,7 +52,7 @@ def get_photo_by_any_type(photo_id, model=None):
 def results_for_model_on_photo(model, photo_id):
     photo = get_photo_by_any_type(photo_id, model)
     if photo:
-        results = model.predict(photo.base_image_path)
+        results = model.predict(photo.base_image_path, photo_file=photo.base_file)
     else:
         results = model.predict(photo_id)
     return photo, results

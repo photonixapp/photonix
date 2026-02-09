@@ -108,6 +108,44 @@ const Container = styled('div')`
 const ENTER_KEY = 13
 const ESCAPE_KEY = 27
 
+// Transform bounding box coordinates from rotated image space to un-rotated thumbnail space.
+// The classifier processes EXIF-corrected (rotated) images, so box coordinates are in
+// post-rotation space. But thumbnails are stored without rotation, so we need to
+// transform the coordinates to match the un-rotated image before CSS rotation is applied.
+const transformBoxCoords = (posX, posY, sizeX, sizeY, rotation) => {
+  // Normalize rotation to 0, 90, 180, 270
+  const rot = ((rotation % 360) + 360) % 360
+
+  if (rot === 0) {
+    return { posX, posY, sizeX, sizeY }
+  } else if (rot === 90) {
+    // 90° CW: (x, y) on rotated → (y, 1-x) on original, swap width/height
+    return {
+      posX: posY,
+      posY: 1 - posX,
+      sizeX: sizeY,
+      sizeY: sizeX,
+    }
+  } else if (rot === 180) {
+    // 180°: (x, y) → (1-x, 1-y)
+    return {
+      posX: 1 - posX,
+      posY: 1 - posY,
+      sizeX,
+      sizeY,
+    }
+  } else if (rot === 270) {
+    // 270° CW: (x, y) on rotated → (1-y, x) on original, swap width/height
+    return {
+      posX: 1 - posY,
+      posY: posX,
+      sizeX: sizeY,
+      sizeY: sizeX,
+    }
+  }
+  return { posX, posY, sizeX, sizeY }
+}
+
 const BoundingBoxes = ({
   boxes,
   className,
@@ -116,6 +154,7 @@ const BoundingBoxes = ({
   editLableId,
   setEditLableId,
   rotation,
+  exifRotation,
 }) => {
   const dispatch = useDispatch()
   const ref = useRef(null)
@@ -236,10 +275,25 @@ const BoundingBoxes = ({
   return (
     <Container>
       {boxes?.map((box, index) => {
-        let left = (box.positionX - box.sizeX / 2) * 100 + '%'
-        let top = (box.positionY - box.sizeY / 2) * 100 + '%'
-        let width = box.sizeX * 100 + '%'
-        let height = box.sizeY * 100 + '%'
+        // Transform coordinates from rotated image space to un-rotated thumbnail space.
+        // The classifier processes images with combined EXIF + user rotation applied,
+        // so coordinates are in the displayed (rotated) space. We transform them to
+        // the thumbnail's native space, then CSS rotation on the container brings
+        // them back to the correct display position.
+        //
+        // Note: `rotation` prop is already the total rotation (EXIF + user), which is
+        // the same rotation applied by the classifier and used for CSS transform.
+        const transformed = transformBoxCoords(
+          box.positionX,
+          box.positionY,
+          box.sizeX,
+          box.sizeY,
+          rotation || 0
+        )
+        let left = (transformed.posX - transformed.sizeX / 2) * 100 + '%'
+        let top = (transformed.posY - transformed.sizeY / 2) * 100 + '%'
+        let width = transformed.sizeX * 100 + '%'
+        let height = transformed.sizeY * 100 + '%'
         return (
           <div
             className={`FeatureBox ${className} ${

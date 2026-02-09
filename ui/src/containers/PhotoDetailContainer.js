@@ -101,6 +101,7 @@ const GET_PHOTO = gql`
       baseFileId
       baseFilePath
       rotation
+      userRotation
       downloadUrl
       width
       height

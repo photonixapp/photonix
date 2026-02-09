@@ -35,8 +35,8 @@ RUN apt-get update && \
                    /tmp/* \
                    /var/tmp/*
 
-# Install Node & Yarn
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
+# Install Node 20.x LTS & Yarn
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get update && \
     apt-get install -y nodejs && \
          apt-get clean && \
@@ -66,6 +66,7 @@ RUN if [ "${PYPI_UPLOAD_USERNAME}" = "" ] ; \
 COPY ui/package.json /srv/ui/package.json
 COPY ui/yarn.lock /srv/ui/yarn.lock
 ENV NODE_ENV=development
+ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN cd /srv/ui && yarn install
 
 # Copy over the code

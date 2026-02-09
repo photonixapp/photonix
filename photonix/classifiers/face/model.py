@@ -1,23 +1,42 @@
 from datetime import datetime
 import json
+import logging
 import os
 import sys
 from pathlib import Path
 from random import randint
 
 from annoy import AnnoyIndex
+
+logger = logging.getLogger(__name__)
 from django.utils import timezone
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 from redis_lock import Lock
 
 from photonix.classifiers.base_model import BaseModel
-from photonix.classifiers.face.deepface import DeepFace
-from photonix.classifiers.face.mtcnn import MTCNN
-from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance
-from photonix.classifiers.face.deepface.DeepFace import build_model
 from photonix.photos.utils.redis import redis_connection
-from photonix.photos.utils.metadata import PhotoMetadata
+
+# Lazy-loaded modules (heavy imports - TensorFlow/Keras based)
+_DeepFace = None
+_MTCNN = None
+_findEuclideanDistance = None
+_build_model = None
+
+
+def _ensure_face_libs():
+    """Lazy load face recognition libraries (imports TensorFlow/Keras)."""
+    global _DeepFace, _MTCNN, _findEuclideanDistance, _build_model
+    if _MTCNN is None:
+        from photonix.classifiers.face.deepface import DeepFace as df
+        from photonix.classifiers.face.mtcnn import MTCNN as mtcnn
+        from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance as fed
+        from photonix.classifiers.face.deepface.DeepFace import build_model as bm
+        _DeepFace = df
+        _MTCNN = mtcnn
+        _findEuclideanDistance = fed
+        _build_model = bm
+    return _DeepFace, _MTCNN, _findEuclideanDistance, _build_model
 
 
 GRAPH_FILE = os.path.join('face', 'mtcnn_weights.npy')
@@ -36,13 +55,24 @@ class FaceModel(BaseModel):
         super().__init__(model_dir=model_dir)
         self.library_id = library_id
 
-        graph_file = os.path.join(self.model_dir, graph_file)
+        self._graph_file = os.path.join(self.model_dir, graph_file)
+        self._lock_name = lock_name
+        self._loaded = False
+        self.graph = None
 
-        if self.ensure_downloaded(lock_name=lock_name):
-            self.graph = self.load_graph(graph_file)
+        # Download model files eagerly (cheap), but don't load into memory yet
+        self.ensure_downloaded(lock_name=lock_name)
 
+    def _ensure_loaded(self):
+        """Lazy load the model on first use."""
+        if self._loaded:
+            return
+
+        self.graph = self.load_graph(self._graph_file)
+        self._loaded = True
 
     def load_graph(self, graph_file):
+        DeepFace, MTCNN, findEuclideanDistance, build_model = _ensure_face_libs()
         with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             # Load MTCNN
             mtcnn_graph = None
@@ -70,33 +100,45 @@ class FaceModel(BaseModel):
                 'facenet': facenet_graph,
             }
 
-    def predict(self, image_file, min_score=0.99):
+    def predict(self, image_file, min_score=0.99, photo_file=None):
+        self._ensure_loaded()  # Lazy load on first use
+
         # Detects face bounding boxes
         image = Image.open(image_file)
 
         if image.mode != 'RGB':
             image = image.convert('RGB')
 
-        # Perform rotations if decalared in metadata
-        metadata = PhotoMetadata(image_file)
-        if metadata.get('Orientation') in ['Rotate 90 CW', 'Rotate 270 CCW']:
-            image = image.rotate(-90, expand=True)
-        elif metadata.get('Orientation') in ['Rotate 90 CCW', 'Rotate 270 CW']:
-            image = image.rotate(90, expand=True)
+        # Apply rotation: EXIF + user rotation if photo_file provided
+        if photo_file is not None:
+            from photonix.photos.utils.rotation import apply_photo_rotation
+            image = apply_photo_rotation(image, photo_file)
+        else:
+            # Fallback: just apply EXIF orientation correction
+            image = ImageOps.exif_transpose(image)
 
         image = np.asarray(image)
         results = self.graph['mtcnn'].detect_faces(image)
         return list(filter(lambda f: f['confidence'] > min_score, results))
 
     def crop(self, image_data, box):
-        return image_data.crop([
-            max(box[0]-int(box[2]*0.3), 0),
-            max(box[1]-int(box[3]*0.3), 0),
-            min(box[0]+box[2]+int(box[2]*0.3), image_data.width),
-            min(box[1]+box[3]+int(box[3]*0.3), image_data.height)
-        ])
+        # Calculate crop coordinates with 30% padding, clipped to image boundaries
+        x1 = max(box[0] - int(box[2] * 0.3), 0)
+        y1 = max(box[1] - int(box[3] * 0.3), 0)
+        x2 = min(box[0] + box[2] + int(box[2] * 0.3), image_data.width)
+        y2 = min(box[1] + box[3] + int(box[3] * 0.3), image_data.height)
+
+        # Ensure valid crop region (x2 > x1 and y2 > y1)
+        x1 = min(x1, image_data.width - 1)
+        y1 = min(y1, image_data.height - 1)
+        x2 = max(x2, x1 + 1)
+        y2 = max(y2, y1 + 1)
+
+        return image_data.crop([x1, y1, x2, y2])
 
     def get_face_embedding(self, image_data):
+        self._ensure_loaded()  # Ensure model is loaded for embedding generation
+        DeepFace, _, _, _ = _ensure_face_libs()
         return DeepFace.represent(np.asarray(image_data), model_name='Facenet', model= self.graph['facenet'])
 
     def find_closest_face_tag_by_ann(self, source_embedding):
@@ -142,6 +184,7 @@ class FaceModel(BaseModel):
                     pass
 
         # Calculate Euclidean distances
+        _, _, findEuclideanDistance, _ = _ensure_face_libs()
         distances = []
         for (_, target_embedding) in representations:
             distance = findEuclideanDistance(source_embedding, target_embedding)
@@ -230,11 +273,20 @@ class FaceModel(BaseModel):
 
 
 def run_on_photo(photo_id):
+    from photonix.classifiers.model_manager import get_model_manager
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import get_photo_by_any_type, results_for_model_on_photo, get_or_create_tag
 
     photo = get_photo_by_any_type(photo_id)
-    model = FaceModel(library_id=photo and photo.library_id)
+
+    # Get or lazily load the model via ModelManager
+    # Face model needs library_id for face matching
+    model = get_model_manager().get_model(
+        'face',
+        FaceModel,
+        library_id=photo and photo.library_id
+    )
 
     # Detect all faces in an image
     photo, results = results_for_model_on_photo(model, photo_id)
@@ -259,8 +311,6 @@ def run_on_photo(photo_id):
             if photo:
                 closest_tag, closest_distance = model.find_closest_face_tag(embedding)
                 if closest_tag:
-                    print(f'Closest tag: {closest_tag}')
-                    print(f'Closest distance: {closest_distance}')
                     result['closest_tag'] = closest_tag
                     result['closest_distance'] = closest_distance
         except ValueError:
@@ -275,7 +325,6 @@ def run_on_photo(photo_id):
             # Use matched tag if within distance threshold
             if result.get('closest_distance', 999) < DISTANCE_THRESHOLD:
                 tag = Tag.objects.get(id=result['closest_tag'], library=photo.library, type='F')
-                print(f'MATCHED {tag.name}')
 
             # Otherwise create new tag
             else:

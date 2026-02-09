@@ -156,9 +156,10 @@ def import_photos_from_dir(orig, move=False):
         print('\n{} PHOTOS IMPORTED\n{} WERE DUPLICATES\n{} WERE BAD'.format(imported, were_duplicates, were_bad))
 
 
-def import_photos_in_place(library_path):
+def import_photos_in_place(library_path, quiet=True):
     orig = library_path.path
     imported = 0
+    already_imported = 0
     were_bad = 0
 
     for r, d, f in os.walk(orig):
@@ -170,13 +171,16 @@ def import_photos_in_place(library_path):
                 # Blacklisted type
                 were_bad += 1
             else:
-                modified = record_photo(filepath, library_path.library)
-                if modified:
+                result = record_photo(filepath, library_path.library)
+                if result == 'SKIPPED':
+                    already_imported += 1
+                elif result:
                     imported += 1
-                    print('IMPORTED  {}'.format(filepath))
+                    if not quiet:
+                        print('IMPORTED  {}'.format(filepath))
 
-    if imported:
-        print('\n{} PHOTOS IMPORTED\n{} WERE BAD'.format(imported, were_bad))
+    if imported or already_imported:
+        print('\n{} PHOTOS IMPORTED\n{} ALREADY IMPORTED\n{} WERE BAD'.format(imported, already_imported, were_bad))
 
 
 def rescan_photo_libraries(paths=[]):
