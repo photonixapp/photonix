@@ -2,7 +2,7 @@ numpy==1.22.0
 scipy==1.4.1
 matplotlib==3.1.2
 tensorflow==2.4.1
-opencv-python==4.5.1.48
+opencv-python==4.8.1.78
 annoy==1.17.0
 
 Django==4.2.28
