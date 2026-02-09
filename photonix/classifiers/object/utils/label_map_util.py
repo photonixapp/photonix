@@ -17,9 +17,20 @@
 
 import logging
 
-import tensorflow as tf
 from google.protobuf import text_format
 from photonix.classifiers.object.protos import string_int_label_map_pb2
+
+# Lazy-loaded modules (heavy imports)
+tf = None
+
+
+def _ensure_tensorflow():
+    """Lazy load TensorFlow on first use."""
+    global tf
+    if tf is None:
+        import tensorflow as _tf
+        tf = _tf
+    return tf
 
 
 def _validate_label_map(label_map):
@@ -113,6 +124,7 @@ def load_labelmap(path):
   Returns:
     a StringIntLabelMapProto
   """
+  tf = _ensure_tensorflow()
   with tf.io.gfile.GFile(path, 'r') as fid:
     label_map_string = fid.read()
     label_map = string_int_label_map_pb2.StringIntLabelMap()

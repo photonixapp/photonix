@@ -5,11 +5,23 @@ from pathlib import Path
 import numpy as np
 
 from redis_lock import Lock
-import tensorflow as tf
 
 from photonix.classifiers.base_model import BaseModel
 from photonix.photos.utils.redis import redis_connection
 from photonix.web.utils import logger
+
+# Lazy-loaded modules (heavy imports)
+tf = None
+
+
+def _ensure_tensorflow():
+    """Lazy load TensorFlow on first use."""
+    global tf
+    if tf is None:
+        import tensorflow as _tf
+        _tf.compat.v1.disable_eager_execution()
+        tf = _tf
+    return tf
 
 
 GRAPH_FILE = os.path.join('style', 'graph.pb')
@@ -25,16 +37,27 @@ class StyleModel(BaseModel):
     def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
         super().__init__(model_dir=model_dir)
 
-        tf.compat.v1.disable_eager_execution()
+        self._graph_file = os.path.join(self.model_dir, graph_file)
+        self._label_file = os.path.join(self.model_dir, label_file)
+        self._lock_name = lock_name
+        self._loaded = False
+        self.graph = None
+        self.labels = None
 
-        graph_file = os.path.join(self.model_dir, graph_file)
-        label_file = os.path.join(self.model_dir, label_file)
+        # Download model files eagerly (cheap), but don't load into memory yet
+        self.ensure_downloaded(lock_name=lock_name)
 
-        if self.ensure_downloaded(lock_name=lock_name):
-            self.graph = self.load_graph(graph_file)
-            self.labels = self.load_labels(label_file)
+    def _ensure_loaded(self):
+        """Lazy load the model on first use."""
+        if self._loaded:
+            return
+
+        self.graph = self.load_graph(self._graph_file)
+        self.labels = self.load_labels(self._label_file)
+        self._loaded = True
 
     def load_graph(self, graph_file):
+        tf = _ensure_tensorflow()
         with Lock(redis_connection, 'classifier_{}_load_graph'.format(self.name)):
             if self.graph_cache_key in self.graph_cache:
                 return self.graph_cache[self.graph_cache_key]
@@ -51,13 +74,16 @@ class StyleModel(BaseModel):
             return graph
 
     def load_labels(self, label_file):
+        tf = _ensure_tensorflow()
         labels = []
         proto_as_ascii_lines = tf.io.gfile.GFile(label_file).readlines()
         for l in proto_as_ascii_lines:
             labels.append(l.rstrip())
         return labels
 
-    def predict(self, image_file, min_score=0.66):
+    def predict(self, image_file, min_score=0.66, photo_file=None):
+        self._ensure_loaded()  # Lazy load on first use
+
         input_height = 224
         input_width = 224
         input_mean = 128
@@ -81,6 +107,7 @@ class StyleModel(BaseModel):
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
+        tf = _ensure_tensorflow()
         with tf.compat.v1.Session(graph=self.graph) as sess:
             results = sess.run(output_operation.outputs[0], {input_operation.outputs[0]: t})
         results = np.squeeze(results)
@@ -94,6 +121,7 @@ class StyleModel(BaseModel):
         return response
 
     def read_tensor_from_image_file(self, file_name, input_height=299, input_width=299, input_mean=0, input_std=255):
+        tf = _ensure_tensorflow()
         input_name = "file_reader"
         try:
 
@@ -117,7 +145,11 @@ class StyleModel(BaseModel):
 
 
 def run_on_photo(photo_id):
-    model = StyleModel()
+    from photonix.classifiers.model_manager import get_model_manager
+
+    # Get or lazily load the model via ModelManager
+    model = get_model_manager().get_model('style', StyleModel)
+
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from photonix.classifiers.runners import results_for_model_on_photo, get_or_create_tag
     photo, results = results_for_model_on_photo(model, photo_id)

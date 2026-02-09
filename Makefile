@@ -1,5 +1,5 @@
-DOCKER_COMPOSE_DEV=docker-compose -f docker/docker-compose.dev.yml
-DOCKER_COMPOSE_PRD=docker-compose -f docker/docker-compose.prd.yml
+DOCKER_COMPOSE_DEV=docker compose -f docker/docker-compose.dev.yml
+DOCKER_COMPOSE_PRD=docker compose -f docker/docker-compose.prd.yml
 
 start:
 	$(DOCKER_COMPOSE_DEV) up

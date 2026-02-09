@@ -19,6 +19,7 @@ import history from '../history'
 import reducers from './../stores'
 import customTheme from '../theme'
 import { logOut } from '../auth'
+import { ThumbnailQueueProvider } from '../contexts/ThumbnailQueueContext'
 
 export const store = createStore(
   reducers,
@@ -75,11 +76,13 @@ const Init = ({ children }) => {
           <Router history={history}>
             <ThemeProvider theme={customTheme}>
               <ColorModeProvider value="dark">
-                <div className={isMobileApp ? 'isMobileApp' : undefined}>
-                  {/* <CSSReset /> */}
-                  {children}
-                  <ModalContainer />
-                </div>
+                <ThumbnailQueueProvider>
+                  <div className={isMobileApp ? 'isMobileApp' : undefined}>
+                    {/* <CSSReset /> */}
+                    {children}
+                    <ModalContainer />
+                  </div>
+                </ThumbnailQueueProvider>
               </ColorModeProvider>
             </ThemeProvider>
           </Router>

@@ -26,8 +26,8 @@ RUN apt-get update && \
                    /tmp/* \
                    /var/tmp/*
 
-# Install Node & Yarn
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
+# Install Node 20.x LTS & Yarn
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get update && \
     apt-get install -y nodejs && \
          apt-get clean && \
@@ -58,6 +58,7 @@ COPY ui/package.json /srv/ui/package.json
 COPY ui/yarn.lock /srv/ui/yarn.lock
 WORKDIR /srv/ui
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN yarn install --no-cache --network-timeout 1000000
 
 # Copy over the frontend code
@@ -66,7 +67,7 @@ COPY ui/src /srv/ui/src
 
 # Build frontend app
 # Node option here solves heap out-of-memory issue when building Webpack bundle on machines that only have 1GB RAM
-RUN NODE_OPTIONS=--max-old-space-size=768 yarn build
+RUN NODE_OPTIONS="--max-old-space-size=768 --openssl-legacy-provider" yarn build
 
 # Remove large unused files in Python site-packages
 RUN find /usr/local/lib/python3.8 -type d -name  "__pycache__" -exec rm -r {} + && \

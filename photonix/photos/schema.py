@@ -75,6 +75,7 @@ class PhotoNode(DjangoObjectType):
     base_file_path = graphene.String()
     base_file_id = graphene.UUID()
     rotation = graphene.Int()
+    user_rotation = graphene.Int()
     download_url = graphene.String()
 
     color_tags = graphene.List(PhotoTagType)
@@ -116,7 +117,23 @@ class PhotoNode(DjangoObjectType):
         return self.base_file.id
 
     def resolve_rotation(self, info):
-        return getattr(self.base_file, 'rotation', 0)
+        """Return total rotation to apply (exif_rotation + user_rotation).
+
+        Thumbnails are stored without rotation, so frontend applies this
+        via CSS transform.
+        """
+        base_file = self.base_file
+        exif_rotation = getattr(base_file, 'exif_rotation', 0) or 0
+        user_rotation = getattr(base_file, 'user_rotation', 0) or 0
+        return (exif_rotation + user_rotation) % 360
+
+    def resolve_user_rotation(self, info):
+        """Return just the user-specified rotation adjustment.
+
+        Frontend uses this for the rotate buttons - it saves this value
+        back via the mutation, not the combined rotation.
+        """
+        return getattr(self.base_file, 'user_rotation', 0) or 0
 
     def resolve_download_url(self, info):
         return self.download_url
@@ -954,11 +971,21 @@ class ChangePreferredPhotoFile(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, selected_photo_file_id=None):
-        """Mutation to update preferred_photo_file for photo."""
+        """Mutation to update preferred_photo_file for photo.
+
+        Also queues re-classification for rotation-sensitive classifiers
+        since the new file may have different content/orientation.
+        """
+        from photonix.photos.utils.tasks import queue_reclassification_for_photo
+
         photo_obj = PhotoFile.objects.get(id=selected_photo_file_id).photo
         photo_obj.preferred_photo_file = PhotoFile.objects.get(id=selected_photo_file_id)
         photo_obj.save()
         Task(type='generate_thumbnails', subject_id=photo_obj.id, library=photo_obj.library).save()
+
+        # Queue re-classification with delay for debouncing
+        queue_reclassification_for_photo(photo_obj)
+
         return ChangePreferredPhotoFile(ok=True)
 
 
@@ -1123,14 +1150,24 @@ class SavePhotoFileRotation(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, photo_file_id=None, rotation=None):
-        """Mutation to save photoFile rotation."""
+        """Mutation to save photoFile rotation.
+
+        Note: Thumbnails are stored without rotation applied, so no regeneration
+        is needed. The frontend applies rotation via CSS transform.
+
+        Rotation-sensitive classifiers (face, object, style) are re-queued
+        with a delay to handle rapid consecutive rotations (debouncing).
+        """
+        from photonix.photos.utils.tasks import queue_reclassification_for_photo
+
         if photo_file_id and rotation in [0, 90, 180, 270]:
             photofile_obj = PhotoFile.objects.get(id=photo_file_id)
-            photofile_obj.rotation = rotation
+            photofile_obj.user_rotation = rotation
             photofile_obj.save()
-            Task(
-                type='generate_thumbnails', subject_id=photofile_obj.photo.id,
-                library=photofile_obj.photo.library).save()
+
+            # Queue re-classification with delay for debouncing
+            queue_reclassification_for_photo(photofile_obj.photo)
+
             return SavePhotoFileRotation(ok=True, rotation=rotation)
         return SavePhotoFileRotation(ok=False, rotation=rotation)
 
