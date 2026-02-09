@@ -17,10 +17,10 @@ const PhotoList = ({
   mapPhotosRefetch,
   mode,
 }) => {
-  const [scrollerRef, handleScroll] = useInfiniteScroll(refetchPhotos)
+  const [scrollerRef, sentinelRef] = useInfiniteScroll(refetchPhotos)
 
   return (
-    <Container ref={scrollerRef} onScroll={handleScroll}>
+    <Container ref={scrollerRef}>
       <Thumbnails
         photoSections={photoSections}
         refetchPhotoList={refetchPhotoList}
@@ -30,6 +30,7 @@ const PhotoList = ({
         rateable={mode !== 'ALBUMS'}
       />
       {/* #TODO: Add the DateHistogram feature back here */}
+      <div ref={sentinelRef} style={{ height: '1px' }} />
     </Container>
   )
 }

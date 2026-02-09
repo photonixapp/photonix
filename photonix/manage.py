@@ -20,7 +20,4 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
-    try:
-        execute_from_command_line(sys.argv)
-    except Exception as ex:
-        print(ex)
+    execute_from_command_line(sys.argv)
