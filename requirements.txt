@@ -1,20 +1,20 @@
-numpy==1.19.2
+numpy==1.22.0
 scipy==1.4.1
 matplotlib==3.1.2
 tensorflow==2.4.1
 opencv-python==4.5.1.48
 annoy==1.17.0
 
-Django==3.2.12
-django-cors-headers==3.2.1
+Django==4.2.28
+django-cors-headers==4.4.0
 django-filter==2.4.0
-PyJWT==1.7.1
-django-graphql-jwt==0.3.0
+PyJWT==2.4.0
+django-graphql-jwt==0.3.4
 
 graphene==2.1.8
-graphene-django==2.8.0
+graphene-django==2.16.0
 Markdown==3.1.1
-Pillow==9.0.1
+Pillow==9.3.0
 
 inotify==0.2.10
 asyncinotify==2.0.2
@@ -28,7 +28,7 @@ redis==3.3.11
 psutil==5.9.0
 
 psycopg2-binary==2.8.4
-gunicorn==20.0.4
+gunicorn==22.0.0
 
 pytest==5.3.4
 pytest-django==3.8.0

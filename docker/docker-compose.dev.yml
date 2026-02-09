@@ -1,7 +1,7 @@
 services:
   postgres:
     container_name: photonix-postgres
-    image: postgres:11.1-alpine
+    image: postgres:18-alpine
     ports:
       - '5432:5432'
     environment:
@@ -12,7 +12,7 @@ services:
 
   redis:
     container_name: photonix-redis
-    image: redis:6.2.2
+    image: redis:8-alpine
     ports:
       - '6379:6379'
 
@@ -39,6 +39,7 @@ services:
       REDIS_HOST: redis
       ALLOWED_HOSTS: '*'
       LOG_LEVEL: DEBUG
+      WDS_SOCKET_PORT: 0
     volumes:
       - ../photonix:/srv/photonix
       - ../system:/srv/system
