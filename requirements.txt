@@ -21,7 +21,7 @@ asyncinotify==2.0.2
 python-dateutil==2.8.1
 pytz==2019.3
 pyshp==2.1.0
-requests==2.22.0
+requests==2.32.4
 
 python-redis-lock==3.5.0
 redis==3.3.11
