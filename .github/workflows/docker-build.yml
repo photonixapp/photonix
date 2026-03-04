@@ -10,8 +10,6 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    outputs:
-      deploy_tag: ${{ steps.deploy-tag.outputs.tag }}
     steps:
       -
         name: Checkout repository
@@ -51,15 +49,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      -
-        name: Determine deploy tag
-        id: deploy-tag
-        run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "tag=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=edge" >> $GITHUB_OUTPUT
-          fi
 
   deploy-k8s:
     needs: build-and-push
@@ -77,9 +66,9 @@ jobs:
       -
         name: Deploy
         run: |
-          IMAGE=photonixapp/photonix:${{ needs.build-and-push.outputs.deploy_tag }}
-          echo "Deploying image: $IMAGE"
-          kubectl set image deployment/photonix-demo photonix-demo=$IMAGE -n photonix
+          echo "Deploying image: photonixapp/photonix:edge"
+          kubectl set image deployment/photonix-demo photonix-demo=photonixapp/photonix:edge -n photonix
+          kubectl rollout restart deployment/photonix-demo -n photonix
       -
         name: Wait for pod to start
         run: |
