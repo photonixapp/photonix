@@ -244,6 +244,55 @@ def delete_child_dir_all_photos(directory_path, library_id):
 def delete_photofile_and_photo_record(photo_file_obj):
     """Delete photoFile object with its photo object."""
     photo_obj = photo_file_obj.photo
+    # Clean up cached thumbnail files for this PhotoFile
+    _cleanup_photofile_thumbnails(photo_file_obj)
     photo_file_obj.delete()
     if not photo_obj.files.all():
         photo_obj.delete()
+
+
+def _cleanup_photofile_thumbnails(photo_file_obj):
+    """Remove cached thumbnail files for a PhotoFile from disk."""
+    from django.conf import settings
+    from pathlib import Path
+    import glob
+
+    thumbnail_root = Path(settings.THUMBNAIL_ROOT) / 'photofile'
+    if not thumbnail_root.exists():
+        return
+
+    # Thumbnails are stored as {photofile_id}.jpg in size-specific subdirectories
+    photo_file_id = str(photo_file_obj.id)
+    for size_dir in thumbnail_root.iterdir():
+        if size_dir.is_dir():
+            thumb_path = size_dir / f'{photo_file_id}.jpg'
+            if thumb_path.exists():
+                thumb_path.unlink()
+                logger.info(f'Removed stale thumbnail: {thumb_path}')
+
+
+def cleanup_orphaned_photofiles(library=None):
+    """Remove PhotoFile records whose source files no longer exist on disk,
+    along with their cached thumbnails. Also removes Photo records that
+    have no remaining PhotoFiles."""
+    from photonix.photos.models import PhotoFile, Photo, Tag, Camera, Lens
+
+    photofiles = PhotoFile.objects.all()
+    if library:
+        photofiles = photofiles.filter(photo__library=library)
+
+    orphaned_count = 0
+    for photo_file in photofiles.iterator():
+        if not os.path.exists(photo_file.path):
+            logger.info(f'Cleaning up orphaned PhotoFile: {photo_file.path}')
+            delete_photofile_and_photo_record(photo_file)
+            orphaned_count += 1
+
+    if orphaned_count:
+        # Clean up any tags, cameras, or lenses with no remaining photos
+        Tag.objects.filter(photo_tags=None).delete()
+        Camera.objects.filter(photos=None).delete()
+        Lens.objects.filter(photos=None).delete()
+        logger.info(f'Cleaned up {orphaned_count} orphaned PhotoFile(s)')
+
+    return orphaned_count

@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from photonix.photos.models import Photo, Task
+from photonix.photos.utils.db import cleanup_orphaned_photofiles
 from photonix.photos.utils.thumbnails import THUMBNAILER_VERSION
 from photonix.web.utils import logger
 
@@ -15,6 +16,11 @@ class Command(BaseCommand):
     help = 'Makes sure that if there have been upgrades to thumbnailing or image analysis code then jobs get rescheduled.'
 
     def housekeeping(self):
+        # Clean up PhotoFile records for source files that no longer exist on disk
+        orphaned = cleanup_orphaned_photofiles()
+        if orphaned:
+            logger.info(f'Housekeeping: removed {orphaned} orphaned PhotoFile record(s)')
+
         # Remove old cache directories
         try:
             for directory in os.listdir(settings.THUMBNAIL_ROOT):
