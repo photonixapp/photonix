@@ -74,8 +74,8 @@ class Query(graphene.ObjectType):
 
     def resolve_environment(self, info):
         user = User.objects.first()
-        demo = os.environ.get('DEMO', False)
-        sample_data = os.environ.get('DEMO', False) or os.environ.get('SAMPLE_DATA', False)
+        demo = os.environ.get('DEMO', '').lower() in ('1', 'true', 'yes')
+        sample_data = demo or os.environ.get('SAMPLE_DATA', '').lower() in ('1', 'true', 'yes')
 
         if user and user.has_set_personal_info and \
             user.has_created_library and user.has_configured_importing and \
@@ -133,7 +133,7 @@ class ChangePassword(graphene.Mutation):
 
     @staticmethod
     def mutate(self, info, old_password, new_password):
-        if os.environ.get('DEMO', False) and os.environ.get('ENV') != 'test':
+        if os.environ.get('DEMO', '').lower() in ('1', 'true', 'yes') and os.environ.get('ENV') != 'test':
             raise GraphQLError('Password cannot be changed in demo mode!')
         if authenticate(username=info.context.user.username, password=old_password):
             info.context.user.set_password(new_password)
