@@ -27,8 +27,10 @@ DEBUG = os.environ.get('ENV', 'prd') != 'prd'
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',')
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+HTTPS = os.environ.get('HTTPS', 'true') == 'true'
+SESSION_COOKIE_SECURE = HTTPS
+CSRF_COOKIE_SECURE = HTTPS
+CSRF_FAILURE_VIEW = 'photonix.web.views.csrf_failure'
 
 # Application definition
 

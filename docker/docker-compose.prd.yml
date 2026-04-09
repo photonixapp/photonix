@@ -2,23 +2,22 @@ version: '3'
 
 services:
   postgres:
+    user: "70:70"
     container_name: photonix-postgres
     image: postgres:18-alpine
-    ports:
-      - '5432:5432'
     environment:
       POSTGRES_DB: photonix
       POSTGRES_PASSWORD: password
     volumes:
-      - ../data/db:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
   redis:
+    user: "999:999"
     container_name: photonix-redis
     image: redis:8-alpine
-    ports:
-      - '6379:6379'
 
   photonix:
+    user: "${UID:-2000}:${GID:-2000}"
     container_name: photonix
     # image: photonixapp/photonix:latest
     image: photonix
@@ -43,3 +42,6 @@ services:
     links:
       - postgres
       - redis
+
+volumes:
+  postgres_data:
