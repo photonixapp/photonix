@@ -30,6 +30,21 @@ window.photonix = {
   store: store,
 }
 
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'))
+  return match ? match[2] : ''
+}
+
+const csrfLink = new ApolloLink((operation, forward) => {
+  operation.setContext(({ headers = {} }) => ({
+    headers: {
+      ...headers,
+      'X-CSRFToken': getCookie('csrftoken'),
+    },
+  }))
+  return forward(operation)
+})
+
 const additiveLink = from([
   new RetryLink({
     delay: {
@@ -41,6 +56,7 @@ const additiveLink = from([
       max: 30,
     },
   }),
+  csrfLink,
   new ApolloLink((operation, forward) => {
     return forward(operation).map((data) => {
       // Raise GraphQL errors as exceptions that trigger RetryLink when re-authentication is in progress
