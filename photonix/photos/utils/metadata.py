@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil.parser import parse as parse_date
 import mimetypes
 import os
 import re
 from subprocess import Popen, PIPE
 
-from django.utils.timezone import utc
+utc = timezone.utc
 
 
 class PhotoMetadata(object):

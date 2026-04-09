@@ -123,7 +123,7 @@ class MTCNN(object):
         height_scaled = int(np.ceil(height * scale))
 
         # im_data = cv2.resize(image, (width_scaled, height_scaled), interpolation = cv2.INTER_AREA)
-        im_data = Image.fromarray(image).resize((width_scaled, height_scaled), Image.BICUBIC)
+        im_data = Image.fromarray(image).resize((width_scaled, height_scaled), Image.Resampling.BICUBIC)
         im_data = np.asarray(im_data)
 
         # Normalize the image's pixels
@@ -403,7 +403,7 @@ class MTCNN(object):
 
             if tmp.shape[0] > 0 and tmp.shape[1] > 0 or tmp.shape[0] == 0 and tmp.shape[1] == 0:
                 # tempimg[:,:,:, k] = cv2.resize(tmp, (24, 24), interpolation=cv2.INTER_AREA)
-                tempimg[:, :, :, k] = np.asarray(Image.fromarray(np.uint8(tmp)).resize((24, 24), Image.BICUBIC))
+                tempimg[:, :, :, k] = np.asarray(Image.fromarray(np.uint8(tmp)).resize((24, 24), Image.Resampling.BICUBIC))
 
             else:
                 return np.empty(shape=(0,)), stage_status
@@ -461,7 +461,7 @@ class MTCNN(object):
 
             if tmp.shape[0] > 0 and tmp.shape[1] > 0 or tmp.shape[0] == 0 and tmp.shape[1] == 0:
                 # tempimg[:,:,:, k] = cv2.resize(tmp, (48, 48), interpolation=cv2.INTER_AREA)
-                tempimg[:, :, :, k] = np.asarray(Image.fromarray(np.uint8(tmp)).resize((48, 48), Image.BICUBIC))
+                tempimg[:, :, :, k] = np.asarray(Image.fromarray(np.uint8(tmp)).resize((48, 48), Image.Resampling.BICUBIC))
             else:
                 return np.empty(shape=(0,)), np.empty(shape=(0,))
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 import imghdr
 import mimetypes
@@ -6,7 +6,7 @@ import os, time
 import re
 import subprocess
 
-from django.utils.timezone import utc
+utc = timezone.utc
 
 from photonix.photos.models import Camera, Lens, Photo, PhotoFile, Task, Library, Tag, PhotoTag
 from photonix.photos.utils.metadata import PhotoMetadata, parse_datetime, parse_gps_location, get_mimetype

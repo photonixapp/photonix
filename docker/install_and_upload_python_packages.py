@@ -1,6 +1,5 @@
 import argparse
 import os
-import re
 import subprocess
 
 
@@ -42,12 +41,6 @@ def install_and_upload(username=None, password=None):
         # pip install -r requirements.txt? h5py and matplotlib get compiled
         # against wrong versions of numpy if we don't.
         dependency = dependency.strip()
-
-        # Pip doesn't seem to want to use our amd64 Tensorflow wheel even
-        # though our PyPI server should take precedence so we'll force the URL.
-        if dependency.startswith('tensorflow') and os.uname().machine == 'x86_64':
-            tf_version = re.search('\d+.\d+.\d+', dependency).group(0)
-            dependency = f'https://pypi.epixstudios.co.uk/packages/tensorflow-{tf_version}-cp38-cp38-linux_x86_64.whl'
 
         if dependency and not dependency.startswith('#'):
             cmd = ['/usr/local/bin/pip', 'install', '--no-cache-dir', dependency]

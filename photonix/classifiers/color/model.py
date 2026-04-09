@@ -45,7 +45,7 @@ class ColorModel:
         # This handles all 8 EXIF orientation cases (including mirrored/flipped)
         image = ImageOps.exif_transpose(image)
 
-        image = image.resize((image_size, image_size), Image.BICUBIC)
+        image = image.resize((image_size, image_size), Image.Resampling.BICUBIC)
         pixels = np.asarray(image)
         pixels = [j for i in pixels for j in i]
 

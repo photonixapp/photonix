@@ -16,5 +16,5 @@ urlpatterns = [
 
 if os.environ.get('ENV') == 'test':
     urlpatterns.append(
-        re_path('thumbnails/(?P<path>[a-z0-9._\-\/]+)', dummy_thumbnail_response)
+        re_path(r'thumbnails/(?P<path>[a-z0-9._\-\/]+)', dummy_thumbnail_response)
     )

@@ -1,5 +1,5 @@
 ARG ARCH=
-FROM ${ARCH}python:3.8.12-slim-bullseye AS builder
+FROM ${ARCH}python:3.13-slim-trixie AS builder
 
 # Install system dependencies - note that some of these are only used on non-amd64 where Python packages have to be compiled from source
 RUN apt-get update && \
@@ -9,7 +9,7 @@ RUN apt-get update && \
         curl \
         gfortran \
         gnupg \
-        libatlas-base-dev \
+        libopenblas-dev \
         libblas-dev \
         libblas3 \
         libfreetype6 \
@@ -19,7 +19,7 @@ RUN apt-get update && \
         liblapack3 \
         libpq-dev \
         libssl-dev \
-        libtiff5-dev \
+        libtiff-dev \
     && \
         apt-get clean && \
             rm -rf /var/lib/apt/lists/* \
@@ -71,29 +71,29 @@ COPY ui/src /srv/ui/src
 RUN NODE_OPTIONS="--max-old-space-size=768 --openssl-legacy-provider" npm run build
 
 # Remove large unused files in Python site-packages
-RUN find /usr/local/lib/python3.8 -type d -name  "__pycache__" -exec rm -r {} + && \
-    find /usr/local/lib/python3.8/site-packages -type d -name  "tests" -exec rm -r {} +
+RUN find /usr/local/lib/python3.13 -type d -name  "__pycache__" -exec rm -r {} + && \
+    find /usr/local/lib/python3.13/site-packages -type d -name  "tests" -exec rm -r {} +
 RUN rm -rf \
-    /usr/local/lib/python3.8/site-packages/tensorflow/include \
-    /usr/local/lib/python3.8/site-packages/scipy \
-    /usr/local/lib/python3.8/site-packages/django/contrib/gis \
-    /usr/local/lib/python3.8/site-packages/django/contrib/humanize \
-    /usr/local/lib/python3.8/site-packages/django/contrib/admindocs \
-    /usr/local/lib/python3.8/site-packages/django/contrib/redirects \
-    /usr/local/lib/python3.8/site-packages/django/contrib/flatpages \
-    /usr/local/lib/python3.8/site-packages/django/contrib/sitemaps \
-    /usr/local/lib/python3.8/site-packages/django/contrib/syndication \
-    /usr/local/lib/python3.8/site-packages/matplotlib/backends \
-    /usr/local/lib/python3.8/site-packages/matplotlib/tests \
-    /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/fonts \
-    /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/sample_data \
-    /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/images \
-    /usr/local/lib/python3.8/site-packages/matplotlib/mpl-data/stylelib \
-    /usr/local/lib/python3.8/site-packages/tensorboard \
-    /usr/local/lib/python3.8/site-packages/tensorboard_plugin_wit
+    /usr/local/lib/python3.13/site-packages/tensorflow/include \
+    /usr/local/lib/python3.13/site-packages/scipy \
+    /usr/local/lib/python3.13/site-packages/django/contrib/gis \
+    /usr/local/lib/python3.13/site-packages/django/contrib/humanize \
+    /usr/local/lib/python3.13/site-packages/django/contrib/admindocs \
+    /usr/local/lib/python3.13/site-packages/django/contrib/redirects \
+    /usr/local/lib/python3.13/site-packages/django/contrib/flatpages \
+    /usr/local/lib/python3.13/site-packages/django/contrib/sitemaps \
+    /usr/local/lib/python3.13/site-packages/django/contrib/syndication \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends \
+    /usr/local/lib/python3.13/site-packages/matplotlib/tests \
+    /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/fonts \
+    /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/sample_data \
+    /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/images \
+    /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/stylelib \
+    /usr/local/lib/python3.13/site-packages/tensorboard \
+    /usr/local/lib/python3.13/site-packages/tensorboard_plugin_wit
 
 
-FROM ${ARCH}python:3.8.12-slim-bullseye
+FROM ${ARCH}python:3.13-slim-trixie
 
 ARG UID=2000
 ARG GID=2000
@@ -102,7 +102,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         dcraw \
         file \
-        libatlas3-base \
+        libopenblas0 \
         libfreetype6 \
         libfreetype6-dev \
         libgl1 \
@@ -111,8 +111,8 @@ RUN apt-get update && \
         libheif-examples \
         libimage-exiftool-perl \
         libpq-dev \
-        libtiff5-dev \
-        netcat \
+        libtiff-dev \
+        netcat-openbsd \
         nginx-light \
         supervisor \
         xz-utils \
@@ -123,7 +123,7 @@ RUN apt-get update && \
                    /var/tmp/*
 
 # Copy over installed Python packages and built JS bundle
-COPY --from=builder /usr/local/lib/python3.8/site-packages /usr/local/lib/python3.8/site-packages
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /srv/ui/build /srv/ui/build
 
