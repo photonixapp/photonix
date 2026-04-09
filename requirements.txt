@@ -14,7 +14,7 @@ django-graphql-jwt==0.4.0
 graphene==3.4.3
 graphene-django==3.2.3
 Markdown==3.7
-Pillow==10.4.0
+Pillow==12.1.1
 
 inotify==0.2.10
 asyncinotify==4.2.0
