@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
-import mock
+from unittest import mock
 import pytest
 
 from .factories import UserFactory
@@ -21,7 +21,8 @@ def django_db_modify_db_settings(django_db_modify_db_settings,):
     os.environ['ENV'] = 'test'
     settings.DATABASES['default'] = {
         'ENGINE':   'django.db.backends.sqlite3',
-        'NAME':     ':memory:'
+        'NAME':     ':memory:',
+        'ATOMIC_REQUESTS': False,
     }
 
 

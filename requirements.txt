@@ -1,38 +1,38 @@
-numpy==1.22.0
-scipy==1.4.1
-matplotlib==3.1.2
 tensorflow==2.4.1
-opencv-python==4.5.1.48
-annoy==1.17.0
+numpy==1.23.5
+scipy==1.10.1
+matplotlib==3.7.5
+opencv-python==4.10.0.84
+annoy==1.17.3
 
-Django==4.2.28
+Django==4.2.30
 django-cors-headers==4.4.0
-django-filter==2.4.0
-PyJWT==2.4.0
-django-graphql-jwt==0.3.4
+django-filter==23.5
+PyJWT==2.9.0
+django-graphql-jwt==0.4.0
 
-graphene==2.1.8
-graphene-django==2.16.0
-Markdown==3.1.1
-Pillow==9.3.0
+graphene==3.4.3
+graphene-django==3.2.3
+Markdown==3.7
+Pillow==10.4.0
 
 inotify==0.2.10
-asyncinotify==2.0.2
-python-dateutil==2.8.1
-pytz==2019.3
-pyshp==2.1.0
-requests==2.22.0
+asyncinotify==4.2.0
+python-dateutil==2.9.0.post0
+pytz==2024.2
+pyshp==2.3.1
+requests==2.31.0
 
-python-redis-lock==3.5.0
-redis==3.3.11
-psutil==5.9.0
+python-redis-lock==4.0.0
+redis==5.0.8
+psutil==5.9.8
 
-psycopg2-binary==2.8.4
+psycopg2-binary==2.9.9
 gunicorn==22.0.0
 
-pytest==5.3.4
-pytest-django==3.8.0
-mock==3.0.5
-factory-boy==2.12.0
-coverage==5.0.3
-colorlog==5.0.1
+pytest==7.4.4
+pytest-django==4.9.0
+mock==5.1.0
+factory-boy==3.3.3
+coverage==7.6.1
+colorlog==6.9.0

@@ -25,7 +25,7 @@ class LibraryPathInline(admin.TabularInline):
 
 class LibraryAdmin(VersionedAdmin):
     list_display = ('name', 'classification_color_enabled', 'classification_location_enabled', 'classification_style_enabled', 'classification_object_enabled', 'classification_face_enabled', 'setup_stage_completed', 'created_at', 'updated_at')
-    list_ordering = ('name',)
+    ordering = ('name',)
     list_filter = ('classification_color_enabled', 'classification_location_enabled', 'classification_style_enabled', 'classification_object_enabled', 'classification_face_enabled' ,'setup_stage_completed',)
     inlines = [LibraryUserInline, LibraryPathInline]
 
@@ -38,7 +38,7 @@ class LibraryAdmin(VersionedAdmin):
 
 class CameraAdmin(VersionedAdmin):
     list_display = ('id', 'library', 'make', 'model', 'earliest_photo', 'latest_photo')
-    list_ordering = ('make', 'model')
+    ordering = ('make', 'model')
     search_fields = ('id', 'library__id', 'make', 'model')
 
     fieldsets = (
@@ -51,7 +51,7 @@ class CameraAdmin(VersionedAdmin):
 
 class LensAdmin(VersionedAdmin):
     list_display = ('id', 'library', 'name', 'earliest_photo', 'latest_photo')
-    list_ordering = ('make', 'model')
+    ordering = ('name',)
     search_fields = ('id', 'library__id', 'name')
 
     fieldsets = (
@@ -75,7 +75,7 @@ class PhotoTagInline(admin.TabularInline):
 
 class PhotoAdmin(VersionedAdmin):
     list_display = ('id', 'library', 'visible', 'taken_at', 'taken_by')
-    list_ordering = ('taken_at',)
+    ordering = ('taken_at',)
     search_fields = ('id', 'library__id')
     inlines = [PhotoFileInline, PhotoTagInline]
 
@@ -88,7 +88,7 @@ class PhotoAdmin(VersionedAdmin):
 
 class TagAdmin(VersionedAdmin):
     list_display = ('id', 'name', 'library', 'parent', 'type', 'source')
-    list_ordering = ('name',)
+    ordering = ('name',)
     list_filter = ('type', 'source')
     search_fields = ('id', 'name', 'library__id')
 

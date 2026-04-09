@@ -385,7 +385,7 @@ class TestGraphQL(unittest.TestCase):
         data = get_graphql_content(response)
         assert response.status_code == 200
         self.assertEqual(tuple(tuple(tuple(data.values())[0].values())[0].values())[0].get('starRating'),4)
-        self.assertEqual(tuple(tuple(tuple(data.values())[0].values())[0].values())[0].get('aperture'), self.defaults['snow_photo'].aperture)
+        self.assertEqual(tuple(tuple(tuple(data.values())[0].values())[0].values())[0].get('aperture'), str(self.defaults['snow_photo'].aperture))
 
     def test_create_generic_tag_mutation(self):
         """Test create_generic_tag mutation response."""
@@ -544,7 +544,7 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         data = get_graphql_content(response)
         self.assertEqual(data['data']['photo']['id'], str(self.defaults['tree_photo'].id))
-        self.assertEqual(data['data']['photo']['aperture'], self.defaults['tree_photo'].aperture)
+        self.assertEqual(data['data']['photo']['aperture'], str(self.defaults['tree_photo'].aperture))
         self.assertEqual(data['data']['photo']['exposure'], self.defaults['tree_photo'].exposure)
         self.assertEqual(data['data']['photo']['isoSpeed'], self.defaults['tree_photo'].iso_speed)
         self.assertEqual(str(data['data']['photo']['focalLength']), self.defaults['tree_photo'].focal_length)
@@ -741,7 +741,7 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(len(data['data']['allColorTags']), 2)
         self.assertEqual(data['data']['allColorTags'][0]['name'], white_color_tag.name)
         self.assertEqual(data['data']['allColorTags'][1]['name'], color_type_tag.name)
-        self.assertEqual(data['data']['allApertures'][0], self.defaults['tree_photo'].aperture)
+        self.assertEqual(data['data']['allApertures'][0], float(self.defaults['tree_photo'].aperture))
         self.assertEqual(data['data']['allCameras'][0]['id'], str(self.defaults['snow_photo'].camera.id))
         self.assertEqual(str(data['data']['allFocalLengths'][0]), self.defaults['snow_photo'].focal_length)
 
