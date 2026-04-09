@@ -1,6 +1,12 @@
-version: '3'
-
 services:
+  init:
+    image: busybox:latest
+    volumes:
+      - ../data:/data
+    command: >
+      /bin/sh -c "mkdir -p /data/photos /data/raw-photos-processed /data/cache /data/models &&
+                  chown -R 2000:2000 /data/photos /data/raw-photos-processed /data/cache /data/models"
+
   postgres:
     user: "70:70"
     container_name: photonix-postgres
@@ -17,7 +23,7 @@ services:
     image: redis:8-alpine
 
   photonix:
-    user: "${UID:-2000}:${GID:-2000}"
+    user: "2000:2000"
     container_name: photonix
     # image: photonixapp/photonix:latest
     image: photonix
@@ -42,6 +48,8 @@ services:
     links:
       - postgres
       - redis
+    depends_on:
+      - init
 
 volumes:
   postgres_data:

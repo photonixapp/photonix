@@ -4,11 +4,17 @@ DOCKER_COMPOSE_PRD=docker compose -f docker/docker-compose.prd.yml
 start:
 	$(DOCKER_COMPOSE_DEV) up
 
+stop:
+	$(DOCKER_COMPOSE_DEV) down
+
 build:
 	$(DOCKER_COMPOSE_DEV) build
 
 start-prd:
 	$(DOCKER_COMPOSE_PRD) up
+
+stop-prd:
+	$(DOCKER_COMPOSE_PRD) down
 
 build-prd:
 	$(DOCKER_COMPOSE_PRD) build
@@ -27,3 +33,6 @@ manage:
 
 test:
 	$(DOCKER_COMPOSE_DEV) run -e PYTHONDONTWRITEBYTECODE=1 --rm photonix python test.py
+
+reset:
+	$(DOCKER_COMPOSE_DEV) down -v
