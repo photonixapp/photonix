@@ -1,7 +1,14 @@
-version: '3'
-
 services:
+  init:
+    image: busybox:latest
+    volumes:
+      - ../data:/data
+    command: >
+      /bin/sh -c "mkdir -p /data/photos /data/raw-photos-processed /data/cache /data/models &&
+                  chown -R 2000:2000 /data/photos /data/raw-photos-processed /data/cache /data/models"
+
   postgres:
+    user: "70:70"
     container_name: photonix-postgres
     image: postgres:18-alpine
     ports:
@@ -10,15 +17,17 @@ services:
       POSTGRES_DB: photonix
       POSTGRES_PASSWORD: password
     volumes:
-      - ../data/db:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
   redis:
+    user: "999:999"
     container_name: photonix-redis
     image: redis:8-alpine
     ports:
       - '6379:6379'
 
   photonix:
+    user: "2000:2000"
     container_name: photonix
     # image: photonixapp/photonix:latest
     image: photonix-dev
@@ -32,6 +41,7 @@ services:
       - '8880:8001'
     environment:
       ENV: dev
+      HTTPS: 0
       SAMPLE_DATA: 1
       POSTGRES_HOST: postgres
       POSTGRES_DB: photonix
@@ -63,3 +73,8 @@ services:
     links:
       - postgres
       - redis
+    depends_on:
+      - init
+
+volumes:
+  postgres_data:

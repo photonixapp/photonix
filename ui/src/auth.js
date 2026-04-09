@@ -24,9 +24,11 @@ export const refreshToken = () => {
 
   fetch('/graphql', {
     method: 'POST',
+    credentials: 'same-origin',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'X-CSRFToken': Cookies.get('csrftoken') || '',
     },
     body: JSON.stringify({
       query: `mutation RefreshToken($refreshToken: String!) {
@@ -111,9 +113,11 @@ export const revokeRefreshToken = (refreshToken) => {
 
   fetch('/graphql', {
     method: 'POST',
+    credentials: 'same-origin',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'X-CSRFToken': Cookies.get('csrftoken') || '',
     },
     body: JSON.stringify({
       query: `mutation RevokeToken($refreshToken: String!) {

@@ -1,5 +1,14 @@
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
 from graphene_django.views import GraphQLView
 from graphql_jwt.exceptions import JSONWebTokenError
+
+
+def csrf_failure(request, reason=''):
+    # Ensure the CSRF cookie is set in the 403 response so the client can
+    # read it and retry the request with the correct X-CSRFToken header.
+    get_token(request)
+    return JsonResponse({'errors': [{'message': 'CSRF verification failed'}]}, status=403)
 
 
 class CustomGraphQLView(GraphQLView):
