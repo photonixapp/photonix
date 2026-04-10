@@ -1,6 +1,8 @@
 import json
 import os
 
+os.environ['ENV'] = 'test'  # Must be set before Django loads URLs
+
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
