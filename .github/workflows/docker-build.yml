@@ -25,8 +25,6 @@ jobs:
           file: ./docker/Dockerfile.dev
           load: true
           tags: photonix-test:latest
-          cache-from: type=gha,scope=test
-          cache-to: type=gha,mode=max,scope=test
       -
         name: Start Redis
         run: docker run -d --name redis --network host redis:8-alpine
