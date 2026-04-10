@@ -28,8 +28,11 @@ jobs:
           cache-from: type=gha,scope=test
           cache-to: type=gha,mode=max,scope=test
       -
+        name: Start Redis
+        run: docker run -d --name redis --network host redis:8-alpine
+      -
         name: Run tests
-        run: docker run --rm photonix-test:latest python test.py
+        run: docker run --rm --network host photonix-test:latest python test.py
 
   build-and-push:
     needs: test
