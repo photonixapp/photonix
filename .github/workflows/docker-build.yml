@@ -52,6 +52,7 @@ jobs:
 
   deploy-k8s:
     needs: build-and-push
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       -
@@ -66,8 +67,8 @@ jobs:
       -
         name: Deploy
         run: |
-          echo "Deploying image: photonixapp/photonix:edge"
-          kubectl set image deployment/photonix-demo photonix-demo=photonixapp/photonix:edge -n photonix
+          echo "Deploying image: photonixapp/photonix:latest"
+          kubectl set image deployment/photonix-demo photonix-demo=photonixapp/photonix:latest -n photonix
           kubectl rollout restart deployment/photonix-demo -n photonix
       -
         name: Wait for pod to start
