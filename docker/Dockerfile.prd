@@ -83,7 +83,20 @@ RUN rm -rf \
     /usr/local/lib/python3.13/site-packages/django/contrib/flatpages \
     /usr/local/lib/python3.13/site-packages/django/contrib/sitemaps \
     /usr/local/lib/python3.13/site-packages/django/contrib/syndication \
-    /usr/local/lib/python3.13/site-packages/matplotlib/backends \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/qt_compat.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_qt*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_gtk*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_wx*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_tk*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_cairo*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_nbagg*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_webagg*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_pdf*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_pgf*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_ps*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/backend_svg*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/_backend_tk*.py \
+    /usr/local/lib/python3.13/site-packages/matplotlib/backends/_backend_gtk*.py \
     /usr/local/lib/python3.13/site-packages/matplotlib/tests \
     /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/fonts \
     /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/sample_data \

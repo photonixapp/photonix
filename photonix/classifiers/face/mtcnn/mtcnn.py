@@ -32,8 +32,6 @@
 # import cv2
 import numpy as np
 from PIL import Image
-import pkg_resources
-
 from .exceptions import InvalidImage
 from .network.factory import NetworkFactory
 
