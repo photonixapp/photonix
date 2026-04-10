@@ -8,7 +8,31 @@ on:
       - "v*.*.*"
  
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v6
+      -
+        name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      -
+        name: Build test image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./docker/Dockerfile.dev
+          load: true
+          tags: photonix-test:latest
+          cache-from: type=gha,scope=test
+          cache-to: type=gha,mode=max,scope=test
+      -
+        name: Run tests
+        run: docker run --rm photonix-test:latest python test.py
+
   build-and-push:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       -
@@ -47,8 +71,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=prod
+          cache-to: type=gha,mode=max,scope=prod
 
   deploy-k8s:
     needs: build-and-push
