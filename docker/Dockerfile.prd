@@ -75,7 +75,18 @@ RUN find /usr/local/lib/python3.13 -type d -name  "__pycache__" -exec rm -r {} +
     find /usr/local/lib/python3.13/site-packages -type d -name  "tests" -exec rm -r {} +
 RUN rm -rf \
     /usr/local/lib/python3.13/site-packages/tensorflow/include \
+    /usr/local/lib/python3.13/site-packages/tensorflow/xla_aot_runtime_src \
+    /usr/local/lib/python3.13/site-packages/tensorflow/THIRD_PARTY_NOTICES.txt \
     /usr/local/lib/python3.13/site-packages/scipy \
+    /usr/local/lib/python3.13/site-packages/scipy.libs \
+    /usr/local/lib/python3.13/site-packages/clang \
+    /usr/local/lib/python3.13/site-packages/pip \
+    /usr/local/lib/python3.13/site-packages/setuptools \
+    /usr/local/lib/python3.13/site-packages/grpc_tools \
+    /usr/local/lib/python3.13/site-packages/pypi_uploader \
+    /usr/local/lib/python3.13/site-packages/fontTools \
+    /usr/local/lib/python3.13/site-packages/cv2/data \
+    /usr/local/lib/python3.13/site-packages/numpy/f2py \
     /usr/local/lib/python3.13/site-packages/django/contrib/gis \
     /usr/local/lib/python3.13/site-packages/django/contrib/humanize \
     /usr/local/lib/python3.13/site-packages/django/contrib/admindocs \
@@ -117,14 +128,13 @@ RUN apt-get update && \
         file \
         libopenblas0 \
         libfreetype6 \
-        libfreetype6-dev \
         libgl1 \
-        libglib2.0-dev \
-        libhdf5-dev \
+        libglib2.0-0t64 \
+        libhdf5-310 \
         libheif-examples \
         libimage-exiftool-perl \
-        libpq-dev \
-        libtiff-dev \
+        libpq5 \
+        libtiff6 \
         netcat-openbsd \
         nginx-light \
         supervisor \
