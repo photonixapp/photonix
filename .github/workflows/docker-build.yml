@@ -29,7 +29,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=test
       -
         name: Run tests
-        run: docker run --rm photonix-test:latest python test.py
+        run: docker run --rm -e DJANGO_SECRET_KEY=test photonix-test:latest python test.py
 
   build-and-push:
     needs: test
