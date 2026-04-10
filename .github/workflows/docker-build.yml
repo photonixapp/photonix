@@ -57,7 +57,7 @@ jobs:
     steps:
       -
         name: Set up kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v5
       -
         name: Set up kubeconfig
         uses: azure/k8s-set-context@v5
