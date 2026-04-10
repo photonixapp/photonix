@@ -60,10 +60,10 @@ def test_datetime():
     # Some of the date digits are the letter X so fall back to file creation date
     photo_path = str(Path(__file__).parent / 'photos' / 'unreadable_date.jpg')
     parsed_datetime = get_datetime(photo_path)
-    # Falls back to file modification time, so just verify it's a valid datetime
+    # Falls back to file ctime, so just verify it's a valid datetime
     # and not the unreadable EXIF date
-    file_mtime = datetime.fromtimestamp(os.path.getmtime(photo_path), tz=timezone.utc)
-    assert parsed_datetime == file_mtime
+    file_ctime = datetime.fromtimestamp(os.stat(photo_path).st_ctime, tz=timezone.utc)
+    assert parsed_datetime == file_ctime
 
 
 @pytest.mark.django_db
