@@ -166,7 +166,7 @@ COPY system/supervisord.conf /etc/supervisord.conf
 ENV PYTHONPATH=/srv
 ENV TF_CPP_MIN_LOG_LEVEL=3
 
-RUN DJANGO_SECRET_KEY=test python photonix/manage.py collectstatic --noinput --link
+RUN python photonix/manage.py collectstatic --noinput --link
 
 RUN groupadd -g $GID photonix && \
     useradd -u $UID -g $GID -s /bin/sh photonix && \

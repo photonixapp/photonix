@@ -1,37 +1,37 @@
 import logging
 import os
+from pathlib import Path
 
 from django.core.management import utils
-from redis_lock import Lock
-
-from photonix.photos.utils.redis import redis_connection
 
 
 logger = logging.getLogger('photonix')
 
 
-def get_secret_key():
-    # To avoid each installation having the same Django SECERT_KEY we generate
-    # a random one and store it in Redis. We have to store it somewhere
-    # central like Redis because if each worker generated it's own it would
-    # cause problems (like JWT "Error decoding signature").
+def _get_data_dir():
+    if os.path.exists('/data'):
+        return Path('/data')
+    return Path(__file__).resolve().parent.parent.parent / 'data'
 
-    secret_key = None
+
+def get_secret_key():
+    # To avoid each installation having the same Django SECRET_KEY we
+    # auto-generate one on first run and persist it to a file in the data
+    # directory. All workers read the same file so JWT signatures stay
+    # consistent across processes.
 
     if 'DJANGO_SECRET_KEY' in os.environ:
-        secret_key = os.environ.get('DJANGO_SECRET_KEY')
-    else:
-        if redis_connection.exists('django_secret_key'):
-            secret_key = redis_connection.get('django_secret_key').decode('utf-8')
-        else:
-            # Make sure only first worker generates the key and others get from Redis
-            with Lock(redis_connection, 'django_secret_key_generation_lock'):
-                if redis_connection.exists('django_secret_key'):
-                    secret_key = redis_connection.get('django_secret_key').decode('utf-8')
-                else:
-                    secret_key = utils.get_random_secret_key()
-                    redis_connection.set('django_secret_key', secret_key.encode('utf-8'))
+        return os.environ['DJANGO_SECRET_KEY']
 
-    if not secret_key:
-        raise EnvironmentError('No secret key available')
+    key_file = _get_data_dir() / '.secret_key'
+    try:
+        secret_key = key_file.read_text().strip()
+        if secret_key:
+            return secret_key
+    except FileNotFoundError:
+        pass
+
+    secret_key = utils.get_random_secret_key()
+    key_file.parent.mkdir(parents=True, exist_ok=True)
+    key_file.write_text(secret_key)
     return secret_key
