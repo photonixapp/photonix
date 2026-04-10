@@ -14,11 +14,9 @@ from photonix.photos.utils.classification import ThreadedQueueProcessor
 from .factories import PhotoFactory, PhotoFileFactory, LibraryFactory, TaskFactory
 
 
-model = StyleModel()
-
-
 @pytest.mark.django_db
 def test_classifier_batch():
+    model = StyleModel()
     photo = PhotoFactory()
     PhotoFileFactory(photo=photo)
 
