@@ -1,6 +1,14 @@
+import os
+import shutil
+import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
+
+from photonix.photos.utils.db import record_photo
 from photonix.photos.utils.metadata import PhotoMetadata, parse_gps_location, get_datetime
+from .factories import LibraryFactory
 
 
 def test_metadata():
@@ -52,4 +60,24 @@ def test_datetime():
     # Some of the date digits are the letter X so fall back to file creation date
     photo_path = str(Path(__file__).parent / 'photos' / 'unreadable_date.jpg')
     parsed_datetime = get_datetime(photo_path)
-    assert parsed_datetime.isoformat() == '2021-09-02T10:43:49.739248+00:00'
+    # Falls back to file modification time, so just verify it's a valid datetime
+    # and not the unreadable EXIF date
+    file_mtime = datetime.fromtimestamp(os.path.getmtime(photo_path), tz=timezone.utc)
+    assert parsed_datetime == file_mtime
+
+
+@pytest.mark.django_db
+def test_duplicate_date_photos():
+    """Photos with same date should not be treated as duplicates (fix #347)."""
+    library = LibraryFactory()
+    snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path_photo1 = os.path.join(tmp_dir, 'photo_no_metadata_1.jpg')
+        path_photo2 = os.path.join(tmp_dir, 'photo_no_metadata_2.jpg')
+        shutil.copy2(snow_path, path_photo1)
+        shutil.copy2(snow_path, path_photo2)
+
+        photo1 = record_photo(path_photo1, library)
+        photo2 = record_photo(path_photo2, library)
+
+        assert photo1 != photo2

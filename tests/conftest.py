@@ -39,6 +39,18 @@ def mock_redis(request):
         m.stop()
 
 
+@pytest.fixture(autouse=True)
+def reset_model_manager_cooldown():
+    """Clear the ModelManager load cooldown in Redis so tests don't block each other."""
+    import redis as _redis
+    from photonix.classifiers.model_manager import LAST_MODEL_LOAD_KEY
+    from photonix.photos.utils.redis import redis_connection
+    try:
+        redis_connection.delete(LAST_MODEL_LOAD_KEY)
+    except _redis.exceptions.ConnectionError:
+        pass
+
+
 # These fixtures come from the Saleor project and are licensed as BSD-3-Clause
 # https://github.com/mirumee/saleor/blob/master/tests/api/conftest.py
 

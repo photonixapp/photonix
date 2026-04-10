@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime as dt
 import json
 import logging
 import os
@@ -204,7 +204,7 @@ class FaceModel(BaseModel):
 
         oldest_date = None
         if self.retrained_version:
-            oldest_date = datetime.strptime(str(self.retrained_version), '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
+            oldest_date = dt.datetime.strptime(str(self.retrained_version), '%Y%m%d%H%M%S').replace(tzinfo=dt.timezone.utc)
 
         brute_force_nearest, brute_force_distance = self.find_closest_face_tag_by_brute_force(source_embedding, oldest_date=oldest_date)
 
@@ -225,7 +225,7 @@ class FaceModel(BaseModel):
 
         embedding_size = 128  # FaceNet output size
         t = AnnoyIndex(embedding_size, 'euclidean')
-        retrained_version = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        retrained_version = dt.datetime.utcnow().strftime('%Y%m%d%H%M%S')
 
         tag_ids = []
         if training_data:  # Mainly as an option for testing
@@ -266,7 +266,7 @@ class FaceModel(BaseModel):
             if os.path.exists(version_file):
                 with open(version_file) as f:
                     contents = f.read().strip()
-                    version_date = datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
+                    version_date = dt.datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=dt.timezone.utc)
                     self.retrained_version = int(version_date.strftime('%Y%m%d%H%M%S'))
                     return self.retrained_version
         return 0

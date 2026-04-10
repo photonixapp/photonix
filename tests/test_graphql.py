@@ -1,6 +1,5 @@
 
 import datetime
-import os
 from pathlib import Path
 import unittest
 
@@ -60,19 +59,6 @@ class TestGraphQL(unittest.TestCase):
             'tree_photo': tree_photo,
             'password': 'demo123456',
         }
-
-    def test_fix347(self):
-        # Test fix 347 - Photos with same date are not imported
-        path_photo1 = str(Path(__file__).parent / 'photos' / 'photo_no_metadata_1.jpg')
-        Path(path_photo1).touch()
-
-        path_photo2 = str(Path(__file__).parent / 'photos' / 'photo_no_metadata_2.jpg')
-        Path(path_photo2).touch()
-
-        photo1 = record_photo(path_photo1, self._library)
-        photo2 = record_photo(path_photo2, self._library)
-
-        assert(not photo1 == photo2)
 
     def test_user_login_environment(self):
         """Test user logged in successfully or not."""

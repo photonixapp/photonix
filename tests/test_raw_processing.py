@@ -42,6 +42,9 @@ def test_extract_jpg():
                 except:
                     pass
 
+        if not os.path.exists(raw_photo_path):
+            pytest.skip(f'Could not download raw photo: {fn}')
+
         output_path, _, process_params, _ = generate_jpeg(raw_photo_path)
 
         assert process_params == intended_process_params
@@ -66,6 +69,9 @@ def photo_fixture_raw(db):
                 break
             except:
                 pass
+
+    if not os.path.exists(raw_photo_path):
+        pytest.skip(f'Could not download raw photo: {PHOTOS[photo_index][0]}')
 
     library = LibraryFactory()
     return record_photo(raw_photo_path, library)

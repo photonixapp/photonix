@@ -61,18 +61,17 @@ def get_opencv_path():
 
 
 def load_image(img):
-	exact_image = False
 	if type(img).__module__ == np.__name__:
-		exact_image = True
+		return img
 
 	base64_img = False
-	if len(img) > 11 and img[0:11] == "data:image/":
+	if isinstance(img, str) and len(img) > 11 and img[0:11] == "data:image/":
 		base64_img = True
 
 	if base64_img == True:
 		img = loadBase64Img(img)
 
-	elif exact_image != True:  # image path passed as input
+	else:  # image path passed as input
 		if os.path.isfile(img) != True:
 			raise ValueError("Confirm that ", img, " exists")
 
@@ -214,7 +213,12 @@ def find_input_shape(model):
 	# face recognition models have different size of inputs
 	# my environment returns (None, 224, 224, 3) but some people mentioned that they got [(None, 224, 224, 3)]. I think this is because of version issue.
 
-	input_shape = model.layers[0].input_shape
+	# Newer Keras versions removed input_shape from InputLayer; use model.input_shape instead
+	first_layer = model.layers[0]
+	if hasattr(first_layer, 'input_shape'):
+		input_shape = first_layer.input_shape
+	else:
+		input_shape = model.input_shape
 
 	if type(input_shape) == list:
 		input_shape = input_shape[0][1:3]

@@ -19,7 +19,6 @@ def _ensure_tensorflow():
     global tf
     if tf is None:
         import tensorflow as _tf
-        _tf.compat.v1.disable_eager_execution()
         tf = _tf
     return tf
 
@@ -122,25 +121,22 @@ class StyleModel(BaseModel):
 
     def read_tensor_from_image_file(self, file_name, input_height=299, input_width=299, input_mean=0, input_std=255):
         tf = _ensure_tensorflow()
-        input_name = "file_reader"
         try:
-
-            file_reader = tf.io.read_file(file_name, input_name)
+            file_reader = tf.io.read_file(file_name)
             if file_name.endswith(".png"):
-                image_reader = tf.image.decode_png(file_reader, channels=3, name='png_reader')
+                image_reader = tf.image.decode_png(file_reader, channels=3)
             elif file_name.endswith(".gif"):
-                image_reader = tf.squeeze(tf.image.decode_gif(file_reader, name='gif_reader'))
+                image_reader = tf.squeeze(tf.image.decode_gif(file_reader))
             elif file_name.endswith(".bmp"):
-                image_reader = tf.image.decode_bmp(file_reader, name='bmp_reader')
+                image_reader = tf.image.decode_bmp(file_reader)
             else:
-                image_reader = tf.image.decode_jpeg(file_reader, channels=3, name='jpeg_reader')
+                image_reader = tf.image.decode_jpeg(file_reader, channels=3)
             float_caster = tf.cast(image_reader, tf.float32)
             dims_expander = tf.expand_dims(float_caster, 0)
             resized = tf.image.resize(dims_expander, [input_height, input_width], method=tf.image.ResizeMethod.BILINEAR, antialias=True)
             normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
-            sess = tf.compat.v1.Session()
-            return sess.run(normalized)
-        except:
+            return normalized.numpy()
+        except Exception:
             return None
 
 
