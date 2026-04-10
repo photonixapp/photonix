@@ -26,17 +26,13 @@ def get_secret_key():
     if 'DJANGO_SECRET_KEY' in os.environ:
         return os.environ['DJANGO_SECRET_KEY']
 
-    data_dir = _get_data_dir()
-    key_file = data_dir / 'cache' / '.secret_key'
-
-    # Also check old location for existing installations.
-    for path in (key_file, data_dir / '.secret_key'):
-        try:
-            secret_key = path.read_text().strip()
-            if secret_key:
-                return secret_key
-        except (FileNotFoundError, PermissionError):
-            pass
+    key_file = _get_data_dir() / 'cache' / '.secret_key'
+    try:
+        secret_key = key_file.read_text().strip()
+        if secret_key:
+            return secret_key
+    except FileNotFoundError:
+        pass
 
     secret_key = utils.get_random_secret_key()
     key_file.parent.mkdir(parents=True, exist_ok=True)
