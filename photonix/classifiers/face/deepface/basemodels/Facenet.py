@@ -532,7 +532,11 @@ def InceptionResNetV2():
 
 def loadModel():
 	model = InceptionResNetV2()
-	weights = '/data/models/face/facenet_weights.h5'
+	try:
+		from django.conf import settings
+		weights = os.path.join(settings.MODEL_DIR, 'face', 'facenet_weights.h5')
+	except Exception:
+		weights = '/data/models/face/facenet_weights.h5'
 
 	if os.path.isfile(weights) != True:
 		raise FileNotFoundError('Facenet weights does not exist')

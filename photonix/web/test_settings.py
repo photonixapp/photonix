@@ -17,5 +17,6 @@ DATABASES = {
 
 DATA_DIR = tempfile.mkdtemp()
 CACHE_DIR = str(Path(DATA_DIR) / 'cache')
+MODEL_DIR = str(Path(DATA_DIR) / 'models')
 PHOTO_RAW_PROCESSED_DIR = str(Path(DATA_DIR) / 'raw-photos-processed')
 THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
