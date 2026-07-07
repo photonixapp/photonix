@@ -15,7 +15,7 @@
     "emotion-theming": "^10.0.27",
     "graphql": "^15.5.0",
     "history": "^4.10.1",
-    "js-cookie": "^2.2.1",
+    "js-cookie": "^3.0.7",
     "leaflet": "^1.6.0",
     "leaflet.markercluster": "^1.4.1",
     "little-state-machine": "^2.14.1",
