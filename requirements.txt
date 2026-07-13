@@ -5,7 +5,7 @@ matplotlib==3.10.8
 opencv-python-headless==4.13.0.92
 annoy==1.17.3
 
-Django==6.0.4
+Django==6.0.6
 django-cors-headers==4.9.0
 django-filter==25.2
 PyJWT==2.12.1
