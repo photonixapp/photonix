@@ -19,7 +19,6 @@ RUN apt-get update && \
         libfreetype6-dev \
         libgl1 \
         libglib2.0-dev \
-        libhdf5-dev \
         libheif-examples \
         libimage-exiftool-perl \
         libjpeg-dev \

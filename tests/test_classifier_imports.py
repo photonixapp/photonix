@@ -13,10 +13,9 @@ CLASSIFIERS = [
     ('photonix.classifiers.clip.model', 'ClipModel'),
 ]
 
-# Classifiers that use lazy-loaded heavy dependencies (e.g. TensorFlow, ONNX
-# Runtime). We call their ensure methods to verify those deps are importable.
+# Classifiers that use lazy-loaded heavy dependencies (ONNX Runtime). We call
+# their ensure methods to verify those deps are importable.
 LAZY_LOADERS = [
-    ('photonix.classifiers.base_model', 'ensure_tensorflow'),
     ('photonix.classifiers.base_model', 'ensure_onnxruntime'),
 ]
 
@@ -33,7 +32,7 @@ def test_classifier_module_imports(module_path, class_name):
 @pytest.mark.parametrize('module_path,func_name', LAZY_LOADERS,
                          ids=[f'{m.split(".")[-2]}.{f}' for m, f in LAZY_LOADERS])
 def test_lazy_dependencies_importable(module_path, func_name):
-    """Verify lazy-loaded dependencies (TensorFlow, etc.) can be imported."""
+    """Verify lazy-loaded dependencies (ONNX Runtime, etc.) can be imported."""
     module = importlib.import_module(module_path)
     ensure_fn = getattr(module, func_name)
     result = ensure_fn()

@@ -90,6 +90,11 @@ Visualize the summaries with this command:
 tensorboard --logdir /tmp/retrain_logs
 
 """
+# NOTE: This is an offline training script only. TensorFlow is no longer a
+# Photonix runtime dependency (all classifiers run on ONNX Runtime), so it is
+# not installed in the app image or requirements.txt. To run this script,
+# install TensorFlow separately in a dedicated training environment, e.g.
+# `pip install tensorflow`.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function

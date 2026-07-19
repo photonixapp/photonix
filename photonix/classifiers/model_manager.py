@@ -316,8 +316,8 @@ class ModelManager:
             # Clear from graph_cache (shared module-level dict)
             self._clear_graph_cache(classifier_name, model)
 
-            # TensorFlow-specific cleanup
-            self._tensorflow_cleanup(classifier_name, model)
+            # Close the model's reused inference session (if it has a closable one)
+            self._close_model_session(classifier_name, model)
 
             # Delete model instance and force garbage collection
             del model
@@ -337,12 +337,15 @@ class ModelManager:
             del graph_cache[key]
             logger.debug(f"Removed graph_cache key: {key}")
 
-    def _tensorflow_cleanup(self, classifier_name: str, model: Any):
-        """Framework-specific memory cleanup for the model's reused session."""
-        # Close the model's reused session before clearing the Keras backend so
-        # its graph/threadpool resources are freed too. TF1 sessions expose
-        # close(); ONNX Runtime InferenceSessions do not, and are freed by the
-        # deletion + gc.collect() the caller performs after this returns.
+    def _close_model_session(self, classifier_name: str, model: Any):
+        """Close the model's reused inference session before it is deleted.
+
+        All classifiers now run on ONNX Runtime, whose InferenceSessions have no
+        close() method and are freed by the deletion + gc.collect() the caller
+        performs after this returns. This guard stays because it costs nothing
+        and covers any future framework whose session exposes a callable close()
+        (e.g. a closable graph/threadpool-backed session).
+        """
         if hasattr(model, 'session') and model.session is not None:
             close = getattr(model.session, 'close', None)
             if callable(close):
@@ -350,18 +353,6 @@ class ModelManager:
                     close()
                 except Exception as e:
                     logger.warning(f"Error closing session for '{classifier_name}': {e}")
-
-        try:
-            import tensorflow as tf
-
-            # Clear Keras backend session (helps with memory)
-            if hasattr(tf, 'keras') and hasattr(tf.keras.backend, 'clear_session'):
-                tf.keras.backend.clear_session()
-
-        except ImportError:
-            pass  # TensorFlow not available
-        except Exception as e:
-            logger.warning(f"TensorFlow cleanup for '{classifier_name}' had issues: {e}")
 
     def touch(self, classifier_name: str):
         """Update the last-used timestamp for a model (call after each task)."""

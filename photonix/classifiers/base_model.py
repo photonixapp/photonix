@@ -18,9 +18,6 @@ graph_cache = {}
 
 logger = logging.getLogger(__name__)
 
-# Lazy-loaded TensorFlow module, shared by all classifiers that need it
-tf = None
-
 
 def _get_thread_settings():
     """Return (intra_op, inter_op) thread caps; 0 means leave the framework default."""
@@ -30,41 +27,6 @@ def _get_thread_settings():
                 settings.CLASSIFIER_INTER_OP_THREADS)
     except Exception:
         return (2, 2)
-
-
-def _apply_tf_thread_limits(_tf):
-    # Must run before the first op executes or TF raises RuntimeError; a
-    # warning is logged if TF was already initialised elsewhere.
-    intra, inter = _get_thread_settings()
-    try:
-        if intra:
-            _tf.config.threading.set_intra_op_parallelism_threads(intra)
-        if inter:
-            _tf.config.threading.set_inter_op_parallelism_threads(inter)
-    except RuntimeError as e:
-        logger.warning(f"Could not apply TensorFlow thread limits: {e}")
-
-
-def ensure_tensorflow():
-    """Lazy load TensorFlow on first use."""
-    global tf
-    if tf is None:
-        import tensorflow as _tf
-        tf = _tf
-        _apply_tf_thread_limits(tf)
-    return tf
-
-
-def tf_session_config():
-    """ConfigProto applying the classifier thread caps to a TF1 session."""
-    _tf = ensure_tensorflow()
-    intra, inter = _get_thread_settings()
-    config = _tf.compat.v1.ConfigProto()
-    if intra:
-        config.intra_op_parallelism_threads = intra
-    if inter:
-        config.inter_op_parallelism_threads = inter
-    return config
 
 
 # Lazy-loaded ONNX Runtime module, shared by all classifiers that need it

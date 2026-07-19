@@ -76,15 +76,10 @@ RUN NODE_OPTIONS="--max-old-space-size=768" npm run build
 RUN find /usr/local/lib/python3.13 -type d -name  "__pycache__" -exec rm -r {} + && \
     find /usr/local/lib/python3.13/site-packages -type d -name  "tests" -exec rm -r {} +
 RUN rm -rf \
-    /usr/local/lib/python3.13/site-packages/tensorflow/include \
-    /usr/local/lib/python3.13/site-packages/tensorflow/xla_aot_runtime_src \
-    /usr/local/lib/python3.13/site-packages/tensorflow/THIRD_PARTY_NOTICES.txt \
     /usr/local/lib/python3.13/site-packages/scipy \
     /usr/local/lib/python3.13/site-packages/scipy.libs \
-    /usr/local/lib/python3.13/site-packages/clang \
     /usr/local/lib/python3.13/site-packages/pip \
     /usr/local/lib/python3.13/site-packages/setuptools \
-    /usr/local/lib/python3.13/site-packages/grpc_tools \
     /usr/local/lib/python3.13/site-packages/pypi_uploader \
     /usr/local/lib/python3.13/site-packages/fontTools \
     /usr/local/lib/python3.13/site-packages/cv2/data \
@@ -115,8 +110,6 @@ RUN rm -rf \
     /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/sample_data \
     /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/images \
     /usr/local/lib/python3.13/site-packages/matplotlib/mpl-data/stylelib \
-    /usr/local/lib/python3.13/site-packages/tensorboard \
-    /usr/local/lib/python3.13/site-packages/tensorboard_plugin_wit \
     /usr/local/lib/python3.13/site-packages/pytest \
     /usr/local/lib/python3.13/site-packages/_pytest \
     /usr/local/lib/python3.13/site-packages/pytest_django \
@@ -141,7 +134,6 @@ RUN apt-get update && \
         libfreetype6 \
         libgl1 \
         libglib2.0-0t64 \
-        libhdf5-310 \
         libheif-examples \
         libimage-exiftool-perl \
         libpq5 \
@@ -173,7 +165,6 @@ COPY system /srv/system
 COPY system/supervisord.conf /etc/supervisord.conf
 
 ENV PYTHONPATH=/srv
-ENV TF_CPP_MIN_LOG_LEVEL=3
 
 RUN python photonix/manage.py collectstatic --noinput --link
 

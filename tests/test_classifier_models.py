@@ -420,11 +420,11 @@ def test_unload_model_closes_session_and_clears_cache():
     assert not manager.is_loaded('object')
 
 
-def test_tensorflow_cleanup_closes_closable_session():
-    # The TF cleanup path (still used by the face model) must call close() on
-    # sessions that expose one; ONNX Runtime sessions have no close() and are
-    # left for deletion + gc. Use a fake TF-like session so both cleanup
-    # branches stay covered regardless of which framework a model uses.
+def test_close_model_session_closes_closable_session():
+    # Session cleanup must call close() on sessions that expose one; ONNX
+    # Runtime sessions have no close() and are left for deletion + gc. Use a
+    # fake closable session and a close-less one so both cleanup branches stay
+    # covered regardless of which framework a model uses.
     from unittest.mock import MagicMock
 
     from photonix.classifiers.model_manager import get_model_manager
@@ -433,7 +433,7 @@ def test_tensorflow_cleanup_closes_closable_session():
 
     fake_model = MagicMock()
     fake_model.session = MagicMock()  # has a callable close()
-    manager._tensorflow_cleanup('fake_tf', fake_model)
+    manager._close_model_session('fake_closable', fake_model)
     fake_model.session.close.assert_called_once()
 
     # A session object without a close() attribute (like ORT) must not raise
@@ -442,7 +442,7 @@ def test_tensorflow_cleanup_closes_closable_session():
 
     ort_like_model = MagicMock()
     ort_like_model.session = SessionWithoutClose()
-    manager._tensorflow_cleanup('fake_ort', ort_like_model)  # must not raise
+    manager._close_model_session('fake_ort', ort_like_model)  # must not raise
 
 
 def test_face_predict_boxes_in_original_pixel_space(tmpdir):
