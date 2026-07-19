@@ -224,10 +224,11 @@ CLASSIFIER_LOAD_COOLDOWN_SECONDS = int(os.environ.get('CLASSIFIER_LOAD_COOLDOWN'
 # Longest edge (px) that images are downscaled to before running detection
 # models; 0 disables capping and runs inference on the full-res original.
 CLASSIFIER_MAX_INFERENCE_SIZE = int(os.environ.get('CLASSIFIER_MAX_INFERENCE_SIZE', 1024))
-# Per-process TensorFlow thread caps to stop the classifier processes
-# oversubscribing all host cores; 0 leaves TensorFlow's own defaults.
-CLASSIFIER_TF_INTRA_OP_THREADS = int(os.environ.get('CLASSIFIER_TF_INTRA_OP_THREADS', 2))
-CLASSIFIER_TF_INTER_OP_THREADS = int(os.environ.get('CLASSIFIER_TF_INTER_OP_THREADS', 2))
+# Per-process inference thread caps to stop the classifier processes
+# oversubscribing all host cores; applied to both TensorFlow and ONNX Runtime
+# sessions. 0 leaves the framework's own defaults.
+CLASSIFIER_INTRA_OP_THREADS = int(os.environ.get('CLASSIFIER_INTRA_OP_THREADS', 2))
+CLASSIFIER_INTER_OP_THREADS = int(os.environ.get('CLASSIFIER_INTER_OP_THREADS', 2))
 
 GRAPHENE = {
     'SCHEMA': 'photonix.web.schema.schema',

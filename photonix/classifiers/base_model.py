@@ -22,12 +22,12 @@ logger = logging.getLogger(__name__)
 tf = None
 
 
-def _get_tf_thread_settings():
-    """Return (intra_op, inter_op) thread caps; 0 means leave TF's default."""
+def _get_thread_settings():
+    """Return (intra_op, inter_op) thread caps; 0 means leave the framework default."""
     try:
         from django.conf import settings
-        return (settings.CLASSIFIER_TF_INTRA_OP_THREADS,
-                settings.CLASSIFIER_TF_INTER_OP_THREADS)
+        return (settings.CLASSIFIER_INTRA_OP_THREADS,
+                settings.CLASSIFIER_INTER_OP_THREADS)
     except Exception:
         return (2, 2)
 
@@ -35,7 +35,7 @@ def _get_tf_thread_settings():
 def _apply_tf_thread_limits(_tf):
     # Must run before the first op executes or TF raises RuntimeError; a
     # warning is logged if TF was already initialised elsewhere.
-    intra, inter = _get_tf_thread_settings()
+    intra, inter = _get_thread_settings()
     try:
         if intra:
             _tf.config.threading.set_intra_op_parallelism_threads(intra)
@@ -58,13 +58,40 @@ def ensure_tensorflow():
 def tf_session_config():
     """ConfigProto applying the classifier thread caps to a TF1 session."""
     _tf = ensure_tensorflow()
-    intra, inter = _get_tf_thread_settings()
+    intra, inter = _get_thread_settings()
     config = _tf.compat.v1.ConfigProto()
     if intra:
         config.intra_op_parallelism_threads = intra
     if inter:
         config.inter_op_parallelism_threads = inter
     return config
+
+
+# Lazy-loaded ONNX Runtime module, shared by all classifiers that need it
+ort = None
+
+
+def ensure_onnxruntime():
+    """Lazy load ONNX Runtime on first use."""
+    global ort
+    if ort is None:
+        import onnxruntime as _ort
+        ort = _ort
+    return ort
+
+
+def create_ort_session(model_path):
+    """Build a CPU onnxruntime InferenceSession for the model at model_path,
+    applying the classifier intra/inter op thread caps from settings."""
+    _ort = ensure_onnxruntime()
+    intra, inter = _get_thread_settings()
+    options = _ort.SessionOptions()
+    if intra:
+        options.intra_op_num_threads = intra
+    if inter:
+        options.inter_op_num_threads = inter
+    return _ort.InferenceSession(str(model_path), sess_options=options,
+                                 providers=['CPUExecutionProvider'])
 
 
 class BaseModel:

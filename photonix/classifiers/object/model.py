@@ -1,33 +1,51 @@
 import os
+import re
 import sys
 
 import numpy as np
 from PIL import Image, ImageOps as PILImageOps
 
-from photonix.classifiers.base_model import BaseModel, ensure_tensorflow as _ensure_tensorflow, tf_session_config
+from photonix.classifiers.base_model import BaseModel, create_ort_session
 from photonix.classifiers.image_utils import downscale_for_inference
 
-# Lazy-loaded modules (heavy imports)
-label_map_util = None
 
-
-def _ensure_label_map_util():
-    """Lazy load label_map_util on first use (imports TensorFlow)."""
-    global label_map_util
-    if label_map_util is None:
-        from photonix.classifiers.object.utils import label_map_util as _label_map_util
-        label_map_util = _label_map_util
-    return label_map_util
-
-
-GRAPH_FILE = os.path.join('object', 'ssd_mobilenet_v2_oid_v4_2018_12_12_frozen_inference_graph.pb')
+GRAPH_FILE = os.path.join('object', 'object.onnx')
 LABEL_FILE = os.path.join('object', 'oid_v4_label_map.pbtxt')
+
+
+def parse_label_map(label_file):
+    """Parse a TF object-detection label map into a category index.
+
+    The label map is a flat sequence of blocks:
+        item {
+          name: "/m/011k07"
+          id: 1
+          display_name: "Tortoise"
+        }
+    This produces the same structure the old protobuf-based label_map_util
+    returned: {id: {'id': id, 'name': display_name}}, preferring display_name
+    and falling back to name, keeping the first item seen for any given id.
+    """
+    with open(label_file) as f:
+        text = f.read()
+
+    category_index = {}
+    for block in re.findall(r'item\s*\{([^}]*)\}', text):
+        id_match = re.search(r'\bid:\s*(\d+)', block)
+        name_match = re.search(r'display_name:\s*"([^"]*)"', block)
+        if not name_match:
+            name_match = re.search(r'\bname:\s*"([^"]*)"', block)
+        if id_match and name_match:
+            item_id = int(id_match.group(1))
+            if item_id > 0 and item_id not in category_index:
+                category_index[item_id] = {'id': item_id, 'name': name_match.group(1)}
+    return category_index
 
 
 class ObjectModel(BaseModel):
     name = 'object'
-    version = 20190407
-    approx_ram_mb = 2000
+    version = 20260719
+    approx_ram_mb = 800
 
     def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
         super().__init__(model_dir=model_dir)
@@ -35,77 +53,48 @@ class ObjectModel(BaseModel):
         self._graph_file = os.path.join(self.model_dir, graph_file)
         self._label_file = os.path.join(self.model_dir, label_file)
         self._lock_name = lock_name
-        self.graph = None
         self.labels = None
         self.session = None
-        self.tensor_dict = None
-        self.image_tensor = None
+        self.input_name = None
+        self.output_names = None
 
         # Download model files eagerly (cheap), but don't load into memory yet
         self.ensure_downloaded(lock_name=lock_name)
 
     def load(self):
-        tf = _ensure_tensorflow()
-        self.graph = self.load_graph(self._graph_file)
-        self.labels = self.load_labels(self._label_file)
-
-        # Reuse a single session across photos (and across re-instantiated
-        # models in this process) instead of building one per prediction.
+        # Reuse a single ONNX Runtime session across photos (and across
+        # re-instantiated models in this process) instead of building one per
+        # prediction.
         session_key = f'{self.graph_cache_key}:session'
         with self.load_lock():
             if session_key in self.graph_cache:
                 self.session = self.graph_cache[session_key]
             else:
-                self.session = tf.compat.v1.Session(graph=self.graph, config=tf_session_config())
+                self.session = create_ort_session(self._graph_file)
                 self.graph_cache[session_key] = self.session
 
-        # Precompute tensor handles once at load rather than walking every
-        # graph op on each prediction.
-        ops = self.graph.get_operations()
-        all_tensor_names = {output.name for op in ops for output in op.outputs}
-        self.tensor_dict = {}
-        for key in [
-            'num_detections', 'detection_boxes', 'detection_scores',
-            'detection_classes', 'detection_masks'
-        ]:
-            tensor_name = key + ':0'
-            if tensor_name in all_tensor_names:
-                self.tensor_dict[key] = self.graph.get_tensor_by_name(tensor_name)
-        self.image_tensor = self.graph.get_tensor_by_name('image_tensor:0')
+        self.labels = self.load_labels(self._label_file)
 
-    def load_graph(self, graph_file):
-        tf = _ensure_tensorflow()
-        with self.load_lock():
-            if self.graph_cache_key in self.graph_cache:
-                return self.graph_cache[self.graph_cache_key]
-
-            graph = tf.Graph()
-            graph_def = tf.compat.v1.GraphDef()
-
-            with graph.as_default():
-                od_graph_def = tf.compat.v1.GraphDef()
-                with tf.io.gfile.GFile(graph_file, 'rb') as fid:
-                    serialized_graph = fid.read()
-                    od_graph_def.ParseFromString(serialized_graph)
-                    tf.import_graph_def(od_graph_def, name='')
-
-            self.graph_cache[self.graph_cache_key] = graph
-            return graph
+        # tf2onnx keeps the TF tensor names ('image_tensor:0', 'num_detections:0'
+        # etc.), so map inputs/outputs by name rather than by position.
+        self.input_name = self.session.get_inputs()[0].name
+        self.output_names = [output.name for output in self.session.get_outputs()]
 
     def load_labels(self, label_file):
-        lmu = _ensure_label_map_util()
-        label_map = lmu.load_labelmap(label_file)
-        categories = lmu.convert_label_map_to_categories(label_map, max_num_classes=1000, use_display_name=True)
-        return lmu.create_category_index(categories)
+        return parse_label_map(label_file)
 
     def load_image_into_numpy_array(self, image):
         return np.asarray(image, dtype=np.uint8)
 
     def run_inference_for_single_image(self, image):
-        # Run inference on the reused session with the precomputed handles
-        output_dict = self.session.run(
-            self.tensor_dict,
-            feed_dict={self.image_tensor: np.expand_dims(image, 0)})
+        # The model expects a batch: [1, height, width, 3] uint8.
+        outputs = self.session.run(self.output_names,
+                                   {self.input_name: np.expand_dims(image, 0)})
+
+        # Map by output name (stripping the ':0' tensor suffix) so we don't
+        # depend on the order onnxruntime lists the outputs in.
+        output_dict = {name.split(':')[0]: value
+                       for name, value in zip(self.output_names, outputs)}
 
         # all outputs are float32 numpy arrays, so convert types as appropriate
         output_dict['num_detections'] = int(output_dict['num_detections'][0])

@@ -240,9 +240,16 @@ def test_style_predict():
 
     assert len(result) == 1
     assert result[0][0] == 'serene'
-    assert '{0:.3f}'.format(result[0][1]) == '0.962'
+    # ONNX Runtime + PIL preprocessing (was 0.962 under TF); the parity report
+    # confirmed the top-1 label is preserved with a max score drift <= 0.005.
+    assert '{0:.3f}'.format(result[0][1]) == '0.957'
 
-    # Check that there is no error when running with non-RGB image
+    # Unreadable/corrupt files must still return None so run_on_photo keeps any
+    # existing tags (the has_results contract). The migration swapped the TF
+    # eager decoder for PIL, which decodes many formats TF could not (e.g. CMYK
+    # TIFFs) - but this particular fixture is a deflate-compressed TIFF whose
+    # pixel mode Pillow cannot parse, so the decode still fails cleanly and
+    # predict() returns None via its try/except, exactly as before.
     cmyk = str(Path(__file__).parent / 'photos' / 'cmyk.tif')
     result = model.predict(cmyk)
     assert result == None
@@ -362,10 +369,11 @@ def test_style_session_reused():
 
 
 def test_unload_model_closes_session_and_clears_cache():
-    # Unloading must close the reused TF session and drop every graph_cache
-    # entry for the classifier (including the new ':session' key)
+    # Unloading must drop every graph_cache entry for the classifier (including
+    # the reused ':session' key) and mark the model unloaded. The object model
+    # now runs on ONNX Runtime, whose InferenceSession has no close() - it is
+    # freed by the deletion + gc.collect() unload_model performs.
     import time
-    from unittest.mock import MagicMock
 
     from photonix.classifiers.base_model import graph_cache
     from photonix.classifiers.object.model import ObjectModel
@@ -384,14 +392,35 @@ def test_unload_model_closes_session_and_clears_cache():
     assert [k for k in graph_cache if k.startswith('object:')]
     assert f'{model.graph_cache_key}:session' in graph_cache
 
-    # Spy on close() while still closing the real session underneath
-    model.session = MagicMock(wraps=model.session)
-
     assert manager.unload_model('object') is True
 
-    model.session.close.assert_called_once()
     assert not [k for k in graph_cache if k.startswith('object:')]
     assert not manager.is_loaded('object')
+
+
+def test_tensorflow_cleanup_closes_closable_session():
+    # The TF cleanup path (still used by the face model) must call close() on
+    # sessions that expose one; ONNX Runtime sessions have no close() and are
+    # left for deletion + gc. Use a fake TF-like session so both cleanup
+    # branches stay covered regardless of which framework a model uses.
+    from unittest.mock import MagicMock
+
+    from photonix.classifiers.model_manager import get_model_manager
+
+    manager = get_model_manager()
+
+    fake_model = MagicMock()
+    fake_model.session = MagicMock()  # has a callable close()
+    manager._tensorflow_cleanup('fake_tf', fake_model)
+    fake_model.session.close.assert_called_once()
+
+    # A session object without a close() attribute (like ORT) must not raise
+    class SessionWithoutClose:
+        pass
+
+    ort_like_model = MagicMock()
+    ort_like_model.session = SessionWithoutClose()
+    manager._tensorflow_cleanup('fake_ort', ort_like_model)  # must not raise
 
 
 def test_face_predict_boxes_in_original_pixel_space(tmpdir):

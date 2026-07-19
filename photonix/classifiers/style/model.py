@@ -2,18 +2,19 @@ import os
 import sys
 
 import numpy as np
+from PIL import Image
 
-from photonix.classifiers.base_model import BaseModel, ensure_tensorflow as _ensure_tensorflow, tf_session_config
+from photonix.classifiers.base_model import BaseModel, create_ort_session
 from photonix.web.utils import logger
 
 
-GRAPH_FILE = os.path.join('style', 'graph.pb')
+GRAPH_FILE = os.path.join('style', 'style.onnx')
 LABEL_FILE = os.path.join('style', 'labels.txt')
 
 
 class StyleModel(BaseModel):
     name = 'style'
-    version = 20180624
+    version = 20260719
     approx_ram_mb = 100
     max_num_workers = 2
 
@@ -23,80 +24,41 @@ class StyleModel(BaseModel):
         self._graph_file = os.path.join(self.model_dir, graph_file)
         self._label_file = os.path.join(self.model_dir, label_file)
         self._lock_name = lock_name
-        self.graph = None
         self.labels = None
         self.session = None
+        self.input_name = None
 
         # Download model files eagerly (cheap), but don't load into memory yet
         self.ensure_downloaded(lock_name=lock_name)
 
     def load(self):
-        tf = _ensure_tensorflow()
-        self.graph = self.load_graph(self._graph_file)
-        self.labels = self.load_labels(self._label_file)
-
-        # Reuse a single session across photos (and across re-instantiated
-        # models in this process) instead of building one per prediction.
+        # Reuse a single ONNX Runtime session across photos (and across
+        # re-instantiated models in this process) instead of building one per
+        # prediction.
         session_key = f'{self.graph_cache_key}:session'
         with self.load_lock():
             if session_key in self.graph_cache:
                 self.session = self.graph_cache[session_key]
             else:
-                self.session = tf.compat.v1.Session(graph=self.graph, config=tf_session_config())
+                self.session = create_ort_session(self._graph_file)
                 self.graph_cache[session_key] = self.session
 
-    def load_graph(self, graph_file):
-        tf = _ensure_tensorflow()
-        with self.load_lock():
-            if self.graph_cache_key in self.graph_cache:
-                return self.graph_cache[self.graph_cache_key]
-
-            graph = tf.Graph()
-            graph_def = tf.compat.v1.GraphDef()
-
-            with open(graph_file, 'rb') as f:
-                graph_def.ParseFromString(f.read())
-            with graph.as_default():
-                tf.import_graph_def(graph_def)
-
-            self.graph_cache[self.graph_cache_key] = graph
-            return graph
+        self.labels = self.load_labels(self._label_file)
+        self.input_name = self.session.get_inputs()[0].name
 
     def load_labels(self, label_file):
-        tf = _ensure_tensorflow()
-        labels = []
-        proto_as_ascii_lines = tf.io.gfile.GFile(label_file).readlines()
-        for l in proto_as_ascii_lines:
-            labels.append(l.rstrip())
-        return labels
+        with open(label_file) as f:
+            return [line.rstrip() for line in f]
 
     def predict(self, image_file, min_score=0.66, photo_file=None):
         self._ensure_loaded()  # Lazy load on first use
 
-        input_height = 224
-        input_width = 224
-        input_mean = 128
-        input_std = 128
-        input_layer = "input"
-        output_layer = "final_result"
-
-        t = self.read_tensor_from_image_file(
-            image_file,
-            input_height=input_height,
-            input_width=input_width,
-            input_mean=input_mean,
-            input_std=input_std)
-
+        t = self.read_tensor_from_image_file(image_file)
         if t is None:
-            logger.info(f'Skipping {image_file}, file format not supported by Tensorflow')
+            logger.info(f'Skipping {image_file}, file could not be decoded')
             return None
 
-        input_name = "import/" + input_layer
-        output_name = "import/" + output_layer
-        input_operation = self.graph.get_operation_by_name(input_name)
-        output_operation = self.graph.get_operation_by_name(output_name)
-
-        results = self.session.run(output_operation.outputs[0], {input_operation.outputs[0]: t})
+        results = self.session.run(None, {self.input_name: t})[0]
         results = np.squeeze(results)
 
         response = []
@@ -107,23 +69,17 @@ class StyleModel(BaseModel):
 
         return response
 
-    def read_tensor_from_image_file(self, file_name, input_height=299, input_width=299, input_mean=0, input_std=255):
-        tf = _ensure_tensorflow()
+    def read_tensor_from_image_file(self, file_name, input_height=224, input_width=224, input_mean=128.0, input_std=128.0):
+        # Parity-tested PIL preprocessing (replaces the old TF eager decode):
+        # decode -> RGB -> bilinear resize to 224x224 -> (x - 128) / 128.
+        # Returns None for files PIL cannot decode so the has_results contract
+        # (keep existing tags) is preserved.
         try:
-            file_reader = tf.io.read_file(file_name)
-            if file_name.endswith(".png"):
-                image_reader = tf.image.decode_png(file_reader, channels=3)
-            elif file_name.endswith(".gif"):
-                image_reader = tf.squeeze(tf.image.decode_gif(file_reader))
-            elif file_name.endswith(".bmp"):
-                image_reader = tf.image.decode_bmp(file_reader)
-            else:
-                image_reader = tf.image.decode_jpeg(file_reader, channels=3)
-            float_caster = tf.cast(image_reader, tf.float32)
-            dims_expander = tf.expand_dims(float_caster, 0)
-            resized = tf.image.resize(dims_expander, [input_height, input_width], method=tf.image.ResizeMethod.BILINEAR, antialias=True)
-            normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
-            return normalized.numpy()
+            image = Image.open(file_name).convert('RGB').resize(
+                (input_width, input_height), Image.Resampling.BILINEAR)
+            array = np.asarray(image, dtype=np.float32)
+            array = (array - input_mean) / input_std
+            return np.expand_dims(array, 0)
         except Exception:
             return None
 
@@ -139,7 +95,7 @@ def save_tags(photo, results, model):
 
 def run_on_photo(photo_id):
     from photonix.classifiers.runners import run_classifier_on_photo
-    # results is None for file formats Tensorflow can't read - existing tags
+    # results is None for file formats that can't be read - existing tags
     # must be kept in that case, not cleared
     return run_classifier_on_photo('style', StyleModel, photo_id, 'S', save_tags,
                                    has_results=lambda results: results is not None)

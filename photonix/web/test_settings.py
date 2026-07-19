@@ -22,18 +22,22 @@ MODEL_DIR = str(Path(DATA_DIR) / 'models')
 PHOTO_RAW_PROCESSED_DIR = str(Path(DATA_DIR) / 'raw-photos-processed')
 THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
 
-# The location classifier's dataset (cities.bin) is built offline and placed in
-# the real models dir (data/models/location) rather than published in the
-# downloadable manifest, so its version isn't fetchable over the network. Expose
-# that already-present artifact to the tests via a symlink so the location model
-# loads offline through the version.txt short-circuit, exactly as the dev stack
-# does. Other models are untouched and keep their normal download behaviour.
-_real_location_dir = str(Path('/data') / 'models' / 'location')
-if os.path.isdir(_real_location_dir):
-    os.makedirs(MODEL_DIR, exist_ok=True)
-    _test_location_dir = os.path.join(MODEL_DIR, 'location')
-    if not os.path.exists(_test_location_dir):
-        try:
-            os.symlink(_real_location_dir, _test_location_dir)
-        except OSError:
-            pass
+# Some classifier assets are placed directly in the real models dir
+# (data/models/<name>) rather than published in the downloadable manifest, so
+# their versions aren't fetchable over the network:
+#   - location: the offline-built cities.bin dataset
+#   - object/style: the ONNX graphs (object.onnx, style.onnx) whose new
+#     version (20260719) isn't in the published models.json
+# Expose those already-present artifacts to the tests via symlinks so each
+# model loads offline through the version.txt short-circuit, exactly as the dev
+# stack does. Models without a local dir keep their normal download behaviour.
+for _model_name in ('location', 'object', 'style'):
+    _real_dir = str(Path('/data') / 'models' / _model_name)
+    if os.path.isdir(_real_dir):
+        os.makedirs(MODEL_DIR, exist_ok=True)
+        _test_dir = os.path.join(MODEL_DIR, _model_name)
+        if not os.path.exists(_test_dir):
+            try:
+                os.symlink(_real_dir, _test_dir)
+            except OSError:
+                pass
