@@ -80,7 +80,11 @@ The ML container runs the exact same codebase, but only the classifier
 processors. It doesn't talk to the main container over an API - instead both
 containers share the same Postgres database, the same Redis, and the same
 `/data` volumes (photos, processed raw files, cache and models), and the ML
-container simply picks classification jobs off the shared task queue. Because of
+container simply picks classification jobs off the shared task queue. (One
+carve-out: when CLIP semantic search is enabled, encoding the *search query*
+text still happens in the main container's web process - it's a small,
+per-query operation; all per-photo image analysis moves to the sidecar.)
+Because of
 that, running the ML container on a *different* machine requires network access
 to the shared Postgres and Redis plus a shared mount of the photo/model volumes
 (e.g. over NFS). The main container still owns database migrations and startup

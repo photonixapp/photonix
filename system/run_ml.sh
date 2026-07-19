@@ -31,7 +31,11 @@ done
 # locks the core container is holding). Instead we wait until the core
 # container has applied all migrations before starting the classifiers.
 >&2 echo "Waiting for database migrations to be applied by the core container"
-until python /srv/photonix/manage.py migrate --check 2>/dev/null; do
+until check_output=$(python /srv/photonix/manage.py migrate --check 2>&1); do
+  # Show the underlying output: "migrations pending" and genuine failures
+  # (bad DB credentials, settings errors) both land here, and hiding the
+  # real error would leave a misconfigured sidecar looping silently forever.
+  >&2 echo "$check_output"
   >&2 echo "Migrations not yet applied by core container - sleeping"
   sleep 5
 done

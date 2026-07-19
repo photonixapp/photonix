@@ -51,8 +51,10 @@ services:
       REDIS_HOST: redis
       ALLOWED_HOSTS: '*'
       # Uncomment to move all AI classification into the separate photonix-ml
-      # service below (e.g. to run it on a beefier machine). This container then
-      # runs the web tier and the import/thumbnail/raw pipeline only.
+      # service below (e.g. to run it on a beefier machine). This container
+      # then runs the web tier and the import/thumbnail/raw pipeline; the one
+      # exception is CLIP semantic-search *queries*, whose lightweight text
+      # encoding still runs in this container's web process.
       # CLASSIFICATION_DISABLED: 1
       # More configuration options here: https://photonix.org/docs/configuration/
     volumes:
@@ -79,6 +81,7 @@ services:
   #   image: photonixapp/photonix-ml:latest
   #   restart: unless-stopped
   #   environment:
+  #     ENV: prd
   #     POSTGRES_HOST: postgres
   #     POSTGRES_DB: photonix
   #     POSTGRES_USER: postgres
@@ -95,3 +98,4 @@ services:
   #   depends_on:
   #     - postgres
   #     - redis
+  #     - init

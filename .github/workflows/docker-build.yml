@@ -51,8 +51,17 @@ jobs:
           context: .
           file: ./docker/Dockerfile.ml
           tags: photonix-ml-test:latest
+          load: true
           cache-from: type=gha,scope=ml
           cache-to: type=gha,mode=max,scope=ml
+      -
+        # Cheap runtime smoke test so an import-level breakage (missing
+        # package, bad prune in Dockerfile.ml) fails here rather than after
+        # the image is published from master
+        name: Smoke test ML sidecar image
+        run: >
+          docker run --rm photonix-ml-test:latest
+          python -c "import django; import onnxruntime; import photonix.classifiers.base_model; import photonix.classifiers.clip.tokenizer; print('ml image imports OK')"
 
   test-ui:
     runs-on: ubuntu-latest

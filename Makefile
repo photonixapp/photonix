@@ -21,8 +21,10 @@ build-prd:
 
 # Optional ML sidecar image (runs only the classification processors).
 # See the "Running classification in a separate container" section of README.md.
+# DOCKER_BUILDKIT=1 because Dockerfile.ml uses `RUN --mount=type=secret`, which
+# the legacy builder can't parse.
 build-ml:
-	docker build -f docker/Dockerfile.ml -t photonix-ml .
+	DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.ml -t photonix-ml .
 
 restart:
 	$(DOCKER_COMPOSE_DEV) restart photonix

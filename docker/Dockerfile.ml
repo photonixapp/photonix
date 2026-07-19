@@ -49,8 +49,8 @@ RUN --mount=type=secret,id=PYPI_UPLOAD_USERNAME \
     fi
 
 # Remove large unused files in Python site-packages. Conservative compared with
-# Dockerfile.prd (scipy/matplotlib/cv2-data are kept) so the classifiers keep
-# all their runtime dependencies; only build tooling and the test stack go.
+# Dockerfile.prd (matplotlib is kept - location classifier point-in-polygon
+# uses matplotlib.path); only build tooling and the test stack go.
 RUN find /usr/local/lib/python3.13 -type d -name  "__pycache__" -exec rm -r {} + && \
     find /usr/local/lib/python3.13/site-packages -type d -name  "tests" -exec rm -r {} +
 RUN rm -rf \
@@ -102,10 +102,10 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 WORKDIR /srv
 
-# Copy over the code (no ui/ - this container renders nothing)
+# Copy over the code (no ui/, no test entrypoint - this container renders
+# nothing and the pytest stack is stripped from site-packages above)
 COPY photonix /srv/photonix
 COPY manage.py /srv/manage.py
-COPY test.py /srv/test.py
 
 # Copy system config and init scripts
 COPY system /srv/system
