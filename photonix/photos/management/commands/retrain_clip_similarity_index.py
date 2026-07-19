@@ -1,11 +1,10 @@
-from datetime import datetime
+import datetime as dt
 import os
 from pathlib import Path
 from time import time
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
 from photonix.classifiers.clip.model import (
     CLIP_EMBEDDING_TYPE, retrain_clip_similarity_index)
@@ -27,7 +26,9 @@ class Command(BaseCommand):
                 with open(version_file) as f:
                     contents = f.read().strip()
                 if contents:
-                    version_date = datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
+                    # datetime.timezone.utc, not django.utils.timezone.utc -
+                    # the Django alias was removed in Django 5/6
+                    version_date = dt.datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=dt.timezone.utc)
 
             embeddings = PhotoEmbedding.objects.filter(
                 photo__library_id=library.id, type=CLIP_EMBEDDING_TYPE)
