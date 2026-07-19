@@ -50,6 +50,10 @@ services:
       POSTGRES_PASSWORD: password
       REDIS_HOST: redis
       ALLOWED_HOSTS: '*'
+      # Uncomment to move all AI classification into the separate photonix-ml
+      # service below (e.g. to run it on a beefier machine). This container then
+      # runs the web tier and the import/thumbnail/raw pipeline only.
+      # CLASSIFICATION_DISABLED: 1
       # More configuration options here: https://photonix.org/docs/configuration/
     volumes:
       - ./data/photos:/data/photos
@@ -61,3 +65,33 @@ services:
       - redis
     depends_on:
       - init
+
+  # Optional: run AI classification in a dedicated container (or on another
+  # machine) instead of inside the main photonix container. Uncomment this
+  # service AND set CLASSIFICATION_DISABLED: 1 on the photonix service above.
+  # It runs the same codebase but only the classifier processors, working the
+  # classification queue directly against the shared Postgres, Redis and /data
+  # volumes - there is no separate API. Running it on another host requires
+  # network access to Postgres/Redis and a shared photos mount (NFS etc.).
+  # photonix-ml:
+  #   user: "2000:2000"
+  #   container_name: photonix-ml
+  #   image: photonixapp/photonix-ml:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_HOST: postgres
+  #     POSTGRES_DB: photonix
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #     REDIS_HOST: redis
+  #   volumes:
+  #     - ./data/photos:/data/photos
+  #     - ./data/raw-photos-processed:/data/raw-photos-processed
+  #     - ./data/cache:/data/cache
+  #     - ./data/models:/data/models
+  #   links:
+  #     - postgres
+  #     - redis
+  #   depends_on:
+  #     - postgres
+  #     - redis

@@ -19,6 +19,11 @@ stop-prd:
 build-prd:
 	$(DOCKER_COMPOSE_PRD) build
 
+# Optional ML sidecar image (runs only the classification processors).
+# See the "Running classification in a separate container" section of README.md.
+build-ml:
+	docker build -f docker/Dockerfile.ml -t photonix-ml .
+
 restart:
 	$(DOCKER_COMPOSE_DEV) restart photonix
 

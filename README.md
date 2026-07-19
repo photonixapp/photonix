@@ -61,6 +61,37 @@ If you are using the pre-built Docker image you can use kill, pull and bring bac
     docker-compose pull
     docker-compose up
 
+## Running classification in a separate container
+
+By default a single Photonix container runs everything: the web app plus all of
+the AI classifiers (objects, colors, locations, faces, styles, events and CLIP
+semantic search) and the similarity-index retraining. If you'd rather keep that
+CPU-heavy work off the machine serving the web app - for example to run it on a
+beefier box - you can move all classification into an optional `photonix-ml`
+sidecar container.
+
+There are two knobs, both shown commented-out in `docker-compose.example.yml`:
+
+1. Add a `photonix-ml` service (image `photonixapp/photonix-ml:latest`).
+2. Set `CLASSIFICATION_DISABLED: 1` in the main `photonix` service's
+   environment so it stops running the classifiers itself.
+
+The ML container runs the exact same codebase, but only the classifier
+processors. It doesn't talk to the main container over an API - instead both
+containers share the same Postgres database, the same Redis, and the same
+`/data` volumes (photos, processed raw files, cache and models), and the ML
+container simply picks classification jobs off the shared task queue. Because of
+that, running the ML container on a *different* machine requires network access
+to the shared Postgres and Redis plus a shared mount of the photo/model volumes
+(e.g. over NFS). The main container still owns database migrations and startup
+housekeeping; the ML container waits for migrations to be applied before it
+starts working.
+
+If you're building the images yourself, the ML image has its own Dockerfile:
+
+    make build-ml
+    # equivalent to: docker build -f docker/Dockerfile.ml -t photonix-ml .
+
 ## Developing
 
 For detailed developer documentation, see:
