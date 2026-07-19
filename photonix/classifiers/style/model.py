@@ -3,7 +3,7 @@ import sys
 
 import numpy as np
 
-from photonix.classifiers.base_model import BaseModel, ensure_tensorflow as _ensure_tensorflow
+from photonix.classifiers.base_model import BaseModel, ensure_tensorflow as _ensure_tensorflow, tf_session_config
 from photonix.web.utils import logger
 
 
@@ -25,13 +25,25 @@ class StyleModel(BaseModel):
         self._lock_name = lock_name
         self.graph = None
         self.labels = None
+        self.session = None
 
         # Download model files eagerly (cheap), but don't load into memory yet
         self.ensure_downloaded(lock_name=lock_name)
 
     def load(self):
+        tf = _ensure_tensorflow()
         self.graph = self.load_graph(self._graph_file)
         self.labels = self.load_labels(self._label_file)
+
+        # Reuse a single session across photos (and across re-instantiated
+        # models in this process) instead of building one per prediction.
+        session_key = f'{self.graph_cache_key}:session'
+        with self.load_lock():
+            if session_key in self.graph_cache:
+                self.session = self.graph_cache[session_key]
+            else:
+                self.session = tf.compat.v1.Session(graph=self.graph, config=tf_session_config())
+                self.graph_cache[session_key] = self.session
 
     def load_graph(self, graph_file):
         tf = _ensure_tensorflow()
@@ -84,9 +96,7 @@ class StyleModel(BaseModel):
         input_operation = self.graph.get_operation_by_name(input_name)
         output_operation = self.graph.get_operation_by_name(output_name)
 
-        tf = _ensure_tensorflow()
-        with tf.compat.v1.Session(graph=self.graph) as sess:
-            results = sess.run(output_operation.outputs[0], {input_operation.outputs[0]: t})
+        results = self.session.run(output_operation.outputs[0], {input_operation.outputs[0]: t})
         results = np.squeeze(results)
 
         response = []

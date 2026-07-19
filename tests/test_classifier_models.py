@@ -301,6 +301,142 @@ def test_face_similarity_index_trained_per_library(db):
     assert len(tag_ids) == 1
 
 
+def test_downscale_for_inference():
+    from photonix.classifiers.image_utils import downscale_for_inference
+
+    # A large image is capped so its longest edge is exactly max_edge, and the
+    # returned scale is orig_longest / new_longest
+    large = Image.new('RGB', (4000, 2000))
+    result, scale = downscale_for_inference(large, max_edge=1000)
+    assert result.size == (1000, 500)
+    assert max(result.size) == 1000
+    assert abs(scale - 4.0) < 0.001
+
+    # A small image (already within the cap) is returned untouched, scale 1.0
+    small = Image.new('RGB', (800, 600))
+    result, scale = downscale_for_inference(small, max_edge=1024)
+    assert result is small
+    assert result.size == (800, 600)
+    assert scale == 1.0
+
+    # max_edge of 0 disables capping entirely
+    result, scale = downscale_for_inference(large, max_edge=0)
+    assert result is large
+    assert result.size == (4000, 2000)
+    assert scale == 1.0
+
+
+def test_object_session_reused():
+    # The TF session must be created once and reused across predictions, not
+    # rebuilt per photo
+    from photonix.classifiers.object.model import ObjectModel
+
+    model = ObjectModel()
+    snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
+
+    result1 = model.predict(snow)
+    session1 = model.session
+    result2 = model.predict(snow)
+    session2 = model.session
+
+    assert session1 is not None
+    assert session1 is session2
+    assert [r['label'] for r in result1] == [r['label'] for r in result2]
+    assert [round(r['score'], 6) for r in result1] == [round(r['score'], 6) for r in result2]
+
+
+def test_style_session_reused():
+    from photonix.classifiers.style.model import StyleModel
+
+    model = StyleModel()
+    snow = str(Path(__file__).parent / 'photos' / 'snow.jpg')
+
+    result1 = model.predict(snow)
+    session1 = model.session
+    result2 = model.predict(snow)
+    session2 = model.session
+
+    assert session1 is not None
+    assert session1 is session2
+    assert result1 == result2
+
+
+def test_unload_model_closes_session_and_clears_cache():
+    # Unloading must close the reused TF session and drop every graph_cache
+    # entry for the classifier (including the new ':session' key)
+    import time
+    from unittest.mock import MagicMock
+
+    from photonix.classifiers.base_model import graph_cache
+    from photonix.classifiers.object.model import ObjectModel
+    from photonix.classifiers.model_manager import get_model_manager
+
+    manager = get_model_manager()
+    model = ObjectModel()
+    model._ensure_loaded()
+
+    # Register directly so we exercise unload_model without get_model's
+    # memory/cooldown gating
+    with manager._state_lock:
+        manager._model_instances['object'] = model
+        manager._last_used['object'] = time.time()
+
+    assert [k for k in graph_cache if k.startswith('object:')]
+    assert f'{model.graph_cache_key}:session' in graph_cache
+
+    # Spy on close() while still closing the real session underneath
+    model.session = MagicMock(wraps=model.session)
+
+    assert manager.unload_model('object') is True
+
+    model.session.close.assert_called_once()
+    assert not [k for k in graph_cache if k.startswith('object:')]
+    assert not manager.is_loaded('object')
+
+
+def test_face_predict_boxes_in_original_pixel_space(tmpdir):
+    # After capping inference resolution, face boxes must be mapped back into
+    # the full-res pixel space of the (upscaled) original - run_on_photo crops
+    # faces from the full-res image, so boxes staying in downscaled space would
+    # wreck the FaceNet embeddings
+    from photonix.classifiers.face.model import FaceModel
+
+    model = FaceModel()
+    small_path = str(Path(__file__).parent / 'photos' / 'faces' / 'Boris_Becker_0003.jpg')
+
+    small_results = model.predict(small_path)
+    assert len(small_results) == 1
+    small_box = small_results[0]['box']
+
+    small_img = Image.open(small_path)
+    factor = 2500 / max(small_img.size)  # 250px fixture -> 2500px canvas, i.e. 10x
+    large_size = (round(small_img.size[0] * factor), round(small_img.size[1] * factor))
+    large_path = str(Path(tmpdir) / 'boris_large.jpg')
+    small_img.resize(large_size, Image.Resampling.BILINEAR).save(large_path)
+
+    large_results = model.predict(large_path)
+    assert len(large_results) == 1
+    large_box = large_results[0]['box']
+
+    # Each box value should be ~factor (10x) the small-image detection, well
+    # away from the ~4x that a non-scaled (downscaled-space) box would give
+    for small_v, large_v in zip(small_box, large_box):
+        expected = small_v * factor
+        assert abs(large_v - expected) <= 0.06 * expected + 2, (small_box, large_box)
+
+    # Keypoints must be scaled the same way
+    for name, (kx, ky) in large_results[0]['keypoints'].items():
+        sx, sy = small_results[0]['keypoints'][name]
+        assert abs(kx - sx * factor) <= 0.06 * sx * factor + 2
+        assert abs(ky - sy * factor) <= 0.06 * sy * factor + 2
+
+    # And the box must sit within the full-res upscaled image bounds
+    x, y, w, h = large_box
+    assert 0 <= x and 0 <= y
+    assert x + w <= large_size[0]
+    assert y + h <= large_size[1]
+
+
 def test_face_predict():
     from photonix.classifiers.face.model import FaceModel
     from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance
@@ -354,7 +490,10 @@ def test_face_predict():
 
         assert nearest == expected_nearest
         assert '{:.3f}'.format(distance) == expected_distance
-        assert abs(findEuclideanDistance(embedding, embedding_cache[nearest]) - distance) < 0.000001
+        # Annoy stores vectors as float32, so its distance can only agree with
+        # the float64 numpy recomputation to within the float32 noise floor
+        # (~1.9e-6 at magnitude 15). The old 1e-6 bound was below that floor.
+        assert abs(findEuclideanDistance(embedding, embedding_cache[nearest]) - distance) < 0.0001
 
     # Tidy up ANN model training
     for fn in [

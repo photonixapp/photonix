@@ -339,6 +339,14 @@ class ModelManager:
 
     def _tensorflow_cleanup(self, classifier_name: str, model: Any):
         """TensorFlow-specific memory cleanup."""
+        # Close the model's reused TF1 session (item 2) before clearing the
+        # Keras backend, so its graph/threadpool resources are freed too.
+        if hasattr(model, 'session') and model.session is not None:
+            try:
+                model.session.close()
+            except Exception as e:
+                logger.warning(f"Error closing session for '{classifier_name}': {e}")
+
         try:
             import tensorflow as tf
 

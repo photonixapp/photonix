@@ -13,7 +13,8 @@ import numpy as np
 from PIL import Image, ImageOps
 from redis_lock import Lock
 
-from photonix.classifiers.base_model import BaseModel
+from photonix.classifiers.base_model import BaseModel, ensure_tensorflow
+from photonix.classifiers.image_utils import downscale_for_inference
 from photonix.photos.utils.redis import redis_connection
 
 # Lazy-loaded modules (heavy imports - TensorFlow/Keras based)
@@ -27,6 +28,9 @@ def _ensure_face_libs():
     """Lazy load face recognition libraries (imports TensorFlow/Keras)."""
     global _DeepFace, _MTCNN, _findEuclideanDistance, _build_model
     if _MTCNN is None:
+        # Import TF through the shared chokepoint first so the per-process
+        # thread caps are applied before Keras/FaceNet/MTCNN build any ops.
+        ensure_tensorflow()
         from photonix.classifiers.face.deepface import DeepFace as df
         from photonix.classifiers.face.mtcnn import MTCNN as mtcnn
         from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance as fed
@@ -110,9 +114,36 @@ class FaceModel(BaseModel):
             # Fallback: just apply EXIF orientation correction
             image = ImageOps.exif_transpose(image)
 
+        # Cap inference resolution, but keep the full-res dimensions so the
+        # detected boxes can be mapped back into original pixel space -
+        # run_on_photo() crops faces from the full-res image for FaceNet.
+        orig_width, orig_height = image.size
+        image, scale = downscale_for_inference(image)
+
         image = np.asarray(image)
         results = self.graph['mtcnn'].detect_faces(image)
-        return list(filter(lambda f: f['confidence'] > min_score, results))
+        results = list(filter(lambda f: f['confidence'] > min_score, results))
+
+        if scale != 1.0:
+            for result in results:
+                result['box'] = self._scale_box(result['box'], scale, orig_width, orig_height)
+                if result.get('keypoints'):
+                    result['keypoints'] = {
+                        name: (int(round(x * scale)), int(round(y * scale)))
+                        for name, (x, y) in result['keypoints'].items()
+                    }
+
+        return results
+
+    @staticmethod
+    def _scale_box(box, scale, image_width, image_height):
+        # Map a [x, y, w, h] box from downscaled space back into full-res
+        # pixel space, rounding to int and clamping within the image bounds.
+        x = min(max(int(round(box[0] * scale)), 0), image_width - 1)
+        y = min(max(int(round(box[1] * scale)), 0), image_height - 1)
+        w = min(int(round(box[2] * scale)), image_width - x)
+        h = min(int(round(box[3] * scale)), image_height - y)
+        return [x, y, w, h]
 
     def crop(self, image_data, box):
         # Calculate crop coordinates with 30% padding, clipped to image boundaries

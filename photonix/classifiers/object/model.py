@@ -4,7 +4,8 @@ import sys
 import numpy as np
 from PIL import Image, ImageOps as PILImageOps
 
-from photonix.classifiers.base_model import BaseModel, ensure_tensorflow as _ensure_tensorflow
+from photonix.classifiers.base_model import BaseModel, ensure_tensorflow as _ensure_tensorflow, tf_session_config
+from photonix.classifiers.image_utils import downscale_for_inference
 
 # Lazy-loaded modules (heavy imports)
 label_map_util = None
@@ -36,13 +37,41 @@ class ObjectModel(BaseModel):
         self._lock_name = lock_name
         self.graph = None
         self.labels = None
+        self.session = None
+        self.tensor_dict = None
+        self.image_tensor = None
 
         # Download model files eagerly (cheap), but don't load into memory yet
         self.ensure_downloaded(lock_name=lock_name)
 
     def load(self):
+        tf = _ensure_tensorflow()
         self.graph = self.load_graph(self._graph_file)
         self.labels = self.load_labels(self._label_file)
+
+        # Reuse a single session across photos (and across re-instantiated
+        # models in this process) instead of building one per prediction.
+        session_key = f'{self.graph_cache_key}:session'
+        with self.load_lock():
+            if session_key in self.graph_cache:
+                self.session = self.graph_cache[session_key]
+            else:
+                self.session = tf.compat.v1.Session(graph=self.graph, config=tf_session_config())
+                self.graph_cache[session_key] = self.session
+
+        # Precompute tensor handles once at load rather than walking every
+        # graph op on each prediction.
+        ops = self.graph.get_operations()
+        all_tensor_names = {output.name for op in ops for output in op.outputs}
+        self.tensor_dict = {}
+        for key in [
+            'num_detections', 'detection_boxes', 'detection_scores',
+            'detection_classes', 'detection_masks'
+        ]:
+            tensor_name = key + ':0'
+            if tensor_name in all_tensor_names:
+                self.tensor_dict[key] = self.graph.get_tensor_by_name(tensor_name)
+        self.image_tensor = self.graph.get_tensor_by_name('image_tensor:0')
 
     def load_graph(self, graph_file):
         tf = _ensure_tensorflow()
@@ -70,40 +99,19 @@ class ObjectModel(BaseModel):
         return lmu.create_category_index(categories)
 
     def load_image_into_numpy_array(self, image):
-        (im_width, im_height) = image.size
-        return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
+        return np.asarray(image, dtype=np.uint8)
 
     def run_inference_for_single_image(self, image):
-        tf = _ensure_tensorflow()
-        with self.graph.as_default():
-            with tf.compat.v1.Session() as sess:
-                # Get handles to input and output tensors
-                ops = tf.compat.v1.get_default_graph().get_operations()
-                all_tensor_names = {output.name for op in ops for output in op.outputs}
-                tensor_dict = {}
-                for key in [
-                    'num_detections', 'detection_boxes', 'detection_scores',
-                    'detection_classes', 'detection_masks'
-                ]:
-                    tensor_name = key + ':0'
-                    if tensor_name in all_tensor_names:
-                        tensor_dict[key] = tf.compat.v1.get_default_graph().get_tensor_by_name(tensor_name)
-                if 'detection_masks' in tensor_dict:
-                    # The following processing is only for single image
-                    detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
-                    # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
-                    real_num_detection = tf.cast(tensor_dict['num_detections'][0], tf.int32)
-                    detection_boxes = tf.slice(detection_boxes, [0, 0], [real_num_detection, -1])
-                image_tensor = tf.compat.v1.get_default_graph().get_tensor_by_name('image_tensor:0')
+        # Run inference on the reused session with the precomputed handles
+        output_dict = self.session.run(
+            self.tensor_dict,
+            feed_dict={self.image_tensor: np.expand_dims(image, 0)})
 
-                # Run inference
-                output_dict = sess.run(tensor_dict, feed_dict={image_tensor: np.expand_dims(image, 0)})
-
-                # all outputs are float32 numpy arrays, so convert types as appropriate
-                output_dict['num_detections'] = int(output_dict['num_detections'][0])
-                output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint16)
-                output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
-                output_dict['detection_scores'] = output_dict['detection_scores'][0]
+        # all outputs are float32 numpy arrays, so convert types as appropriate
+        output_dict['num_detections'] = int(output_dict['num_detections'][0])
+        output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint16)
+        output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
+        output_dict['detection_scores'] = output_dict['detection_scores'][0]
         return output_dict
 
     def format_output(self, output_dict, min_score):
@@ -143,6 +151,10 @@ class ObjectModel(BaseModel):
         else:
             # Fallback: just apply EXIF orientation correction
             image = PILImageOps.exif_transpose(image)
+
+        # Cap inference resolution. Detection outputs are relative (0-1), so
+        # the discarded scale factor doesn't affect anything downstream.
+        image, _ = downscale_for_inference(image)
 
         # the array based representation of the image will be used later in order to prepare the
         # result image with boxes and labels on it.
