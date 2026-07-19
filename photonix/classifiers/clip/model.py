@@ -195,10 +195,11 @@ def retrain_clip_similarity_index(library_id):
 
     index = AnnoyIndex(EMBEDDING_SIZE, 'angular')
     photo_ids = []
-    version = dt.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    version = dt.datetime.now(dt.timezone.utc).strftime('%Y%m%d%H%M%S')
 
     for embedding_row in PhotoEmbedding.objects.filter(
-            photo__library_id=library_id, type=CLIP_EMBEDDING_TYPE).order_by('id'):
+            photo__library_id=library_id, type=CLIP_EMBEDDING_TYPE,
+            photo__deleted=False).order_by('id').iterator(chunk_size=1000):
         vector = np.frombuffer(embedding_row.embedding, dtype='<f4')
         if vector.shape[0] != EMBEDDING_SIZE:
             continue
@@ -210,12 +211,20 @@ def retrain_clip_similarity_index(library_id):
 
     index.build(10)  # Number of random-projection trees
 
+    # Write each file to a temp path and rename into place: renaming keeps the
+    # old inode alive for any reader that has the previous index mmap'd, where
+    # saving straight over ann_path would truncate it mid-query (SIGBUS). The
+    # lock still guards cross-file consistency (ann/ids/version move together
+    # from a reader's point of view).
     with _clip_index_lock(library_id):
-        index.save(str(ann_path))
-        with open(ids_path, 'w') as f:
+        index.save(str(ann_path) + '.tmp')
+        os.replace(str(ann_path) + '.tmp', ann_path)
+        with open(str(ids_path) + '.tmp', 'w') as f:
             json.dump(photo_ids, f)
-        with open(version_path, 'w') as f:
+        os.replace(str(ids_path) + '.tmp', ids_path)
+        with open(str(version_path) + '.tmp', 'w') as f:
             f.write(version)
+        os.replace(str(version_path) + '.tmp', version_path)
 
     return len(photo_ids)
 
@@ -267,17 +276,18 @@ def semantic_search_embeddings(library_id, query_vector, first=50):
     # Brute-force over rows the index doesn't cover (added/updated since build,
     # or all rows when there is no index yet).
     queryset = PhotoEmbedding.objects.filter(
-        photo__library_id=library_id, type=CLIP_EMBEDDING_TYPE)
+        photo__library_id=library_id, type=CLIP_EMBEDDING_TYPE,
+        photo__deleted=False)
     if version_date is not None:
         queryset = queryset.filter(updated_at__gt=version_date)
-    for embedding_row in queryset.only('photo_id', 'embedding'):
+    for embedding_row in queryset.only('photo_id', 'embedding').iterator(chunk_size=1000):
         vector = np.frombuffer(embedding_row.embedding, dtype='<f4')
         if vector.shape[0] != EMBEDDING_SIZE:
             continue
         score = float(np.dot(query_vector, vector))
-        photo_id = str(embedding_row.photo_id)
-        if score > scores.get(photo_id, -1e9):
-            scores[photo_id] = score
+        # The brute-force vector is the current one, so it overrides any score
+        # the (possibly stale) ANN index produced for the same photo.
+        scores[str(embedding_row.photo_id)] = score
 
     ranked = sorted(scores.items(), key=lambda item: item[1], reverse=True)
     return ranked[:first]
@@ -289,7 +299,13 @@ def semantic_search(library_id, query, first=50):
 
     if not query or not query.strip():
         return []
-    model = get_model_manager().get_model('clip', ClipModel)
+    manager = get_model_manager()
+    # The web process has no classifier command starting the watchdog, so start
+    # it here (idempotent) - otherwise each worker would keep the text-encoder
+    # session resident forever after its first search instead of unloading it
+    # after the idle timeout like every other model.
+    manager.start_watchdog()
+    model = manager.get_model('clip', ClipModel)
     query_vector = model.encode_text(query)
     return semantic_search_embeddings(library_id, query_vector, first=first)
 

@@ -301,3 +301,94 @@ def test_housekeeping_backfills_clip_embeddings(db):
     Command().schedule_missing_clip_embeddings()
     assert Task.objects.filter(type='classify.clip',
                                subject_id=missing.id).count() == 1
+
+
+def test_semantic_search_photos_requires_clip_enabled(db):
+    from .utils import get_graphql_content
+    from photonix.photos.models import PhotoEmbedding
+
+    # A member's library that has NOT opted in to CLIP: the resolver must
+    # short-circuit before any model work (no encode_text patch here - if the
+    # gate failed, the real model path would run and return this photo).
+    library_user = LibraryUserFactory(library__classification_clip_enabled=False)
+    photo = PhotoFactory(library=library_user.library)
+    PhotoEmbedding.objects.create(
+        photo=photo, type='C', embedding=_unit_vector(0).tobytes())
+
+    response = _client_for(library_user.user).post_graphql(
+        SEMANTIC_QUERY,
+        {'libraryId': str(library_user.library.id), 'query': 'anything'})
+    data = get_graphql_content(response)
+    assert data['data']['semanticSearchPhotos'] == []
+
+
+def test_semantic_search_embeddings_excludes_deleted_photos(db, settings, tmp_path):
+    settings.MODEL_DIR = str(tmp_path)  # no index files -> pure brute-force path
+    from photonix.classifiers.clip.model import semantic_search_embeddings
+    from photonix.photos.models import PhotoEmbedding
+
+    library = LibraryFactory()
+    live = PhotoFactory(library=library)
+    dead = PhotoFactory(library=library, deleted=True)
+    PhotoEmbedding.objects.create(photo=live, type='C', embedding=_unit_vector(0).tobytes())
+    PhotoEmbedding.objects.create(photo=dead, type='C', embedding=_unit_vector(0).tobytes())
+
+    query = np.zeros(512, dtype=np.float32); query[0] = 1.0
+    ranked = semantic_search_embeddings(library.id, query, first=10)
+    assert [photo_id for photo_id, _ in ranked] == [str(live.id)]
+
+
+def test_housekeeping_clip_backfill_skips_deleted_and_failed(db):
+    from photonix.photos.management.commands.housekeeping import Command
+    from photonix.photos.models import Task
+
+    library = LibraryFactory(classification_clip_enabled=True)
+    deleted = PhotoFactory(library=library, deleted=True)
+    failed = PhotoFactory(library=library)
+    # A recently failed task: retried by requeue_stuck_tasks, so housekeeping
+    # must not stack a duplicate on top of it.
+    Task.objects.create(type='classify.clip', subject_id=failed.id,
+                        library=library, status='F')
+
+    Command().schedule_missing_clip_embeddings()
+
+    assert not Task.objects.filter(
+        type='classify.clip', subject_id=deleted.id).exists()
+    assert Task.objects.filter(
+        type='classify.clip', subject_id=failed.id).count() == 1
+
+
+IMAGE_ANALYSIS_LEGACY_MUTATION = """
+    mutation imageAnalysis($userId: ID, $libraryId: ID) {
+        imageAnalysis(input: {
+            classificationColorEnabled: true,
+            classificationStyleEnabled: true,
+            classificationObjectEnabled: true,
+            classificationLocationEnabled: true,
+            classificationFaceEnabled: true,
+            userId: $userId,
+            libraryId: $libraryId,
+        }) {
+            hasConfiguredImageAnalysis
+        }
+    }
+"""
+
+
+def test_image_analysis_defaults_for_legacy_clients(db):
+    """Clients that predate the event/clip toggles (e.g. the mobile app) omit
+    those input fields; the mutation must fall back to the historical
+    behaviour (event always on, clip off) rather than erroring on NULL."""
+    from .utils import get_graphql_content
+
+    library_user = LibraryUserFactory()
+    user = library_user.user
+    response = _client_for(user).post_graphql(
+        IMAGE_ANALYSIS_LEGACY_MUTATION,
+        {'userId': str(user.id), 'libraryId': str(library_user.library.id)})
+    data = get_graphql_content(response)
+    assert data['data']['imageAnalysis']['hasConfiguredImageAnalysis']
+
+    library_user.library.refresh_from_db()
+    assert library_user.library.classification_event_enabled is True
+    assert library_user.library.classification_clip_enabled is False

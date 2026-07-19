@@ -279,6 +279,8 @@ class TaskType(graphene.ObjectType):
     classify_object = graphene.types.generic.GenericScalar()
     classify_style = graphene.types.generic.GenericScalar()
     classify_face = graphene.types.generic.GenericScalar()
+    classify_event = graphene.types.generic.GenericScalar()
+    classify_clip = graphene.types.generic.GenericScalar()
 
 
 class PhotosAroundType(graphene.ObjectType):
@@ -449,24 +451,37 @@ class Query(graphene.ObjectType):
         user = info.context.user
         library_id = kwargs.get('library_id')
         query = kwargs.get('query')
-        first = kwargs.get('first', 50)
+        # Server-side cap: the query is un-paginated, so an arbitrary `first`
+        # would make the response (and the ANN over-fetch) unbounded.
+        first = min(max(kwargs.get('first', 50), 1), 500)
 
-        # Only search libraries this user belongs to.
-        if not Library.objects.filter(id=library_id, users__user=user).exists():
+        # Only search libraries this user belongs to, and only when the
+        # library has opted in to CLIP - otherwise this query would trigger
+        # the ~340 MB model download the toggle exists to prevent.
+        library = Library.objects.filter(id=library_id, users__user=user).first()
+        if library is None or not library.classification_clip_enabled:
             return []
         if not query or not query.strip():
             return []
 
         from photonix.classifiers.clip.model import semantic_search
-        ranked = semantic_search(library_id, query, first=first)
+        from photonix.classifiers.model_manager import InsufficientMemoryError
+        try:
+            ranked = semantic_search(library_id, query, first=first)
+        except InsufficientMemoryError:
+            # Memory gate / load-cooldown contention with the classifier
+            # processes - transient, so tell the user to retry rather than
+            # surfacing the internal exception text.
+            raise GraphQLError(
+                'Semantic search is temporarily unavailable while models are '
+                'loading. Please try again in a few seconds.')
         if not ranked:
             return []
 
         # Fetch the matched photos in one query, scoped to the user, then keep
         # the similarity ordering the search returned.
-        scores = dict(ranked)
         photos = Photo.objects.filter(
-            id__in=list(scores.keys()),
+            id__in=[photo_id for photo_id, _ in ranked],
             library__users__user=user,
             deleted=False,
         )
@@ -719,7 +734,9 @@ class Query(graphene.ObjectType):
             "classify_location": count_remaining_task('classify.location'),
             "classify_object": count_remaining_task('classify.object'),
             "classify_style": count_remaining_task('classify.style'),
-            "classify_face": count_remaining_task('classify.face')}
+            "classify_face": count_remaining_task('classify.face'),
+            "classify_event": count_remaining_task('classify.event'),
+            "classify_clip": count_remaining_task('classify.clip')}
 
 
 class LibraryInput(graphene.InputObjectType):
@@ -1148,8 +1165,14 @@ class ImageAnalysis(graphene.Mutation):
         library_obj.classification_style_enabled = input.classification_style_enabled
         library_obj.classification_object_enabled = input.classification_object_enabled
         library_obj.classification_face_enabled = input.classification_face_enabled
-        library_obj.classification_event_enabled = input.classification_event_enabled
-        library_obj.classification_clip_enabled = input.classification_clip_enabled
+        # Older clients (e.g. the mobile app) predate these two fields and omit
+        # them; the columns are NOT NULL, so fall back to the pre-existing
+        # behaviour: event detection always ran, CLIP search didn't exist.
+        library_obj.classification_event_enabled = (
+            True if input.classification_event_enabled is None
+            else input.classification_event_enabled)
+        library_obj.classification_clip_enabled = (
+            bool(input.classification_clip_enabled))
         library_obj.save()
         # Only auto-login as part of genuine first-run onboarding, i.e. when this
         # user is completing image-analysis configuration for the very first time.

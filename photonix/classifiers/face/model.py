@@ -495,7 +495,7 @@ class FaceModel(BaseModel):
         version_file = Path(settings.MODEL_DIR) / 'face' / f'{self.library_id}_retrained_version.txt'
 
         t = AnnoyIndex(EMBEDDING_SIZE, 'euclidean')
-        retrained_version = dt.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        retrained_version = dt.datetime.now(dt.timezone.utc).strftime('%Y%m%d%H%M%S')
 
         tag_ids = []
         if training_data:  # Mainly as an option for testing
@@ -519,18 +519,24 @@ class FaceModel(BaseModel):
         # Build the ANN index
         t.build(3)  # Number of random forest trees
 
-        # Aquire lock to save ANN, tag IDs and version files atomically
+        # Aquire lock to save ANN, tag IDs and version files atomically.
+        # Each file is written to a temp path and renamed into place so a
+        # reader that already has the previous index mmap'd keeps a valid
+        # (old) inode instead of having the file truncated under it.
         with Lock(redis_connection, 'face_model_retrain', expire=60, auto_renewal=True):
             # Save ANN index
-            t.save(str(ann_path))
+            t.save(str(ann_path) + '.tmp')
+            os.replace(str(ann_path) + '.tmp', ann_path)
 
             # Save Tag IDs to JSON file as Annoy only supports integer IDs so we have to do the mapping ourselves
-            with open(tag_ids_path, 'w') as f:
+            with open(str(tag_ids_path) + '.tmp', 'w') as f:
                 f.write(json.dumps(tag_ids))
+            os.replace(str(tag_ids_path) + '.tmp', tag_ids_path)
 
             # Save version of retrained model to text file - used to save against on PhotoTag model and to determine whether retraining is required
-            with open(version_file, 'w') as f:
+            with open(str(version_file) + '.tmp', 'w') as f:
                 f.write(retrained_version)
+            os.replace(str(version_file) + '.tmp', version_file)
 
     def reload_retrained_model_version(self):
         if self.library_id:

@@ -1,13 +1,12 @@
 import datetime as dt
+import json
 import os
-from pathlib import Path
 from time import time
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from photonix.classifiers.clip.model import (
-    CLIP_EMBEDDING_TYPE, retrain_clip_similarity_index)
+    CLIP_EMBEDDING_TYPE, _clip_index_paths, retrain_clip_similarity_index)
 from photonix.photos.models import Library, PhotoEmbedding
 from photonix.web.utils import logger
 
@@ -19,7 +18,7 @@ class Command(BaseCommand):
     def retrain_clip_similarity_index(self):
         # Only libraries with CLIP enabled produce embeddings worth indexing.
         for library in Library.objects.filter(classification_clip_enabled=True):
-            version_file = Path(settings.MODEL_DIR) / 'clip' / f'{library.id}_clip_version.txt'
+            _, ids_path, version_file = _clip_index_paths(library.id)
             version_date = None
 
             if os.path.exists(version_file):
@@ -31,11 +30,26 @@ class Command(BaseCommand):
                     version_date = dt.datetime.strptime(contents, '%Y%m%d%H%M%S').replace(tzinfo=dt.timezone.utc)
 
             embeddings = PhotoEmbedding.objects.filter(
-                photo__library_id=library.id, type=CLIP_EMBEDDING_TYPE)
-            if embeddings.count() == 0:
+                photo__library_id=library.id, type=CLIP_EMBEDDING_TYPE,
+                photo__deleted=False)
+            embedding_count = embeddings.count()
+            if embedding_count == 0:
                 logger.info(f'    No CLIP embeddings in Library {library.id} so no point in creating CLIP ANN index yet')
                 continue
-            if version_date and embeddings.filter(updated_at__gt=version_date).count() == 0:
+
+            # Deleting a photo removes its embedding row but produces no
+            # updated_at bump, so also rebuild whenever the row count differs
+            # from the number of ids the index was built with - otherwise
+            # deleted photos occupy ANN result slots indefinitely.
+            indexed_count = None
+            if os.path.exists(ids_path):
+                try:
+                    with open(ids_path) as f:
+                        indexed_count = len(json.load(f))
+                except (ValueError, OSError):
+                    indexed_count = None
+            if (version_date and indexed_count == embedding_count
+                    and embeddings.filter(updated_at__gt=version_date).count() == 0):
                 logger.info(f'    No new CLIP embeddings in Library {library.id} so no point in updating CLIP ANN index')
                 continue
 
