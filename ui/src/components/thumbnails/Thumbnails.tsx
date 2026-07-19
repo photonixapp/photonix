@@ -7,15 +7,23 @@ import { AddTagModal } from './AddTagModal'
 import { useKeyboardSelection } from './hooks/useKeyboardSelection'
 import { useInfiniteScroll } from './hooks/useInfiniteScroll'
 import { useLibrariesStore } from '../../lib/libraries'
-import { usePhotoFilters } from '../../lib/search'
+import { usePhotoFilters, useSearchStore } from '../../lib/search'
 import { usePhotoListStore } from '../../lib/photos/photo-list-store'
-import { GET_PHOTOS, PHOTOS_PER_PAGE } from '../../lib/photos/graphql'
+import {
+  GET_PHOTOS,
+  PHOTOS_PER_PAGE,
+  SEMANTIC_SEARCH_PHOTOS,
+} from '../../lib/photos/graphql'
 import { SET_PHOTOS_DELETED } from '../../lib/photos/batch-graphql'
 import {
   ASSIGN_TAG_TO_PHOTOS,
   REMOVE_PHOTOS_FROM_ALBUM,
 } from '../../lib/albums/graphql'
 import type { ThumbnailPhoto, PhotoEdge, AllPhotosResponse } from '../../lib/photos/types'
+
+// Cap on how many semantic-search results to fetch and render at once. The
+// query is un-paginated, so this bounds the single request.
+const SEMANTIC_SEARCH_LIMIT = 100
 
 interface ThumbnailsProps {
   // When set, restrict the grid to photos tagged with this album (a Tag id).
@@ -26,6 +34,10 @@ export function Thumbnails({ albumId }: ThumbnailsProps = {}) {
   const { activeLibraryId } = useLibrariesStore()
   const baseFilters = usePhotoFilters()
   const filters = albumId ? `${baseFilters} tag:${albumId}` : baseFilters
+  const { mode, semanticQuery } = useSearchStore()
+  // Natural-language search replaces the filter grid on the main timeline only
+  // (albums keep their tag-scoped filter view).
+  const isSemantic = mode === 'semantic' && !!semanticQuery && !albumId
   const navigate = useNavigate()
   const client = useApolloClient()
   const { setPhotoList, saveScrollPosition, scrollPosition } = usePhotoListStore()
@@ -36,17 +48,39 @@ export function Thumbnails({ albumId }: ThumbnailsProps = {}) {
 
   const { data, loading, fetchMore, refetch } = useQuery(GET_PHOTOS, {
     variables: { filters, first: PHOTOS_PER_PAGE },
-    skip: !filters.includes('library_id:'),
+    skip: !filters.includes('library_id:') || isSemantic,
   })
 
+  const { data: semanticData, loading: semanticLoading } = useQuery(
+    SEMANTIC_SEARCH_PHOTOS,
+    {
+      variables: {
+        libraryId: activeLibraryId!,
+        query: semanticQuery,
+        first: SEMANTIC_SEARCH_LIMIT,
+      },
+      skip: !isSemantic || !activeLibraryId,
+      fetchPolicy: 'cache-and-network',
+    }
+  )
+
   const photos: ThumbnailPhoto[] = useMemo(() => {
+    if (isSemantic) {
+      // Results already arrive ordered by descending similarity score.
+      return (semanticData?.semanticSearchPhotos ?? []).map((result) => ({
+        id: result.photo.id,
+        thumbnailUrl: `/thumbnailer/photo/256x256_cover_q50/${result.photo.id}/`,
+        starRating: result.photo.starRating,
+        rotation: result.photo.rotation,
+      }))
+    }
     return (data?.allPhotos.edges ?? []).map((edge: PhotoEdge) => ({
       id: edge.node.id,
       thumbnailUrl: `/thumbnailer/photo/256x256_cover_q50/${edge.node.id}/`,
       starRating: edge.node.starRating,
       rotation: edge.node.rotation,
     }))
-  }, [data])
+  }, [isSemantic, semanticData, data])
 
   const allPhotoIds = useMemo(() => photos.map((p) => p.id), [photos])
 
@@ -158,7 +192,10 @@ export function Thumbnails({ albumId }: ThumbnailsProps = {}) {
     onClearSelection: clearSelection,
   })
 
-  const hasNextPage = data?.allPhotos.pageInfo.hasNextPage ?? false
+  // Semantic search returns a single, un-paginated ranked page.
+  const hasNextPage = isSemantic
+    ? false
+    : (data?.allPhotos.pageInfo.hasNextPage ?? false)
   const endCursor = data?.allPhotos.pageInfo.endCursor
 
   const loadMore = useCallback(async () => {
@@ -234,6 +271,16 @@ export function Thumbnails({ albumId }: ThumbnailsProps = {}) {
     return (
       <div className="p-10 text-neutral-400">
         Select a library to view photos.
+      </div>
+    )
+  }
+
+  // Natural-language search that returned nothing (and isn't still loading):
+  // show a hint rather than an empty grid.
+  if (isSemantic && !semanticLoading && photos.length === 0) {
+    return (
+      <div className="p-10 text-neutral-400" data-testid="semantic-no-results">
+        No photos match “{semanticQuery}”.
       </div>
     )
   }

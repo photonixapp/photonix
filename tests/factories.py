@@ -30,6 +30,7 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     classification_object_enabled = True
     classification_face_enabled = True
     classification_event_enabled = True
+    classification_clip_enabled = True
     setup_stage_completed = True
 
 

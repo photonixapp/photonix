@@ -321,6 +321,7 @@ def test_anonymous_cannot_run_onboarding_mutations_for_existing_user(victim):
                                   classificationLocationEnabled: false,
                                   classificationFaceEnabled: false,
                                   classificationEventEnabled: false,
+                                  classificationClipEnabled: false,
                                   userId: $userId, libraryId: $libraryId}) {
                 ok
             }
@@ -350,6 +351,7 @@ def test_cannot_hijack_another_users_onboarding(victim, attacker_client):
                                   classificationLocationEnabled: true,
                                   classificationFaceEnabled: true,
                                   classificationEventEnabled: true,
+                                  classificationClipEnabled: true,
                                   userId: $userId, libraryId: $libraryId}) {
                 ok
             }

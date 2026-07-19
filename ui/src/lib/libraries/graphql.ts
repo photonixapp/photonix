@@ -10,6 +10,7 @@ export const GET_ALL_LIBRARIES: TypedDocumentNode<
     allLibraries {
       id
       name
+      classificationClipEnabled
     }
   }
 `

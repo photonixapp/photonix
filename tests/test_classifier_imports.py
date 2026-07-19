@@ -10,6 +10,7 @@ CLASSIFIERS = [
     ('photonix.classifiers.style.model', 'StyleModel'),
     ('photonix.classifiers.location.model', 'LocationModel'),
     ('photonix.classifiers.event.model', 'EventModel'),
+    ('photonix.classifiers.clip.model', 'ClipModel'),
 ]
 
 # Classifiers that use lazy-loaded heavy dependencies (e.g. TensorFlow, ONNX

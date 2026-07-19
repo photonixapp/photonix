@@ -30,11 +30,21 @@ export interface AutocompleteOption {
   type: FilterType
 }
 
+// Which search mode the bar is in: structured tag/metadata filters, or
+// free-text CLIP semantic search.
+export type SearchMode = 'filters' | 'semantic'
+
 export interface SearchState {
   // Search text (what user is typing)
   searchText: string
   // Selected filters (pills)
   selectedFilters: SelectedFilter[]
+  // Filters vs. natural-language (semantic) search
+  mode: SearchMode
+  // The submitted semantic query (empty string when none is active). Kept
+  // separate from `searchText` so the grid only re-queries on submit, not on
+  // every keystroke.
+  semanticQuery: string
   // Actions
   setSearchText: (text: string) => void
   addFilter: (filter: SelectedFilter) => void
@@ -43,5 +53,7 @@ export interface SearchState {
   // such as aperture/flash/meteringMode. Replaces any existing filter with the
   // same prefix.
   setPrefixFilter: (prefix: string, filter: SelectedFilter | null) => void
+  setMode: (mode: SearchMode) => void
+  setSemanticQuery: (query: string) => void
   clearAll: () => void
 }

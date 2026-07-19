@@ -58,6 +58,7 @@ class Command(BaseCommand):
                 classification_object_enabled=True,
                 classification_face_enabled=True,
                 classification_event_enabled=True,
+                classification_clip_enabled=True,
                 setup_stage_completed='Th'
             )
             library.save()

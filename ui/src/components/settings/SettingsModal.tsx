@@ -11,6 +11,7 @@ import {
   UPDATE_STYLE_ENABLED,
   UPDATE_OBJECT_ENABLED,
   UPDATE_EVENT_ENABLED,
+  UPDATE_CLIP_ENABLED,
   UPDATE_WATCH_PHOTOS,
 } from '../../lib/settings/graphql'
 import { addToast } from '../../lib/ui/store'
@@ -27,8 +28,14 @@ type SettingKey =
   | 'classificationStyleEnabled'
   | 'classificationObjectEnabled'
   | 'classificationEventEnabled'
+  | 'classificationClipEnabled'
 
-const TOGGLES: { key: SettingKey; label: string; mutation: DocumentNode }[] = [
+const TOGGLES: {
+  key: SettingKey
+  label: string
+  description?: string
+  mutation: DocumentNode
+}[] = [
   {
     key: 'watchPhotos',
     label: 'Watch folder for new photos',
@@ -64,6 +71,13 @@ const TOGGLES: { key: SettingKey; label: string; mutation: DocumentNode }[] = [
     label: 'Run event detection on photos',
     mutation: UPDATE_EVENT_ENABLED,
   },
+  {
+    key: 'classificationClipEnabled',
+    label: 'Semantic search (CLIP)',
+    description:
+      'Search photos by describing them in natural language. Downloads a ~340 MB model.',
+    mutation: UPDATE_CLIP_ENABLED,
+  },
 ]
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
@@ -90,6 +104,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       classificationStyleEnabled: !!lib?.classificationStyleEnabled,
       classificationObjectEnabled: !!lib?.classificationObjectEnabled,
       classificationEventEnabled: !!lib?.classificationEventEnabled,
+      classificationClipEnabled: !!lib?.classificationClipEnabled,
     }
   }, [data])
 
@@ -124,10 +139,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       data-testid="settings-modal"
     >
       <div className="space-y-4">
-        {TOGGLES.map(({ key, label, mutation }) => (
+        {TOGGLES.map(({ key, label, description, mutation }) => (
           <Switch
             key={key}
             label={label}
+            description={description}
             checked={valueOf(key)}
             onChange={() => toggle(key, mutation)}
             data-testid={`setting-${key}`}

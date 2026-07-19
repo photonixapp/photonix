@@ -45,6 +45,7 @@ class Library(UUIDModel, VersionedModel):
     classification_object_enabled = models.BooleanField(default=False, help_text='Run object detection on photos?')
     classification_face_enabled = models.BooleanField(default=False, help_text='Run face detection on photos?')
     classification_event_enabled = models.BooleanField(default=False, help_text='Run event detection on photos?')
+    classification_clip_enabled = models.BooleanField(default=False, help_text='Run CLIP semantic embedding on photos?')
     setup_stage_completed = models.CharField(max_length=2, choices=LIBRARY_SETUP_STAGE_COMPLETED_CHOICES, blank=True, null=True, help_text='Where the user got to during onboarding setup')
 
     class Meta:
@@ -333,6 +334,26 @@ class PhotoTag(UUIDModel, VersionedModel):
 
     def __str__(self):
         return '{}: {}'.format(self.photo, self.tag)
+
+
+PHOTO_EMBEDDING_TYPE_CHOICES = (
+    ('C', 'CLIP'),  # CLIP ViT-B/32 semantic embedding
+)
+
+
+class PhotoEmbedding(UUIDModel, VersionedModel):
+    photo = models.ForeignKey(Photo, related_name='embeddings', on_delete=models.CASCADE)
+    type = models.CharField(max_length=16, choices=PHOTO_EMBEDDING_TYPE_CHOICES, db_index=True, help_text='Which model produced the embedding, e.g. CLIP')
+    model_version = models.PositiveIntegerField(default=0, help_text='Version number of the model that produced this embedding (YYYYMMDD)')
+    embedding = models.BinaryField(help_text='Raw little-endian float32 bytes of the embedding vector')
+
+    objects = PhotoRelatedForUserQuerySet.as_manager()
+
+    class Meta:
+        unique_together = [['photo', 'type']]
+
+    def __str__(self):
+        return '{}: {}'.format(self.photo_id, self.type)
 
 
 TASK_STATUS_CHOICES = (

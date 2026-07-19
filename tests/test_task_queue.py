@@ -82,7 +82,7 @@ def test_tasks_created_updated(photo_fixture_snow):
     process_classify_images_tasks()
     task = Task.objects.get(type='classify_images', subject_id=photo_fixture_snow.id)
     assert task.status == 'S'
-    assert task.children.count() == 6
+    assert task.children.count() == 7
     assert task.complete_with_children == True
 
     # Completing all the child processes should set the parent task to completed
@@ -145,6 +145,7 @@ def test_no_classifier_tasks_created_for_disabled_classifiers(db):
         classification_style_enabled=False,
         classification_object_enabled=False,
         classification_face_enabled=False,
+        classification_clip_enabled=False,
     )
     photo = record_photo(snow_path, library)
     task = _make_task(type='classify_images', subject_id=photo.id, library=library)
@@ -178,6 +179,7 @@ def test_no_event_task_created_when_event_disabled(db):
         classification_object_enabled=False,
         classification_face_enabled=False,
         classification_event_enabled=False,
+        classification_clip_enabled=False,
     )
     photo = record_photo(snow_path, library)
     task = _make_task(type='classify_images', subject_id=photo.id, library=library)
@@ -191,6 +193,34 @@ def test_no_event_task_created_when_event_disabled(db):
 
     # With no children to wait on, the parent task completes immediately
     assert task.status == 'C'
+
+
+def test_no_clip_task_created_when_clip_disabled(db):
+    # The CLIP semantic-search analyzer has a per-library toggle; when it is
+    # disabled no classify.clip task should be created (it would otherwise sit
+    # Pending forever because no processor would pick it up).
+    from photonix.photos.utils.db import record_photo
+
+    snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
+    library = LibraryFactory(
+        classification_color_enabled=False,
+        classification_location_enabled=False,
+        classification_style_enabled=False,
+        classification_object_enabled=False,
+        classification_face_enabled=False,
+        classification_event_enabled=True,
+        classification_clip_enabled=False,
+    )
+    photo = record_photo(snow_path, library)
+    task = _make_task(type='classify_images', subject_id=photo.id, library=library)
+
+    process_classify_images_tasks()
+    task.refresh_from_db()
+
+    child_types = set(task.children.values_list('type', flat=True))
+    assert 'classify.clip' not in child_types
+    # Event stays enabled here, so exactly one child (the event task) exists
+    assert child_types == {'classify.event'}
 
 
 def test_scheduler_processes_tasks_in_steady_state(db, monkeypatch):

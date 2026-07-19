@@ -18,6 +18,7 @@ CLASSIFIER_PRIORITIES = {
     'style': 70,
     'object': 60,
     'event': 50,
+    'clip': 40,
 }
 
 # List of classifiers for iteration (order doesn't matter for execution)
@@ -237,6 +238,8 @@ class ThreadedQueueProcessor:
                     task_queryset = Task.objects.filter(library__classification_object_enabled=True, type=self.task_type, status='P')
                 elif self.task_type == 'classify.event':
                     task_queryset = Task.objects.filter(library__classification_event_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.clip':
+                    task_queryset = Task.objects.filter(library__classification_clip_enabled=True, type=self.task_type, status='P')
                 else:
                     task_queryset = Task.objects.filter(type=self.task_type, status='P')
                 for task in task_queryset[:8]:

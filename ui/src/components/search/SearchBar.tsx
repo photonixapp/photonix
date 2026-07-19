@@ -6,6 +6,7 @@ import { AutocompleteDropdown } from './AutocompleteDropdown'
 import { useSearchStore } from '../../lib/search/store'
 import { useAutocomplete } from '../../lib/search/hooks'
 import { KEYS } from '../../lib/search/constants'
+import { useLibrariesStore } from '../../lib/libraries'
 import type { AutocompleteOption, SelectedFilter } from '../../lib/search/types'
 
 export function SearchBar() {
@@ -15,16 +16,33 @@ export function SearchBar() {
   const {
     searchText,
     selectedFilters,
+    mode,
     setSearchText,
     addFilter,
     removeFilter,
     clearAll,
+    setMode,
+    setSemanticQuery,
   } = useSearchStore()
+
+  const { getActiveLibrary } = useLibrariesStore()
+  // The natural-language mode is only offered when the active library has the
+  // CLIP semantic-search analyzer enabled.
+  const semanticAvailable = !!getActiveLibrary()?.classificationClipEnabled
+  const isSemantic = mode === 'semantic'
 
   const { options } = useAutocomplete()
   const [showDropdown, setShowDropdown] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
+
+  // If semantic search stops being available (e.g. library switch), fall back
+  // to filter mode so the bar never gets stuck in an unusable state.
+  useEffect(() => {
+    if (isSemantic && !semanticAvailable) {
+      setMode('filters')
+    }
+  }, [isSemantic, semanticAvailable, setMode])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -42,9 +60,12 @@ export function SearchBar() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value)
-    setShowDropdown(true)
-    // Reset the highlighted option as the query (and thus the list) changes.
-    setActiveIndex(0)
+    // Autocomplete only applies to structured filter search.
+    if (!isSemantic) {
+      setShowDropdown(true)
+      // Reset the highlighted option as the query (and thus the list) changes.
+      setActiveIndex(0)
+    }
   }
 
   const handleSelectOption = useCallback(
@@ -62,7 +83,25 @@ export function SearchBar() {
     [addFilter, setSearchText]
   )
 
+  const submitSemantic = useCallback(() => {
+    const trimmed = searchText.trim()
+    if (trimmed) {
+      setSemanticQuery(trimmed)
+      setShowDropdown(false)
+    }
+  }, [searchText, setSemanticQuery])
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // In natural-language mode Enter submits the query to the semantic search;
+    // the autocomplete keyboard handling below is filter-mode only.
+    if (isSemantic) {
+      if (e.key === KEYS.ENTER) {
+        e.preventDefault()
+        submitSemantic()
+      }
+      return
+    }
+
     switch (e.key) {
       case KEYS.ARROW_DOWN:
         e.preventDefault()
@@ -125,6 +164,40 @@ export function SearchBar() {
       className="relative bg-neutral-800 rounded-b-lg px-2 py-1"
       data-testid="search-bar"
     >
+      {/* Filters vs. natural-language mode toggle (only when CLIP is enabled) */}
+      {semanticAvailable && (
+        <div className="flex justify-end pb-1" data-testid="search-mode-toggle">
+          <div className="flex rounded-md bg-neutral-900 p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setMode('filters')}
+              className={`px-2 py-0.5 rounded transition-colors ${
+                isSemantic
+                  ? 'text-neutral-400 hover:text-neutral-200'
+                  : 'bg-teal-600 text-white'
+              }`}
+              aria-pressed={!isSemantic}
+              data-testid="search-mode-filters"
+            >
+              Filters
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('semantic')}
+              className={`px-2 py-0.5 rounded transition-colors ${
+                isSemantic
+                  ? 'bg-teal-600 text-white'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+              aria-pressed={isSemantic}
+              data-testid="search-mode-semantic"
+            >
+              Natural language
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
         className="flex items-center gap-2 flex-wrap"
         onTouchStart={handleTouchStart}
@@ -132,16 +205,17 @@ export function SearchBar() {
       >
         <Search className="w-5 h-5 text-neutral-400 shrink-0" />
 
-        {/* Filter pills */}
-        {selectedFilters.map((filter) => (
-          <FilterPill
-            key={filter.id}
-            id={filter.id}
-            name={filter.name}
-            group={filter.group}
-            onRemove={removeFilter}
-          />
-        ))}
+        {/* Filter pills (filter mode only) */}
+        {!isSemantic &&
+          selectedFilters.map((filter) => (
+            <FilterPill
+              key={filter.id}
+              id={filter.id}
+              name={filter.name}
+              group={filter.group}
+              onRemove={removeFilter}
+            />
+          ))}
 
         {/* Search input */}
         <input
@@ -150,8 +224,16 @@ export function SearchBar() {
           value={searchText}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => setShowDropdown(true)}
-          placeholder={selectedFilters.length === 0 ? 'Search photos...' : ''}
+          onFocus={() => {
+            if (!isSemantic) setShowDropdown(true)
+          }}
+          placeholder={
+            isSemantic
+              ? 'Describe the photos you are looking for...'
+              : selectedFilters.length === 0
+                ? 'Search photos...'
+                : ''
+          }
           className="flex-1 min-w-[100px] bg-transparent border-none outline-none text-white placeholder-neutral-500 py-1"
           data-testid="search-input"
         />
@@ -169,31 +251,35 @@ export function SearchBar() {
           </button>
         )}
 
-        {/* Filters panel toggle */}
-        <button
-          type="button"
-          onClick={() => setShowFilters((v) => !v)}
-          className={`p-1 rounded transition-colors ${
-            showFilters ? 'text-teal-400' : 'text-neutral-400 hover:bg-neutral-700'
-          }`}
-          aria-label="Toggle filters panel"
-          aria-expanded={showFilters}
-          data-testid="filters-toggle"
-        >
-          <SlidersHorizontal className="w-5 h-5" />
-        </button>
+        {/* Filters panel toggle (filter mode only) */}
+        {!isSemantic && (
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            className={`p-1 rounded transition-colors ${
+              showFilters ? 'text-teal-400' : 'text-neutral-400 hover:bg-neutral-700'
+            }`}
+            aria-label="Toggle filters panel"
+            aria-expanded={showFilters}
+            data-testid="filters-toggle"
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
-      {/* Autocomplete dropdown */}
-      <AutocompleteDropdown
-        options={options}
-        activeIndex={activeIndex}
-        onSelect={handleSelectOption}
-        visible={showDropdown && searchText.length > 0}
-      />
+      {/* Autocomplete dropdown (filter mode only) */}
+      {!isSemantic && (
+        <AutocompleteDropdown
+          options={options}
+          activeIndex={activeIndex}
+          onSelect={handleSelectOption}
+          visible={showDropdown && searchText.length > 0}
+        />
+      )}
 
       {/* Collapsible filters panel */}
-      {showFilters && <FilterPanel />}
+      {!isSemantic && showFilters && <FilterPanel />}
     </div>
   )
 }

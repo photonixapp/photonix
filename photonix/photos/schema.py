@@ -288,6 +288,12 @@ class PhotosAroundType(graphene.ObjectType):
     current_index = graphene.Int()
 
 
+class SemanticSearchResult(graphene.ObjectType):
+    """A photo matched by CLIP semantic search, with its similarity score."""
+    photo = graphene.Field(PhotoNode)
+    score = graphene.Float()
+
+
 class Query(graphene.ObjectType):
     all_libraries = graphene.List(LibraryType)
     camera = graphene.Field(CameraType, id=graphene.UUID(), make=graphene.String(), model=graphene.String())
@@ -307,6 +313,13 @@ class Query(graphene.ObjectType):
     photo = graphene.Field(PhotoNode, id=graphene.UUID())
     all_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter, max_limit=None)
     map_photos = DjangoFilterConnectionField(PhotoNode, filterset_class=PhotoFilter)
+    semantic_search_photos = graphene.List(
+        SemanticSearchResult,
+        library_id=graphene.UUID(required=True),
+        query=graphene.String(required=True),
+        first=graphene.Int(default_value=50),
+        description="Search a library's photos by natural-language description using CLIP embeddings",
+    )
     photos_around = graphene.Field(
         PhotosAroundType,
         photo_id=graphene.UUID(required=True),
@@ -424,6 +437,46 @@ class Query(graphene.ObjectType):
     def resolve_map_photos(self, info, **kwargs):
         user = info.context.user
         return Photo.objects.filter(library__users__user=user, deleted=False).exclude(latitude__isnull=True, longitude__isnull=True)
+
+    @login_required
+    def resolve_semantic_search_photos(self, info, **kwargs):
+        """Rank a library's photos by CLIP similarity to a natural-language query.
+
+        Scoped to libraries the requesting user is a member of so results can
+        never leak another user's photos - the same authorization the other
+        photo queries enforce via for_user()/library__users__user.
+        """
+        user = info.context.user
+        library_id = kwargs.get('library_id')
+        query = kwargs.get('query')
+        first = kwargs.get('first', 50)
+
+        # Only search libraries this user belongs to.
+        if not Library.objects.filter(id=library_id, users__user=user).exists():
+            return []
+        if not query or not query.strip():
+            return []
+
+        from photonix.classifiers.clip.model import semantic_search
+        ranked = semantic_search(library_id, query, first=first)
+        if not ranked:
+            return []
+
+        # Fetch the matched photos in one query, scoped to the user, then keep
+        # the similarity ordering the search returned.
+        scores = dict(ranked)
+        photos = Photo.objects.filter(
+            id__in=list(scores.keys()),
+            library__users__user=user,
+            deleted=False,
+        )
+        photos_by_id = {str(photo.id): photo for photo in photos}
+        results = []
+        for photo_id, score in ranked:
+            photo = photos_by_id.get(photo_id)
+            if photo is not None:
+                results.append(SemanticSearchResult(photo=photo, score=score))
+        return results
 
     @login_required
     def resolve_photos_around(self, info, **kwargs):
@@ -678,6 +731,7 @@ class LibraryInput(graphene.InputObjectType):
     classification_object_enabled = graphene.Boolean()
     classification_face_enabled = graphene.Boolean()
     classification_event_enabled = graphene.Boolean()
+    classification_clip_enabled = graphene.Boolean()
     source_folder = graphene.String(required=False)
     watch_photos = graphene.Boolean(required=False)
     user_id = graphene.ID()
@@ -868,6 +922,37 @@ class UpdateLibraryEventEnabled(graphene.Mutation):
             raise Exception('User is not the owner of library!')
         else:
             return UpdateLibraryEventEnabled(ok=ok, classification_event_enabled=None)
+
+
+class UpdateLibraryClipEnabled(graphene.Mutation):
+    """To update data in database that will be passed from frontend ClipEnabled api."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=False)
+
+    ok = graphene.Boolean()
+    classification_clip_enabled = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data for ClipEnabled api."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and str(input.get('classification_clip_enabled')) != 'None':
+            library_obj = libraries[0]
+            library_obj.classification_clip_enabled = input.classification_clip_enabled
+            library_obj.save()
+            ok = True
+            return UpdateLibraryClipEnabled(
+                ok=ok,
+                classification_clip_enabled=library_obj.classification_clip_enabled)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibraryClipEnabled(ok=ok, classification_clip_enabled=None)
 
 
 class UpdateLibrarySourceFolder(graphene.Mutation):
@@ -1064,6 +1149,7 @@ class ImageAnalysis(graphene.Mutation):
         library_obj.classification_object_enabled = input.classification_object_enabled
         library_obj.classification_face_enabled = input.classification_face_enabled
         library_obj.classification_event_enabled = input.classification_event_enabled
+        library_obj.classification_clip_enabled = input.classification_clip_enabled
         library_obj.save()
         # Only auto-login as part of genuine first-run onboarding, i.e. when this
         # user is completing image-analysis configuration for the very first time.
@@ -1395,6 +1481,7 @@ class Mutation(graphene.ObjectType):
     update_object_enabled = UpdateLibraryObjectEnabled.Field()
     update_face_enabled = UpdateLibraryFaceEnabled.Field()
     update_event_enabled = UpdateLibraryEventEnabled.Field()
+    update_clip_enabled = UpdateLibraryClipEnabled.Field()
     update_source_folder = UpdateLibrarySourceFolder.Field()
     update_watch_photos = UpdateLibraryWatchPhotos.Field()
     create_library = CreateLibrary.Field()

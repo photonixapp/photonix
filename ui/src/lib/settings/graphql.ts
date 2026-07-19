@@ -9,6 +9,7 @@ export interface LibrarySettingData {
   classificationStyleEnabled: boolean
   classificationObjectEnabled: boolean
   classificationEventEnabled: boolean
+  classificationClipEnabled: boolean
 }
 
 export interface LibrarySettingResponse {
@@ -33,6 +34,7 @@ export const GET_LIBRARY_SETTING: TypedDocumentNode<
         classificationStyleEnabled
         classificationObjectEnabled
         classificationEventEnabled
+        classificationClipEnabled
       }
       sourceFolder
       watchPhotos
@@ -116,6 +118,19 @@ export const UPDATE_EVENT_ENABLED: TypedDocumentNode<
       input: { classificationEventEnabled: $value, libraryId: $libraryId }
     ) {
       classificationEventEnabled
+    }
+  }
+`
+
+export const UPDATE_CLIP_ENABLED: TypedDocumentNode<
+  { updateClipEnabled: { classificationClipEnabled: boolean } },
+  { value: boolean; libraryId: string }
+> = gql`
+  mutation UpdateClipEnabled($value: Boolean!, $libraryId: ID) {
+    updateClipEnabled(
+      input: { classificationClipEnabled: $value, libraryId: $libraryId }
+    ) {
+      classificationClipEnabled
     }
   }
 `

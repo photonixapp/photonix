@@ -37,3 +37,16 @@ export interface ThumbnailPhoto {
   starRating: number
   rotation: number
 }
+
+export interface SemanticSearchResult {
+  photo: {
+    id: string
+    starRating: number
+    rotation: number
+  }
+  score: number
+}
+
+export interface SemanticSearchResponse {
+  semanticSearchPhotos: SemanticSearchResult[]
+}

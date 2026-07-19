@@ -45,6 +45,12 @@ const CLASSIFIERS = [
     description:
       'Tag photos taken on holidays like Christmas or Halloween based on the date taken',
   },
+  {
+    key: 'classificationClipEnabled' as const,
+    label: 'Semantic Search (CLIP)',
+    description:
+      'Search photos by describing them in natural language. Downloads a ~340 MB model.',
+  },
 ]
 
 function Step5ImageAnalysis() {
@@ -63,6 +69,7 @@ function Step5ImageAnalysis() {
       classificationLocationEnabled: formData.classificationLocationEnabled ?? true,
       classificationFaceEnabled: formData.classificationFaceEnabled ?? true,
       classificationEventEnabled: formData.classificationEventEnabled ?? true,
+      classificationClipEnabled: formData.classificationClipEnabled ?? true,
     },
     onSubmit: async ({ value }) => {
       try {
