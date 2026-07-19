@@ -33,6 +33,27 @@ jobs:
         name: Run tests
         run: docker run --rm --network host photonix-test:latest python test.py
 
+  test-ml-image:
+    # The optional classification sidecar image must at least build on every
+    # change - it shares the monorepo but has its own Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v6
+      -
+        name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      -
+        name: Build ML sidecar image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./docker/Dockerfile.ml
+          tags: photonix-ml-test:latest
+          cache-from: type=gha,scope=ml
+          cache-to: type=gha,mode=max,scope=ml
+
   test-ui:
     runs-on: ubuntu-latest
     steps:
@@ -109,7 +130,7 @@ jobs:
         run: docker compose -f docker/docker-compose.dev.yml -f docker/docker-compose.ci.yml logs --tail 200 photonix
 
   build-and-push:
-    needs: [test, test-ui, test-e2e]
+    needs: [test, test-ml-image, test-ui, test-e2e]
     # Pull requests only run the test jobs - no DockerHub credentials there
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
@@ -152,6 +173,29 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha,scope=prod
           cache-to: type=gha,mode=max,scope=prod
+      -
+        name: Docker meta (ML sidecar)
+        id: meta-ml
+        uses: docker/metadata-action@v6
+        with:
+          images: photonixapp/photonix-ml
+          tags: |
+            type=raw,value=edge,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+      -
+        name: Build and push ML sidecar
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./docker/Dockerfile.ml
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-ml.outputs.tags }}
+          cache-from: type=gha,scope=ml
+          cache-to: type=gha,mode=max,scope=ml
 
   deploy-k8s:
     needs: build-and-push
