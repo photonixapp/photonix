@@ -150,6 +150,11 @@ class LocationModel(BaseModel):
         dphi = (col4 - lon) * deg2rad
         dlambda = (col5 - lat) * deg2rad
         a = np.sin(dphi / 2) ** 2 + cos_phi1 * np.cos(phi2) * np.sin(dlambda / 2) ** 2
+        # Floating-point rounding can push `a` fractionally above 1 for
+        # near-antipodal pairs; sqrt(1 - a) would then be NaN, and NaN cast to
+        # int64 is undefined (INT64_MIN on x86-64, which would "win" the
+        # nearest-city comparison). Clamp into the valid haversine domain.
+        a = np.clip(a, 0.0, 1.0)
         distances = (2 * R * np.arctan2(np.sqrt(a), np.sqrt(1 - a))).astype(np.int64)
 
         nearest_distance = int(distances.min())
