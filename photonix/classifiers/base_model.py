@@ -29,6 +29,15 @@ def _get_thread_settings():
         return (2, 2)
 
 
+def _get_memory_arena_setting():
+    """Whether ORT sessions should use the CPU memory arena (see settings)."""
+    try:
+        from django.conf import settings
+        return settings.CLASSIFIER_ORT_MEMORY_ARENA
+    except Exception:
+        return False
+
+
 # Lazy-loaded ONNX Runtime module, shared by all classifiers that need it
 ort = None
 
@@ -52,6 +61,7 @@ def create_ort_session(model_path):
         options.intra_op_num_threads = intra
     if inter:
         options.inter_op_num_threads = inter
+    options.enable_cpu_mem_arena = _get_memory_arena_setting()
     return _ort.InferenceSession(str(model_path), sess_options=options,
                                  providers=['CPUExecutionProvider'])
 

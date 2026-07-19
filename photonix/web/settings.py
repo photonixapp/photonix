@@ -225,10 +225,16 @@ CLASSIFIER_LOAD_COOLDOWN_SECONDS = int(os.environ.get('CLASSIFIER_LOAD_COOLDOWN'
 # models; 0 disables capping and runs inference on the full-res original.
 CLASSIFIER_MAX_INFERENCE_SIZE = int(os.environ.get('CLASSIFIER_MAX_INFERENCE_SIZE', 1024))
 # Per-process inference thread caps to stop the classifier processes
-# oversubscribing all host cores; applied to both TensorFlow and ONNX Runtime
-# sessions. 0 leaves the framework's own defaults.
+# oversubscribing all host cores; applied to every ONNX Runtime session.
+# 0 leaves the framework's own defaults.
 CLASSIFIER_INTRA_OP_THREADS = int(os.environ.get('CLASSIFIER_INTRA_OP_THREADS', 2))
 CLASSIFIER_INTER_OP_THREADS = int(os.environ.get('CLASSIFIER_INTER_OP_THREADS', 2))
+# ONNX Runtime's CPU memory arena pre-allocates and retains memory for the
+# session's lifetime, which inflates resident memory while a model is loaded.
+# Photonix optimises for low idle/loaded RSS (models are batch workers, not
+# latency-critical servers), so the arena is off by default; set to 1 to trade
+# memory for slightly lower per-inference allocator overhead.
+CLASSIFIER_ORT_MEMORY_ARENA = os.environ.get('CLASSIFIER_ORT_MEMORY_ARENA', '0') == '1'
 
 GRAPHENE = {
     'SCHEMA': 'photonix.web.schema.schema',
