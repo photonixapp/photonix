@@ -17,6 +17,7 @@ export function SearchBar() {
     searchText,
     selectedFilters,
     mode,
+    semanticQuery,
     setSearchText,
     addFilter,
     removeFilter,
@@ -138,7 +139,22 @@ export function SearchBar() {
     }
   }
 
-  const hasContent = searchText || selectedFilters.length > 0
+  // In semantic mode an active (submitted) query counts as content even after
+  // the input is emptied, so the clear button stays reachable while results
+  // are showing. Clearing in semantic mode leaves the filter pills alone -
+  // they belong to the other mode and the user will expect them back.
+  const hasContent = isSemantic
+    ? searchText || semanticQuery
+    : searchText || selectedFilters.length > 0
+
+  const handleClear = useCallback(() => {
+    if (isSemantic) {
+      setSearchText('')
+      setSemanticQuery('')
+    } else {
+      clearAll()
+    }
+  }, [isSemantic, setSearchText, setSemanticQuery, clearAll])
 
   // Touch swipe on the search bar expands (down) / collapses (up) the filters
   // panel, mirroring master's swipeable search area.
@@ -242,9 +258,9 @@ export function SearchBar() {
         {hasContent && (
           <button
             type="button"
-            onClick={clearAll}
+            onClick={handleClear}
             className="p-1 rounded hover:bg-neutral-700 transition-colors"
-            aria-label="Clear all filters"
+            aria-label={isSemantic ? 'Clear search' : 'Clear all filters'}
             data-testid="search-clear-all"
           >
             <X className="w-5 h-5 text-neutral-400" />

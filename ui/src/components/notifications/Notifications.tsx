@@ -15,6 +15,8 @@ import {
   UPDATE_LOCATION_ENABLED,
   UPDATE_STYLE_ENABLED,
   UPDATE_FACE_ENABLED,
+  UPDATE_EVENT_ENABLED,
+  UPDATE_CLIP_ENABLED,
   type LibrarySettingData,
 } from '../../lib/settings/graphql'
 
@@ -26,6 +28,8 @@ type TaskKey =
   | 'classifyLocation'
   | 'classifyStyle'
   | 'classifyFace'
+  | 'classifyEvent'
+  | 'classifyClip'
 
 interface TaskConfig {
   key: TaskKey
@@ -66,6 +70,18 @@ const TASKS: TaskConfig[] = [
     title: 'Analyzing faces',
     settingKey: 'classificationFaceEnabled',
     mutation: UPDATE_FACE_ENABLED,
+  },
+  {
+    key: 'classifyEvent',
+    title: 'Detecting events',
+    settingKey: 'classificationEventEnabled',
+    mutation: UPDATE_EVENT_ENABLED,
+  },
+  {
+    key: 'classifyClip',
+    title: 'Indexing for semantic search',
+    settingKey: 'classificationClipEnabled',
+    mutation: UPDATE_CLIP_ENABLED,
   },
 ]
 

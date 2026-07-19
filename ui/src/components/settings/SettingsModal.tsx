@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQuery, useApolloClient } from '@apollo/client/react'
 import type { DocumentNode } from '@apollo/client'
 import { Modal, Switch } from '../ui'
-import { useLibrariesStore } from '../../lib/libraries'
+import { GET_ALL_LIBRARIES, useLibrariesStore } from '../../lib/libraries'
 import {
   GET_LIBRARY_SETTING,
   UPDATE_COLOR_ENABLED,
@@ -123,6 +123,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       .mutate({
         mutation,
         variables: { value: newValue, libraryId: activeLibraryId },
+        // The toggle payloads don't return the library id, so Apollo can't
+        // update the normalized cache itself. Refetch the libraries query
+        // that feeds the libraries store so dependents (e.g. the SearchBar's
+        // "Natural language" mode) react without a full page reload.
+        refetchQueries: [{ query: GET_ALL_LIBRARIES }],
       })
       .catch(() => {
         // Revert on failure.

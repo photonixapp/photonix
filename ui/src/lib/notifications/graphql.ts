@@ -16,6 +16,8 @@ export interface TaskProgressResponse {
     classifyLocation: TaskCount | null
     classifyStyle: TaskCount | null
     classifyFace: TaskCount | null
+    classifyEvent: TaskCount | null
+    classifyClip: TaskCount | null
   } | null
 }
 
@@ -32,6 +34,8 @@ export const GET_TASK_PROGRESS: TypedDocumentNode<
       classifyLocation
       classifyStyle
       classifyFace
+      classifyEvent
+      classifyClip
     }
   }
 `

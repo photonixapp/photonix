@@ -51,18 +51,20 @@ export function Thumbnails({ albumId }: ThumbnailsProps = {}) {
     skip: !filters.includes('library_id:') || isSemantic,
   })
 
-  const { data: semanticData, loading: semanticLoading } = useQuery(
-    SEMANTIC_SEARCH_PHOTOS,
-    {
-      variables: {
-        libraryId: activeLibraryId!,
-        query: semanticQuery,
-        first: SEMANTIC_SEARCH_LIMIT,
-      },
-      skip: !isSemantic || !activeLibraryId,
-      fetchPolicy: 'cache-and-network',
-    }
-  )
+  const {
+    data: semanticData,
+    loading: semanticLoading,
+    error: semanticError,
+    refetch: semanticRefetch,
+  } = useQuery(SEMANTIC_SEARCH_PHOTOS, {
+    variables: {
+      libraryId: activeLibraryId!,
+      query: semanticQuery,
+      first: SEMANTIC_SEARCH_LIMIT,
+    },
+    skip: !isSemantic || !activeLibraryId,
+    fetchPolicy: 'cache-and-network',
+  })
 
   const photos: ThumbnailPhoto[] = useMemo(() => {
     if (isSemantic) {
@@ -174,8 +176,15 @@ export function Thumbnails({ albumId }: ThumbnailsProps = {}) {
       variables: { photoIds: selectedIds.join(',') },
     })
     clearSelection()
-    refetch()
-  }, [client, selectedIds, clearSelection, refetch])
+    // Refetch whichever query is feeding the grid - the filter query is
+    // skipped in semantic mode, so refetching it there would do nothing and
+    // the deleted photos would stay rendered.
+    if (isSemantic) {
+      semanticRefetch()
+    } else {
+      refetch()
+    }
+  }, [client, selectedIds, clearSelection, refetch, isSemantic, semanticRefetch])
 
   const handleRemoveFromAlbum = useCallback(async () => {
     if (selectedIds.length === 0 || !albumId) return
@@ -271,6 +280,26 @@ export function Thumbnails({ albumId }: ThumbnailsProps = {}) {
     return (
       <div className="p-10 text-neutral-400">
         Select a library to view photos.
+      </div>
+    )
+  }
+
+  // A failed semantic query must not masquerade as "no matches" - surface it,
+  // with the server's message when it has one (e.g. models still loading).
+  if (isSemantic && semanticError) {
+    return (
+      <div className="p-10 text-neutral-400" data-testid="semantic-error">
+        Search failed: {semanticError.message}
+      </div>
+    )
+  }
+
+  // First semantic search can be slow (text encoder loads on demand) - show
+  // progress rather than an empty grid.
+  if (isSemantic && semanticLoading && photos.length === 0) {
+    return (
+      <div className="p-10 text-neutral-400" data-testid="semantic-searching">
+        Searching…
       </div>
     )
   }

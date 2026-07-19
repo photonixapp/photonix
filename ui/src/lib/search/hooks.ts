@@ -117,7 +117,7 @@ export function useAutocomplete() {
  */
 export function usePhotoFilters(): string {
   const { activeLibraryId } = useLibrariesStore()
-  const { selectedFilters, searchText } = useSearchStore()
+  const { selectedFilters, searchText, mode } = useSearchStore()
   const debouncedSearch = useDebounce(searchText, 300)
 
   return useMemo(() => {
@@ -132,11 +132,14 @@ export function usePhotoFilters(): string {
       parts.push(f.id)
     })
 
-    // Add free text search (for date matching, etc.)
-    if (debouncedSearch.trim()) {
+    // Add free text search (for date matching, etc.) - but not in semantic
+    // mode, where the input is a natural-language query submitted on Enter;
+    // letting it leak here would filter the grid/map on every debounce tick
+    // while the user is still composing their sentence.
+    if (mode !== 'semantic' && debouncedSearch.trim()) {
       parts.push(debouncedSearch.trim())
     }
 
     return parts.join(' ')
-  }, [activeLibraryId, selectedFilters, debouncedSearch])
+  }, [activeLibraryId, selectedFilters, debouncedSearch, mode])
 }
