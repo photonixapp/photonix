@@ -128,6 +128,7 @@ export const CONFIGURE_IMAGE_ANALYSIS = gql`
     $classificationObjectEnabled: Boolean!
     $classificationLocationEnabled: Boolean!
     $classificationFaceEnabled: Boolean!
+    $classificationEventEnabled: Boolean!
     $userId: ID!
     $libraryId: ID!
   ) {
@@ -138,6 +139,7 @@ export const CONFIGURE_IMAGE_ANALYSIS = gql`
         classificationObjectEnabled: $classificationObjectEnabled
         classificationLocationEnabled: $classificationLocationEnabled
         classificationFaceEnabled: $classificationFaceEnabled
+        classificationEventEnabled: $classificationEventEnabled
         userId: $userId
         libraryId: $libraryId
       }

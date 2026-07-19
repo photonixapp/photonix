@@ -39,6 +39,12 @@ const CLASSIFIERS = [
     label: 'Face Detection',
     description: 'Detect and group photos by faces for people-based browsing',
   },
+  {
+    key: 'classificationEventEnabled' as const,
+    label: 'Event Tagging',
+    description:
+      'Tag photos taken on holidays like Christmas or Halloween based on the date taken',
+  },
 ]
 
 function Step5ImageAnalysis() {
@@ -56,6 +62,7 @@ function Step5ImageAnalysis() {
       classificationObjectEnabled: formData.classificationObjectEnabled ?? true,
       classificationLocationEnabled: formData.classificationLocationEnabled ?? true,
       classificationFaceEnabled: formData.classificationFaceEnabled ?? true,
+      classificationEventEnabled: formData.classificationEventEnabled ?? true,
     },
     onSubmit: async ({ value }) => {
       try {

@@ -231,6 +231,7 @@ class TestGraphQL(unittest.TestCase):
                     classificationObjectEnabled
                     classificationLocationEnabled
                     classificationFaceEnabled
+                    classificationEventEnabled
                   }
                   sourceFolder
                 }
@@ -245,6 +246,7 @@ class TestGraphQL(unittest.TestCase):
         self.assertTrue(data['data']['librarySetting']['library']['classificationObjectEnabled'])
         self.assertTrue(data['data']['librarySetting']['library']['classificationLocationEnabled'])
         self.assertTrue(data['data']['librarySetting']['library']['classificationFaceEnabled'])
+        self.assertTrue(data['data']['librarySetting']['library']['classificationEventEnabled'])
         self.assertEqual(data['data']['librarySetting']['sourceFolder'], self.defaults['library'].paths.all()[0].path)
 
     def test_library_update_style_enabled_mutation(self):
@@ -268,6 +270,28 @@ class TestGraphQL(unittest.TestCase):
         data = get_graphql_content(response)
         assert response.status_code == 200
         assert tuple(tuple(data.values())[0].values())[0].get('classificationStyleEnabled')
+
+    def test_library_update_event_enabled_mutation(self):
+        """Test library updateEventEnabled mutation response."""
+        mutation = """
+            mutation updateEventEnabled(
+                $classificationEventEnabled: Boolean!
+                $libraryId: ID
+              ) {
+                updateEventEnabled(
+                  input: {
+                    classificationEventEnabled: $classificationEventEnabled
+                    libraryId: $libraryId
+                  }
+                ) {
+                  classificationEventEnabled
+                }
+              }
+        """
+        response = self.api_client.post_graphql(mutation, {'classificationEventEnabled':True,'libraryId': str(self.defaults['library'].id)})
+        data = get_graphql_content(response)
+        assert response.status_code == 200
+        assert tuple(tuple(data.values())[0].values())[0].get('classificationEventEnabled')
 
     def test_library_update_color_enabled_mutation(self):
         """Test library updateColorEnabled mutation response."""
@@ -885,6 +909,7 @@ class TestGraphQLOnboarding(unittest.TestCase):
                 $classificationObjectEnabled: Boolean!,
                 $classificationLocationEnabled: Boolean!,
                 $classificationFaceEnabled: Boolean!,
+                $classificationEventEnabled: Boolean!,
                 $userId: ID!,$libraryId: ID!,
                 ) {
                     imageAnalysis(input:{
@@ -893,6 +918,7 @@ class TestGraphQLOnboarding(unittest.TestCase):
                         classificationObjectEnabled:$classificationObjectEnabled,
                         classificationLocationEnabled:$classificationLocationEnabled,
                         classificationFaceEnabled:$classificationFaceEnabled,
+                        classificationEventEnabled:$classificationEventEnabled,
                         userId:$userId,
                         libraryId:$libraryId,
                     }) {
@@ -909,6 +935,7 @@ class TestGraphQLOnboarding(unittest.TestCase):
                 'classificationObjectEnabled': False,
                 'classificationLocationEnabled': False,
                 'classificationFaceEnabled': False,
+                'classificationEventEnabled': True,
                 'userId': data['data']['PhotoImporting']['userId'],
                 'libraryId': data['data']['PhotoImporting']['libraryId'],
             })
@@ -919,6 +946,7 @@ class TestGraphQLOnboarding(unittest.TestCase):
         assert data['data']['imageAnalysis']['hasConfiguredImageAnalysis']
         assert library.classification_color_enabled
         assert library.classification_style_enabled
+        assert library.classification_event_enabled
         self.assertFalse(library.classification_object_enabled)
         self.assertFalse(library.classification_location_enabled)
         self.assertTrue(

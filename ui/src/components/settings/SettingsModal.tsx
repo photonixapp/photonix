@@ -10,6 +10,7 @@ import {
   UPDATE_FACE_ENABLED,
   UPDATE_STYLE_ENABLED,
   UPDATE_OBJECT_ENABLED,
+  UPDATE_EVENT_ENABLED,
   UPDATE_WATCH_PHOTOS,
 } from '../../lib/settings/graphql'
 import { addToast } from '../../lib/ui/store'
@@ -25,6 +26,7 @@ type SettingKey =
   | 'classificationFaceEnabled'
   | 'classificationStyleEnabled'
   | 'classificationObjectEnabled'
+  | 'classificationEventEnabled'
 
 const TOGGLES: { key: SettingKey; label: string; mutation: DocumentNode }[] = [
   {
@@ -57,6 +59,11 @@ const TOGGLES: { key: SettingKey; label: string; mutation: DocumentNode }[] = [
     label: 'Run object detection on photos',
     mutation: UPDATE_OBJECT_ENABLED,
   },
+  {
+    key: 'classificationEventEnabled',
+    label: 'Run event detection on photos',
+    mutation: UPDATE_EVENT_ENABLED,
+  },
 ]
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
@@ -82,6 +89,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       classificationFaceEnabled: !!lib?.classificationFaceEnabled,
       classificationStyleEnabled: !!lib?.classificationStyleEnabled,
       classificationObjectEnabled: !!lib?.classificationObjectEnabled,
+      classificationEventEnabled: !!lib?.classificationEventEnabled,
     }
   }, [data])
 

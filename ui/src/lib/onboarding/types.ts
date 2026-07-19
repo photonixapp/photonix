@@ -31,6 +31,7 @@ export interface OnboardingFormData {
   classificationObjectEnabled: boolean
   classificationLocationEnabled: boolean
   classificationFaceEnabled: boolean
+  classificationEventEnabled: boolean
 }
 
 export interface OnboardingIds {

@@ -28,6 +28,7 @@ const initialState: Pick<OnboardingState, 'userId' | 'libraryId' | 'libraryPathI
     classificationObjectEnabled: true,
     classificationLocationEnabled: true,
     classificationFaceEnabled: true,
+    classificationEventEnabled: true,
   },
 }
 

@@ -320,6 +320,7 @@ def test_anonymous_cannot_run_onboarding_mutations_for_existing_user(victim):
                                   classificationObjectEnabled: false,
                                   classificationLocationEnabled: false,
                                   classificationFaceEnabled: false,
+                                  classificationEventEnabled: false,
                                   userId: $userId, libraryId: $libraryId}) {
                 ok
             }
@@ -348,6 +349,7 @@ def test_cannot_hijack_another_users_onboarding(victim, attacker_client):
                                   classificationObjectEnabled: true,
                                   classificationLocationEnabled: true,
                                   classificationFaceEnabled: true,
+                                  classificationEventEnabled: true,
                                   userId: $userId, libraryId: $libraryId}) {
                 ok
             }

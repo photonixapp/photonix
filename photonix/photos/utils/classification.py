@@ -41,7 +41,8 @@ def generate_classifier_tasks_for_photo(photo_id, task):
         for classifier, priority in CLASSIFIER_PRIORITIES.items():
             # Don't create tasks that no processor will pick up - they would
             # stay Pending forever and block this parent task's completion.
-            # Classifiers without a library toggle (event) are always enabled.
+            # Every classifier has a per-library toggle; the getattr default
+            # keeps any future toggle-less classifier enabled.
             if not getattr(library, f'classification_{classifier}_enabled', True):
                 continue
             Task(
@@ -234,6 +235,8 @@ class ThreadedQueueProcessor:
                     task_queryset = Task.objects.filter(library__classification_style_enabled=True, type=self.task_type, status='P')
                 elif self.task_type == 'classify.object':
                     task_queryset = Task.objects.filter(library__classification_object_enabled=True, type=self.task_type, status='P')
+                elif self.task_type == 'classify.event':
+                    task_queryset = Task.objects.filter(library__classification_event_enabled=True, type=self.task_type, status='P')
                 else:
                     task_queryset = Task.objects.filter(type=self.task_type, status='P')
                 for task in task_queryset[:8]:

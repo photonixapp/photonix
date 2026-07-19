@@ -29,6 +29,7 @@ class LibraryFactory(factory.django.DjangoModelFactory):
     classification_style_enabled = True
     classification_object_enabled = True
     classification_face_enabled = True
+    classification_event_enabled = True
     setup_stage_completed = True
 
 

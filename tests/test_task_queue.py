@@ -152,7 +152,7 @@ def test_no_classifier_tasks_created_for_disabled_classifiers(db):
     process_classify_images_tasks()
     task.refresh_from_db()
 
-    # Only the event classifier (which has no library toggle) gets a task
+    # Only the event classifier (left enabled by the factory default) gets a task
     child_types = set(task.children.values_list('type', flat=True))
     assert child_types == {'classify.event'}
 
@@ -162,6 +162,34 @@ def test_no_classifier_tasks_created_for_disabled_classifiers(db):
         child.claim()
         child.complete()
     task.refresh_from_db()
+    assert task.status == 'C'
+
+
+def test_no_event_task_created_when_event_disabled(db):
+    # The event classifier now has a per-library toggle too, so disabling it
+    # (along with the others) must leave no child classification tasks at all.
+    from photonix.photos.utils.db import record_photo
+
+    snow_path = str(Path(__file__).parent / 'photos' / 'snow.jpg')
+    library = LibraryFactory(
+        classification_color_enabled=False,
+        classification_location_enabled=False,
+        classification_style_enabled=False,
+        classification_object_enabled=False,
+        classification_face_enabled=False,
+        classification_event_enabled=False,
+    )
+    photo = record_photo(snow_path, library)
+    task = _make_task(type='classify_images', subject_id=photo.id, library=library)
+
+    process_classify_images_tasks()
+    task.refresh_from_db()
+
+    # No classify.event task (nor any other classifier task) should exist
+    assert not task.children.filter(type='classify.event').exists()
+    assert task.children.count() == 0
+
+    # With no children to wait on, the parent task completes immediately
     assert task.status == 'C'
 
 

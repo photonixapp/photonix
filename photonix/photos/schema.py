@@ -677,6 +677,7 @@ class LibraryInput(graphene.InputObjectType):
     classification_style_enabled = graphene.Boolean()
     classification_object_enabled = graphene.Boolean()
     classification_face_enabled = graphene.Boolean()
+    classification_event_enabled = graphene.Boolean()
     source_folder = graphene.String(required=False)
     watch_photos = graphene.Boolean(required=False)
     user_id = graphene.ID()
@@ -836,6 +837,37 @@ class UpdateLibraryFaceEnabled(graphene.Mutation):
             raise Exception('User is not the owner of library!')
         else:
             return UpdateLibraryFaceEnabled(ok=ok, classification_face_enabled=None)
+
+
+class UpdateLibraryEventEnabled(graphene.Mutation):
+    """To update data in database that will be passed from frontend EventEnabled api."""
+
+    class Arguments:
+        """To set arguments in for mute method."""
+
+        input = LibraryInput(required=False)
+
+    ok = graphene.Boolean()
+    classification_event_enabled = graphene.Boolean()
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        """Method to save the updated data for EventEnabled api."""
+        ok = False
+        user = info.context.user
+        libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and str(input.get('classification_event_enabled')) != 'None':
+            library_obj = libraries[0]
+            library_obj.classification_event_enabled = input.classification_event_enabled
+            library_obj.save()
+            ok = True
+            return UpdateLibraryEventEnabled(
+                ok=ok,
+                classification_event_enabled=library_obj.classification_event_enabled)
+        if not libraries:
+            raise Exception('User is not the owner of library!')
+        else:
+            return UpdateLibraryEventEnabled(ok=ok, classification_event_enabled=None)
 
 
 class UpdateLibrarySourceFolder(graphene.Mutation):
@@ -1031,6 +1063,7 @@ class ImageAnalysis(graphene.Mutation):
         library_obj.classification_style_enabled = input.classification_style_enabled
         library_obj.classification_object_enabled = input.classification_object_enabled
         library_obj.classification_face_enabled = input.classification_face_enabled
+        library_obj.classification_event_enabled = input.classification_event_enabled
         library_obj.save()
         # Only auto-login as part of genuine first-run onboarding, i.e. when this
         # user is completing image-analysis configuration for the very first time.
@@ -1361,6 +1394,7 @@ class Mutation(graphene.ObjectType):
     update_style_enabled = UpdateLibraryStyleEnabled.Field()
     update_object_enabled = UpdateLibraryObjectEnabled.Field()
     update_face_enabled = UpdateLibraryFaceEnabled.Field()
+    update_event_enabled = UpdateLibraryEventEnabled.Field()
     update_source_folder = UpdateLibrarySourceFolder.Field()
     update_watch_photos = UpdateLibraryWatchPhotos.Field()
     create_library = CreateLibrary.Field()

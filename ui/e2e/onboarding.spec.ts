@@ -90,6 +90,7 @@ test.describe.serial('Onboarding Flow', () => {
     await expect(page.getByTestId('classificationObjectEnabled-switch')).toBeChecked()
     await expect(page.getByTestId('classificationLocationEnabled-switch')).toBeChecked()
     await expect(page.getByTestId('classificationFaceEnabled-switch')).toBeChecked()
+    await expect(page.getByTestId('classificationEventEnabled-switch')).toBeChecked()
 
     // Complete setup
     await page.getByTestId('submit-button').click()
