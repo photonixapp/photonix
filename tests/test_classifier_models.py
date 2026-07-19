@@ -231,6 +231,28 @@ def test_object_predict():
     assert '{0:.3f}'.format(result[2]['significance']) == '0.025'
 
 
+def test_object_backbone_session_init_fast():
+    # The object model moved off the full ONNX graph - whose embedded
+    # control-flow NMS postprocessor took ORT ~60s to initialise, stalling the
+    # lazy-load/idle-unload lifecycle - onto a backbone-only graph plus a numpy
+    # postprocessor. Guard against a regression that reintroduces a
+    # control-flow-heavy graph: building the ORT session alone must be quick.
+    # The bound is deliberately generous to avoid CI flake.
+    import time
+
+    from photonix.classifiers.base_model import create_ort_session
+    from photonix.classifiers.object.model import ObjectModel
+
+    model = ObjectModel()  # ensures the backbone file is downloaded/present
+
+    start = time.monotonic()
+    session = create_ort_session(model._graph_file)
+    elapsed = time.monotonic() - start
+
+    assert session is not None
+    assert elapsed < 10.0, f'ORT session init took {elapsed:.1f}s'
+
+
 def test_style_predict():
     from photonix.classifiers.style.model import StyleModel
 
@@ -265,8 +287,8 @@ def test_face_graph_cache_keys_match_unload_pattern():
     model = FaceModel()
     model._ensure_loaded()
 
-    assert f'{model.graph_cache_key}:mtcnn' in model.graph_cache
-    assert f'{model.graph_cache_key}:facenet' in model.graph_cache
+    assert f'{model.graph_cache_key}:det' in model.graph_cache
+    assert f'{model.graph_cache_key}:rec' in model.graph_cache
     face_keys = [k for k in model.graph_cache if k.startswith('face:')]
     assert len(face_keys) == 2
 
@@ -279,7 +301,7 @@ def test_face_similarity_index_trained_per_library(db):
     # trained on that library's faces
     import json
 
-    from photonix.classifiers.face.model import FaceModel
+    from photonix.classifiers.face.model import FaceModel, EMBEDDING_SIZE
     from .factories import LibraryFactory, PhotoFactory, PhotoTagFactory, TagFactory
 
     embeddings = {}
@@ -289,10 +311,10 @@ def test_face_similarity_index_trained_per_library(db):
         libraries[key] = library
         photo = PhotoFactory(library=library)
         tag = TagFactory(library=library, name=f'Person {key}', type='F')
-        embedding = [float(ord(key))] * 128
+        embedding = [float(ord(key))] * EMBEDDING_SIZE
         embeddings[key] = embedding
         PhotoTagFactory(photo=photo, tag=tag, source='C', confidence=1.0,
-                        extra_data=json.dumps({'facenet_embedding': embedding}))
+                        extra_data=json.dumps({'face_embedding': embedding}))
 
     model = FaceModel.__new__(FaceModel)  # Skip model download in __init__
     model.library_id = str(libraries['a'].id)
@@ -424,10 +446,10 @@ def test_tensorflow_cleanup_closes_closable_session():
 
 
 def test_face_predict_boxes_in_original_pixel_space(tmpdir):
-    # After capping inference resolution, face boxes must be mapped back into
-    # the full-res pixel space of the (upscaled) original - run_on_photo crops
-    # faces from the full-res image, so boxes staying in downscaled space would
-    # wreck the FaceNet embeddings
+    # After capping inference resolution, face boxes and keypoints must be
+    # mapped back into the full-res pixel space of the (upscaled) original -
+    # run_on_photo aligns faces from the full-res image, so coordinates staying
+    # in downscaled space would wreck the ArcFace embeddings
     from photonix.classifiers.face.model import FaceModel
 
     model = FaceModel()
@@ -467,70 +489,88 @@ def test_face_predict_boxes_in_original_pixel_space(tmpdir):
 
 
 def test_face_predict():
-    from photonix.classifiers.face.model import FaceModel
-    from photonix.classifiers.face.deepface.commons.distance import findEuclideanDistance
+    # SCRFD detection + ArcFace embeddings. Embeddings are 512-D and
+    # L2-normalized, so distances are calibrated differently from the old
+    # FaceNet stack - we assert identity structure (same-identity nearer than
+    # cross-identity, with a clear threshold margin) rather than exact goldens.
+    import numpy as np
 
-    TRAIN_FACES = [
-        'Boris_Becker_0003.jpg',
-        'Boris_Becker_0004.jpg',
-        'David_Beckham_0001.jpg',
-        'David_Beckham_0002.jpg',
-    ]
-    TEST_FACES = [
-        # Test image, nearest match in TRAIN_FACES, distance (3DP)
-        ('Boris_Becker_0005.jpg', 1, '9.897'),
-        ('David_Beckham_0010.jpg', 2, '10.351'),
-        ('Barbara_Becker_0001.jpg', 2, '15.732'),
-    ]
+    from photonix.classifiers.face.model import (
+        FaceModel, find_euclidean_distance, DISTANCE_THRESHOLD, EMBEDDING_SIZE)
 
-    embedding_cache = []
+    faces_dir = Path(__file__).parent / 'photos' / 'faces'
+
     model = FaceModel()
     model.library_id = '00000000-0000-0000-0000-000000000000'
 
-    # Calculate embeddings for training faces
-    for fn in TRAIN_FACES:
-        path = str(Path(__file__).parent / 'photos' / 'faces' / fn)
-        image_data = Image.open(path)
-        embedding = model.get_face_embedding(image_data)
-        embedding_cache.append(embedding)
+    def embed_fixture(fn):
+        # Detect the face, then embed the highest-confidence (planted "hero")
+        # detection using its landmarks for proper ArcFace alignment.
+        path = str(faces_dir / fn)
+        detections = model.predict(path)
+        assert detections, f'SCRFD detected no face in {fn}'
+        best = max(detections, key=lambda d: d['confidence'])
+        img = np.asarray(Image.open(path).convert('RGB'))
+        return model.get_face_embedding(img, keypoints=best['keypoints'])
 
-    training_data = [(i, embedding) for i, embedding in enumerate(embedding_cache)]
+    TRAIN_FACES = [
+        ('Boris_Becker_0003.jpg', 'Boris'),
+        ('Boris_Becker_0004.jpg', 'Boris'),
+        ('David_Beckham_0001.jpg', 'David'),
+        ('David_Beckham_0002.jpg', 'David'),
+    ]
+    train_embeddings = [embed_fixture(fn) for fn, _ in TRAIN_FACES]
+    train_identities = [ident for _, ident in TRAIN_FACES]
+    training_data = list(enumerate(train_embeddings))
 
-    # Compare test faces using brute force Euclidian calculations
-    for fn, expected_nearest, expected_distance in TEST_FACES:
-        path = str(Path(__file__).parent / 'photos' / 'faces' / fn)
-        image_data = Image.open(path)
-        embedding = model.get_face_embedding(image_data)
-        nearest, distance = model.find_closest_face_tag_by_brute_force(embedding, target_data=training_data)
+    # Embeddings are 512-D and unit-norm
+    for emb in train_embeddings:
+        vec = np.asarray(emb)
+        assert vec.shape == (EMBEDDING_SIZE,)
+        assert abs(np.linalg.norm(vec) - 1.0) < 1e-3
 
-        assert nearest == expected_nearest
-        assert '{:.3f}'.format(distance) == expected_distance
-        assert findEuclideanDistance(embedding, embedding_cache[nearest]) == distance
+    # Boris_Becker_0005's nearest training face is a Boris, below threshold
+    boris = embed_fixture('Boris_Becker_0005.jpg')
+    nearest, distance = model.find_closest_face_tag_by_brute_force(boris, target_data=training_data)
+    assert train_identities[nearest] == 'Boris'
+    assert distance < DISTANCE_THRESHOLD
+    assert abs(find_euclidean_distance(boris, train_embeddings[nearest]) - distance) < 1e-6
 
-    # Train ANN index
+    # David_Beckham_0010's nearest is a David, below threshold
+    david = embed_fixture('David_Beckham_0010.jpg')
+    nearest, distance = model.find_closest_face_tag_by_brute_force(david, target_data=training_data)
+    assert train_identities[nearest] == 'David'
+    assert distance < DISTANCE_THRESHOLD
+
+    # Barbara Becker has no match in the training set, so her nearest-neighbour
+    # distance is ABOVE the match threshold
+    barbara = embed_fixture('Barbara_Becker_0001.jpg')
+    _, distance = model.find_closest_face_tag_by_brute_force(barbara, target_data=training_data)
+    assert distance > DISTANCE_THRESHOLD
+
+    # same-identity distance < threshold < cross-identity distance
+    first_david_idx = train_identities.index('David')
+    same_identity = find_euclidean_distance(boris, train_embeddings[0])
+    cross_identity = find_euclidean_distance(boris, train_embeddings[first_david_idx])
+    assert same_identity < DISTANCE_THRESHOLD < cross_identity
+
+    # The ANN index agrees with the brute-force nearest neighbour
+    os.makedirs(Path(settings.MODEL_DIR) / 'face', exist_ok=True)
     model.retrain_face_similarity_index(training_data=training_data)
+    ann_nearest, ann_distance = model.find_closest_face_tag_by_ann(boris)
+    assert train_identities[ann_nearest] == 'Boris'
+    assert ann_distance < DISTANCE_THRESHOLD
+    # Annoy stores vectors as float32, so its distance agrees with the float64
+    # numpy recomputation only to within the float32 noise floor
+    assert abs(find_euclidean_distance(boris, train_embeddings[ann_nearest]) - ann_distance) < 1e-4
 
-    # Compare test faces using ANN trained index
-    for fn, expected_nearest, expected_distance in TEST_FACES:
-        path = str(Path(__file__).parent / 'photos' / 'faces' / fn)
-        image_data = Image.open(path)
-        embedding = model.get_face_embedding(image_data)
-        nearest, distance = model.find_closest_face_tag_by_ann(embedding)
-
-        assert nearest == expected_nearest
-        assert '{:.3f}'.format(distance) == expected_distance
-        # Annoy stores vectors as float32, so its distance can only agree with
-        # the float64 numpy recomputation to within the float32 noise floor
-        # (~1.9e-6 at magnitude 15). The old 1e-6 bound was below that floor.
-        assert abs(findEuclideanDistance(embedding, embedding_cache[nearest]) - distance) < 0.0001
-
-    # Tidy up ANN model training
+    # Tidy up ANN index files
     for fn in [
-        f'faces_{model.library_id}.ann',
-        f'faces_tag_ids_{model.library_id}.json',
-        f'retrained_version_{model.library_id}.txt',
+        f'{model.library_id}_faces.ann',
+        f'{model.library_id}_faces_tag_ids.json',
+        f'{model.library_id}_retrained_version.txt',
     ]:
         try:
             os.remove(Path(settings.MODEL_DIR) / 'face' / fn)
-        except:
+        except OSError:
             pass

@@ -17,7 +17,6 @@ CLASSIFIERS = [
 LAZY_LOADERS = [
     ('photonix.classifiers.base_model', 'ensure_tensorflow'),
     ('photonix.classifiers.base_model', 'ensure_onnxruntime'),
-    ('photonix.classifiers.face.model', '_ensure_face_libs'),
 ]
 
 
@@ -38,3 +37,20 @@ def test_lazy_dependencies_importable(module_path, func_name):
     ensure_fn = getattr(module, func_name)
     result = ensure_fn()
     assert result is not None
+
+
+def test_face_model_imports_without_tensorflow():
+    """The face stack now runs on ONNX Runtime (SCRFD + ArcFace); importing it
+    must not drag in TensorFlow. Run in a clean subprocess so the assertion is
+    independent of whether another test in this session imported TF."""
+    import subprocess
+    import sys
+
+    code = (
+        'import importlib, sys\n'
+        'importlib.import_module("photonix.classifiers.face.model")\n'
+        'sys.exit(1 if "tensorflow" in sys.modules else 0)\n'
+    )
+    result = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True)
+    assert result.returncode == 0, (
+        f'face model import pulled in tensorflow\n{result.stdout}\n{result.stderr}')

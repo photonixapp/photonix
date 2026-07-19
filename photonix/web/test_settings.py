@@ -28,10 +28,14 @@ THUMBNAIL_ROOT = str(Path(CACHE_DIR) / 'thumbnails')
 #   - location: the offline-built cities.bin dataset
 #   - object/style: the ONNX graphs (object.onnx, style.onnx) whose new
 #     version (20260719) isn't in the published models.json
+#   - clip: the visual/textual ONNX encoders + tokenizer data, whose version
+#     (20260719) also isn't in the published models.json
+#   - face: the SCRFD detector + ArcFace recognizer ONNX graphs
+#     (det_500m.onnx, w600k_mbf.onnx), version 20260719, not in models.json
 # Expose those already-present artifacts to the tests via symlinks so each
 # model loads offline through the version.txt short-circuit, exactly as the dev
 # stack does. Models without a local dir keep their normal download behaviour.
-for _model_name in ('location', 'object', 'style'):
+for _model_name in ('location', 'object', 'style', 'clip', 'face'):
     _real_dir = str(Path('/data') / 'models' / _model_name)
     if os.path.isdir(_real_dir):
         os.makedirs(MODEL_DIR, exist_ok=True)
