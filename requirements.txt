@@ -1,6 +1,5 @@
 onnxruntime==1.27.0
 numpy==2.4.4
-scipy==1.17.1
 matplotlib==3.10.8
 opencv-python-headless==4.13.0.92
 annoy==1.17.3

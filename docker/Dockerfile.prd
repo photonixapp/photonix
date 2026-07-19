@@ -76,8 +76,6 @@ RUN NODE_OPTIONS="--max-old-space-size=768" npm run build
 RUN find /usr/local/lib/python3.13 -type d -name  "__pycache__" -exec rm -r {} + && \
     find /usr/local/lib/python3.13/site-packages -type d -name  "tests" -exec rm -r {} +
 RUN rm -rf \
-    /usr/local/lib/python3.13/site-packages/scipy \
-    /usr/local/lib/python3.13/site-packages/scipy.libs \
     /usr/local/lib/python3.13/site-packages/pip \
     /usr/local/lib/python3.13/site-packages/setuptools \
     /usr/local/lib/python3.13/site-packages/pypi_uploader \
