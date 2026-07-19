@@ -266,3 +266,38 @@ def test_semantic_search_photos_rejects_non_member_library(db, monkeypatch):
     data = get_graphql_content(response)
     # Authorization short-circuits to [] without ever touching the model.
     assert data['data']['semanticSearchPhotos'] == []
+
+
+def test_housekeeping_backfills_clip_embeddings(db):
+    from photonix.classifiers.clip.model import ClipModel
+    from photonix.photos.management.commands.housekeeping import Command
+    from photonix.photos.models import PhotoEmbedding, Task
+
+    enabled = LibraryFactory(classification_clip_enabled=True)
+    disabled = LibraryFactory(classification_clip_enabled=False)
+
+    missing = PhotoFactory(library=enabled)
+    already_embedded = PhotoFactory(library=enabled)
+    PhotoEmbedding.objects.create(
+        photo=already_embedded, type='C', model_version=ClipModel.version,
+        embedding=_unit_vector(0).tobytes())
+    already_queued = PhotoFactory(library=enabled)
+    Task.objects.create(type='classify.clip', subject_id=already_queued.id,
+                        library=enabled, status='P')
+    ignored = PhotoFactory(library=disabled)
+
+    Command().schedule_missing_clip_embeddings()
+
+    scheduled = set(Task.objects.filter(type='classify.clip')
+                    .values_list('subject_id', flat=True))
+    assert missing.id in scheduled
+    assert already_embedded.id not in scheduled
+    assert ignored.id not in scheduled
+    # Deduped: the already-queued photo still has exactly one task
+    assert Task.objects.filter(type='classify.clip',
+                               subject_id=already_queued.id).count() == 1
+
+    # Re-running housekeeping doesn't duplicate the new task either
+    Command().schedule_missing_clip_embeddings()
+    assert Task.objects.filter(type='classify.clip',
+                               subject_id=missing.id).count() == 1

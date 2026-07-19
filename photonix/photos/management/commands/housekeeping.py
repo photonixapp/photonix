@@ -47,6 +47,11 @@ class Command(BaseCommand):
         # preserves human-assigned names by box overlap during the rescan.
         self.reschedule_upgraded_face_detection()
 
+        # Backfill CLIP embeddings for photos that predate semantic search
+        # being enabled on their library - toggling a classifier on only
+        # affects newly imported photos otherwise.
+        self.schedule_missing_clip_embeddings()
+
     def reschedule_upgraded_face_detection(self):
         from photonix.classifiers.face.model import FaceModel
         from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
@@ -80,6 +85,37 @@ class Command(BaseCommand):
             Task(
                 type='classify.face', subject_id=photo.id,
                 library=photo.library, priority=CLASSIFIER_PRIORITIES['face']).save()
+
+    def schedule_missing_clip_embeddings(self):
+        from photonix.classifiers.clip.model import ClipModel
+        from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+        missing_photo_ids = set(
+            Photo.objects.filter(
+                library__classification_clip_enabled=True,
+            ).exclude(
+                embeddings__type='C',
+                embeddings__model_version__gte=ClipModel.version,
+            ).values_list('id', flat=True)
+        )
+        if not missing_photo_ids:
+            return
+
+        existing = set(
+            Task.objects.filter(
+                type='classify.clip', subject_id__in=missing_photo_ids,
+                status__in=['P', 'S', 'M'],
+            ).values_list('subject_id', flat=True)
+        )
+        to_schedule = [pid for pid in missing_photo_ids if pid not in existing]
+        if not to_schedule:
+            return
+
+        logger.info(f'Scheduling {len(to_schedule)} photos for CLIP embedding backfill')
+        for photo in Photo.objects.filter(id__in=to_schedule).select_related('library'):
+            Task(
+                type='classify.clip', subject_id=photo.id,
+                library=photo.library, priority=CLASSIFIER_PRIORITIES['clip']).save()
 
     def handle(self, *args, **options):
         self.housekeeping()
