@@ -82,11 +82,25 @@ only 2 of the 5 bundled files are used.
 **LICENSE FLAG (needs Damian's decision before release):** InsightFace's
 python library code is MIT, but the insightface project states the bundled
 pre-trained model weights are "for non-commercial research purposes" in
-their README. Immich and others redistribute these same files regardless
-(and SCRFD/MobileFaceNet training recipes are Apache-2.0), but hosting them
-on photonix.org is a distribution decision to make consciously. Alternatives
-if declined: train from the Apache recipes, or keep the (worse, larger)
-MTCNN+FaceNet stack for the default and make buffalo_s an opt-in download.
+their README (maintainer-confirmed in deepinsight/insightface#2022).
+Research into what peers do (2026-07):
+
+- **Immich** redistributes buffalo_l via `immich-app/buffalo_l` on HF with
+  **written permission obtained by email (2023-03-18)** — and their README
+  explicitly says that permission does *not* extend to redistribution by
+  third parties, so it provides no cover for photonix.org hosting.
+- **LibrePhotos** migrated dlib→InsightFace in 2026 and ships `buffalo_sc`
+  (the same SCRFD-500M + w600k MBF weights) with no permission statement;
+  **PhotoPrism** serves an SCRFD 0.5g detector from its own download server.
+  No takedowns of the buffalo packs were found, but InsightFace now runs a
+  commercial licensing business (insightface.ai) and has withdrawn/relicensed
+  other models (inswapper).
+
+Recommended path: email InsightFace for the same written permission Immich
+obtained before hosting on photonix.org. Fallbacks if declined: OpenCV Zoo's
+**YuNet** detector (MIT) + **SFace** recognizer (Apache-2.0) are the only
+genuinely permissive pretrained stack of adjacent quality (SFace is
+measurably weaker than ArcFace w600k); or train from the Apache-2.0 recipes.
 
 ## clip — semantic search analyzer (new, opt-in; ViT-B/32 OpenAI weights, MIT)
 
@@ -109,6 +123,26 @@ search query, so fp32 costs only download size, not runtime.
 | `merges.txt` | - | 524,619 B | `9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a` |
 
 Total download ~344 MB raw (xz will trim the fp32 textual somewhat) —
-disclosed in the UI as the largest optional download. Future size tiers
-(TinyCLIP MIT, or MobileCLIP if the license stance changes) can slot in as
-variants.
+disclosed in the UI as the largest optional download.
+
+Research notes for future revisions (2026-07):
+
+- The model choice is validated: ViT-B/32 OpenAI is still Immich's default
+  smart-search model in 2026. MobileCLIP2 remains `apple-amlr`
+  research-only, and Apple's DFN CLIP models carry the same research-only
+  LICENSE text despite misleading `apple-sample-code-license` metadata.
+- **fp16 textual encoder is a solved problem** and would cut the download
+  ~127 MB: Xenova ships a known-good CPU-valid fp16 text encoder ONNX
+  (`Xenova/clip-vit-base-patch32/onnx/text_model_fp16.onnx`, 127 MB; also an
+  int8 at 64 MB used by transformers.js). If re-converting ourselves, the
+  earlier invalid-graph failures were likely missing
+  `disable_shape_infer=True` alongside `keep_io_types=True` in
+  `onnxconverter_common.float16`. Note ORT's CPU EP computes fp16 via fp32
+  casts, so this is purely a download-size win — fine for a per-query
+  encoder. Verify retrieval parity on the bench set before adopting.
+- Same-size quality bump candidate: `laion/CLIP-ViT-B-32-laion2B-s34B-b79K`
+  (MIT, 66.6% IN zero-shot vs OpenAI's 63.3%) — drop-in architecture, would
+  need the int8-visual verification redone.
+- Bigger opt-in tier candidate: SigLIP2 B/16 (Apache-2.0, immich-app hosts
+  ONNX exports) — materially better retrieval but ~3-4x the download (256k
+  multilingual vocab makes the text tower huge).
