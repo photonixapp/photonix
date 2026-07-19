@@ -9,8 +9,133 @@ from photonix.classifiers.base_model import BaseModel, create_ort_session
 from photonix.classifiers.image_utils import downscale_for_inference
 
 
-GRAPH_FILE = os.path.join('object', 'object.onnx')
+GRAPH_FILE = os.path.join('object', 'object_backbone.onnx')
+ANCHORS_FILE = os.path.join('object', 'object_anchors.npy')
 LABEL_FILE = os.path.join('object', 'oid_v4_label_map.pbtxt')
+
+# TF Object-Detection-API postprocessor parameters, read out of the frozen SSD
+# MobileNet v2 OID v4 graph during conversion (see
+# scripts/convert_models_to_onnx.py::do_object_backbone). The full object.onnx
+# embedded the batch-multiclass-NMS postprocessor as ONNX Loop/If subgraphs,
+# whose ORT initialisation cost ~60s and wrecked the lazy-load/idle-unload
+# lifecycle. object_backbone.onnx stops at the raw pre-NMS tensors and we
+# reproduce decode + NMS here in vectorised numpy (session init drops to <5s
+# with byte-identical detections).
+#
+#   - faster_rcnn_box_coder scale factors [ty, tx, th, tw]
+#   - class scores via sigmoid(logits / logit_scale); background at index 0
+#   - BatchMultiClassNonMaxSuppression: IoU 0.6, score threshold 0.3, up to
+#     100 detections per class and 100 total, sorted by score descending
+BOX_CODER_SCALES = np.array([10.0, 10.0, 5.0, 5.0], dtype=np.float32)
+LOGIT_SCALE = 1.0
+NMS_IOU_THRESHOLD = 0.6
+NMS_SCORE_THRESHOLD = 0.3
+NMS_MAX_PER_CLASS = 100
+NMS_MAX_TOTAL = 100
+
+
+def _sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
+
+
+def decode_boxes(box_encodings, anchors, scales=BOX_CODER_SCALES):
+    """Decode faster_rcnn_box_coder encodings against corner-format anchors.
+
+    ``box_encodings`` is ``[N, 4]`` as ``(ty, tx, th, tw)`` and ``anchors`` is
+    ``[N, 4]`` as ``(ymin, xmin, ymax, xmax)``. Returns ``[N, 4]`` boxes as
+    ``(ymin, xmin, ymax, xmax)``. Fully vectorised - no per-anchor loop.
+    """
+    ymin_a, xmin_a, ymax_a, xmax_a = (anchors[:, 0], anchors[:, 1],
+                                      anchors[:, 2], anchors[:, 3])
+    ha = ymax_a - ymin_a
+    wa = xmax_a - xmin_a
+    ycenter_a = ymin_a + 0.5 * ha
+    xcenter_a = xmin_a + 0.5 * wa
+
+    ty = box_encodings[:, 0] / scales[0]
+    tx = box_encodings[:, 1] / scales[1]
+    th = box_encodings[:, 2] / scales[2]
+    tw = box_encodings[:, 3] / scales[3]
+
+    w = np.exp(tw) * wa
+    h = np.exp(th) * ha
+    ycenter = ty * ha + ycenter_a
+    xcenter = tx * wa + xcenter_a
+
+    ymin = ycenter - 0.5 * h
+    xmin = xcenter - 0.5 * w
+    ymax = ycenter + 0.5 * h
+    xmax = xcenter + 0.5 * w
+    return np.stack([ymin, xmin, ymax, xmax], axis=1)
+
+
+def _nms_single_class(boxes, scores, iou_threshold, max_output):
+    """Greedy IoU NMS matching tf.image.non_max_suppression (a box is
+    suppressed when its IoU with an already-kept, higher-scoring box exceeds
+    ``iou_threshold``). ``boxes`` is ``[M, 4]`` as ``(y1, x1, y2, x2)``.
+    Returns indices into the input arrays."""
+    order = scores.argsort()[::-1]
+    y1, x1, y2, x2 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
+    areas = np.maximum(0.0, y2 - y1) * np.maximum(0.0, x2 - x1)
+    keep = []
+    while order.size > 0 and len(keep) < max_output:
+        i = order[0]
+        keep.append(i)
+        rest = order[1:]
+        if rest.size == 0:
+            break
+        yy1 = np.maximum(y1[i], y1[rest])
+        xx1 = np.maximum(x1[i], x1[rest])
+        yy2 = np.minimum(y2[i], y2[rest])
+        xx2 = np.minimum(x2[i], x2[rest])
+        inter = np.maximum(0.0, yy2 - yy1) * np.maximum(0.0, xx2 - xx1)
+        union = areas[i] + areas[rest] - inter
+        iou = np.where(union > 0, inter / np.maximum(union, 1e-12), 0.0)
+        order = rest[iou <= iou_threshold]
+    return keep
+
+
+def multiclass_postprocess(box_encodings, class_logits, anchors):
+    """Reproduce the TF OD API BatchMultiClassNonMaxSuppression postprocessor.
+
+    ``box_encodings`` is ``[N, 4]`` and ``class_logits`` is ``[N, C + 1]`` with
+    background at column 0. Returns ``(boxes[K, 4], scores[K], classes[K])``
+    sorted by score descending, ``K <= NMS_MAX_TOTAL``. Class ids are the
+    1-indexed label-map ids (background removed).
+    """
+    scores = _sigmoid(class_logits / LOGIT_SCALE)[:, 1:]  # drop background
+    boxes = decode_boxes(box_encodings, anchors)
+
+    # Clip boxes to the normalised image window before NMS (TF clip_to_window).
+    boxes = np.stack([
+        np.clip(boxes[:, 0], 0.0, 1.0),
+        np.clip(boxes[:, 1], 0.0, 1.0),
+        np.clip(boxes[:, 2], 0.0, 1.0),
+        np.clip(boxes[:, 3], 0.0, 1.0),
+    ], axis=1)
+
+    all_boxes, all_scores, all_classes = [], [], []
+    # Only classes with a candidate above the score threshold can contribute.
+    for c in np.where(scores.max(axis=0) > NMS_SCORE_THRESHOLD)[0]:
+        cand = np.where(scores[:, c] > NMS_SCORE_THRESHOLD)[0]
+        if cand.size == 0:
+            continue
+        keep_local = _nms_single_class(boxes[cand], scores[cand, c],
+                                       NMS_IOU_THRESHOLD, NMS_MAX_PER_CLASS)
+        kept = cand[keep_local]
+        all_boxes.append(boxes[kept])
+        all_scores.append(scores[kept, c])
+        all_classes.append(np.full(len(kept), c + 1, dtype=np.int64))
+
+    if not all_boxes:
+        return (np.zeros((0, 4), np.float32), np.zeros((0,), np.float32),
+                np.zeros((0,), np.int64))
+
+    boxes_out = np.concatenate(all_boxes, axis=0)
+    scores_out = np.concatenate(all_scores, axis=0)
+    classes_out = np.concatenate(all_classes, axis=0)
+    order = scores_out.argsort()[::-1][:NMS_MAX_TOTAL]
+    return boxes_out[order], scores_out[order], classes_out[order]
 
 
 def parse_label_map(label_file):
@@ -47,13 +172,16 @@ class ObjectModel(BaseModel):
     version = 20260719
     approx_ram_mb = 800
 
-    def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE, lock_name=None):
+    def __init__(self, model_dir=None, graph_file=GRAPH_FILE, label_file=LABEL_FILE,
+                 anchors_file=ANCHORS_FILE, lock_name=None):
         super().__init__(model_dir=model_dir)
 
         self._graph_file = os.path.join(self.model_dir, graph_file)
+        self._anchors_file = os.path.join(self.model_dir, anchors_file)
         self._label_file = os.path.join(self.model_dir, label_file)
         self._lock_name = lock_name
         self.labels = None
+        self.anchors = None
         self.session = None
         self.input_name = None
         self.output_names = None
@@ -74,9 +202,11 @@ class ObjectModel(BaseModel):
                 self.graph_cache[session_key] = self.session
 
         self.labels = self.load_labels(self._label_file)
+        self.anchors = np.load(self._anchors_file).astype(np.float32)
 
-        # tf2onnx keeps the TF tensor names ('image_tensor:0', 'num_detections:0'
-        # etc.), so map inputs/outputs by name rather than by position.
+        # The backbone ONNX exposes the raw pre-NMS tensors ('concat:0' class
+        # logits [1, N, C+1] and 'Squeeze:0' box encodings [1, N, 4]). Map
+        # inputs/outputs by name rather than position.
         self.input_name = self.session.get_inputs()[0].name
         self.output_names = [output.name for output in self.session.get_outputs()]
 
@@ -87,21 +217,34 @@ class ObjectModel(BaseModel):
         return np.asarray(image, dtype=np.uint8)
 
     def run_inference_for_single_image(self, image):
-        # The model expects a batch: [1, height, width, 3] uint8.
+        # The backbone expects a batch: [1, height, width, 3] uint8 and returns
+        # the raw pre-NMS class logits and box encodings.
         outputs = self.session.run(self.output_names,
                                    {self.input_name: np.expand_dims(image, 0)})
 
-        # Map by output name (stripping the ':0' tensor suffix) so we don't
-        # depend on the order onnxruntime lists the outputs in.
-        output_dict = {name.split(':')[0]: value
-                       for name, value in zip(self.output_names, outputs)}
+        # Identify the two outputs by their trailing dimension (4 == box
+        # encodings, otherwise the per-class logits) so we don't depend on the
+        # order onnxruntime lists them in.
+        class_logits = box_encodings = None
+        for value in outputs:
+            array = value[0]
+            if array.shape[-1] == 4:
+                box_encodings = array
+            else:
+                class_logits = array
 
-        # all outputs are float32 numpy arrays, so convert types as appropriate
-        output_dict['num_detections'] = int(output_dict['num_detections'][0])
-        output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.uint16)
-        output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
-        output_dict['detection_scores'] = output_dict['detection_scores'][0]
-        return output_dict
+        boxes, scores, classes = multiclass_postprocess(
+            box_encodings, class_logits, self.anchors)
+
+        # Keep the exact output_dict shape the old full-graph model produced so
+        # format_output and callers are unchanged: detections are already sorted
+        # by score descending.
+        return {
+            'num_detections': int(len(scores)),
+            'detection_boxes': boxes,
+            'detection_scores': scores,
+            'detection_classes': classes.astype(np.uint16),
+        }
 
     def format_output(self, output_dict, min_score):
         results = []

@@ -35,14 +35,22 @@ was tested and REJECTED** — it drops most detections (e.g. the dog photo
 loses its only detection) with no CPU win; revisit later with static QDQ +
 calibration if download size matters.
 
-| file | sha256 | size |
-|---|---|---|
-| `object.onnx` | `21f811bd3d8c4d3c9d0b08a28a25c00026cb64d6f5eb0bf74bf40a79d393f80c` | 68,168,904 B |
-| `object.onnx.xz` (host this, `decompress: true`) | `b19ccb12344f92327f9bebb58cb303fc824198c6ec0628c3644f777c8ce4a5d8` | 52,113,756 B |
+The first conversion kept the graph's control-flow NMS and ORT took ~65 s to
+initialise the session (fatal for the lazy-load/idle-unload lifecycle), so
+the shipped artifact is a **backbone-only graph** (`--backbone` mode in the
+conversion script) with box decode + NMS re-implemented in vectorised numpy
+inside ObjectModel — detections byte-identical to the full graph on the
+parity set, session init 0.19 s (~340× faster), warm predict ~0.10 s.
+
+| file | sha256 | size | xz size |
+|---|---|---|---|
+| `object_backbone.onnx` (host the .xz, `decompress: true`) | `9c4735d89a1bfcd40a78b84a61d2a4b1f6b9c08d00199af2d03eb3416d7b0131` | 57,696,267 B | 51,875,164 B (xz sha256 needed at upload) |
+| `object_anchors.npy` | `8b619ef82f04f88cf65384c612b8eda72df71c980af510356c924dc6528aaac2` | 30,800 B | 2,512 B |
 
 - `oid_v4_label_map.pbtxt` — unchanged, already hosted
   (`49147a2f9864544a89708f37492d216fbeaa30b2b4b0bb2f967b6d7a851cec32`).
-- The legacy frozen `.pb` stops being referenced from version 20260719 on.
+- The intermediate full `object.onnx` and the legacy frozen `.pb` stop being
+  referenced from version 20260719 on (both kept on the dev disk only).
 
 ## style — retrained MobileNet graph converted to ONNX (fp32)
 
@@ -84,17 +92,23 @@ MTCNN+FaceNet stack for the default and make buffalo_s an opt-in download.
 
 Source: `https://huggingface.co/immich-app/ViT-B-32__openai` (MIT license —
 chosen over MobileCLIP/MobileCLIP2 which are `apple-amlr`, research-only).
-Quantization/conversion done locally (onnxruntime `quantize_dynamic` for the
-visual encoder; fp16 via onnxconverter-common for the textual encoder —
-textual int8 was rejected: prompt-embedding cosine dropped to 0.88-0.93 vs
-fp32, while visual int8 keeps 0.96-0.99 image cosine and identical top-1
-retrieval on the bench set).
+Visual encoder int8-quantized locally (`quantize_dynamic`): image-embedding
+cosine 0.96-0.99 vs fp32, identical top-1 retrieval on the bench set,
+15-43 ms/image on an 8-core CPU. **Textual encoder ships fp32** — every
+quantization tested degraded it (full int8: prompt cosine 0.88-0.93;
+MatMul-only int8: min cosine 0.76, nearest-prompt stability 5/10) and both
+fp16 conversion attempts produced invalid graphs (onnxconverter-common Cast
+type errors) or ran >50 min in shape inference. Text encoding runs once per
+search query, so fp32 costs only download size, not runtime.
 
-| file | precision | size | notes |
+| file | precision | size | sha256 |
 |---|---|---|---|
-| `visual.int8.onnx` | int8 | ~89 MB | per-photo image encoder (15-43 ms/image on 8-core CPU) |
-| `textual.fp16.onnx` | fp16 | ~127 MB | per-query text encoder |
-| `vocab.json` + `merges.txt` | - | ~1.4 MB | CLIP BPE tokenizer data |
+| `visual.int8.onnx` | int8 | 88,700,750 B | `0e968749cecf0de1e987b801dc7a70db597a7b8ab5667c79a78a510b140faa51` |
+| `textual.onnx` | fp32 | 254,193,396 B | `b80cf0af751533a6712d92247f0ddc0c95208748bc59a1a27f33e67be6864e3b` |
+| `vocab.json` | - | 862,328 B | `5047b556ce86ccaf6aa22b3ffccfc52d391ea4accdab9c2f2407da5b742d4363` |
+| `merges.txt` | - | 524,619 B | `9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a` |
 
-(sha256s recorded when the Tier 5 integration lands; final filenames may
-differ — see photonix/classifiers/clip when merged.)
+Total download ~344 MB raw (xz will trim the fp32 textual somewhat) —
+disclosed in the UI as the largest optional download. Future size tiers
+(TinyCLIP MIT, or MobileCLIP if the license stance changes) can slot in as
+variants.
