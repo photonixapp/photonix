@@ -107,6 +107,9 @@ def main():
         speedup = time_a / time_b if time_b else float('inf')
         print(f'\n== {classifier} ({label_a} -> {label_b}) ==')
         print(f'  predict total: {time_a:.2f}s -> {time_b:.2f}s  ({speedup:.2f}x)')
+        cpu_a, cpu_b = a.get('total_cpu_seconds'), b.get('total_cpu_seconds')
+        if cpu_a and cpu_b:
+            print(f'  cpu total:     {cpu_a:.2f}s -> {cpu_b:.2f}s  ({cpu_a / cpu_b:.2f}x)')
         print(f'  model load:    {a["model_load_seconds"]:.2f}s -> {b["model_load_seconds"]:.2f}s')
         print(f'  peak RSS:      {a["peak_rss_mb"]:.0f}MB -> {b["peak_rss_mb"]:.0f}MB')
         print(f'  RSS after load:{a["rss_after_load_mb"]:.0f}MB -> {b["rss_after_load_mb"]:.0f}MB')

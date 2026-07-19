@@ -144,20 +144,29 @@ def main():
     load_seconds = time.monotonic() - load_started
     rss_after_load = rss_mb()
 
+    import psutil
+    process = psutil.Process()
     per_image = {}
     for image_path in images:
         times = []
+        cpu_times = []
         result = None
         for _ in range(args.runs):
+            cpu_before = process.cpu_times()
             started = time.monotonic()
             result = predict_one(args.classifier, model, image_path)
             times.append(round(time.monotonic() - started, 3))
+            cpu_after = process.cpu_times()
+            cpu_times.append(round((cpu_after.user + cpu_after.system)
+                                   - (cpu_before.user + cpu_before.system), 3))
         per_image[image_path.name] = {
             'seconds': times,
+            'cpu_seconds': cpu_times,
             'n_results': len(result) if result else 0,
             'result': normalise_result(args.classifier, result),
         }
-        print(f'{args.classifier} {image_path.name}: {times} s, '
+        print(f'{args.classifier} {image_path.name}: {times} s wall, '
+              f'{cpu_times} s cpu, '
               f'{per_image[image_path.name]["n_results"]} results', flush=True)
 
     report = {
@@ -174,6 +183,7 @@ def main():
         'rss_end_mb': round(rss_mb(), 1),
         'peak_rss_mb': round(peak_rss_mb(), 1),
         'total_predict_seconds': round(sum(sum(v['seconds']) for v in per_image.values()), 3),
+        'total_cpu_seconds': round(sum(sum(v['cpu_seconds']) for v in per_image.values()), 3),
         'images': per_image,
     }
 
