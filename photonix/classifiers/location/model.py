@@ -1,22 +1,29 @@
-import csv
 import math
 from pathlib import Path
 import sys
 
 import matplotlib.path as mpltPath
+import numpy as np
 import shapefile
 
 from photonix.photos.utils.metadata import PhotoMetadata, parse_gps_location
 from photonix.classifiers.base_model import BaseModel
+from photonix.classifiers.location.cities_dataset import (
+    CityData,
+    city_data_from_rows,
+    load_cities_bin,
+)
 
 
 WORLD_FILE = Path('location') / 'TM_WORLD_BORDERS-0.3.shp'  # http://thematicmapping.org/downloads/world_borders.php
-CITIES_FILE = Path('location') / 'cities1000.txt'  # http://download.geonames.org/export/dump/
+# Compact binary artifact built offline from GeoNames cities1000.txt
+# (http://download.geonames.org/export/dump/) - see scripts/build_location_cities.py
+CITIES_FILE = Path('location') / 'cities.bin'
 
 
 class LocationModel(BaseModel):
     name = 'location'
-    version = 20190109
+    version = 20260719
     approx_ram_mb = 100
     max_num_workers = 4
 
@@ -28,6 +35,7 @@ class LocationModel(BaseModel):
         self._lock_name = lock_name
         self.world = None
         self.cities = None
+        self.countries = None
 
         # Download model files eagerly (cheap), but don't load into memory yet
         self.ensure_downloaded(lock_name=lock_name)
@@ -35,17 +43,15 @@ class LocationModel(BaseModel):
     def load(self):
         self.world = self.load_world(self._world_file)
         self.cities = self.load_cities(self._cities_file)
+        # Cache the country-code -> country-name lookup once at load time
+        # instead of rebuilding it on every get_city() call.
+        self.countries = {row.record[1]: row.record[4] for row in self.world}
 
     def load_world(self, world_file):
         return shapefile.Reader(world_file, encoding='latin1').shapeRecords()
 
     def load_cities(self, cities_file):
-        rows = []
-        with open(cities_file) as csvfile:
-            reader = csv.reader(csvfile, delimiter='\t')
-            for row in reader:
-                rows.append(row)
-        return rows
+        return load_cities_bin(cities_file)
 
     def predict(self, image_file=None, location=None, photo_file=None):
         self._ensure_loaded()  # Lazy load on first use
@@ -103,41 +109,78 @@ class LocationModel(BaseModel):
     def get_city(self, lon, lat, country_code=None):
         # Gets the city within a 10km radius that has the highest population.
         # It can be limited to a particular country.
-        nearest_distance = None
-        largest_population = 0
-        largest_city = None
-        chosen_country_code = None
-        chosen_country_name = None
-        countries = {row.record[1]: row.record[4] for row in self.world}
+        #
+        # This is a vectorised (numpy) reimplementation of the original
+        # per-row loop. It preserves the exact behaviour bit-for-bit:
+        #   * distances are int()-truncated metres from the same haversine,
+        #   * only cities strictly closer than 10km are candidates,
+        #   * the winner is the largest population, ties broken by first
+        #     appearance in file order,
+        #   * a city with population 0 is never chosen (matches the original
+        #     `population > largest_population` with largest starting at 0),
+        #   * nearest_distance is the smallest truncated distance over every
+        #     row considered (after the optional country filter), regardless
+        #     of the 10km radius.
+        data = self.cities if isinstance(self.cities, CityData) else city_data_from_rows(self.cities)
 
-        for row in self.cities:
-            if not country_code or country_code == row[8]:
-                longitude = float(row[4])
-                latitude = float(row[5])
+        if country_code:
+            selected = np.nonzero(data.codes == country_code)[0]
+            if selected.size == 0:
+                return None
+            col4 = data.col4[selected]
+            col5 = data.col5[selected]
+            populations = data.populations[selected]
+        else:
+            selected = None
+            col4 = data.col4
+            col5 = data.col5
+            populations = data.populations
 
-                distance = int(self.haversine([lon, lat], [longitude, latitude]))
-                if distance < 10000:
-                    population = int(row[14])
-                    if population > largest_population:
-                        largest_population = population
-                        largest_city = row[1]
-                        chosen_country_code = row[8]
-                        # Country codes added after the world borders dataset
-                        # was published (e.g. XK, SS) aren't in it
-                        chosen_country_name = countries.get(chosen_country_code)
+        if col4.shape[0] == 0:
+            return None
 
-                if nearest_distance is None or distance < nearest_distance:
-                    nearest_distance = distance
+        # Vectorised haversine, matching self.haversine([lon, lat],
+        # [row[4], row[5]]) exactly. Multiplying by math.pi / 180 (rather than
+        # np.radians) guarantees the degree->radian step is bit-identical to
+        # math.radians, and float64 sin/cos/atan2/sqrt match the math module.
+        deg2rad = math.pi / 180.0
+        R = 6372800.0
+        cos_phi1 = math.cos(lon * deg2rad)
+        phi2 = col4 * deg2rad
+        dphi = (col4 - lon) * deg2rad
+        dlambda = (col5 - lat) * deg2rad
+        a = np.sin(dphi / 2) ** 2 + cos_phi1 * np.cos(phi2) * np.sin(dlambda / 2) ** 2
+        distances = (2 * R * np.arctan2(np.sqrt(a), np.sqrt(1 - a))).astype(np.int64)
 
-        if largest_city:
-            return {
-                'name': largest_city,
-                'distance': nearest_distance,
-                'population': largest_population,
-                'country_code': chosen_country_code,
-                'country_name': chosen_country_name,
-            }
-        return None
+        nearest_distance = int(distances.min())
+
+        within = distances < 10000
+        # -1 sentinel keeps out-of-radius rows (and, via the check below, the
+        # population==0 case) from ever winning argmax; argmax returns the first
+        # maximum, giving first-in-file-order tie-breaking.
+        candidate_pop = np.where(within, populations, -1)
+        best = int(np.argmax(candidate_pop))
+        if candidate_pop[best] <= 0:
+            return None
+
+        original_index = int(selected[best]) if selected is not None else best
+        chosen_country_code = data.codes[original_index]
+
+        # Country codes added after the world borders dataset was published
+        # (e.g. XK, SS) aren't in it, so .get() may return None. Prefer the
+        # dict cached at load time; fall back to building it from the world
+        # borders (e.g. when a caller wires up the model manually).
+        countries = getattr(self, 'countries', None)
+        if countries is None:
+            countries = {row.record[1]: row.record[4] for row in self.world}
+
+        return {
+            'name': data.names[original_index],
+            'distance': nearest_distance,
+            'population': int(populations[best]),
+            'country_code': chosen_country_code,
+            'country_name': countries.get(chosen_country_code),
+        }
 
     def split_country_points(self, points):
         # The country shapes have multiple polygons within them. We split the
