@@ -1,5 +1,6 @@
 data
 ui/node_modules
+tests/photos/bench/
 tests/photos/*.dng
 tests/photos/*.DNG
 tests/photos/*.CR2
