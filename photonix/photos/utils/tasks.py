@@ -62,8 +62,10 @@ def requeue_delayed_tasks(task_type=None):
     return count
 
 
-# Classifiers that need to be re-run when image orientation changes
-ROTATION_SENSITIVE_CLASSIFIERS = ['classify.face', 'classify.object', 'classify.style']
+# Classifiers that need to be re-run when image orientation changes. CLIP is
+# included because its embedding is computed from the rotated bitmap - without
+# re-running, semantic search would keep matching against the old orientation.
+ROTATION_SENSITIVE_CLASSIFIERS = ['classify.face', 'classify.object', 'classify.style', 'classify.clip']
 
 # Default delay before starting reclassification (allows debouncing rapid rotations)
 DEFAULT_RECLASSIFICATION_DELAY_SECONDS = 10
@@ -96,6 +98,13 @@ def queue_reclassification_for_photo(photo, delay_seconds=None):
     queued_types = []
 
     for task_type in ROTATION_SENSITIVE_CLASSIFIERS:
+        # Skip classifiers disabled for this library - their processors filter
+        # such tasks out of their querysets, so a task created here would sit
+        # Pending forever (and show as never-finishing progress in the UI).
+        classifier_toggle = task_type.replace('classify.', 'classification_') + '_enabled'
+        if not getattr(photo.library, classifier_toggle, True):
+            continue
+
         # Check for existing Pending or Delayed task for this photo/classifier
         existing_task = Task.objects.filter(
             type=task_type,
