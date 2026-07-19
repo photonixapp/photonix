@@ -33,11 +33,22 @@ if [ "${DEMO}" = "1" ] || [ "${SAMPLE_DATA}" = "1" ]; then
   python /srv/photonix/manage.py import_demo_photos
 fi
 
->&2 echo "Resetting Redis lock"
-python /srv/photonix/manage.py reset_redis_locks
+if [ "${CLASSIFICATION_DISABLED}" = "1" ]; then
+  # A photonix-ml sidecar may already be running and holding live Redis locks
+  # (model download, ANN retrain, model-manager) - resetting would let a second
+  # worker into those critical sections. All locks auto-expire, so skipping the
+  # reset only means stale locks from an unclean shutdown clear themselves.
+  >&2 echo "Skipping Redis lock reset (CLASSIFICATION_DISABLED=1 - the ML sidecar may hold live locks)"
+else
+  >&2 echo "Resetting Redis lock"
+  python /srv/photonix/manage.py reset_redis_locks
+fi
 
->&2 echo "Rescheduling any required upgrade-related tasks"
-python /srv/photonix/manage.py housekeeping
+# Upgrade-related rescheduling and the CLIP backfill are handled by the
+# periodic housekeeping supervisord program (programs-core.conf), which runs
+# immediately at startup and then every 5 minutes - so enabling semantic
+# search backfills existing photos without waiting for a container restart,
+# and startup isn't blocked on a potentially long rescheduling pass.
 
 >&2 echo "Starting supervisor"
 # exec so supervisord becomes PID 1 and receives container stop signals.
