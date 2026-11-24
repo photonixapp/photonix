@@ -44,6 +44,7 @@ silently implement something else.
   (c) default 10 min after analysis: **5237 MB — nothing released** (style 1316, face 1232, thumbnail 631, location 546, color 388, event 269);
   (d) `CLASSIFICATION_DISABLED=1 GUNICORN_WORKERS=2` idle: **643 MB**, 8 programs, Vite RUNNING with one start.
   New finding: `thumbnail_processor` (workers = `cpu_count()/2`, `thumbnail_processor.py:44`) reached ~1.6 GB RSS on full-size originals and was OOM-killed at 4g before any classifier ran. Plan amended: M2 must prove startup queues no thumbnail tasks after `reset_demo`, and M5 adds `THUMBNAIL_WORKERS` (1 under `LOW_MEMORY` and in the demo).
+- 2026-11-24 — M2: `reset_demo` / `export_demo_fixture` commands, `photos/utils/demo.py`, stored outputs at startup under `CLASSIFICATION_DISABLED=1` — commit M2SHA. Deviations (review findings): stored outputs load only when `DEMO` is on and `ENV` is not `dev` (a real install with `SAMPLE_DATA=1 CLASSIFICATION_DISABLED=1` would otherwise be wiped); `reset_demo` also refuses under `ENV=dev` unless `--allow-dev` (the dev compose stack has `DEMO=1`); a startup reset failure is logged and the pod still starts (the CronJob command still exits non-zero); downloads use their own timeout + status check + image verify instead of `fs.download_file`, re-fetch invalid files and clear stale temp files; mtimes are pinned only on the stored-outputs path so dev files are untouched; the test fixture uses `/data/photos/<demo basename>` paths rewritten to a tmp dir rather than `snow.jpg` paths. Gate: 179 passed; the 1 failure is `test_annoy_index` in the untracked `tests/test_classifier_faces.py`, outside this branch.
 
 ---
 
@@ -95,6 +96,8 @@ set `LOW_MEMORY=1` to run classification in a single process that returns its me
 | **Memory limit** | 2Gi request = limit at rollout, as the ticket states. Lowered after the 24-hour check to about 1.5× the observed peak. |
 | **Four face photos** | The implementer picks them; no separate approval round. Any Creative Commons licence that permits redistribution (CC0, PDM, CC BY, CC BY-SA), with attribution recorded in `photonix/photos/demo/README.md`. At least one of the four also shows a dog or cat. (Founder, 2026-11-24; answers §0, supersedes the approval box in M3 and the CC0-only rule in §4.3.) |
 | **Verification** | Each milestone is checked in Docker; user-visible behaviour gets a Playwright walkthrough. The founder checks the demo visually in Playwright before the M7 deploy. (Founder, 2026-11-24.) |
+| **Dev database guard** | `reset_demo` refuses under `ENV=dev` unless `--allow-dev`, with text `reset_demo refused: ENV=dev. Pass --allow-dev to reset a development database.` Tightens the `reset_demo` safety row; added after M2 review found the dev stack satisfies `demo_mode_enabled()`. |
+| **Startup reset failure** | At pod start a failed stored-outputs load is logged at ERROR and the pod starts anyway (no crash loop); the 15-minute `reset_demo` CronJob exits non-zero and is the visible signal. |
 | **Process tooling** | The repo has no `.agent/project.yml`, so no test, lint or deploy command is configured. Commands in this plan come from `CLAUDE.md` and the `Makefile`. |
 
 ---
@@ -475,22 +478,22 @@ classification program and the `vite` program stays `RUNNING` with one start.
 **Model:** session — the reset deletes every user and library row; the guard and transaction
 behaviour must be exactly right.
 
-- [ ] `photonix/photos/utils/demo.py` provides `download_demo_photos`, `export_demo_fixture`
+- [x] `photonix/photos/utils/demo.py` provides `download_demo_photos`, `export_demo_fixture`
       and `reset_demo` with the contracts in §4.2. The URL list moves here from
       `import_demo_photos.py:17-28` (still 10 entries in this milestone).
-- [ ] `reset_demo` management command refuses with the exact text in §4.2 unless
+- [x] `reset_demo` management command refuses with the exact text in §4.2 unless
       `demo_mode_enabled()` (`photonix/web/utils.py:14`), exits non-zero on any error so the
       infra Job fails visibly, and prints row counts on success.
-- [ ] `export_demo_fixture` management command writes the fixture and refuses while any demo
+- [x] `export_demo_fixture` management command writes the fixture and refuses while any demo
       photo has an unfinished task (§4.2).
-- [ ] `import_demo_photos` downloads first, then loads stored outputs when
+- [x] `import_demo_photos` downloads first, then loads stored outputs when
       `CLASSIFICATION_DISABLED=1` and keeps today's record-and-analyse behaviour otherwise
       (§4.2; current body `import_demo_photos.py:34-92`). The dev stack, which sets `DEMO: 1`
       without `CLASSIFICATION_DISABLED`, must behave as before.
-- [ ] A small test fixture at `tests/fixtures/demo_library.json` (2 photos using
+- [x] A small test fixture at `tests/fixtures/demo_library.json` (2 photos using
       `tests/photos/snow.jpg` paths, a few tags of different types, one face tag with
       `extra_data`) so tests do not depend on the real fixture, which arrives in M3.
-- [ ] Tests in a new `tests/test_demo_reset.py`, following `tests/test_task_queue.py` and
+- [x] Tests in a new `tests/test_demo_reset.py`, following `tests/test_task_queue.py` and
       monkeypatching `demo_mode_enabled` and `FIXTURE_PATH`: refusal when demo mode is off
       leaves all rows untouched; a reset removes a user, library, tag, pending task and
       invitation created beforehand and restores exactly the fixture's rows; fixture timestamps
