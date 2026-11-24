@@ -37,7 +37,7 @@ If reality forces a deviation from the design, record it here with the reason �
 silently implement something else.
 
 <!-- - YYYY-MM-DD — M1: <one-line summary> — commit <hash> -->
-- 2026-11-24 — M1: process layouts split (core / classification), `GUNICORN_WORKERS`, Vite idles outside dev, `memory_report.sh` — commit M1SHA.
+- 2026-11-24 — M1: process layouts split (core / classification), `GUNICORN_WORKERS`, Vite idles outside dev, `memory_report.sh` — commit 3990f2ff.
   Baseline (deviation: measured on CI image `photonixapp/photonix:edge` with this branch's `system/` bind-mounted, not a local prd build — host had ~6 GB RAM / 29 GB disk free; cgroup `memory.current`, includes page cache):
   (a) default idle, 16 programs, 8 gunicorn workers: **1299 MB** (each classifier process ~75–88 MB before any model, each gunicorn worker 51 MB);
   (b) default while analysing 10 demo photos: **6142 MB, at the 6g limit**, repeated OOM kills (face 2172 MB RSS, style 1318, thumbnail_processor 633 and earlier 1.6 GB, color 529, location 447, event 306, object 240), 15 face/object tasks left stuck in `S`;
