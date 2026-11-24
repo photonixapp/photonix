@@ -100,3 +100,9 @@ data/photos/*.*
 
 # OS files
 .DS_Store
+
+# Local tooling
+.claude/
+.vscode/
+.playwright-mcp/
+.~lock.*#
