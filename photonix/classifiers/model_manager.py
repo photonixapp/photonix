@@ -398,6 +398,12 @@ class ModelManager:
                 and self._unloads_in_progress == 0
             )
 
+    def unload_in_progress(self) -> bool:
+        """True while any unload_model() call (e.g. the watchdog's) has not
+        finished, including releasing the model's Redis lock."""
+        with self._state_lock:
+            return self._unloads_in_progress > 0
+
     def is_loaded(self, classifier_name: str) -> bool:
         """Check if a model is currently loaded."""
         with self._state_lock:

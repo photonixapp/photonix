@@ -81,3 +81,58 @@ def test_gunicorn_workers_and_vite_idle():
 
 def test_memory_report_is_executable():
     assert (SYSTEM / 'memory_report.sh').stat().st_mode & 0o111
+
+
+def test_lowmem_layout_has_one_classification_program():
+    progs = programs_local(SYSTEM / 'supervisord-lowmem.conf')
+    default = programs_local(SYSTEM / 'supervisord.conf')
+    core = programs_local(SYSTEM / 'supervisord-core.conf')
+    classification = [n for n, c in progs.items() if 'classification' in c]
+    assert classification == ['classification_processor']
+    assert 'classification_processor' in progs['classification_processor']
+    assert 'retrain_face_similarity_index' in progs
+    assert set(core) <= set(progs)
+    assert set(progs) == set(core) | {'classification_processor', 'retrain_face_similarity_index'}
+    # shared programs keep the command they have in the default layout
+    for name in set(progs) & set(default):
+        assert progs[name] == default[name]
+
+
+def test_lowmem_include_paths_exist():
+    for inc in includes(parse(SYSTEM / 'supervisord-lowmem.conf')):
+        assert Path(local(inc)).is_file(), inc
+
+
+def test_run_sh_selects_layouts_in_order():
+    text = (SYSTEM / 'run.sh').read_text()
+    disabled = text.index('supervisord-core.conf')
+    lowmem = text.index('supervisord-lowmem.conf')
+    default = text.index('/etc/supervisord.conf')
+    assert disabled < lowmem < default
+    assert 'GUNICORN_WORKERS="${GUNICORN_WORKERS:-2}"' in text
+    assert 'THUMBNAIL_WORKERS="${THUMBNAIL_WORKERS:-1}"' in text
+    assert 'RAW_WORKERS="${RAW_WORKERS:-1}"' in text
+
+
+def test_run_sh_resets_redis_locks_once_unless_classification_disabled():
+    text = (SYSTEM / 'run.sh').read_text()
+    reset = 'python /srv/photonix/manage.py reset_redis_locks'
+    # One call, guarded so it runs for the default and low-memory layouts
+    # but not with CLASSIFICATION_DISABLED=1, before any layout starts
+    assert text.count(reset) == 1
+    guard = text.index('if [ "${CLASSIFICATION_DISABLED}" != "1" ]; then')
+    assert guard < text.index(reset) < text.index('fi', guard)
+    assert text.index(reset) < text.index('exec supervisord')
+
+
+def test_worker_count_env(monkeypatch):
+    from photonix.photos.utils.tasks import worker_count
+    monkeypatch.delenv('THUMBNAIL_WORKERS', raising=False)
+    assert worker_count('THUMBNAIL_WORKERS', 2) >= 1
+    monkeypatch.setenv('THUMBNAIL_WORKERS', '1')
+    assert worker_count('THUMBNAIL_WORKERS', 2) == 1
+    monkeypatch.setenv('THUMBNAIL_WORKERS', '3')
+    assert worker_count('THUMBNAIL_WORKERS', 2) == 3
+    for bad in ('0', '-1', 'abc', ''):
+        monkeypatch.setenv('THUMBNAIL_WORKERS', bad)
+        assert worker_count('THUMBNAIL_WORKERS', 2) >= 1

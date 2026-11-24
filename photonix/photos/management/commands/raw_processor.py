@@ -1,14 +1,13 @@
 import queue
 import threading
 import traceback
-from multiprocessing import cpu_count
 from time import sleep
 
 from django.core.management.base import BaseCommand
 
 from photonix.photos.models import Task
 from photonix.photos.utils.raw import process_raw_task
-from photonix.photos.utils.tasks import requeue_stuck_tasks
+from photonix.photos.utils.tasks import requeue_stuck_tasks, worker_count
 from photonix.web.utils import logger
 
 
@@ -41,7 +40,7 @@ class Command(BaseCommand):
     help = 'Processes raw photos into a JPEG we can use elsewhere.'
 
     def run_processors(self):
-        num_workers = max(int(cpu_count() / 4), 1)
+        num_workers = worker_count('RAW_WORKERS', 4)
         threads = []
 
         logger.info(f'Starting {num_workers} raw processor workers')

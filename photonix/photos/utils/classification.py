@@ -350,7 +350,10 @@ class SingleProcessClassifier:
 
     def run_once(self):
         """One pass: expand classify_images tasks, then process one batch of a
-        single classifier type. Returns the number of tasks attempted."""
+        single classifier type. Returns the number of tasks attempted.
+
+        Raises SystemExit(0) instead of switching to a different model type
+        when CLASSIFIER_EXIT_WHEN_IDLE is on (see exit_idle_process)."""
         process_classify_images_tasks()
         for task_type in self.task_types:
             requeue_stuck_tasks(task_type)
@@ -366,6 +369,22 @@ class SingleProcessClassifier:
         for loaded_name in list(self._model_manager.get_status()):
             if loaded_name != name:
                 self._model_manager.unload_model(loaded_name)
+
+        # An unload still running (the watchdog's idle unload) has already
+        # removed its model from get_status() but may still be clearing the
+        # TensorFlow session. Don't load alongside it; the next pass decides.
+        if self._model_manager.unload_in_progress():
+            return 0
+
+        # Unloading returns no memory to the OS, so loading the next model in
+        # this process would stack it on top of what the previous one left
+        # behind. With idle exit on, a process that has loaded a model and now
+        # has none (whether this pass or the watchdog unloaded it) exits
+        # instead (no task in flight) and supervisord starts a fresh process,
+        # which loads the next type. A process that has not loaded anything
+        # yet loads normally, so this cannot loop.
+        if self._model_manager.should_exit_when_idle():
+            exit_idle_process()
 
         _, runner = self._spec(name)
         tasks = list(pending_tasks_for(task.type)[:self.batch_size])

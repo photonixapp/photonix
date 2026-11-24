@@ -396,6 +396,9 @@ def single_processor(db, monkeypatch):
 
     monkeypatch.setattr(classification, 'get_classifier_spec', fake_spec)
     processor = classification.SingleProcessClassifier()
+    # Tests that switch type in-process run with idle exit off; the exit on a
+    # type switch has its own tests below
+    processor._model_manager._exit_when_idle = False
     processor.calls = calls
     yield processor
     manager = processor._model_manager
@@ -542,6 +545,129 @@ def test_get_classifier_spec_for_every_classifier():
         model_class, runner = get_classifier_spec(name)
         assert model_class.__name__.lower() == f'{name}model'
         assert runner.__module__ == f'photonix.classifiers.{name}.model'
+
+
+def test_single_processor_exits_instead_of_switching_type(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    single_processor._model_manager._exit_when_idle = True
+    library = LibraryFactory()
+    _make_task(type='classify.color', library=library, priority=CLASSIFIER_PRIORITIES['color'])
+    style = _make_task(type='classify.style', library=library,
+                       priority=CLASSIFIER_PRIORITIES['style'])
+
+    # Fresh process: the first batch loads color and does not exit
+    assert single_processor.run_once() == 1
+    assert single_processor._model_manager.is_loaded('color')
+
+    # color is drained and style is pending: unload color and exit rather
+    # than load style on top of what color left behind
+    with pytest.raises(SystemExit) as excinfo:
+        single_processor.run(loop=False)
+    assert excinfo.value.code == 0
+    assert single_processor._model_manager.get_status() == {}
+    assert [name for name, _ in single_processor.calls] == ['color']
+    style.refresh_from_db()
+    assert style.status == 'P'
+
+
+def test_single_processor_exits_after_watchdog_unload(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    manager = single_processor._model_manager
+    manager._exit_when_idle = True
+    library = LibraryFactory()
+    _make_task(type='classify.color', library=library, priority=CLASSIFIER_PRIORITIES['color'])
+    assert single_processor.run_once() == 1
+
+    # The watchdog idle-unloads color between the run loop's exit check and
+    # the next pass, then a style task arrives
+    manager.unload_model('color')
+    style = _make_task(type='classify.style', library=library,
+                       priority=CLASSIFIER_PRIORITIES['style'])
+
+    # This pass unloaded nothing itself, but the process is used: exit
+    # instead of loading style into it
+    with pytest.raises(SystemExit) as excinfo:
+        single_processor.run_once()
+    assert excinfo.value.code == 0
+    assert not manager.is_loaded('style')
+    assert [name for name, _ in single_processor.calls] == ['color']
+    style.refresh_from_db()
+    assert style.status == 'P'
+
+
+@pytest.mark.parametrize('exit_when_idle', [True, False])
+def test_single_processor_does_not_load_during_unload(single_processor, exit_when_idle):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    manager = single_processor._model_manager
+    manager._exit_when_idle = exit_when_idle
+    library = LibraryFactory()
+    _make_task(type='classify.color', library=library, priority=CLASSIFIER_PRIORITIES['color'])
+    assert single_processor.run_once() == 1
+
+    # Simulate the watchdog part-way through unloading color: the model has
+    # left _model_instances but the unload has not finished
+    with manager._state_lock:
+        manager._model_instances.pop('color')
+        manager._last_used.pop('color')
+        manager._unloads_in_progress += 1
+    style = _make_task(type='classify.style', library=library,
+                       priority=CLASSIFIER_PRIORITIES['style'])
+    try:
+        assert manager.unload_in_progress()
+        # Neither loads style nor exits while the unload runs
+        assert single_processor.run_once() == 0
+        assert manager.get_status() == {}
+        assert [name for name, _ in single_processor.calls] == ['color']
+        style.refresh_from_db()
+        assert style.status == 'P'
+    finally:
+        with manager._state_lock:
+            manager._unloads_in_progress -= 1
+
+    assert not manager.unload_in_progress()
+    # Once it finishes, the next pass decides as usual
+    if exit_when_idle:
+        with pytest.raises(SystemExit):
+            single_processor.run_once()
+    else:
+        assert single_processor.run_once() == 1
+        assert [name for name, _ in single_processor.calls] == ['color', 'style']
+
+
+def test_single_processor_fresh_process_loads_next_type(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    # The restarted process, whose first task is the type the previous one
+    # exited before loading
+    single_processor._model_manager._exit_when_idle = True
+    library = LibraryFactory()
+    style = _make_task(type='classify.style', library=library,
+                       priority=CLASSIFIER_PRIORITIES['style'])
+
+    assert single_processor.run(loop=False) is None
+    assert single_processor._model_manager.is_loaded('style')
+    assert [name for name, _ in single_processor.calls] == ['style']
+    style.refresh_from_db()
+    assert style.status == 'C'
+
+
+def test_single_processor_switches_in_process_with_idle_exit_off(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    assert single_processor._model_manager._exit_when_idle is False
+    library = LibraryFactory()
+    _make_task(type='classify.color', library=library, priority=CLASSIFIER_PRIORITIES['color'])
+    _make_task(type='classify.style', library=library, priority=CLASSIFIER_PRIORITIES['style'])
+
+    single_processor.run(loop=False)
+    single_processor.run(loop=False)
+
+    assert [name for name, _ in single_processor.calls] == ['color', 'style']
+    assert list(single_processor._model_manager.get_status()) == ['style']
+    assert set(Task.objects.values_list('status', flat=True)) == {'C'}
 
 
 @pytest.mark.parametrize('should_exit', [True, False])

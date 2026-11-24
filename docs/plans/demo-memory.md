@@ -53,6 +53,29 @@ silently implement something else.
   Measurement (deviation: style model, not object, to stay within the host's free RAM; `photonix-dev` image, `--memory=3g`, throwaway DB): one process fresh **86 MB**, style after its first predict **858 MB**, after `unload_model` **857 MB**; color after style 857 → 856 MB. RSS after unload is ~770 MB above fresh, consistent with M1 (c), so idle exit is kept.
   Done-when (deviation: isolated `dm515m4-*` stack instead of the shared dev stack, `ENV=prd`, object disabled on the library so its model never loads, `CLASSIFIER_IDLE_TIMEOUT=20`): `classification_processor` alone ran color → location → face → style → event with one model resident at a time, then logged `Exiting idle classifier process to release memory` and exited 0; under a one-program supervisord it logged `exited: classification_processor (exit status 0; expected)`, respawned, and the new process sat at 90 MB without exiting again. Tags: snow.jpg colour + style (serene); tree.jpg location (Greece, Firá); a face photo face (Unknown person); a copy dated 25 Dec event (Christmas Day); 32/32 tasks Completed.
   Deviation: `SingleProcessClassifier` sets its ModelManager's load cooldown to 0 — the cooldown staggers loads across several processes, and with one process it would put the batch after every type switch into memory-wait for 30 s. The memory check before loading still applies.
+- 2026-11-24 — M5: low-memory layout (`programs-classification-lowmem.conf`, `supervisord-lowmem.conf`), `run.sh` layout order + `LOW_MEMORY` defaults (`GUNICORN_WORKERS=2`, `THUMBNAIL_WORKERS=1`, `RAW_WORKERS=1`), `worker_count()` for the thumbnail/raw processors, layout tests, README "Memory requirements" — commit M5SHA.
+  Measurements (`photonixapp/photonix:edge` + this branch's `photonix/`, `system/` bind-mounted, `ENV=prd`, 14 demo photos analysed for real, `CLASSIFIER_IDLE_TIMEOUT=60`, `--memory-swap` = `--memory`; `dm515m5-*` stacks; cgroup `memory.current`/`memory.peak`, includes page cache):
+  | Run | Idle before | Peak analysing | Idle after | oom_kill |
+  |---|---|---|---|---|
+  | `LOW_MEMORY=1`, object enabled, 3g | n/a | 3072 MB (limit) | n/a | 1 (object) |
+  | `LOW_MEMORY=1`, object enabled, 4g | n/a | 4096 MB (limit) | n/a | 3 (object) |
+  | `LOW_MEMORY=1`, object enabled, 5g | n/a | 5120 MB (limit) | 667 MB after idle exit | 3 (object); 1 object task (a 5472×3648 photo) left in `S`, 138/140 tasks Completed |
+  | `LOW_MEMORY=1`, object disabled on the library, 3g | n/a | 3072 MB (limit) | n/a | 1 (face) |
+  | **`LOW_MEMORY=1`, object disabled, 4g** | **590 MB** (peak 659 MB; no-photo stack, 10 programs RUNNING, 1 classification) | **3250 MB**, anon 2.7 GB | **581 MB**, 10 min after completion (idle exit logged 14:55:41) | **0**; 126/126 tasks Completed, `OOMKilled: false` |
+  | default layout, object enabled, 4g | n/a (M1 (a): 1299 MB) | 4096 MB (limit) | 1471 MB, after 8 min | 13 (face 5, object 7, style 1); 14 tasks stuck in `S`, analysis did not finish |
+  Idle before/after for the object-disabled run is within 100 MB (590 vs 581 MB), so the M5 done-when holds for that configuration. Idle-exit evidence: `classification_processor` pid changed and sat at 79 MB RSS afterwards.
+  Walkthrough result: `supervisorctl status` shows exactly one classification program (`classification_processor`) plus `retrain_face_similarity_index`; `docker inspect` `OOMKilled=false` and limit 4294967296 for the object-disabled 4g run. Fresh single-process object classification of one 5472×3648 photo peaks at 2671 MB RSS (second photo 2607 MB).
+  Deviations: (1) the plan's walkthrough (`--memory=2g`, all classifiers) cannot work: object needs 2.6–2.7 GB in a fresh process and more after face/style have run in the same process (RSS after `unload_model` stays ~0.8 GB above fresh, M4), so 3g, 4g and 5g all OOM-killed it and no limit up to 5g completes everything. The smallest limit that completed was 4g with the object classifier disabled; with it enabled the need is above 5g and was not found (the host could not safely give a container more; free memory was 3–6 GB). README says so instead of estimating. (2) "Idle before analysis" was measured on a stack without `DEMO` (so no photos), because with `DEMO=1` the photos are recorded before supervisord starts and the classifier loads a model within ~7 s. (3) Default layout "idle after analysis": analysis never finished at the 4g cap (M1 saw 6 GB+ needed), so the 1471 MB is idle with unfinished tasks, not comparable with M1 (c) 5237 MB except to show the processes release memory. (4) `CLASSIFIER_IDLE_TIMEOUT=60` was set for all runs so idle exit fell inside the window.
+  Deviation (5), fix after the measurements above: `SingleProcessClassifier.run_once` no longer loads a different model type in the same process when `CLASSIFIER_EXIT_WHEN_IDLE` is on. It unloads the current model and exits through `exit_idle_process()` when `should_exit_when_idle()` allows it; supervisord restarts it and the fresh process loads the next type (§4.4 step 3, §2 "Memory release"). Reason: `unload_model` returns no memory to the OS (M4), so object ran on top of what face and style left behind. A process that has not loaded a model yet loads normally, so this cannot loop; with the setting off it still switches in-process. Tests: exits with `SystemExit(0)` without loading the next type, a fresh processor loads it, setting off switches in-process (`test_task_queue` 28, `test_model_manager` 16, `test_process_layouts` 10 passed). Re-measured with the same setup on `dm515m5b-*` stacks (demo set now has four 2–4 MP portraits and ten 20 MP Iceland photos):
+  | Run | Peak analysing | oom_kill | Tasks | Idle 10 min after | `classification_processor` restarts |
+  |---|---|---|---|---|---|
+  | `LOW_MEMORY=1`, object enabled, 4g, before fix | 4096 MB (limit) | 3 | analysis did not finish | n/a | n/a |
+  | `LOW_MEMORY=1`, object enabled, 4g, with fix | 4096 MB (limit) | 6 (object 5, `rescan_photos_periodically` 1) | 130/140 Completed; 5 object tasks (20 MP photos) and their 5 parents left in `S` | not measured (run stopped to free RAM for 5g) | 4 clean exits (one per type switch) + 5 SIGKILLs |
+  | `LOW_MEMORY=1`, object enabled, 5g, before fix | 5120 MB (limit) | 3 | 138/140 | 667 MB | n/a |
+  | **`LOW_MEMORY=1`, object enabled, 5g, with fix** | **5120 MB (limit)**, anon up to 4894 MB | **0**, `OOMKilled: false` | **140/140 Completed** | **591 MB** (idle exit at 15:26:31, snapshot 15:35:57) | 5, all `exit status 0; expected` (color → location → face → style → object → event, then idle exit) |
+  The fix works as designed (one model per process, one restart per type switch), but it does not bring the everything-on need below 5g: a fresh object process grows across the batch, from ~2.7 GB after one 20 MP photo to 3.69 GB anon when killed at 4g, and its anon reached ~4.3 GB above the 0.56 GB base at 5g while it processed all 14 photos without exiting. 5g completed with no kills but sat at the limit, so it has no headroom. README now says 5 GB for everything on instead of "more than 5 GB".
+  Review round: the exit-on-switch also fires when the watchdog did the unload, and nothing loads while an unload is in progress (`ModelManager.unload_in_progress()`); README figures now name their measurement round; the duplicate `reset_redis_locks` under `LOW_MEMORY` is gone. Gate: 248 passed; the 1 failure is `test_annoy_index` in the untracked `tests/test_classifier_faces.py`, outside this branch. Open follow-up: everything-on low-memory still needs 5 GB because the object classifier grows within its own batch on 20 MP photos (batch size 1 + an RSS-threshold restart could bring it to ~4 GB; not built).
+- 2026-11-24 — M5b: `environment.analysisDisabled` (DEMO + `CLASSIFICATION_DISABLED=1`, not `ENV=dev`), `AnalysisDisabledNotice` in library settings and onboarding step 5, "on" clicks refused with a toast and no mutation — commit f30f6655. Deviations: `reset_demo` now always makes the demo user the library owner (otherwise visitors never reach the settings page); the owner-mutation audit found 11 mutations not demo-locked (the five legacy `update*Enabled`, `updateSourceFolder`, `updateWatchPhotos`, `revokeLibraryInvitation`, `createLibrary` with userId, `PhotoImporting`, `imageAnalysis`) — all now refuse the demo user, with a parametrised test. The new e2e test has not run as written (its helpers need the shared dev stack); a trimmed copy passed against the demo stack. Walkthrough screenshots `.playwright-mcp/demo515-analysis-notice.png`, `-toast.png`, `-owner-settings.png`.
 
 ---
 
@@ -98,7 +121,7 @@ set `LOW_MEMORY=1` to run classification in a single process that returns its me
 | **Branch order** | Build on master. Port the process-list split from `ml-improvement` commit `9d81e9db` (`system/` files only) as M1, keeping its file names, env name and behaviour so that branch's later merge converges. (Founder, 2026-11-24.) |
 | **Scope** | The general low-memory work is in this plan, not a follow-up. (Founder, 2026-11-24.) |
 | **Low-memory mode** | `LOW_MEMORY=1` starts one `classification_processor` process (replacing the scheduler and six per-classifier processes), keeps at most one model loaded, and defaults gunicorn to 2 workers. Default layout is unchanged for existing installs. |
-| **Memory release** | A classifier process that has unloaded its last idle model exits and lets supervisord restart it clean, in both the default and low-memory layouts, controlled by `CLASSIFIER_EXIT_WHEN_IDLE` (default on). M4 measures first: if RSS after unload is already within 50 MB of a fresh process, skip this and record the deviation. |
+| **Memory release** | A classifier process that has unloaded its last idle model exits and lets supervisord restart it clean, in both the default and low-memory layouts, controlled by `CLASSIFIER_EXIT_WHEN_IDLE` (default on). The single-process classifier also exits this way when it would otherwise switch to a different model type, so each model loads into a fresh process (added after M5 measured object OOM-killed on top of face/style leftovers). M4 measures first: if RSS after unload is already within 50 MB of a fresh process, skip this and record the deviation. |
 | **Rotation in the demo** | Rotating a photo still queues delayed face/object/style tasks (`photos/utils/tasks.py:72`). With no classifier process they stay unprocessed until the next reset deletes them. Accepted: tags from the fixture remain, and `CLASSIFICATION_DISABLED` must not suppress task creation because on `ml-improvement` it means "classifiers run in another container". |
 | **`reset_demo` safety** | The command deletes every user, library and photo row. It refuses to run unless `demo_mode_enabled()` is true. It is never run against the shared dev database `photonix`. |
 | **Memory limit** | 2Gi request = limit at rollout, as the ticket states. Lowered after the 24-hour check to about 1.5× the observed peak. |
@@ -106,6 +129,8 @@ set `LOW_MEMORY=1` to run classification in a single process that returns its me
 | **Verification** | Each milestone is checked in Docker; user-visible behaviour gets a Playwright walkthrough. The founder checks the demo visually in Playwright before the M7 deploy. (Founder, 2026-11-24.) |
 | **Dev database guard** | `reset_demo` refuses under `ENV=dev` unless `--allow-dev`, with text `reset_demo refused: ENV=dev. Pass --allow-dev to reset a development database.` Tightens the `reset_demo` safety row; added after M2 review found the dev stack satisfies `demo_mode_enabled()`. |
 | **Startup reset failure** | At pod start a failed stored-outputs load is logged at ERROR and the pod starts anyway (no crash loop); the 15-minute `reset_demo` CronJob exits non-zero and is the visible signal. |
+| **Analysis-off notice** | Settings and onboarding show a notice when the demo runs on stored results, and an attempt to switch a classifier on is answered with it instead of a mutation (M5b). Keyed on DEMO + `CLASSIFICATION_DISABLED`, not the latter alone (it means "ML in another container" on `ml-improvement`). (Founder, 2026-11-24.) |
+| **Visual sign-off** | The founder approved the demo stack visually (Playwright) on 2026-11-24, before the M5 fix and M5b. |
 | **Process tooling** | The repo has no `.agent/project.yml`, so no test, lint or deploy command is configured. Commands in this plan come from `CLAUDE.md` and the `Makefile`. |
 
 ---
@@ -370,6 +395,16 @@ class SingleProcessClassifier:
    across all enabled types in the model's own ordering (`-priority, created_at`,
    `photos/models.py:398`). No task: go to step 5.
 3. If a different model is loaded, `unload_model` it first, so at most one model is resident.
+   Unloading returns no memory to the OS (M4: style 858 MB loaded, 857 MB after unload), so
+   with `CLASSIFIER_EXIT_WHEN_IDLE` on the process never loads a model while
+   `should_exit_when_idle()` is true (it has loaded a model before and none is loaded now),
+   whether this pass or the watchdog's idle unload removed it: it exits through the idle-exit
+   path below instead: no task is in flight, supervisord restarts the program, and the fresh
+   process loads the next type. While any unload is still in progress (the watchdog's may
+   still be clearing the TensorFlow session) the pass loads nothing and returns, setting on
+   or off, and the next pass decides. A process that has not loaded a model yet loads
+   normally, so this cannot loop. Because of step 2 it exits only once the loaded type's queue is drained,
+   so there is one restart per type switch. With the setting off it switches in-process.
 4. Process up to `batch_size` pending tasks of that type on the main thread with the same
    claim / touch / complete / `memory_wait` / failed handling as
    `ThreadedQueueProcessor.__process_task` (extract that method's body into a shared function
@@ -611,20 +646,20 @@ up with tags from every enabled classifier and the process exits and restarts on
 
 ### M5 — Low-memory layout, measurements, documentation
 
-- [ ] `system/conf/programs-classification-lowmem.conf` and `system/supervisord-lowmem.conf`
+- [x] `system/conf/programs-classification-lowmem.conf` and `system/supervisord-lowmem.conf`
       exist as in §4.5, and `system/run.sh` selects layouts in the order of the §4.1 table and
       exports `GUNICORN_WORKERS=2` under `LOW_MEMORY=1` when it is unset.
-- [ ] `thumbnail_processor` and `raw_processor` take their worker count from `THUMBNAIL_WORKERS`
+- [x] `thumbnail_processor` and `raw_processor` take their worker count from `THUMBNAIL_WORKERS`
       / `RAW_WORKERS` when set (defaults unchanged: `cpu_count()/2` and `/4`,
       `thumbnail_processor.py:44`, `raw_processor.py:44`); `run.sh` exports both as 1 under
       `LOW_MEMORY=1` when unset. Added to the README environment table. (M1 measured the
       thumbnail processor at ~1.6 GB RSS with four workers.)
-- [ ] `tests/test_process_layouts.py` covers the low-memory layout: exactly one program whose
+- [x] `tests/test_process_layouts.py` covers the low-memory layout: exactly one program whose
       command mentions `classification`, plus the face-retrain loop and every core program.
-- [ ] Measurements in the Progress log from the locally built prd image with `LOW_MEMORY=1`:
+- [x] Measurements in the Progress log from the locally built prd image with `LOW_MEMORY=1`:
       idle, peak while analysing the 14 demo photos, and idle 10 minutes after; and the default
       layout's idle-after-analysis figure again now that idle exit exists, next to M1's (c).
-- [ ] `README.md` "Memory requirements" section with the measured table, minimum RAM per layout
+- [x] `README.md` "Memory requirements" section with the measured table, minimum RAM per layout
       and the environment table (§4.5). Use the measured numbers, rounded up; no estimates.
 
 **Verify:** `docker compose -f docker/docker-compose.dev.yml run -e PYTHONDONTWRITEBYTECODE=1 --rm photonix python test.py test_process_layouts`.
@@ -633,6 +668,47 @@ database: the 14 demo photos finish analysis, `supervisorctl status` shows one c
 program, and `docker inspect` reports `OOMKilled: false`.
 **Done when:** low-memory idle-after-analysis is within 100 MB of low-memory idle before
 analysis, and the README table is filled from the Progress log figures.
+
+### M5b — "Analysis is off" notice in the UI
+
+Added 2026-11-24 at the founder's request: the demo serves stored results with the models off
+(`CLASSIFICATION_DISABLED=1`, off by default so anyone running the demo locally still gets real
+analysis), and a visitor who tries to switch a classifier back on should be told why nothing
+happens.
+
+- [x] `environment` GraphQL query (`photonix/accounts/schema.py:154`, `EnvironmentType`) gains
+      `analysisDisabled: Boolean!`, true exactly when the stored-results mode is active:
+      `demo_mode_enabled()` and `CLASSIFICATION_DISABLED == '1'` (the same condition
+      `import_demo_photos` uses, `photos/utils/demo.py`). Not keyed on `CLASSIFICATION_DISABLED`
+      alone: on `ml-improvement` that variable means "classifiers run in another container", where
+      the toggles do take effect. Returned in every branch of `resolve_environment`.
+- [x] A shared `AnalysisDisabledNotice` component (`ui/src/components/settings/`), copy exactly:
+      title **"Image analysis is switched off on this server"**, body "New photos won't be
+      tagged for colour, objects, faces, places or style. The tags you can see were generated in
+      advance and loaded from stored results.", and a smaller line "To turn analysis on, restart
+      Photonix without CLASSIFICATION_DISABLED=1." `data-testid="analysis-disabled-notice"`.
+      Styled like the existing info/notice boxes in the settings pages.
+- [x] Library settings Analysis card (`ui/src/components/settings/LibraryDetailPage.tsx`, the
+      `classification*Enabled` switches) and onboarding step 5 (`ui/src/routes/onboarding/step5.tsx`):
+      when `analysisDisabled`, the notice shows above the switches; the switches keep showing the
+      library's stored values; a click that would turn a classifier **on** sends no mutation,
+      leaves the switch off, and shows a toast with the notice title (existing `addToast`).
+      Turning one off still works as today. With `analysisDisabled` false nothing changes.
+- [x] Query the new field where the environment is already fetched (`ui/src/lib/auth/graphql.ts:68`,
+      `ui/src/lib/onboarding/graphql.ts:4`) and type it.
+- [x] Tests: backend test that `environment.analysisDisabled` is true only with DEMO on and
+      `CLASSIFICATION_DISABLED=1` (follow the existing environment-query tests, or
+      `tests/test_demo_reset.py`'s monkeypatching); a Playwright e2e test in `ui/e2e/settings.spec.ts`
+      following its pattern if the e2e stack can set the env, otherwise mock the GraphQL response
+      for `environment` with `page.route` and assert the notice, the toast, and that no
+      library-update mutation is sent on an "on" click.
+
+**Verify:** backend test module via `docker compose -f docker/docker-compose.dev.yml run -e PYTHONDONTWRITEBYTECODE=1 --rm photonix python test.py <module>`; `cd ui && npx tsc --noEmit`; the new e2e test.
+Walkthrough on the demo stack with the UI built from this branch: log in as demo/demo, open the
+library's settings, see the notice; click a classifier switch that is off and see the toast, the
+switch stays off, no mutation in the network log.
+**Done when:** the walkthrough holds, and with `CLASSIFICATION_DISABLED` unset the settings page
+shows no notice and the switches behave as before.
 
 ### M6 — `epix-infra` module changes (PR only, not applied)
 
