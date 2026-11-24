@@ -69,6 +69,11 @@ class ModelManager:
         self._watchdog_interval = getattr(settings, 'CLASSIFIER_WATCHDOG_INTERVAL_SECONDS', 60)
         self._memory_buffer_mb = getattr(settings, 'CLASSIFIER_MEMORY_BUFFER_MB', 500)
         self._load_cooldown_seconds = getattr(settings, 'CLASSIFIER_LOAD_COOLDOWN_SECONDS', 15)
+        self._exit_when_idle = getattr(settings, 'CLASSIFIER_EXIT_WHEN_IDLE', True)
+        self._has_loaded_model = False  # Any model loaded since process start
+        # Unloads still holding (or about to take) a model's Redis lock. Idle
+        # exit waits for these, so the process never dies holding the lock.
+        self._unloads_in_progress = 0
         self._watchdog_thread: Optional[threading.Thread] = None
         self._shutdown_event = threading.Event()
         self._initialized = True
@@ -79,6 +84,14 @@ class ModelManager:
             f"memory_buffer={self._memory_buffer_mb}MB, "
             f"load_cooldown={self._load_cooldown_seconds}s"
         )
+
+    def set_load_cooldown(self, seconds: float):
+        """Override CLASSIFIER_LOAD_COOLDOWN_SECONDS for this process.
+
+        The cooldown staggers model loading across several classifier
+        processes; a single process that runs every classifier sets it to 0.
+        """
+        self._load_cooldown_seconds = seconds
 
     def start_watchdog(self):
         """Start the background watchdog thread for idle model unloading."""
@@ -284,6 +297,7 @@ class ModelManager:
             with self._state_lock:
                 self._model_instances[classifier_name] = model
                 self._last_used[classifier_name] = time.time()
+                self._has_loaded_model = True
 
             elapsed = time.time() - start_time
             logger.info(f"Model '{classifier_name}' loaded in {elapsed:.2f}s")
@@ -305,26 +319,35 @@ class ModelManager:
             True if model was unloaded, False if it wasn't loaded.
         """
         lock_name = f'model_manager_{classifier_name}'
-        with Lock(redis_connection, lock_name, expire=300, auto_renewal=True):
+        # Counted before the Redis lock is taken and until after it is
+        # released: the model leaves _model_instances while the lock is still
+        # held, and should_exit_when_idle() must not see an idle process then
+        with self._state_lock:
+            self._unloads_in_progress += 1
+        try:
+            with Lock(redis_connection, lock_name, expire=300, auto_renewal=True):
+                with self._state_lock:
+                    if classifier_name not in self._model_instances:
+                        return False
+
+                    model = self._model_instances.pop(classifier_name)
+                    self._last_used.pop(classifier_name, None)
+
+                # Clear from graph_cache (shared module-level dict)
+                self._clear_graph_cache(classifier_name, model)
+
+                # TensorFlow-specific cleanup
+                self._tensorflow_cleanup(classifier_name, model)
+
+                # Delete model instance and force garbage collection
+                del model
+                gc.collect()
+
+                logger.info(f"Model '{classifier_name}' unloaded and memory freed")
+                return True
+        finally:
             with self._state_lock:
-                if classifier_name not in self._model_instances:
-                    return False
-
-                model = self._model_instances.pop(classifier_name)
-                self._last_used.pop(classifier_name, None)
-
-            # Clear from graph_cache (shared module-level dict)
-            self._clear_graph_cache(classifier_name, model)
-
-            # TensorFlow-specific cleanup
-            self._tensorflow_cleanup(classifier_name, model)
-
-            # Delete model instance and force garbage collection
-            del model
-            gc.collect()
-
-            logger.info(f"Model '{classifier_name}' unloaded and memory freed")
-            return True
+                self._unloads_in_progress -= 1
 
     def _clear_graph_cache(self, classifier_name: str, model: Any):
         """Remove model entries from the shared graph_cache."""
@@ -356,6 +379,30 @@ class ModelManager:
         with self._state_lock:
             if classifier_name in self._last_used:
                 self._last_used[classifier_name] = time.time()
+
+    def should_exit_when_idle(self) -> bool:
+        """True when this process should exit to release memory.
+
+        Unloading a model does not return its memory to the OS, so a process
+        that has loaded a model and since unloaded every one is restarted
+        clean instead. A process that never loaded anything stays running, so
+        idle exit cannot become a restart loop. An unload still in progress
+        (possibly holding the model's Redis lock) also blocks the exit.
+        Disabled with CLASSIFIER_EXIT_WHEN_IDLE=0.
+        """
+        with self._state_lock:
+            return bool(
+                self._exit_when_idle
+                and self._has_loaded_model
+                and not self._model_instances
+                and self._unloads_in_progress == 0
+            )
+
+    def unload_in_progress(self) -> bool:
+        """True while any unload_model() call (e.g. the watchdog's) has not
+        finished, including releasing the model's Redis lock."""
+        with self._state_lock:
+            return self._unloads_in_progress > 0
 
     def is_loaded(self, classifier_name: str) -> bool:
         """Check if a model is currently loaded."""

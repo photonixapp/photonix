@@ -1,8 +1,14 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useMutation } from '@apollo/client/react'
+import { useMutation, useQuery } from '@apollo/client/react'
 import { useForm } from '@tanstack/react-form'
 import { OnboardingCard } from '../../components/onboarding'
 import { Button, Switch } from '../../components/ui'
+import {
+  AnalysisDisabledNotice,
+  ANALYSIS_DISABLED_TITLE,
+} from '../../components/settings/AnalysisDisabledNotice'
+import { ENVIRONMENT } from '../../lib/auth/graphql'
+import { addToast } from '../../lib/ui/store'
 import {
   CONFIGURE_IMAGE_ANALYSIS,
   type ImageAnalysisResponse,
@@ -45,6 +51,9 @@ function Step5ImageAnalysis() {
   const navigate = useNavigate()
   const { userId, libraryId, formData, updateFormData, setCurrentStep } =
     useOnboardingStore()
+
+  const { data: environmentData, loading: environmentLoading } = useQuery(ENVIRONMENT)
+  const analysisDisabled = !!environmentData?.environment?.analysisDisabled
 
   const [configureAnalysis, { loading, error: mutationError }] =
     useMutation<ImageAnalysisResponse>(CONFIGURE_IMAGE_ANALYSIS)
@@ -91,6 +100,8 @@ function Step5ImageAnalysis() {
         }}
         className="space-y-4"
       >
+        {analysisDisabled && <AnalysisDisabledNotice />}
+
         <div className="space-y-3">
           {CLASSIFIERS.map((classifier) => (
             <form.Field key={classifier.key} name={classifier.key}>
@@ -101,7 +112,14 @@ function Step5ImageAnalysis() {
                     description={classifier.description}
                     name={field.name}
                     checked={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.checked)}
+                    onChange={(e) => {
+                      // Stored-results mode: classifiers can't be switched on.
+                      if ((analysisDisabled || environmentLoading) && e.target.checked) {
+                        addToast(ANALYSIS_DISABLED_TITLE)
+                        return
+                      }
+                      field.handleChange(e.target.checked)
+                    }}
                     data-testid={`${classifier.key}-switch`}
                   />
                 </div>

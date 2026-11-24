@@ -53,6 +53,43 @@ You'll need to create a username, password and library. Right now this needs to 
 
 You can move some photos into the folder `data/photos` and they should get detected and imported immediately. Once you have finished trying out the system you can edit the volume in the `docker-compose.yml` file where it says `./data/photos` to mount wherever you usually keep photos. System database, thumbnails and other cache data is stored separately from the photos so shouldn't pollute the area. You are responsible for keeping your own backups in case of error.
 
+## Memory requirements
+
+Photonix runs several background processes and, while it analyses photos, loads machine-learning models (face, object, style and others). The figures below are measurements, not estimates, taken in Docker with `ENV=prd` and the demo library's sample photos being analysed for real, in two rounds:
+
+- **Round A** (default layout before idle exit existed, and `CLASSIFICATION_DISABLED=1`): the `photonixapp/photonix:edge` image with only the newer `system/` directory mounted over it, analysing the 10 original demo photos.
+- **Round B** (`LOW_MEMORY=1`, and the default layout with idle exit): the same image with the newer `photonix/` and `system/` directories mounted, analysing all 14 demo photos (ten are 20 megapixel JPEGs).
+
+"Peak" is the container's `memory.peak` (it includes file cache). Figures are MB divided by 1000, rounded to the nearest 0.1 GB. Limits are Docker `--memory` values (`4g` and so on). Run `system/memory_report.sh` inside the container to see the same per-process numbers on your own install.
+
+| Layout | Idle, before analysis | Peak while analysing | Idle, after analysis |
+|---|---|---|---|
+| Default (`LOW_MEMORY` unset): seven classifier processes | 1.3 GB (round A) | 6.1 GB (round A, 10 photos; hit a 6 GB limit and was OOM-killed repeatedly) | 5.2 GB before idle exit existed (round A); 1.5 GB at a 4 GB limit with idle exit (round B; analysis did not finish, see below) |
+| `LOW_MEMORY=1`: one classifier process | 0.6 GB (round B) | 3.3 GB with object detection turned off (round B; completes in a 4 GB limit, no kills); 5.1 GB with it on (round B; completes in a 5 GB limit, no kills, but reached the limit) | 0.6 GB (round B) |
+| `CLASSIFICATION_DISABLED=1`: no classifiers | 0.6 GB (round A, `GUNICORN_WORKERS=2`) | not applicable | not applicable |
+
+Minimum RAM, rounded up from those measurements:
+
+- **No classifiers** (`CLASSIFICATION_DISABLED=1 GUNICORN_WORKERS=2`): 1 GB.
+- **`LOW_MEMORY=1`, object detection turned off** (Library settings): 4 GB. It finished all 14 photos in a 4 GB limit with no OOM kills and peaked at 3.3 GB; a 3 GB limit killed the face classifier once.
+- **`LOW_MEMORY=1`, everything on**: 5 GB. It finished all 14 photos in a 5 GB limit with no OOM kills, but memory use reached the limit (4.9 GB of it held by processes while object detection ran through the 20 megapixel photos), so 5 GB leaves no headroom. A 4 GB limit OOM-killed object detection 5 times and left 5 photos without object tags.
+- **Default layout**: more than 6 GB. At a 4 GB limit it was OOM-killed 13 times in 8 minutes and left 14 analysis tasks unfinished.
+
+Low-memory mode analyses one photo at a time with one model loaded at a time, so a large import takes longer.
+
+Do not run `classification_processor` (low-memory mode) alongside the per-classifier `classification_*_processor` programs: both would claim the same tasks and load several models at once. Pick one layout by setting `LOW_MEMORY`; do not start the commands by hand next to it.
+
+| Environment variable | Default | Effect |
+|---|---|---|
+| `LOW_MEMORY` | unset | `1` starts a single classification process that keeps one model loaded, and defaults `GUNICORN_WORKERS`, `THUMBNAIL_WORKERS` and `RAW_WORKERS` to 2, 1 and 1. |
+| `CLASSIFICATION_DISABLED` | unset | `1` runs no classification processes at all (the classifiers may run elsewhere). Takes priority over `LOW_MEMORY`. |
+| `GUNICORN_WORKERS` | 8 (2 with `LOW_MEMORY=1`) | Web worker processes, roughly 50-60 MB each. |
+| `THUMBNAIL_WORKERS` | half the CPU count (1 with `LOW_MEMORY=1`) | Threads generating thumbnails. |
+| `RAW_WORKERS` | a quarter of the CPU count (1 with `LOW_MEMORY=1`) | Threads converting raw files. |
+| `CLASSIFIER_EXIT_WHEN_IDLE` | `1` | A classifier process that has unloaded its last model exits and is restarted clean, returning the memory TensorFlow keeps. With `LOW_MEMORY=1` it also restarts the single classifier process on every switch of model type, so each model loads into a fresh process. `0` turns both off; in low-memory mode the models then stack up in one process, and that configuration OOM-killed object detection in every limit tried up to 5 GB. |
+| `CLASSIFIER_IDLE_TIMEOUT` | 300 | Seconds a model sits unused before it is unloaded. |
+| `CLASSIFIER_MEMORY_BUFFER_MB` | 500 | Free memory that must remain after a model is loaded; a task waits if loading would breach it. |
+
 ## Upgrading
 
 If you are using the pre-built Docker image you can use kill, pull and bring back up using the following:

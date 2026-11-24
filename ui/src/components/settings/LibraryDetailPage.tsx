@@ -6,8 +6,9 @@ import { Check, Copy, X } from 'lucide-react'
 import { Button, Input, Switch } from '../ui'
 import { Avatar } from '../ui/Avatar'
 import { SettingsCard } from './SettingsCard'
+import { AnalysisDisabledNotice, ANALYSIS_DISABLED_TITLE } from './AnalysisDisabledNotice'
 import { useAuth } from '../../lib/auth/auth-context'
-import { GET_PROFILE } from '../../lib/auth/graphql'
+import { ENVIRONMENT, GET_PROFILE } from '../../lib/auth/graphql'
 import {
   ADD_LIBRARY_USER,
   CREATE_LIBRARY_INVITATION,
@@ -182,7 +183,11 @@ interface LibrarySettingShape {
 
 /** Shared optimistic-toggle helper: flip instantly, save one field via the
  * consolidated mutation, revert with a toast on failure. */
-function useLibraryToggles(libraryId: string, setting: LibrarySettingShape) {
+function useLibraryToggles(
+  libraryId: string,
+  setting: LibrarySettingShape,
+  analysisDisabled = false
+) {
   const [updateLibrary] = useMutation(UPDATE_LIBRARY)
   const [overrides, setOverrides] = useState<Partial<Record<ToggleKey, boolean>>>({})
 
@@ -203,11 +208,16 @@ function useLibraryToggles(libraryId: string, setting: LibrarySettingShape) {
 
   const toggle = (key: ToggleKey) => {
     const newValue = !valueOf(key)
+    // Stored-results mode: a classifier can't be switched on, so say why and send nothing.
+    if (analysisDisabled && newValue && key.startsWith('classification')) {
+      addToast(ANALYSIS_DISABLED_TITLE)
+      return
+    }
     setOverrides((prev) => ({ ...prev, [key]: newValue }))
     const input: UpdateLibraryInput = { libraryId, [key]: newValue }
-    updateLibrary({ variables: { input } }).catch(() => {
+    updateLibrary({ variables: { input } }).catch((err: unknown) => {
       setOverrides((prev) => ({ ...prev, [key]: !newValue }))
-      addToast("Couldn't save setting")
+      addToast(err instanceof Error ? err.message : "Couldn't save setting")
     })
   }
 
@@ -346,7 +356,14 @@ function AnalysisCard({
   libraryId: string
   setting: LibrarySettingShape
 }) {
-  const { valueOf, toggle } = useLibraryToggles(libraryId, setting)
+  const { data: environmentData, loading: environmentLoading } = useQuery(ENVIRONMENT)
+  const analysisDisabled = !!environmentData?.environment?.analysisDisabled
+  // Refuse "on" clicks until the environment is known; the notice waits for the answer.
+  const { valueOf, toggle } = useLibraryToggles(
+    libraryId,
+    setting,
+    analysisDisabled || environmentLoading
+  )
 
   return (
     <SettingsCard
@@ -355,6 +372,7 @@ function AnalysisCard({
       data-testid="library-analysis-card"
     >
       <div className="space-y-4">
+        {analysisDisabled && <AnalysisDisabledNotice />}
         {CLASSIFIERS.map(({ key, label, description }) => (
           <Switch
             key={key}

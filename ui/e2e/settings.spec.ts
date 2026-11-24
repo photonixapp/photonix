@@ -296,4 +296,67 @@ print(f'{user.is_active},{user.has_configured_image_analysis}')
 `)
     expect(dbState.trim()).toBe('False,True')
   })
+
+  test('analysis-off notice explains why a classifier cannot be switched on', async ({
+    page,
+  }) => {
+    // The e2e stack doesn't run in stored-results mode, so patch the environment query.
+    await page.route('**/graphql', async (route) => {
+      const body = route.request().postData() ?? ''
+      if (!body.includes('query Environment')) return route.fallback()
+      const response = await route.fetch()
+      const json = await response.json()
+      json.data.environment.analysisDisabled = true
+      await route.fulfill({ response, json })
+    })
+    const mutations: string[] = []
+    page.on('request', (request) => {
+      const body = request.postData() ?? ''
+      if (request.url().endsWith('/graphql') && body.includes('mutation UpdateLibrary')) {
+        mutations.push(body)
+      }
+    })
+
+    await login(page, SETTINGS_USER.username, SETTINGS_USER.password)
+    await openSettings(page, 'settings-nav-libraries')
+    // The seeded library: 'Test Library', or 'Renamed E2E Library' after the rename test.
+    // Not .first(), which could pick 'Second E2E Library' (all classifiers off).
+    await page
+      .locator('[data-testid^="library-settings-link-"]')
+      .filter({ hasText: /^(Test Library|Renamed E2E Library)$/ })
+      .click()
+    await expect(page.getByTestId('library-analysis-card')).toBeVisible({
+      timeout: 10000,
+    })
+
+    const notice = page.getByTestId('analysis-disabled-notice')
+    await expect(notice).toContainText('Image analysis is switched off on this server')
+    await expect(notice).toContainText('CLASSIFICATION_DISABLED=1')
+
+    // Turning one off still works...
+    const styleToggle = page.getByTestId('setting-classificationStyleEnabled')
+    await expect(styleToggle).toHaveAttribute('aria-checked', 'true')
+    await styleToggle.click()
+    await expect(styleToggle).toHaveAttribute('aria-checked', 'false')
+    await expect.poll(() => mutations.length).toBe(1)
+
+    // ...but turning it back on is refused with a toast and no mutation.
+    await styleToggle.click()
+    await expect(
+      page
+        .getByTestId('toast-error')
+        .filter({ hasText: 'Image analysis is switched off on this server' })
+    ).toBeVisible()
+    await expect(styleToggle).toHaveAttribute('aria-checked', 'false')
+    await page.waitForTimeout(500)
+    expect(mutations).toHaveLength(1)
+
+    // Restore Style so re-runs that reuse the user still start from "on".
+    runDjangoCommand(`
+from photonix.photos.models import Library
+Library.objects.filter(users__user__username='${SETTINGS_USER.username}').exclude(
+    name='Second E2E Library'
+).update(classification_style_enabled=True)
+`)
+  })
 })

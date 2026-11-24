@@ -17,6 +17,7 @@ import graphql_jwt
 from PIL import Image, ImageOps
 
 from photonix.photos.models import Library, LibraryInvitation, LibraryPath, LibraryUser
+from photonix.photos.utils.demo import is_dev_environment
 from photonix.web.utils import demo_mode_enabled, demo_user_locked
 
 
@@ -121,6 +122,7 @@ class Environment(graphene.ObjectType):
     demo = graphene.Boolean()
     sample_data = graphene.Boolean()
     first_run = graphene.Boolean()
+    analysis_disabled = graphene.Boolean(required=True)
     form = graphene.String()
     user_id = graphene.ID()
     library_id = graphene.ID()
@@ -155,6 +157,11 @@ class Query(graphene.ObjectType):
         user = User.objects.first()
         demo = os.environ.get('DEMO', '').lower() in ('1', 'true', 'yes')
         sample_data = demo or os.environ.get('SAMPLE_DATA', '').lower() in ('1', 'true', 'yes')
+        # Stored-results mode: the demo serves analysis from a fixture with no classifiers.
+        # Not keyed on CLASSIFICATION_DISABLED alone, which can also mean ML runs elsewhere.
+        # Same condition as import_demo_photos' use_stored_outputs.
+        analysis_disabled = (os.environ.get('CLASSIFICATION_DISABLED') == '1' and
+                             demo_mode_enabled() and not is_dev_environment())
 
         if user and user.has_set_personal_info and \
             user.has_created_library and user.has_configured_importing and \
@@ -162,6 +169,7 @@ class Query(graphene.ObjectType):
             return {
                 'demo': demo,
                 'sample_data': sample_data,
+                'analysis_disabled': analysis_disabled,
                 'first_run': False,
             }
         else:
@@ -169,18 +177,21 @@ class Query(graphene.ObjectType):
                 return {
                     'demo': demo,
                     'sample_data': sample_data,
+                    'analysis_disabled': analysis_disabled,
                     'first_run': True,
                     'form': 'has_set_personal_info'}
             if not user.has_created_library:
                 return {
                     'demo': demo,
                     'sample_data': sample_data,
+                    'analysis_disabled': analysis_disabled,
                     'first_run': True,
                     'form': 'has_created_library', 'user_id': user.id}
             if not user.has_configured_importing:
                 return {
                     'demo': demo,
                     'sample_data': sample_data,
+                    'analysis_disabled': analysis_disabled,
                     'first_run': True,
                     'form': 'has_configured_importing', 'user_id': user.id,
                     'library_id': Library.objects.filter(users__user=user)[0].id,
@@ -190,6 +201,7 @@ class Query(graphene.ObjectType):
                 return {
                     'demo': demo,
                     'sample_data': sample_data,
+                    'analysis_disabled': analysis_disabled,
                     'first_run': True,
                     'form': 'has_configured_image_analysis', 'user_id': user.id,
                     'library_id': Library.objects.filter(users__user=user)[0].id,

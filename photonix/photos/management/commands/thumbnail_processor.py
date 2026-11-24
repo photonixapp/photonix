@@ -1,13 +1,12 @@
 import queue
 import threading
 import traceback
-from multiprocessing import cpu_count
 from time import sleep
 
 from django.core.management.base import BaseCommand
 
 from photonix.photos.models import Task
-from photonix.photos.utils.tasks import requeue_stuck_tasks
+from photonix.photos.utils.tasks import requeue_stuck_tasks, worker_count
 from photonix.photos.utils.thumbnails import generate_thumbnails_for_photo
 from photonix.web.utils import logger
 
@@ -41,7 +40,7 @@ class Command(BaseCommand):
     help = 'Processes full-sized photos into thumbnails of various sizes.'
 
     def run_processors(self):
-        num_workers = max(int(cpu_count() / 2), 1)
+        num_workers = worker_count('THUMBNAIL_WORKERS', 2)
         threads = []
 
         logger.info('Starting {} thumbnail processor workers'.format(num_workers))

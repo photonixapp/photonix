@@ -1,0 +1,400 @@
+[
+  {
+    "model": "accounts.user",
+    "pk": "00000000-0000-4000-8000-000000000001",
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$demofixturesalt1$hGUgosHrg0Qdl4EmgoggDkl+IMz5n9AgytBoSeWHRHw=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "demo",
+      "first_name": "",
+      "last_name": "",
+      "email": "demo@photonix.org",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-01-01T10:00:00.123Z",
+      "has_set_personal_info": true,
+      "has_created_library": true,
+      "has_configured_importing": true,
+      "has_configured_image_analysis": true,
+      "avatar_updated_at": null,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "photos.library",
+    "pk": "00000000-0000-4000-8000-000000000002",
+    "fields": {
+      "created_at": "2026-01-01T10:00:00.123Z",
+      "updated_at": "2026-01-02T10:00:00.123Z",
+      "name": "Demo Library",
+      "classification_color_enabled": true,
+      "classification_location_enabled": true,
+      "classification_style_enabled": true,
+      "classification_object_enabled": true,
+      "classification_face_enabled": true,
+      "setup_stage_completed": "Th"
+    }
+  },
+  {
+    "model": "photos.librarypath",
+    "pk": "00000000-0000-4000-8000-000000000003",
+    "fields": {
+      "created_at": "2026-01-01T10:00:00.123Z",
+      "updated_at": "2026-01-01T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "type": "St",
+      "backend_type": "Lo",
+      "path": "/data/photos/",
+      "url": "/photos/",
+      "delete_after_import": false,
+      "watch_for_changes": false,
+      "s3_access_key_id": null,
+      "s3_secret_key": null
+    }
+  },
+  {
+    "model": "photos.libraryuser",
+    "pk": "00000000-0000-4000-8000-000000000004",
+    "fields": {
+      "created_at": "2026-01-01T10:00:00.123Z",
+      "updated_at": "2026-01-01T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "user": "00000000-0000-4000-8000-000000000001",
+      "owner": false
+    }
+  },
+  {
+    "model": "photos.camera",
+    "pk": "00000000-0000-4000-8000-000000000005",
+    "fields": {
+      "created_at": "2026-01-03T10:00:00.123Z",
+      "updated_at": "2026-01-03T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "make": "Canon",
+      "model": "EOS 5D Mark III",
+      "earliest_photo": "2017-01-01T12:00:00Z",
+      "latest_photo": "2017-02-01T12:00:00Z"
+    }
+  },
+  {
+    "model": "photos.photo",
+    "pk": "00000000-0000-4000-8000-000000000011",
+    "fields": {
+      "created_at": "2026-01-03T10:00:00.123Z",
+      "updated_at": "2026-01-04T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "visible": true,
+      "taken_at": "2017-01-01T12:00:00Z",
+      "camera": "00000000-0000-4000-8000-000000000005",
+      "lens": null,
+      "latitude": "51.500000",
+      "longitude": "-0.120000",
+      "preferred_photo_file": null,
+      "thumbnailed_version": 0,
+      "deleted": false
+    }
+  },
+  {
+    "model": "photos.photofile",
+    "pk": "00000000-0000-4000-8000-000000000021",
+    "fields": {
+      "created_at": "2026-01-03T10:00:00.123Z",
+      "updated_at": "2026-01-03T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000011",
+      "path": "/data/photos/32439917684_25438930aa_o_d.jpg",
+      "width": 1024,
+      "height": 683,
+      "mimetype": "image/jpeg",
+      "file_modified_at": "2026-01-03T09:30:15.456Z",
+      "bytes": 123456,
+      "thumbnailed_version": 0,
+      "raw_processed": false,
+      "exif_rotation": 0,
+      "user_rotation": 0
+    }
+  },
+  {
+    "model": "photos.photo",
+    "pk": "00000000-0000-4000-8000-000000000012",
+    "fields": {
+      "created_at": "2026-01-04T10:00:00.123Z",
+      "updated_at": "2026-01-05T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "visible": true,
+      "taken_at": "2017-02-01T12:00:00Z",
+      "camera": null,
+      "lens": null,
+      "latitude": null,
+      "longitude": null,
+      "preferred_photo_file": null,
+      "thumbnailed_version": 0,
+      "deleted": false
+    }
+  },
+  {
+    "model": "photos.photofile",
+    "pk": "00000000-0000-4000-8000-000000000022",
+    "fields": {
+      "created_at": "2026-01-04T10:00:00.123Z",
+      "updated_at": "2026-01-04T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000012",
+      "path": "/data/photos/33154545171_ed2a4af283_o_d.jpg",
+      "width": 1024,
+      "height": 683,
+      "mimetype": "image/jpeg",
+      "file_modified_at": "2026-01-04T09:30:15.456Z",
+      "bytes": 123456,
+      "thumbnailed_version": 0,
+      "raw_processed": false,
+      "exif_rotation": 0,
+      "user_rotation": 0
+    }
+  },
+  {
+    "model": "photos.tag",
+    "pk": "00000000-0000-4000-8000-000000000031",
+    "fields": {
+      "created_at": "2026-01-05T10:00:00.123Z",
+      "updated_at": "2026-01-05T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "name": "Red",
+      "parent": null,
+      "type": "C",
+      "source": "C",
+      "ordering": null
+    }
+  },
+  {
+    "model": "photos.tag",
+    "pk": "00000000-0000-4000-8000-000000000032",
+    "fields": {
+      "created_at": "2026-01-05T10:00:00.123Z",
+      "updated_at": "2026-01-05T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "name": "Snow",
+      "parent": null,
+      "type": "S",
+      "source": "C",
+      "ordering": null
+    }
+  },
+  {
+    "model": "photos.tag",
+    "pk": "00000000-0000-4000-8000-000000000033",
+    "fields": {
+      "created_at": "2026-01-05T10:00:00.123Z",
+      "updated_at": "2026-01-05T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "name": "Person",
+      "parent": null,
+      "type": "O",
+      "source": "C",
+      "ordering": null
+    }
+  },
+  {
+    "model": "photos.tag",
+    "pk": "00000000-0000-4000-8000-000000000034",
+    "fields": {
+      "created_at": "2026-01-05T10:00:00.123Z",
+      "updated_at": "2026-01-05T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "name": "Unknown person 1",
+      "parent": null,
+      "type": "F",
+      "source": "C",
+      "ordering": null
+    }
+  },
+  {
+    "model": "photos.tag",
+    "pk": "00000000-0000-4000-8000-000000000035",
+    "fields": {
+      "created_at": "2026-01-05T10:00:00.123Z",
+      "updated_at": "2026-01-05T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "name": "Europe",
+      "parent": null,
+      "type": "L",
+      "source": "C",
+      "ordering": null
+    }
+  },
+  {
+    "model": "photos.tag",
+    "pk": "00000000-0000-4000-8000-000000000036",
+    "fields": {
+      "created_at": "2026-01-05T10:00:00.123Z",
+      "updated_at": "2026-01-05T10:00:00.123Z",
+      "library": "00000000-0000-4000-8000-000000000002",
+      "name": "United Kingdom",
+      "parent": "00000000-0000-4000-8000-000000000035",
+      "type": "L",
+      "source": "C",
+      "ordering": null
+    }
+  },
+  {
+    "model": "photos.phototag",
+    "pk": "00000000-0000-4000-8000-000000000041",
+    "fields": {
+      "created_at": "2026-01-06T10:00:00.123Z",
+      "updated_at": "2026-01-06T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000011",
+      "tag": "00000000-0000-4000-8000-000000000031",
+      "source": "C",
+      "model_version": 20260127,
+      "retrained_model_version": 0,
+      "confidence": 0.8,
+      "significance": 0.4,
+      "verified": false,
+      "hidden": false,
+      "position_x": null,
+      "position_y": null,
+      "size_x": null,
+      "size_y": null,
+      "extra_data": null,
+      "deleted": false
+    }
+  },
+  {
+    "model": "photos.phototag",
+    "pk": "00000000-0000-4000-8000-000000000042",
+    "fields": {
+      "created_at": "2026-01-06T10:00:00.123Z",
+      "updated_at": "2026-01-06T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000011",
+      "tag": "00000000-0000-4000-8000-000000000032",
+      "source": "C",
+      "model_version": 20260127,
+      "retrained_model_version": 0,
+      "confidence": 0.7,
+      "significance": null,
+      "verified": false,
+      "hidden": false,
+      "position_x": null,
+      "position_y": null,
+      "size_x": null,
+      "size_y": null,
+      "extra_data": null,
+      "deleted": false
+    }
+  },
+  {
+    "model": "photos.phototag",
+    "pk": "00000000-0000-4000-8000-000000000043",
+    "fields": {
+      "created_at": "2026-01-06T10:00:00.123Z",
+      "updated_at": "2026-01-06T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000011",
+      "tag": "00000000-0000-4000-8000-000000000036",
+      "source": "C",
+      "model_version": 20260127,
+      "retrained_model_version": 0,
+      "confidence": 1.0,
+      "significance": null,
+      "verified": false,
+      "hidden": false,
+      "position_x": null,
+      "position_y": null,
+      "size_x": null,
+      "size_y": null,
+      "extra_data": null,
+      "deleted": false
+    }
+  },
+  {
+    "model": "photos.phototag",
+    "pk": "00000000-0000-4000-8000-000000000044",
+    "fields": {
+      "created_at": "2026-01-06T10:00:00.123Z",
+      "updated_at": "2026-01-06T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000011",
+      "tag": "00000000-0000-4000-8000-000000000035",
+      "source": "C",
+      "model_version": 20260127,
+      "retrained_model_version": 0,
+      "confidence": 1.0,
+      "significance": null,
+      "verified": false,
+      "hidden": false,
+      "position_x": null,
+      "position_y": null,
+      "size_x": null,
+      "size_y": null,
+      "extra_data": null,
+      "deleted": false
+    }
+  },
+  {
+    "model": "photos.phototag",
+    "pk": "00000000-0000-4000-8000-000000000045",
+    "fields": {
+      "created_at": "2026-01-06T10:00:00.123Z",
+      "updated_at": "2026-01-06T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000012",
+      "tag": "00000000-0000-4000-8000-000000000032",
+      "source": "C",
+      "model_version": 20260127,
+      "retrained_model_version": 0,
+      "confidence": 0.9,
+      "significance": null,
+      "verified": false,
+      "hidden": false,
+      "position_x": null,
+      "position_y": null,
+      "size_x": null,
+      "size_y": null,
+      "extra_data": null,
+      "deleted": false
+    }
+  },
+  {
+    "model": "photos.phototag",
+    "pk": "00000000-0000-4000-8000-000000000046",
+    "fields": {
+      "created_at": "2026-01-06T10:00:00.123Z",
+      "updated_at": "2026-01-06T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000012",
+      "tag": "00000000-0000-4000-8000-000000000033",
+      "source": "C",
+      "model_version": 20260127,
+      "retrained_model_version": 0,
+      "confidence": 0.95,
+      "significance": null,
+      "verified": false,
+      "hidden": false,
+      "position_x": 0.5,
+      "position_y": 0.5,
+      "size_x": 0.3,
+      "size_y": 0.6,
+      "extra_data": null,
+      "deleted": false
+    }
+  },
+  {
+    "model": "photos.phototag",
+    "pk": "00000000-0000-4000-8000-000000000047",
+    "fields": {
+      "created_at": "2026-01-06T10:00:00.123Z",
+      "updated_at": "2026-01-06T10:00:00.123Z",
+      "photo": "00000000-0000-4000-8000-000000000012",
+      "tag": "00000000-0000-4000-8000-000000000034",
+      "source": "C",
+      "model_version": 20260127,
+      "retrained_model_version": 0,
+      "confidence": 0.99,
+      "significance": null,
+      "verified": false,
+      "hidden": false,
+      "position_x": 0.45,
+      "position_y": 0.3,
+      "size_x": 0.1,
+      "size_y": 0.15,
+      "extra_data": "{\"facenet_embedding\": [-0.5, -0.13, 0.24, -0.39, -0.02, 0.35, -0.28, 0.09, 0.46, -0.17, 0.2, -0.43, -0.06, 0.31, -0.32, 0.05, 0.42, -0.21, 0.16, -0.47, -0.1, 0.27, -0.36, 0.01, 0.38, -0.25, 0.12, 0.49, -0.14, 0.23, -0.4, -0.03, 0.34, -0.29, 0.08, 0.45, -0.18, 0.19, -0.44, -0.07, 0.3, -0.33, 0.04, 0.41, -0.22, 0.15, -0.48, -0.11, 0.26, -0.37, 0.0, 0.37, -0.26, 0.11, 0.48, -0.15, 0.22, -0.41, -0.04, 0.33, -0.3, 0.07, 0.44, -0.19, 0.18, -0.45, -0.08, 0.29, -0.34, 0.03, 0.4, -0.23, 0.14, -0.49, -0.12, 0.25, -0.38, -0.01, 0.36, -0.27, 0.1, 0.47, -0.16, 0.21, -0.42, -0.05, 0.32, -0.31, 0.06, 0.43, -0.2, 0.17, -0.46, -0.09, 0.28, -0.35, 0.02, 0.39, -0.24, 0.13, -0.5, -0.13, 0.24, -0.39, -0.02, 0.35, -0.28, 0.09, 0.46, -0.17, 0.2, -0.43, -0.06, 0.31, -0.32, 0.05, 0.42, -0.21, 0.16, -0.47, -0.1, 0.27, -0.36, 0.01, 0.38, -0.25, 0.12, 0.49]}",
+      "deleted": false
+    }
+  }
+]

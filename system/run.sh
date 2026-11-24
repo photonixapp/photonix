@@ -28,17 +28,34 @@ if [ "${ADMIN_PASSWORD}" != "" ]; then
   python /srv/photonix/manage.py create_admin_from_env
 fi
 
+if [ "${LOW_MEMORY}" = "1" ]; then
+  # Low-memory defaults; each can still be overridden explicitly.
+  export GUNICORN_WORKERS="${GUNICORN_WORKERS:-2}"
+  export THUMBNAIL_WORKERS="${THUMBNAIL_WORKERS:-1}"
+  export RAW_WORKERS="${RAW_WORKERS:-1}"
+fi
+
 if [ "${DEMO}" = "1" ] || [ "${SAMPLE_DATA}" = "1" ]; then
   echo "Ensuring demo user, library and photos are created as we're running with DEMO=1 or SAMPLE_DATA=1 environment variable"
   python /srv/photonix/manage.py import_demo_photos
 fi
 
->&2 echo "Resetting Redis lock"
-python /srv/photonix/manage.py reset_redis_locks
+if [ "${CLASSIFICATION_DISABLED}" != "1" ]; then
+  >&2 echo "Resetting Redis lock"
+  python /srv/photonix/manage.py reset_redis_locks
+fi
 
 >&2 echo "Rescheduling any required upgrade-related tasks"
 python /srv/photonix/manage.py housekeeping
 
 >&2 echo "Starting supervisor"
 # exec so supervisord becomes PID 1 and receives container stop signals
-exec supervisord -c /etc/supervisord.conf
+if [ "${CLASSIFICATION_DISABLED}" = "1" ]; then
+  >&2 echo "CLASSIFICATION_DISABLED=1 - starting without classification processors"
+  exec supervisord -c /srv/system/supervisord-core.conf
+elif [ "${LOW_MEMORY}" = "1" ]; then
+  >&2 echo "LOW_MEMORY=1 - starting one single-process classifier"
+  exec supervisord -c /srv/system/supervisord-lowmem.conf
+else
+  exec supervisord -c /etc/supervisord.conf
+fi

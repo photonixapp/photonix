@@ -781,6 +781,8 @@ class UpdateLibraryColorEnabled(graphene.Mutation):
         ok = False
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         if libraries and str(input.get('classification_color_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_color_enabled = input.classification_color_enabled
@@ -812,6 +814,8 @@ class UpdateLibraryLocationEnabled(graphene.Mutation):
         ok = False
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         if libraries and str(input.get('classification_location_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_location_enabled = input.classification_location_enabled
@@ -843,6 +847,8 @@ class UpdateLibraryStyleEnabled(graphene.Mutation):
         ok = False
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         if libraries and str(input.get('classification_style_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_style_enabled = input.classification_style_enabled
@@ -874,6 +880,8 @@ class UpdateLibraryObjectEnabled(graphene.Mutation):
         ok = False
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         if libraries and str(input.get('classification_object_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_object_enabled = input.classification_object_enabled
@@ -905,6 +913,8 @@ class UpdateLibraryFaceEnabled(graphene.Mutation):
         ok = False
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         if libraries and str(input.get('classification_face_enabled')) != 'None':
             library_obj = libraries[0]
             library_obj.classification_face_enabled = input.classification_face_enabled
@@ -936,6 +946,8 @@ class UpdateLibrarySourceFolder(graphene.Mutation):
         ok = False
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         if libraries and input.get('source_folder'):
             library_path = libraries[0].paths.all()[0]
             library_path.path = input.source_folder
@@ -962,6 +974,8 @@ class UpdateLibraryWatchPhotos(graphene.Mutation):
     def mutate(root, info, input=None):
         user = info.context.user
         libraries = Library.objects.filter(users__user=user, users__owner=True, id=input.library_id)
+        if libraries and demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         if not libraries:
             raise Exception('User is not the owner of library!')
         if str(input.get('watch_photos')) == 'None':
@@ -1176,6 +1190,8 @@ class RevokeLibraryInvitation(graphene.Mutation):
             invitation = None
         if not invitation:
             raise GraphQLError('User is not the owner of library!')
+        if demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         invitation.revoked = True
         invitation.save()
         return RevokeLibraryInvitation(ok=True)
@@ -1259,8 +1275,8 @@ class CreateLibrary(graphene.Mutation):
             user = info.context.user
             if not user.is_authenticated:
                 raise GraphQLError('Not logged in')
-            if demo_user_locked(user):
-                raise GraphQLError('Library cannot be created in demo mode!')
+        if demo_user_locked(user):
+            raise GraphQLError('Library cannot be created in demo mode!')
         name = input.name.strip()
         if not name:
             raise GraphQLError('Library name cannot be blank!')
@@ -1317,6 +1333,8 @@ class PhotoImporting(graphene.Mutation):
     def mutate(self, info, input=None):
         """Mutate method."""
         user = get_onboarding_user(info, input.user_id)
+        if demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         try:
             library_path_obj = LibraryPath.objects.get(
                 pk=input.library_path_id, library__users__user=user)
@@ -1356,6 +1374,8 @@ class ImageAnalysis(graphene.Mutation):
     def mutate(self, info, input=None):
         """Mutate method."""
         user = get_onboarding_user(info, input.user_id)
+        if demo_user_locked(user):
+            raise GraphQLError('Library cannot be changed in demo mode!')
         try:
             library_obj = Library.objects.get(pk=input.library_id, users__user=user)
         except Library.DoesNotExist:

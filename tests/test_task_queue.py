@@ -366,3 +366,339 @@ def test_queue_reclassification_debounces_and_requeues(db):
     Task.objects.filter(subject_id=photo.id).update(delayed_until=timezone.now() - timedelta(seconds=1))
     assert requeue_delayed_tasks() == len(ROTATION_SENSITIVE_CLASSIFIERS)
     assert Task.objects.filter(subject_id=photo.id, status='P').count() == len(ROTATION_SENSITIVE_CLASSIFIERS)
+
+
+# --- Single-process classifier (low-memory mode) ---------------------------
+
+class _FakeClassifierModel:
+    approx_ram_mb = 1
+
+
+@pytest.fixture
+def single_processor(db, monkeypatch):
+    """A SingleProcessClassifier on a fresh ModelManager with fake models and
+    runners. Each runner records which models were resident while it ran."""
+    from photonix.classifiers.model_manager import LAST_MODEL_LOAD_KEY, ModelManager
+    from photonix.photos.utils import classification
+    from photonix.photos.utils.redis import redis_connection
+
+    monkeypatch.setattr(ModelManager, '_instance', None)
+    redis_connection.delete(LAST_MODEL_LOAD_KEY)
+    calls = []
+
+    def fake_spec(name):
+        def runner(photo_id):
+            manager = ModelManager()
+            manager.get_model(name, _FakeClassifierModel)
+            calls.append((name, set(manager.get_status())))
+            return None, []
+        return _FakeClassifierModel, runner
+
+    monkeypatch.setattr(classification, 'get_classifier_spec', fake_spec)
+    processor = classification.SingleProcessClassifier()
+    # Tests that switch type in-process run with idle exit off; the exit on a
+    # type switch has its own tests below
+    processor._model_manager._exit_when_idle = False
+    processor.calls = calls
+    yield processor
+    manager = processor._model_manager
+    manager.stop_watchdog()
+    for name in list(manager.get_status()):
+        manager.unload_model(name)
+    redis_connection.delete(LAST_MODEL_LOAD_KEY)
+
+
+def test_single_processor_expands_and_completes_in_priority_order(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    from .factories import PhotoFactory
+
+    photo = PhotoFactory()
+    # Older and lower priority than every child of the expansion below, so a
+    # FIFO order would run it first
+    _make_task(type='classify.event', library=photo.library,
+               priority=CLASSIFIER_PRIORITIES['event'])
+    parent = _make_task(type='classify_images', subject_id=photo.id, library=photo.library)
+
+    for _ in range(10):
+        if not single_processor.run_once():
+            break
+
+    # Expanded by the processor itself (no separate scheduler) and run in
+    # CLASSIFIER_PRIORITIES order
+    assert [name for name, _ in single_processor.calls] == [
+        'color', 'location', 'face', 'style', 'object', 'event', 'event']
+    parent.refresh_from_db()
+    assert parent.status == 'C'
+    assert set(parent.children.values_list('status', flat=True)) == {'C'}
+
+
+def test_single_processor_stays_on_loaded_type_until_drained(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    library = LibraryFactory()
+    single_processor.batch_size = 1
+    for _ in range(3):
+        _make_task(type='classify.object', library=library,
+                   priority=CLASSIFIER_PRIORITIES['object'])
+
+    single_processor.run_once()
+    assert single_processor._model_manager.is_loaded('object')
+
+    # A higher-priority task arrives mid-import: object tasks are drained first
+    _make_task(type='classify.color', library=library,
+               priority=CLASSIFIER_PRIORITIES['color'])
+    for _ in range(5):
+        if not single_processor.run_once():
+            break
+
+    assert [name for name, _ in single_processor.calls] == [
+        'object', 'object', 'object', 'color']
+
+
+def test_single_processor_keeps_one_model_loaded(single_processor):
+    from .factories import PhotoFactory
+
+    for _ in range(2):
+        photo = PhotoFactory()
+        for name in ('color', 'style'):
+            _make_task(type=f'classify.{name}', subject_id=photo.id, library=photo.library)
+
+    for _ in range(5):
+        if not single_processor.run_once():
+            break
+
+    # Both color tasks run as one batch, then the switch to style unloads color
+    assert [name for name, _ in single_processor.calls] == ['color', 'color', 'style', 'style']
+    assert all(loaded == {name} for name, loaded in single_processor.calls)
+    assert list(single_processor._model_manager.get_status()) == ['style']
+
+
+def test_single_processor_skips_disabled_classifiers(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    library = LibraryFactory(classification_object_enabled=False)
+    task = _make_task(type='classify.object', library=library,
+                      priority=CLASSIFIER_PRIORITIES['object'])
+    # Enabled and lower priority: only reached if the disabled task is skipped
+    event = _make_task(type='classify.event', library=library,
+                       priority=CLASSIFIER_PRIORITIES['event'])
+
+    for _ in range(5):
+        if not single_processor.run_once():
+            break
+    task.refresh_from_db()
+    event.refresh_from_db()
+    assert task.status == 'P'
+    assert event.status == 'C'
+    assert [name for name, _ in single_processor.calls] == ['event']
+
+
+def test_single_processor_puts_task_into_memory_wait(single_processor, monkeypatch):
+    library = LibraryFactory()
+    task = _make_task(type='classify.color', library=library)
+    monkeypatch.setattr(single_processor._model_manager, 'check_memory_available',
+                        lambda required_mb: False)
+
+    single_processor.run_once()
+    task.refresh_from_db()
+    assert task.status == 'M'
+    assert task.memory_retry_at is not None
+    assert not single_processor._model_manager.is_loaded('color')
+
+
+def test_task_claimed_by_one_processor_is_skipped_by_another(db):
+    from photonix.photos.utils.classification import process_classification_task
+
+    library = LibraryFactory()
+    task = _make_task(type='classify.color', library=library)
+    # Both processors fetched the same Pending row; the first claims it
+    stale_copy = Task.objects.get(pk=task.pk)
+    assert task.claim()
+
+    runs = []
+    process_classification_task(stale_copy, lambda photo_id: runs.append(photo_id) or (None, []))
+    assert runs == []
+    task.refresh_from_db()
+    assert task.status == 'S'
+
+
+def test_pending_tasks_for_filters_on_library_toggle(db):
+    from photonix.photos.utils.classification import pending_tasks_for
+
+    enabled = LibraryFactory()
+    disabled = LibraryFactory(classification_face_enabled=False)
+    wanted = _make_task(type='classify.face', library=enabled)
+    _make_task(type='classify.face', library=disabled)
+    _make_task(type='classify.face', library=enabled, status='C')
+    event = _make_task(type='classify.event', library=disabled)
+
+    assert list(pending_tasks_for('classify.face')) == [wanted]
+    # No Library toggle for event: always enabled
+    assert list(pending_tasks_for('classify.event')) == [event]
+
+
+def test_get_classifier_spec_for_every_classifier():
+    from photonix.photos.utils.classification import CLASSIFIERS, get_classifier_spec
+
+    for name in CLASSIFIERS:
+        model_class, runner = get_classifier_spec(name)
+        assert model_class.__name__.lower() == f'{name}model'
+        assert runner.__module__ == f'photonix.classifiers.{name}.model'
+
+
+def test_single_processor_exits_instead_of_switching_type(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    single_processor._model_manager._exit_when_idle = True
+    library = LibraryFactory()
+    _make_task(type='classify.color', library=library, priority=CLASSIFIER_PRIORITIES['color'])
+    style = _make_task(type='classify.style', library=library,
+                       priority=CLASSIFIER_PRIORITIES['style'])
+
+    # Fresh process: the first batch loads color and does not exit
+    assert single_processor.run_once() == 1
+    assert single_processor._model_manager.is_loaded('color')
+
+    # color is drained and style is pending: unload color and exit rather
+    # than load style on top of what color left behind
+    with pytest.raises(SystemExit) as excinfo:
+        single_processor.run(loop=False)
+    assert excinfo.value.code == 0
+    assert single_processor._model_manager.get_status() == {}
+    assert [name for name, _ in single_processor.calls] == ['color']
+    style.refresh_from_db()
+    assert style.status == 'P'
+
+
+def test_single_processor_exits_after_watchdog_unload(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    manager = single_processor._model_manager
+    manager._exit_when_idle = True
+    library = LibraryFactory()
+    _make_task(type='classify.color', library=library, priority=CLASSIFIER_PRIORITIES['color'])
+    assert single_processor.run_once() == 1
+
+    # The watchdog idle-unloads color between the run loop's exit check and
+    # the next pass, then a style task arrives
+    manager.unload_model('color')
+    style = _make_task(type='classify.style', library=library,
+                       priority=CLASSIFIER_PRIORITIES['style'])
+
+    # This pass unloaded nothing itself, but the process is used: exit
+    # instead of loading style into it
+    with pytest.raises(SystemExit) as excinfo:
+        single_processor.run_once()
+    assert excinfo.value.code == 0
+    assert not manager.is_loaded('style')
+    assert [name for name, _ in single_processor.calls] == ['color']
+    style.refresh_from_db()
+    assert style.status == 'P'
+
+
+@pytest.mark.parametrize('exit_when_idle', [True, False])
+def test_single_processor_does_not_load_during_unload(single_processor, exit_when_idle):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    manager = single_processor._model_manager
+    manager._exit_when_idle = exit_when_idle
+    library = LibraryFactory()
+    _make_task(type='classify.color', library=library, priority=CLASSIFIER_PRIORITIES['color'])
+    assert single_processor.run_once() == 1
+
+    # Simulate the watchdog part-way through unloading color: the model has
+    # left _model_instances but the unload has not finished
+    with manager._state_lock:
+        manager._model_instances.pop('color')
+        manager._last_used.pop('color')
+        manager._unloads_in_progress += 1
+    style = _make_task(type='classify.style', library=library,
+                       priority=CLASSIFIER_PRIORITIES['style'])
+    try:
+        assert manager.unload_in_progress()
+        # Neither loads style nor exits while the unload runs
+        assert single_processor.run_once() == 0
+        assert manager.get_status() == {}
+        assert [name for name, _ in single_processor.calls] == ['color']
+        style.refresh_from_db()
+        assert style.status == 'P'
+    finally:
+        with manager._state_lock:
+            manager._unloads_in_progress -= 1
+
+    assert not manager.unload_in_progress()
+    # Once it finishes, the next pass decides as usual
+    if exit_when_idle:
+        with pytest.raises(SystemExit):
+            single_processor.run_once()
+    else:
+        assert single_processor.run_once() == 1
+        assert [name for name, _ in single_processor.calls] == ['color', 'style']
+
+
+def test_single_processor_fresh_process_loads_next_type(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    # The restarted process, whose first task is the type the previous one
+    # exited before loading
+    single_processor._model_manager._exit_when_idle = True
+    library = LibraryFactory()
+    style = _make_task(type='classify.style', library=library,
+                       priority=CLASSIFIER_PRIORITIES['style'])
+
+    assert single_processor.run(loop=False) is None
+    assert single_processor._model_manager.is_loaded('style')
+    assert [name for name, _ in single_processor.calls] == ['style']
+    style.refresh_from_db()
+    assert style.status == 'C'
+
+
+def test_single_processor_switches_in_process_with_idle_exit_off(single_processor):
+    from photonix.photos.utils.classification import CLASSIFIER_PRIORITIES
+
+    assert single_processor._model_manager._exit_when_idle is False
+    library = LibraryFactory()
+    _make_task(type='classify.color', library=library, priority=CLASSIFIER_PRIORITIES['color'])
+    _make_task(type='classify.style', library=library, priority=CLASSIFIER_PRIORITIES['style'])
+
+    single_processor.run(loop=False)
+    single_processor.run(loop=False)
+
+    assert [name for name, _ in single_processor.calls] == ['color', 'style']
+    assert list(single_processor._model_manager.get_status()) == ['style']
+    assert set(Task.objects.values_list('status', flat=True)) == {'C'}
+
+
+@pytest.mark.parametrize('should_exit', [True, False])
+def test_single_processor_run_exits_only_when_idle(single_processor, monkeypatch, should_exit):
+    monkeypatch.setattr(single_processor._model_manager, 'should_exit_when_idle',
+                        lambda: should_exit)
+    if should_exit:
+        with pytest.raises(SystemExit) as excinfo:
+            single_processor.run(loop=False)
+        assert excinfo.value.code == 0
+    else:
+        assert single_processor.run(loop=False) is None
+
+
+@pytest.mark.parametrize('num_workers', [1, 2])
+@pytest.mark.parametrize('should_exit', [True, False])
+def test_threaded_processor_run_exits_only_when_idle(db, monkeypatch, num_workers, should_exit):
+    from photonix.classifiers.model_manager import ModelManager
+    from photonix.photos.utils.classification import ThreadedQueueProcessor
+
+    monkeypatch.setattr(ModelManager, '_instance', None)
+    processor = ThreadedQueueProcessor(
+        model_class=_FakeClassifierModel, model_name='color', task_type='classify.color',
+        runner=lambda photo_id: (None, []), num_workers=num_workers)
+    monkeypatch.setattr(processor._model_manager, 'should_exit_when_idle', lambda: should_exit)
+
+    if should_exit:
+        with pytest.raises(SystemExit) as excinfo:
+            processor.run(loop=False)
+        assert excinfo.value.code == 0
+    else:
+        processor.run(loop=False)
+    # Worker threads are shut down either way, so the exit cannot hang
+    assert not any(t.is_alive() for t in processor.threads)

@@ -69,6 +69,7 @@ export const ENVIRONMENT: TypedDocumentNode<
     environment {
       demo
       sampleData
+      analysisDisabled
     }
   }
 `

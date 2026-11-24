@@ -85,6 +85,12 @@ def get_thumbnail(photo_file=None, photo=None, width=256, height=256, crop='cove
     ImageFile.LOAD_TRUNCATED_IMAGES = True
     im = Image.open(input_path)
 
+    # Ask the JPEG decoder for a reduced-scale decode (DCT scaling) before the pixels are loaded.
+    # It never goes below 2x the requested size (same reducing gap as Image.thumbnail), so the
+    # crop and resize below still have enough source detail, but a 20 MP photo is no longer
+    # expanded to full size in memory. No-op for non-JPEG images and for sizes near the original.
+    im.draft('RGB', (width * 2, height * 2))
+
     if im.mode != 'RGB':
         im = im.convert('RGB')
 

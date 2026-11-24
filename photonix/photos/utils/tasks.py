@@ -1,8 +1,20 @@
+import os
 from datetime import timedelta
+from multiprocessing import cpu_count
 
 from django.utils import timezone
 from django.db.models import Q
 from photonix.photos.models import Task
+
+
+def worker_count(env_name, cpu_divisor):
+    """Worker threads for a task processor: the env var when it is a positive integer,
+    otherwise cpu_count() / cpu_divisor (at least 1)."""
+    try:
+        value = int(os.environ.get(env_name, ''))
+    except ValueError:
+        value = 0
+    return value if value > 0 else max(int(cpu_count() / cpu_divisor), 1)
 
 
 def requeue_stuck_tasks(task_type, age_hours=24, max_num=8):

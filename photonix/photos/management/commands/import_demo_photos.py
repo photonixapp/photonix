@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
@@ -7,31 +6,20 @@ from django.db.utils import IntegrityError
 
 from photonix.photos.models import Library, LibraryPath, LibraryUser
 from photonix.photos.utils.db import record_photo
-from photonix.photos.utils.fs import determine_destination, download_file
+from photonix.photos.utils.demo import (
+    DEMO_LIBRARY_NAME, DEMO_PHOTO_URLS, demo_photo_path, download_demo_photos, is_dev_environment,
+    is_valid_image, reset_demo)
+from photonix.web import utils as web_utils
 from photonix.web.utils import logger
 
 
 User = get_user_model()
 
 
-URLS = [
-    'https://live.staticflickr.com/767/32439917684_25438930aa_o_d.jpg',
-    'https://live.staticflickr.com/3706/33154545171_ed2a4af283_o_d.jpg',
-    'https://live.staticflickr.com/3849/32440369924_b9e670290a_o_d.jpg',
-    'https://live.staticflickr.com/2892/33127783192_0f73b4aa12_o_d.jpg',
-    'https://live.staticflickr.com/657/32440441724_338aa20dae_o_d.jpg',
-    'https://live.staticflickr.com/744/33155094101_766415ab15_o_d.jpg',
-    'https://live.staticflickr.com/3750/33242383206_7bf8ba68f2_o_d.jpg',
-    'https://live.staticflickr.com/572/32440255904_7ea0605d9e_o_d.jpg',
-    'https://live.staticflickr.com/3771/32468418193_f8ea8caa32_o_d.jpg',
-    'https://live.staticflickr.com/736/33127591042_2b31fe5d58_o_d.jpg',
-]
-
-
 class Command(BaseCommand):
     help = 'Downloads sample photos for displaying on the demo site'
 
-    def import_photos(self):
+    def import_photos(self, new_paths):
         # Create demo User account
         try:
             user = User.objects.create_user(
@@ -47,11 +35,11 @@ class Command(BaseCommand):
         # Create Library
         try:
             library = Library.objects.get(
-                name='Demo Library',
+                name=DEMO_LIBRARY_NAME,
             )
         except Library.DoesNotExist:
             library = Library(
-                name='Demo Library',
+                name=DEMO_LIBRARY_NAME,
                 classification_color_enabled=True,
                 classification_location_enabled=True,
                 classification_style_enabled=True,
@@ -71,8 +59,10 @@ class Command(BaseCommand):
         )
 
         # Link User to Library
-        # In dev environment user needs to be owner to access all functionality
-        # but demo.photonix.org this could lead to the system being messed up
+        # In dev environment user needs to be owner to access all functionality.
+        # On the public demo, reset_demo makes the demo user an owner anyway
+        # (every owner mutation is demo-locked), so this only affects the
+        # record path before a reset.
         owner = os.environ.get('ENV') == 'dev'
         LibraryUser.objects.get_or_create(
             library=library,
@@ -80,16 +70,38 @@ class Command(BaseCommand):
             owner=owner
         )
 
-        # Add photos
-        for url in URLS:
-            dest_dir = determine_destination(url)
-            fn = url.split('/')[-1]
-            dest_path = str(Path(dest_dir) / fn)
-
-            if not os.path.exists(dest_path):
-                logger.info('Fetching {} -> {}'.format(url, dest_path))
-                download_file(url, dest_path)
-                record_photo(dest_path, library)
+        # Record only newly downloaded photos, as before; files already on
+        # disk were recorded when they were first fetched
+        for path in new_paths:
+            record_photo(path, library)
 
     def handle(self, *args, **options):
-        self.import_photos()
+        classification_disabled = os.environ.get('CLASSIFICATION_DISABLED') == '1'
+        dev = is_dev_environment()
+        use_stored_outputs = classification_disabled and web_utils.demo_mode_enabled() and not dev
+
+        if use_stored_outputs:
+            # No classifier processes run: serve stored analysis results.
+            # Pin mtimes to the fixture so the hourly rescan is a no-op.
+            logger.info('CLASSIFICATION_DISABLED=1 - loading stored demo analysis results')
+            try:
+                download_demo_photos(pin_mtimes=True)
+                counts = reset_demo()
+            except Exception:
+                # Do not crash-loop the container (set -e in system/run.sh);
+                # the scheduled reset_demo job retries and fails visibly
+                logger.exception('Loading stored demo analysis results failed')
+                return
+            logger.info(f'Demo data loaded: {counts}')
+            return
+
+        if classification_disabled:
+            reason = 'ENV=dev' if dev else 'DEMO is not enabled'
+            logger.warning(f'CLASSIFICATION_DISABLED=1 but {reason} - '
+                           'recording sample photos instead of loading stored demo results')
+        already_present = {
+            demo_photo_path(url) for url in DEMO_PHOTO_URLS
+            if is_valid_image(demo_photo_path(url))}
+        present = download_demo_photos()
+        new_paths = [path for path in present if path not in already_present]
+        self.import_photos(new_paths)
