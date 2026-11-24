@@ -46,10 +46,10 @@ DEMO_PHOTO_URLS = [
     'https://live.staticflickr.com/3771/32468418193_f8ea8caa32_o_d.jpg',
     'https://live.staticflickr.com/736/33127591042_2b31fe5d58_o_d.jpg',
     # Four face photos, see photonix/photos/demo/README.md for sources and licences
-    'https://live.staticflickr.com/67/171086203_386e77b8b7_k.jpg',
-    'https://live.staticflickr.com/4823/45907472935_1a631bc909_o_d.jpg',
-    'https://live.staticflickr.com/4839/40008583563_0844026bc8_o_d.jpg',
-    'https://live.staticflickr.com/900/41308431822_a4e12585cf_o_d.jpg',
+    'https://live.staticflickr.com/589/22517894562_2f99a80937_k.jpg',
+    'https://live.staticflickr.com/735/22505425226_32c0ca026b_k.jpg',
+    'https://live.staticflickr.com/5734/22518600052_95470dcda4_o_d.jpg',
+    'https://live.staticflickr.com/1708/25900819672_75331e5bd7_k.jpg',
 ]
 RESET_ADVISORY_LOCK_ID = 515515
 DOWNLOAD_TIMEOUT = (10, 60)  # (connect, read) seconds

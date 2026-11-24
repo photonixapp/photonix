@@ -573,8 +573,10 @@ EXPORTED_MODELS = {
     'accounts.user', 'photos.library', 'photos.librarypath', 'photos.libraryuser', 'photos.camera',
     'photos.lens', 'photos.photo', 'photos.photofile', 'photos.tag', 'photos.phototag'}
 FACE_PHOTO_BASENAMES = [
-    '171086203_386e77b8b7_k.jpg', '45907472935_1a631bc909_o_d.jpg',
-    '40008583563_0844026bc8_o_d.jpg', '41308431822_a4e12585cf_o_d.jpg']
+    '22517894562_2f99a80937_k.jpg', '22505425226_32c0ca026b_k.jpg',
+    '22518600052_95470dcda4_o_d.jpg', '25900819672_75331e5bd7_k.jpg']
+# Photos 1 and 2 show the same person
+REPEATED_PERSON_BASENAMES = FACE_PHOTO_BASENAMES[:2]
 
 
 @pytest.fixture
@@ -626,14 +628,31 @@ def test_real_fixture_face_photos_carry_face_embeddings():
     faces = [r for r in rows
              if r['model'] == 'photos.phototag' and tags[r['fields']['tag']]['fields']['type'] == 'F']
 
-    assert len(faces) >= 6
-    # The classifier stores no embedding for a face it could not embed (one of the 7 here)
+    assert len(faces) == 4
+    # The classifier stores no embedding for a face it could not embed; all four have one here
     embeddings = [json.loads(f['fields']['extra_data'])['facenet_embedding']
                   for f in faces if f['fields']['extra_data']]
-    assert len(embeddings) >= 6
+    assert len(embeddings) == 4
     assert all(len(e) == 128 for e in embeddings)
     # The faces are on the four face photos, none on the other ten
     assert {files[f['fields']['photo']] for f in faces} == set(FACE_PHOTO_BASENAMES)
+
+
+def test_real_fixture_groups_repeated_person_under_one_face_tag():
+    rows = _fixture_rows(REAL_FIXTURE)
+    tags = {r['pk']: r for r in rows if r['model'] == 'photos.tag'}
+    files = {r['fields']['photo']: os.path.basename(r['fields']['path'])
+             for r in rows if r['model'] == 'photos.photofile'}
+    face_tags = {}
+    for r in rows:
+        if r['model'] == 'photos.phototag' and tags[r['fields']['tag']]['fields']['type'] == 'F':
+            face_tags.setdefault(files[r['fields']['photo']], set()).add(r['fields']['tag'])
+
+    assert set(face_tags) == set(FACE_PHOTO_BASENAMES)
+    repeated = [face_tags[name] for name in REPEATED_PERSON_BASENAMES]
+    assert repeated[0] == repeated[1]
+    assert len(repeated[0]) == 1
+    assert len(set().union(*face_tags.values())) == 3
 
 
 def test_real_fixture_contains_only_exported_models():

@@ -25,6 +25,12 @@ branch (own PostgreSQL 16 and Redis containers, own data directory, the
 3. `manage.py export_demo_fixture`, which refuses while any demo photo has an
    unfinished task, and copying its output here.
 
+The fixture was later updated incrementally when the four face photos were
+replaced: the old four photos and everything only they used were deleted from
+a database loaded with the previous fixture, the four new photos were
+analysed serially the same way, and the result re-exported. The ten Iceland
+photos' analysis is unchanged from the first generation.
+
 To regenerate it (for example after a classifier model changes), repeat the
 steps on a throwaway database, never the shared dev database.
 
@@ -45,22 +51,16 @@ From each classifier's `version` attribute at the time of generation:
 
 ### Four face photos
 
-These replaced the four face photos of the previous demo. Each is shown with
-its Flickr page, the URL the demo downloads, owner and licence. Photos under
-CC BY 2.0 are used with attribution as required by the licence; the photos are
-shown unmodified (the demo only resizes them into thumbnails).
+These replaced the four face photos of the previous demo. Each has one face. All four are by WOCinTech Chat (WOCinTechChat.com) and licensed [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/), which requires the attribution below; the photos are shown unmodified (the demo only resizes them into thumbnails).
 
-| Title | Author | Licence | Source page | Download URL | Faces |
+Photos 1 and 2 show the same person, so the demo groups them under one face tag. Photos 3 and 4 each have their own.
+
+| # | Title | Author | Licence | Source page | Download URL |
 |---|---|---|---|---|---|
-| "Couple of Grins" | makelessnoise | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | https://www.flickr.com/photos/makelessnoise/171086203/ | https://live.staticflickr.com/67/171086203_386e77b8b7_k.jpg | 2 |
-| "We Are Not Cold!" | Alan Levine | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | https://www.flickr.com/photos/cogdog/45907472935/ | https://live.staticflickr.com/4823/45907472935_1a631bc909_o_d.jpg | 2 |
-| "Couple Selfie" | Charles Hutchins | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | https://www.flickr.com/photos/celesteh/40008583563/ | https://live.staticflickr.com/4839/40008583563_0844026bc8_o_d.jpg | 2 |
-| "Selfie - I Kid You Not" | kateyhoumiel | [Public Domain Mark 1.0](https://creativecommons.org/publicdomain/mark/1.0/) | https://www.flickr.com/photos/128404692@N06/41308431822/ | https://live.staticflickr.com/900/41308431822_a4e12585cf_o_d.jpg | 1 (plus a husky) |
-
-"Couple of Grins" uses the `_k` (2048 px) rendition rather than the `_o`
-original, because the original carries a wrong EXIF orientation tag. The `_k`
-rendition has no EXIF, so this photo's `taken_at` in the fixture (2006-06-14,
-the Flickr "Taken on" date) was set from the original's EXIF `DateTimeOriginal`.
+| 1 | "Women of Color In Technology" | WOCinTech Chat (WOCinTechChat.com) | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | https://www.flickr.com/photos/wocintechchat/22517894562/ | https://live.staticflickr.com/589/22517894562_2f99a80937_k.jpg |
+| 2 | "Women of Color In Tech" | WOCinTech Chat (WOCinTechChat.com) | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | https://www.flickr.com/photos/wocintechchat/22505425226/ | https://live.staticflickr.com/735/22505425226_32c0ca026b_k.jpg |
+| 3 | "Women In Tech - 62" | WOCinTech Chat (WOCinTechChat.com) | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | https://www.flickr.com/photos/wocintechchat/22518600052/ | https://live.staticflickr.com/5734/22518600052_95470dcda4_o_d.jpg |
+| 4 | "wocintech (microsoft) - 133" | WOCinTech Chat (WOCinTechChat.com) | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | https://www.flickr.com/photos/wocintechchat/25900819672/ | https://live.staticflickr.com/1708/25900819672_75331e5bd7_k.jpg |
 
 ### The other ten photos
 
