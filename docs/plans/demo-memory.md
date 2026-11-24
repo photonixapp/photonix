@@ -1,6 +1,6 @@
 # Demo instance is OOM-killed at 6 GiB; run it on stored analysis results and add a low-memory mode
 
-**Status:** Ready to implement · **Ticket:** [#515](https://github.com/photonixapp/photonix/issues/515) · **Date:** 2026-11-24
+**Status:** In progress · **Ticket:** [#515](https://github.com/photonixapp/photonix/issues/515) · **Date:** 2026-11-24
 
 The public demo at demo.photonix.org holds 14 photos, yet on 2026-11-24 its pod sat at about
 3.5 GB working set while idle, jumped to 5.2–5.4 GB inside one minute at 10:26 UTC, and was
@@ -42,7 +42,7 @@ silently implement something else.
 
 ## 0. Open questions (ask before implementing)
 
-- [ ] **Decision needed:** Which four Flickr photos replace `face1.jpg`–`face4.jpg`? M3 proposes
+- [x] **Decision needed:** Which four Flickr photos replace `face1.jpg`–`face4.jpg`? M3 proposes
       four candidates with their licences and detected-face counts and the founder approves
       them before the fixture is committed — **Default:** none; M3 stops at its approval box
       until the founder answers (M1 and M2 do not depend on it).
@@ -86,6 +86,8 @@ set `LOW_MEMORY=1` to run classification in a single process that returns its me
 | **Rotation in the demo** | Rotating a photo still queues delayed face/object/style tasks (`photos/utils/tasks.py:72`). With no classifier process they stay unprocessed until the next reset deletes them. Accepted: tags from the fixture remain, and `CLASSIFICATION_DISABLED` must not suppress task creation because on `ml-improvement` it means "classifiers run in another container". |
 | **`reset_demo` safety** | The command deletes every user, library and photo row. It refuses to run unless `demo_mode_enabled()` is true. It is never run against the shared dev database `photonix`. |
 | **Memory limit** | 2Gi request = limit at rollout, as the ticket states. Lowered after the 24-hour check to about 1.5× the observed peak. |
+| **Four face photos** | The implementer picks them; no separate approval round. Any Creative Commons licence that permits redistribution (CC0, PDM, CC BY, CC BY-SA), with attribution recorded in `photonix/photos/demo/README.md`. At least one of the four also shows a dog or cat. (Founder, 2026-11-24; answers §0, supersedes the approval box in M3 and the CC0-only rule in §4.3.) |
+| **Verification** | Each milestone is checked in Docker; user-visible behaviour gets a Playwright walkthrough. The founder checks the demo visually in Playwright before the M7 deploy. (Founder, 2026-11-24.) |
 | **Process tooling** | The repo has no `.agent/project.yml`, so no test, lint or deploy command is configured. Commands in this plan come from `CLAUDE.md` and the `Makefile`. |
 
 ---
