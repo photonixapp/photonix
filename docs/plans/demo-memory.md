@@ -1,6 +1,6 @@
 # Demo instance is OOM-killed at 6 GiB; run it on stored analysis results and add a low-memory mode
 
-**Status:** In progress · **Ticket:** [#515](https://github.com/photonixapp/photonix/issues/515) · **Date:** 2026-11-24
+**Status:** In review (#516) · **Ticket:** [#515](https://github.com/photonixapp/photonix/issues/515) · **Date:** 2026-11-24
 
 The public demo at demo.photonix.org holds 14 photos, yet on 2026-11-24 its pod sat at about
 3.5 GB working set while idle, jumped to 5.2–5.4 GB inside one minute at 10:26 UTC, and was
