@@ -76,6 +76,7 @@ silently implement something else.
   The fix works as designed (one model per process, one restart per type switch), but it does not bring the everything-on need below 5g: a fresh object process grows across the batch, from ~2.7 GB after one 20 MP photo to 3.69 GB anon when killed at 4g, and its anon reached ~4.3 GB above the 0.56 GB base at 5g while it processed all 14 photos without exiting. 5g completed with no kills but sat at the limit, so it has no headroom. README now says 5 GB for everything on instead of "more than 5 GB".
   Review round: the exit-on-switch also fires when the watchdog did the unload, and nothing loads while an unload is in progress (`ModelManager.unload_in_progress()`); README figures now name their measurement round; the duplicate `reset_redis_locks` under `LOW_MEMORY` is gone. Gate: 248 passed; the 1 failure is `test_annoy_index` in the untracked `tests/test_classifier_faces.py`, outside this branch. Open follow-up: everything-on low-memory still needs 5 GB because the object classifier grows within its own batch on 20 MP photos (batch size 1 + an RSS-threshold restart could bring it to ~4 GB; not built).
 - 2026-11-24 — M5b: `environment.analysisDisabled` (DEMO + `CLASSIFICATION_DISABLED=1`, not `ENV=dev`), `AnalysisDisabledNotice` in library settings and onboarding step 5, "on" clicks refused with a toast and no mutation — commit f30f6655. Deviations: `reset_demo` now always makes the demo user the library owner (otherwise visitors never reach the settings page); the owner-mutation audit found 11 mutations not demo-locked (the five legacy `update*Enabled`, `updateSourceFolder`, `updateWatchPhotos`, `revokeLibraryInvitation`, `createLibrary` with userId, `PhotoImporting`, `imageAnalysis`) — all now refuse the demo user, with a parametrised test. The new e2e test has not run as written (its helpers need the shared dev stack); a trimmed copy passed against the demo stack. Walkthrough screenshots `.playwright-mcp/demo515-analysis-notice.png`, `-toast.png`, `-owner-settings.png`.
+- 2026-11-24 — M6: epix-infra PR damianmoore/epix-infra#82 (branch `fix/photonix-demo-memory`, not applied): stored-results env (`CLASSIFICATION_DISABLED=1`, `GUNICORN_WORKERS=2`, `THUMBNAIL_WORKERS=1`), 2Gi request = limit, `emptyDir` instead of the PVC (PVC resource kept for M7), idle-dev-servers ConfigMap and DB snapshot Secret removed, CronJob runs `manage.py reset_demo` from `local.image`; `replicas = 0`, `suspend = true`. fmt and validate clean. Deviation: a plan targeted at the module address also pulls in 25 unrelated `postgres` Secret data diffs and a `local_file.kustomization_backup` add (the same happens from unchanged main), so M7 applies with `-target` on the module's own resources instead.
 
 ---
 
@@ -712,12 +713,12 @@ shows no notice and the switches behave as before.
 
 ### M6 — `epix-infra` module changes (PR only, not applied)
 
-- [ ] A branch and PR in `~/projects/epix-infra` making the changes in §4.6 except the PVC
+- [x] A branch and PR in `~/projects/epix-infra` making the changes in §4.6 except the PVC
       removal and the digest bump, which belong to M7. Keep `replicas = 0` and
       `suspend = true` from M0 in this PR; M7 flips them.
-- [ ] The reset CronJob fails when the command fails: no shell wrapper that can swallow the
+- [x] The reset CronJob fails when the command fails: no shell wrapper that can swallow the
       exit code, `backoff_limit = 1` kept.
-- [ ] `terraform fmt -check -recursive && terraform validate` pass, and a plan targeted at
+- [x] `terraform fmt -check -recursive && terraform validate` pass, and a plan targeted at
       `module.apps.module.photonix_demo[0]` is attached to the PR showing only the intended
       resources.
 
@@ -738,8 +739,10 @@ The Photonix side releases itself: merging `fix/demo-memory` to master builds an
       `epix-infra` is clean of other sessions' changes to the module.
 - [ ] Pre-flight, optional: copy `face1.jpg`–`face4.jpg` off PVC `photonix-demo-data` with a
       one-off pod if the founder wants to keep them; they are destroyed with the volume.
-- [ ] `local.image` set to the new digest, `replicas = 1`, CronJob `suspend = false`; targeted
-      plan reviewed; the founder applies it.
+- [ ] `local.image` set to the new digest, `replicas = 1`, CronJob `suspend = false` (as commits on
+      epix-infra#82); targeted plan reviewed; the founder applies it with `-target` on the module's own
+      resources (Deployment, CronJob, idle-dev-servers ConfigMap, snapshot Secret), not the module
+      address, which drags in unrelated `postgres` Secret diffs (M6 log).
 - [ ] First hour: pod Ready with 0 restarts; `kubectl -n photonix exec deploy/photonix-demo -- /srv/system/memory_report.sh`
       shows no classifier process and a total under 1.5 GiB; the first reset Job completes and
       its log shows `reset_demo` row counts and no error; working set does not step up at the
