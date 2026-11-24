@@ -1,7 +1,9 @@
 
 import datetime
+import os
 from pathlib import Path
 import unittest
+from unittest import mock
 
 import pytest
 
@@ -78,6 +80,31 @@ class TestGraphQL(unittest.TestCase):
         assert response.status_code == 200
         data = get_graphql_content(response)
         self.assertFalse(data['data']['environment']['firstRun'])
+
+    def test_environment_analysis_disabled_only_in_demo_with_classification_disabled(self):
+        """analysisDisabled means stored-results mode: DEMO on and CLASSIFICATION_DISABLED=1."""
+        query = 'query { environment { analysisDisabled } }'
+        cases = [
+            (True, '1', None, True),
+            (True, '0', None, False),
+            (True, None, None, False),
+            (False, '1', None, False),  # ML in another container, toggles still work
+            (False, None, None, False),
+            (True, '1', 'dev', False),  # dev runs real classifiers
+        ]
+        for demo, disabled, env, expected in cases:
+            with self.subTest(demo=demo, classification_disabled=disabled, env=env):
+                with mock.patch('photonix.accounts.schema.demo_mode_enabled', return_value=demo), \
+                        mock.patch.dict(os.environ):
+                    os.environ.pop('CLASSIFICATION_DISABLED', None)
+                    os.environ.pop('ENV', None)
+                    if env is not None:
+                        os.environ['ENV'] = env
+                    if disabled is not None:
+                        os.environ['CLASSIFICATION_DISABLED'] = disabled
+                    response = self.api_client.post_graphql(query)
+                data = get_graphql_content(response)
+                assert data['data']['environment']['analysisDisabled'] is expected
         # TODO: Test to make sure the user is actually logged in here - userId etc. should be set
 
     def test_get_photo(self):

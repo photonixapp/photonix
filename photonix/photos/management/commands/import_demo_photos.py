@@ -59,8 +59,10 @@ class Command(BaseCommand):
         )
 
         # Link User to Library
-        # In dev environment user needs to be owner to access all functionality
-        # but demo.photonix.org this could lead to the system being messed up
+        # In dev environment user needs to be owner to access all functionality.
+        # On the public demo, reset_demo makes the demo user an owner anyway
+        # (every owner mutation is demo-locked), so this only affects the
+        # record path before a reset.
         owner = os.environ.get('ENV') == 'dev'
         LibraryUser.objects.get_or_create(
             library=library,

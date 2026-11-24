@@ -220,9 +220,19 @@ def test_reset_sets_thumbnailed_version(db, demo_on, test_fixture):
     assert set(PhotoFile.objects.values_list('thumbnailed_version', flat=True)) == {THUMBNAILER_VERSION}
 
 
-def test_reset_makes_dev_user_owner(db, demo_on, test_fixture, monkeypatch):
+def test_reset_makes_demo_user_owner_outside_dev(db, demo_on, test_fixture, monkeypatch):
+    # The fixture stores owner=false; the public demo still needs an owner so
+    # visitors see the owner-only settings (demo_user_locked refuses changes)
+    monkeypatch.setenv('ENV', 'prd')
+    assert not demo.is_dev_environment()
     demo.reset_demo()
-    assert not LibraryUser.objects.get().owner
+    membership = LibraryUser.objects.get()
+    assert membership.user.username == 'demo'
+    assert membership.library.name == 'Demo Library'
+    assert membership.owner
+
+
+def test_reset_makes_demo_user_owner_under_dev(db, demo_on, test_fixture, monkeypatch):
     monkeypatch.setenv('ENV', 'dev')
     demo.reset_demo(allow_dev=True)
     assert LibraryUser.objects.get().owner
@@ -420,7 +430,7 @@ def test_reset_allow_dev_under_env_dev(db, demo_on, test_fixture, monkeypatch, c
 
     assert 'Demo reset complete' in capsys.readouterr().out
     assert not User.objects.filter(pk=keep.pk).exists()
-    assert LibraryUser.objects.get().owner  # Dev owner fixup applies
+    assert LibraryUser.objects.get().owner
 
 
 def test_reset_demo_off_refusal_wins_over_dev(db, demo_off, test_fixture, monkeypatch):
@@ -482,6 +492,7 @@ def test_export_then_reset_round_trips(db, demo_on, tmp_path, monkeypatch, no_ne
 
     assert set(Photo.objects.values_list('id', flat=True)) == photo_ids
     assert User.objects.get().username == 'demo'
+    assert LibraryUser.objects.get().owner  # Exported as owner=False, reset makes it owner
     assert PhotoTag.objects.get().tag.name == 'Snow'
     assert _db_keys(exported_models) == _fixture_keys(fixture)
 

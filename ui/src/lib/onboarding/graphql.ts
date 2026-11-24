@@ -4,6 +4,7 @@ export const ENVIRONMENT = gql`
   query Environment {
     environment {
       demo
+      analysisDisabled
       firstRun
       form
       userId
@@ -161,6 +162,7 @@ export const AFTER_SIGNUP = gql`
 export interface EnvironmentResponse {
   environment: {
     demo: boolean
+    analysisDisabled: boolean
     firstRun: boolean
     form: string | null
     userId: string | null

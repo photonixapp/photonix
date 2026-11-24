@@ -260,8 +260,8 @@ def reset_demo(allow_dev=False):
     In one transaction: take pg_advisory_xact_lock(RESET_ADVISORY_LOCK_ID) on PostgreSQL,
     delete every row of every model in the `photos` app, every RefreshToken, admin LogEntry
     and User, load FIXTURE_PATH, set Photo.thumbnailed_version and PhotoFile.thumbnailed_version
-    to THUMBNAILER_VERSION, and create one Completed `classify_images` Task per photo.
-    Returns row counts."""
+    to THUMBNAILER_VERSION, create one Completed `classify_images` Task per photo, and make
+    the demo user an owner of the Demo Library. Returns row counts."""
     # Checked here as well as in the command so no caller can wipe a real install
     if not web_utils.demo_mode_enabled():
         raise CommandError(RESET_REFUSAL)
@@ -298,11 +298,11 @@ def reset_demo(allow_dev=False):
             for photo_id, library_id in Photo.objects.values_list('id', 'library_id')
         ])
 
-        # In the dev environment the demo user needs to own the library to
-        # reach all functionality (as import_demo_photos has always done)
-        if is_dev_environment():
-            LibraryUser.objects.filter(
-                library__name=DEMO_LIBRARY_NAME, user__username=DEMO_USERNAME).update(owner=True)
+        # The demo user owns the library so visitors see the owner-only
+        # settings (Analysis card and its notices). demo_user_locked refuses
+        # every owner mutation for this user, so ownership cannot deface it.
+        LibraryUser.objects.filter(
+            library__name=DEMO_LIBRARY_NAME, user__username=DEMO_USERNAME).update(owner=True)
 
     counts = {'deleted': deleted}
     for label, model in [

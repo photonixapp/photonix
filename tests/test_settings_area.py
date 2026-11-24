@@ -627,3 +627,148 @@ class TestAdminUserManagement:
             }
         """, {'userId': str(staff.id), 'isActive': False}))
         assert 'own account' in errors['errors'][0]['message']
+
+
+@pytest.fixture
+def demo_owner(db, monkeypatch):
+    """The public demo account as reset_demo leaves it: an owner of its library,
+    with demo mode on so demo_user_locked applies."""
+    monkeypatch.setattr('photonix.web.utils.demo_mode_enabled', lambda: True)
+    user = UserFactory(username='demo')
+    membership = LibraryUserFactory(user=user, owner=True)
+    path = LibraryPath.objects.create(
+        library=membership.library, type='St', backend_type='Lo', path='/data/photos/')
+    other = LibraryUser.objects.create(library=membership.library, user=UserFactory(), owner=False)
+    invitation = LibraryInvitation.objects.create(
+        library=membership.library, created_by=user,
+        expires_at=timezone.now() + timedelta(days=1))
+    return {'membership': membership, 'library': membership.library, 'path': path,
+            'other': other, 'invitation': invitation}
+
+
+def _demo_state():
+    return (
+        sorted(Library.objects.values_list(
+            'id', 'name', 'classification_color_enabled', 'classification_location_enabled',
+            'classification_style_enabled', 'classification_object_enabled',
+            'classification_face_enabled')),
+        sorted(LibraryPath.objects.values_list(
+            'id', 'type', 'path', 'watch_for_changes', 'delete_after_import')),
+        sorted(LibraryUser.objects.values_list('id', 'user_id', 'owner')),
+        sorted(LibraryInvitation.objects.values_list('id', 'revoked')),
+        sorted(User.objects.values_list(
+            'id', 'username', 'password', 'email', 'first_name', 'is_active', 'avatar_updated_at')),
+    )
+
+
+def _legacy_toggle(field, name):
+    return (f"""
+        mutation Toggle($libraryId: ID) {{
+            {name}(input: {{{field}: false, libraryId: $libraryId}}) {{ ok }}
+        }}
+    """, lambda d: {'libraryId': str(d['library'].id)})
+
+
+# Every library/account mutation an owner can reach, with the variables to
+# call it as the demo user. Each must be refused with "... in demo mode!".
+DEMO_LOCKED_MUTATIONS = {
+    'updateLibrary': (UPDATE_LIBRARY, lambda d: {'input': {
+        'libraryId': str(d['library'].id), 'name': 'Defaced', 'sourceFolder': '/',
+        'classificationColorEnabled': False}}),
+    'updateColorEnabled': _legacy_toggle('classificationColorEnabled', 'updateColorEnabled'),
+    'updateLocationEnabled': _legacy_toggle('classificationLocationEnabled', 'updateLocationEnabled'),
+    'updateStyleEnabled': _legacy_toggle('classificationStyleEnabled', 'updateStyleEnabled'),
+    'updateObjectEnabled': _legacy_toggle('classificationObjectEnabled', 'updateObjectEnabled'),
+    'updateFaceEnabled': _legacy_toggle('classificationFaceEnabled', 'updateFaceEnabled'),
+    'updateSourceFolder': ("""
+        mutation Source($libraryId: ID) {
+            updateSourceFolder(input: {sourceFolder: "/", libraryId: $libraryId}) { ok }
+        }
+    """, lambda d: {'libraryId': str(d['library'].id)}),
+    'updateWatchPhotos': ("""
+        mutation Watch($libraryId: ID) {
+            updateWatchPhotos(input: {watchPhotos: true, libraryId: $libraryId}) { ok }
+        }
+    """, lambda d: {'libraryId': str(d['library'].id)}),
+    'addLibraryUser': ("""
+        mutation Add($libraryId: ID!, $username: String!) {
+            addLibraryUser(libraryId: $libraryId, username: $username) { ok }
+        }
+    """, lambda d: {'libraryId': str(d['library'].id), 'username': UserFactory().username}),
+    'removeLibraryUser': ("""
+        mutation Remove($libraryId: ID!, $userId: ID!) {
+            removeLibraryUser(libraryId: $libraryId, userId: $userId) { ok }
+        }
+    """, lambda d: {'libraryId': str(d['library'].id), 'userId': str(d['other'].user_id)}),
+    'setLibraryUserOwner': ("""
+        mutation SetOwner($libraryId: ID!, $userId: ID!, $owner: Boolean!) {
+            setLibraryUserOwner(libraryId: $libraryId, userId: $userId, owner: $owner) { ok }
+        }
+    """, lambda d: {'libraryId': str(d['library'].id), 'userId': str(d['other'].user_id), 'owner': True}),
+    'createLibraryInvitation': (
+        CREATE_INVITATION, lambda d: {'libraryId': str(d['library'].id)}),
+    'revokeLibraryInvitation': ("""
+        mutation Revoke($invitationId: ID!) {
+            revokeLibraryInvitation(invitationId: $invitationId) { ok }
+        }
+    """, lambda d: {'invitationId': str(d['invitation'].id)}),
+    'createLibrary': (CREATE_LIBRARY, lambda d: {'input': {
+        'name': 'Defaced', 'backendType': 'Lo', 'path': '/'}}),
+    'createLibraryOnboarding': (CREATE_LIBRARY, lambda d: {'input': {
+        'name': 'Defaced', 'backendType': 'Lo', 'path': '/',
+        'userId': str(d['membership'].user_id)}}),
+    'PhotoImporting': ("""
+        mutation Importing($userId: ID!, $libraryId: ID!, $libraryPathId: ID!) {
+            PhotoImporting(input: {watchForChanges: true, addAnotherPath: true,
+                                   importPath: "/", deleteAfterImport: true,
+                                   userId: $userId, libraryId: $libraryId,
+                                   libraryPathId: $libraryPathId}) { ok }
+        }
+    """, lambda d: {'userId': str(d['membership'].user_id), 'libraryId': str(d['library'].id),
+                    'libraryPathId': str(d['path'].id)}),
+    'imageAnalysis': ("""
+        mutation Analysis($userId: ID!, $libraryId: ID!) {
+            imageAnalysis(input: {classificationColorEnabled: false,
+                                  classificationStyleEnabled: false,
+                                  classificationObjectEnabled: false,
+                                  classificationLocationEnabled: false,
+                                  classificationFaceEnabled: false,
+                                  userId: $userId, libraryId: $libraryId}) { ok }
+        }
+    """, lambda d: {'userId': str(d['membership'].user_id), 'libraryId': str(d['library'].id)}),
+    'updateProfile': ("""
+        mutation Profile { updateProfile(email: "x@example.com", firstName: "X") { ok } }
+    """, lambda d: {}),
+    'changePassword': ("""
+        mutation Password { changePassword(oldPassword: "demo", newPassword: "defaced123") { ok } }
+    """, lambda d: {}),
+    'setAvatar': ("""
+        mutation Avatar($image: String!) { setAvatar(imageBase64: $image) { ok } }
+    """, lambda d: {'image': png_base64()}),
+    'clearAvatar': ("""
+        mutation Clear { clearAvatar { ok } }
+    """, lambda d: {}),
+}
+
+
+class TestDemoUserLock:
+    @pytest.mark.parametrize('name', list(DEMO_LOCKED_MUTATIONS))
+    def test_demo_owner_is_refused(self, demo_owner, name):
+        query, variables = DEMO_LOCKED_MUTATIONS[name]
+        variables = variables(demo_owner)
+        before = _demo_state()
+        client = ApiClient(user=demo_owner['membership'].user)
+        errors = get_graphql_errors(client.post_graphql(query, variables))
+        assert 'in demo mode' in errors['errors'][0]['message']
+        assert _demo_state() == before
+
+    def test_other_owner_on_demo_instance_is_not_locked(self, demo_owner):
+        # Only the shared demo account is locked, not every owner on the instance
+        owner = LibraryUser.objects.create(
+            library=demo_owner['library'], user=UserFactory(), owner=True)
+        content = get_graphql_content(ApiClient(user=owner.user).post_graphql("""
+            mutation Toggle($libraryId: ID) {
+                updateColorEnabled(input: {classificationColorEnabled: true, libraryId: $libraryId}) { ok }
+            }
+        """, {'libraryId': str(demo_owner['library'].id)}))
+        assert content['data']['updateColorEnabled']['ok'] is True

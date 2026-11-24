@@ -54,6 +54,7 @@ export interface DeleteAuthCookiesResponse {
 export interface Environment {
   demo: boolean
   sampleData: boolean
+  analysisDisabled: boolean
 }
 
 export interface EnvironmentResponse {
