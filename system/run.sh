@@ -33,12 +33,19 @@ if [ "${DEMO}" = "1" ] || [ "${SAMPLE_DATA}" = "1" ]; then
   python /srv/photonix/manage.py import_demo_photos
 fi
 
->&2 echo "Resetting Redis lock"
-python /srv/photonix/manage.py reset_redis_locks
+if [ "${CLASSIFICATION_DISABLED}" != "1" ]; then
+  >&2 echo "Resetting Redis lock"
+  python /srv/photonix/manage.py reset_redis_locks
+fi
 
 >&2 echo "Rescheduling any required upgrade-related tasks"
 python /srv/photonix/manage.py housekeeping
 
 >&2 echo "Starting supervisor"
 # exec so supervisord becomes PID 1 and receives container stop signals
-exec supervisord -c /etc/supervisord.conf
+if [ "${CLASSIFICATION_DISABLED}" = "1" ]; then
+  >&2 echo "CLASSIFICATION_DISABLED=1 - starting without classification processors"
+  exec supervisord -c /srv/system/supervisord-core.conf
+else
+  exec supervisord -c /etc/supervisord.conf
+fi

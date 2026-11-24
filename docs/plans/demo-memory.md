@@ -37,6 +37,13 @@ If reality forces a deviation from the design, record it here with the reason �
 silently implement something else.
 
 <!-- - YYYY-MM-DD — M1: <one-line summary> — commit <hash> -->
+- 2026-11-24 — M1: process layouts split (core / classification), `GUNICORN_WORKERS`, Vite idles outside dev, `memory_report.sh` — commit M1SHA.
+  Baseline (deviation: measured on CI image `photonixapp/photonix:edge` with this branch's `system/` bind-mounted, not a local prd build — host had ~6 GB RAM / 29 GB disk free; cgroup `memory.current`, includes page cache):
+  (a) default idle, 16 programs, 8 gunicorn workers: **1299 MB** (each classifier process ~75–88 MB before any model, each gunicorn worker 51 MB);
+  (b) default while analysing 10 demo photos: **6142 MB, at the 6g limit**, repeated OOM kills (face 2172 MB RSS, style 1318, thumbnail_processor 633 and earlier 1.6 GB, color 529, location 447, event 306, object 240), 15 face/object tasks left stuck in `S`;
+  (c) default 10 min after analysis: **5237 MB — nothing released** (style 1316, face 1232, thumbnail 631, location 546, color 388, event 269);
+  (d) `CLASSIFICATION_DISABLED=1 GUNICORN_WORKERS=2` idle: **643 MB**, 8 programs, Vite RUNNING with one start.
+  New finding: `thumbnail_processor` (workers = `cpu_count()/2`, `thumbnail_processor.py:44`) reached ~1.6 GB RSS on full-size originals and was OOM-killed at 4g before any classifier ran. Plan amended: M2 must prove startup queues no thumbnail tasks after `reset_demo`, and M5 adds `THUMBNAIL_WORKERS` (1 under `LOW_MEMORY` and in the demo).
 
 ---
 
@@ -383,7 +390,7 @@ Idle exit, shared by both processors:
 
 All in `apps/photonix-demo/main.tf` unless noted:
 
-- Deployment env: add `CLASSIFICATION_DISABLED=1` and `GUNICORN_WORKERS=2`; remove
+- Deployment env: add `CLASSIFICATION_DISABLED=1`, `GUNICORN_WORKERS=2` and `THUMBNAIL_WORKERS=1`; remove
   `CLASSIFIER_MEMORY_BUFFER_MB`.
 - Resources: memory request and limit both `2Gi`.
 - Volume `data`: `empty_dir { size_limit = "5Gi" }` instead of the PVC; the four `subPath`
@@ -433,25 +440,25 @@ replicas and `SUSPEND True`; a `terraform plan` targeted at the module shows no 
 
 ### M1 — Process layouts, gunicorn worker setting, baseline measurement
 
-- [ ] The supervisord program list is split into `system/conf/programs-core.conf` and
+- [x] The supervisord program list is split into `system/conf/programs-core.conf` and
       `system/conf/programs-classification.conf` with `system/supervisord.conf` including both
       and a new `system/supervisord-core.conf` including core only (§4.1; port from
       `git show 9d81e9db -- system/`, dropping the CLIP programs and anything about the ML
       sidecar). Every program in today's `system/supervisord.conf:16-179` appears exactly once
       across the two files with its command unchanged.
-- [ ] `system/run.sh` starts the core-only config and skips `reset_redis_locks` when
+- [x] `system/run.sh` starts the core-only config and skips `reset_redis_locks` when
       `CLASSIFICATION_DISABLED=1`, and behaves as today otherwise (§4.1; today's tail is
       `run.sh:36-44`).
-- [ ] gunicorn's worker count comes from `GUNICORN_WORKERS`, default 8
+- [x] gunicorn's worker count comes from `GUNICORN_WORKERS`, default 8
       (`system/run_app_server.sh:8`).
-- [ ] The Vite program idles instead of exiting when `ENV` is not `dev`
+- [x] The Vite program idles instead of exiting when `ENV` is not `dev`
       (`system/run_vite_server.sh`), ending the respawn loop described in §3.1.
-- [ ] `system/memory_report.sh` exists and is executable (§4.1).
-- [ ] Tests in a new `tests/test_process_layouts.py`: parse the config files and assert the
+- [x] `system/memory_report.sh` exists and is executable (§4.1).
+- [x] Tests in a new `tests/test_process_layouts.py`: parse the config files and assert the
       default layout's program set equals the 16 names listed in §3.1, the core layout contains
       no program whose command mentions `classification` or `retrain_face`, and every include
       path exists. Plain file parsing with `configparser`; no Django needed.
-- [ ] Baseline recorded in this plan's Progress log: build `docker/Dockerfile.prd` locally, run
+- [x] Baseline recorded in this plan's Progress log: build `docker/Dockerfile.prd` locally, run
       it with `DEMO=1` against a throwaway Postgres and Redis, and paste the
       `memory_report.sh` output for (a) default layout idle before any analysis, (b) default
       layout while the demo photos are being analysed, (c) default layout 10 minutes after
@@ -492,7 +499,9 @@ behaviour must be exactly right.
       `classify_images` or `classify.*` task (`utils/thumbnails.py:46-50`); after
       `download_demo_photos` pins mtimes, `record_photo` on the file returns `'SKIPPED'`
       (`utils/db.py:60-67`); two resets in a row give identical row counts; export then reset
-      round-trips a library built with `record_photo`.
+      round-trips a library built with `record_photo`; after a reset, `housekeeping` queues no
+      `generate_thumbnails` task (M1 measured `thumbnail_processor` alone at ~1.6 GB RSS, so the
+      demo must not bulk-regenerate thumbnails at pod start; they are made on demand per request).
 
 **Verify:** `docker compose -f docker/docker-compose.dev.yml run -e PYTHONDONTWRITEBYTECODE=1 --rm photonix python test.py test_demo_reset test_task_queue`.
 **Done when:** those tests pass, and `manage.py reset_demo` run without `DEMO=1` prints the
@@ -562,6 +571,11 @@ up with tags from every enabled classifier and the process exits and restarts on
 - [ ] `system/conf/programs-classification-lowmem.conf` and `system/supervisord-lowmem.conf`
       exist as in §4.5, and `system/run.sh` selects layouts in the order of the §4.1 table and
       exports `GUNICORN_WORKERS=2` under `LOW_MEMORY=1` when it is unset.
+- [ ] `thumbnail_processor` and `raw_processor` take their worker count from `THUMBNAIL_WORKERS`
+      / `RAW_WORKERS` when set (defaults unchanged: `cpu_count()/2` and `/4`,
+      `thumbnail_processor.py:44`, `raw_processor.py:44`); `run.sh` exports both as 1 under
+      `LOW_MEMORY=1` when unset. Added to the README environment table. (M1 measured the
+      thumbnail processor at ~1.6 GB RSS with four workers.)
 - [ ] `tests/test_process_layouts.py` covers the low-memory layout: exactly one program whose
       command mentions `classification`, plus the face-retrain loop and every core program.
 - [ ] Measurements in the Progress log from the locally built prd image with `LOW_MEMORY=1`:
