@@ -224,6 +224,9 @@ CLASSIFIER_WATCHDOG_INTERVAL_SECONDS = int(os.environ.get('CLASSIFIER_WATCHDOG_I
 CLASSIFIER_MEMORY_BUFFER_MB = int(os.environ.get('CLASSIFIER_MEMORY_BUFFER_MB', 500))  # Safety buffer
 CLASSIFIER_MEMORY_RETRY_SECONDS = int(os.environ.get('CLASSIFIER_MEMORY_RETRY_SECONDS', 30))  # 30 sec retry
 CLASSIFIER_LOAD_COOLDOWN_SECONDS = int(os.environ.get('CLASSIFIER_LOAD_COOLDOWN', 15))
+# Exit a classifier process once its last model is unloaded so supervisord
+# restarts it clean - unloading alone does not return memory to the OS
+CLASSIFIER_EXIT_WHEN_IDLE = os.environ.get('CLASSIFIER_EXIT_WHEN_IDLE', '1') != '0'
 
 GRAPHENE = {
     'SCHEMA': 'photonix.web.schema.schema',

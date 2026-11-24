@@ -152,3 +152,77 @@ def test_watchdog_thread_starts_and_stops(manager):
 
 def test_model_manager_is_a_singleton():
     assert ModelManager() is ModelManager()
+
+
+def test_should_exit_when_idle_lifecycle(manager):
+    manager._exit_when_idle = True
+    # Never loaded anything: stays running, so idle exit cannot loop
+    assert manager.should_exit_when_idle() is False
+
+    manager.get_model('color', FakeModel)
+    assert manager.should_exit_when_idle() is False
+
+    manager.unload_model('color')
+    assert manager.should_exit_when_idle() is True
+
+
+def test_should_exit_when_idle_waits_for_unload_in_progress(manager, monkeypatch):
+    """The model leaves _model_instances while its Redis lock is still held;
+    exiting then would leave the lock held until its TTL runs out."""
+    import threading
+
+    manager._exit_when_idle = True
+    manager.get_model('color', FakeModel)
+    in_cleanup = threading.Event()
+    release = threading.Event()
+
+    def blocking_cleanup(classifier_name, model):
+        in_cleanup.set()
+        release.wait(timeout=10)
+
+    monkeypatch.setattr(manager, '_tensorflow_cleanup', blocking_cleanup)
+    thread = threading.Thread(target=manager.unload_model, args=('color',))
+    thread.start()
+    try:
+        assert in_cleanup.wait(timeout=5)
+        assert not manager.is_loaded('color')
+        assert manager.should_exit_when_idle() is False
+    finally:
+        release.set()
+        thread.join(timeout=10)
+    assert not thread.is_alive()
+    assert manager.should_exit_when_idle() is True
+
+
+def test_set_load_cooldown(manager):
+    manager.set_load_cooldown(0)
+    manager.get_model('color', FakeModel)
+    # No cooldown: a second model loads straight after the first
+    manager.get_model('style', FakeModel)
+    assert FakeModel.instances == 2
+
+
+def test_should_exit_when_idle_disabled_by_setting(manager):
+    manager._exit_when_idle = False
+    assert manager.should_exit_when_idle() is False
+    manager.get_model('color', FakeModel)
+    assert manager.should_exit_when_idle() is False
+    manager.unload_model('color')
+    assert manager.should_exit_when_idle() is False
+
+
+@pytest.mark.parametrize('value,expected', [(None, True), ('1', True), ('0', False)])
+def test_exit_when_idle_setting_from_env(monkeypatch, value, expected):
+    import importlib
+
+    from photonix.web import settings as settings_module
+
+    if value is None:
+        monkeypatch.delenv('CLASSIFIER_EXIT_WHEN_IDLE', raising=False)
+    else:
+        monkeypatch.setenv('CLASSIFIER_EXIT_WHEN_IDLE', value)
+    try:
+        assert importlib.reload(settings_module).CLASSIFIER_EXIT_WHEN_IDLE is expected
+    finally:
+        monkeypatch.delenv('CLASSIFIER_EXIT_WHEN_IDLE', raising=False)
+        importlib.reload(settings_module)
