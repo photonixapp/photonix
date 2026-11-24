@@ -45,6 +45,11 @@ DEMO_PHOTO_URLS = [
     'https://live.staticflickr.com/572/32440255904_7ea0605d9e_o_d.jpg',
     'https://live.staticflickr.com/3771/32468418193_f8ea8caa32_o_d.jpg',
     'https://live.staticflickr.com/736/33127591042_2b31fe5d58_o_d.jpg',
+    # Four face photos, see photonix/photos/demo/README.md for sources and licences
+    'https://live.staticflickr.com/67/171086203_386e77b8b7_k.jpg',
+    'https://live.staticflickr.com/4823/45907472935_1a631bc909_o_d.jpg',
+    'https://live.staticflickr.com/4839/40008583563_0844026bc8_o_d.jpg',
+    'https://live.staticflickr.com/900/41308431822_a4e12585cf_o_d.jpg',
 ]
 RESET_ADVISORY_LOCK_ID = 515515
 DOWNLOAD_TIMEOUT = (10, 60)  # (connect, read) seconds

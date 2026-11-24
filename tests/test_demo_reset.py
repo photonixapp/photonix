@@ -564,3 +564,87 @@ def test_download_removes_stale_temp_files(photos_dir, no_network):
     assert not stale.exists()
     assert unrelated.exists()
     assert not list(photos_dir.glob('.download-*'))
+
+
+# --- The real fixture shipped in the image (photonix/photos/demo/demo_library.json) ---
+
+REAL_FIXTURE = Path(demo.__file__).resolve().parent.parent / 'demo' / 'demo_library.json'
+EXPORTED_MODELS = {
+    'accounts.user', 'photos.library', 'photos.librarypath', 'photos.libraryuser', 'photos.camera',
+    'photos.lens', 'photos.photo', 'photos.photofile', 'photos.tag', 'photos.phototag'}
+FACE_PHOTO_BASENAMES = [
+    '171086203_386e77b8b7_k.jpg', '45907472935_1a631bc909_o_d.jpg',
+    '40008583563_0844026bc8_o_d.jpg', '41308431822_a4e12585cf_o_d.jpg']
+
+
+@pytest.fixture
+def real_fixture(monkeypatch):
+    monkeypatch.setattr(demo, 'FIXTURE_PATH', REAL_FIXTURE)
+    return REAL_FIXTURE
+
+
+def test_real_fixture_loads_cleanly(db, demo_on, real_fixture):
+    # Migration-drift guard: a schema change that breaks the fixture fails here in CI
+    counts = demo.reset_demo()
+
+    assert counts['photos.Photo'] == 14
+    assert counts['photos.PhotoFile'] == 14
+    assert counts['photos.Task'] == 14  # one Completed classify_images guard per photo
+
+
+def test_demo_photo_urls_are_fourteen_unique_files():
+    basenames = demo.demo_photo_basenames()
+    assert len(demo.DEMO_PHOTO_URLS) == 14
+    assert len(set(basenames)) == 14
+    for name in FACE_PHOTO_BASENAMES:
+        assert name in basenames
+
+
+def test_real_fixture_photo_files_match_demo_photo_urls():
+    rows = _fixture_rows(REAL_FIXTURE)
+    photos = [r for r in rows if r['model'] == 'photos.photo']
+    files = [r for r in rows if r['model'] == 'photos.photofile']
+    assert len(photos) == 14
+    assert len(files) == 14
+    assert sorted(os.path.basename(r['fields']['path']) for r in files) == sorted(demo.demo_photo_basenames())
+    # Every path is where download_demo_photos puts the file
+    assert {r['fields']['path'] for r in files} == {demo.demo_photo_path(u) for u in demo.DEMO_PHOTO_URLS}
+
+
+def test_real_fixture_has_every_tag_type():
+    rows = _fixture_rows(REAL_FIXTURE)
+    tag_types = {r['fields']['type'] for r in rows if r['model'] == 'photos.tag'}
+    # Color, Location, Style, Object, Face
+    assert {'C', 'L', 'S', 'O', 'F'} <= tag_types
+
+
+def test_real_fixture_face_photos_carry_face_embeddings():
+    rows = _fixture_rows(REAL_FIXTURE)
+    tags = {r['pk']: r for r in rows if r['model'] == 'photos.tag'}
+    files = {r['fields']['photo']: os.path.basename(r['fields']['path'])
+             for r in rows if r['model'] == 'photos.photofile'}
+    faces = [r for r in rows
+             if r['model'] == 'photos.phototag' and tags[r['fields']['tag']]['fields']['type'] == 'F']
+
+    assert len(faces) >= 6
+    # The classifier stores no embedding for a face it could not embed (one of the 7 here)
+    embeddings = [json.loads(f['fields']['extra_data'])['facenet_embedding']
+                  for f in faces if f['fields']['extra_data']]
+    assert len(embeddings) >= 6
+    assert all(len(e) == 128 for e in embeddings)
+    # The faces are on the four face photos, none on the other ten
+    assert {files[f['fields']['photo']] for f in faces} == set(FACE_PHOTO_BASENAMES)
+
+
+def test_real_fixture_contains_only_exported_models():
+    models = {r['model'] for r in _fixture_rows(REAL_FIXTURE)}
+    assert models <= EXPORTED_MODELS
+    assert not {'photos.task', 'photos.libraryinvitation'} & models
+
+
+def test_real_fixture_has_no_generic_tags():
+    # Embedded keyword tags (type G) can carry personal names, which must not
+    # appear on the public demo.
+    generic = [r['fields']['name'] for r in _fixture_rows(REAL_FIXTURE)
+               if r['model'] == 'photos.tag' and r['fields']['type'] == 'G']
+    assert generic == []
